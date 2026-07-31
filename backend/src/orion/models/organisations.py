@@ -25,10 +25,16 @@ class Organisation(Base):
     """Canonical organisation; provenance lives in aliases and identifiers."""
 
     __tablename__ = "organisations"
-    __table_args__ = (_trigram_index("ix_organisations_name_trgm", "name"),)
+    __table_args__ = (
+        _trigram_index("ix_organisations_name_trgm", "name"),
+        _trigram_index("ix_organisations_name_normalized_trgm", "name_normalized"),
+        Index("ix_organisations_name_normalized", "country_code", "name_normalized"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(Text)
+    # Comparison key for deduplication; rebuilt by `orion-ingest dedup`.
+    name_normalized: Mapped[str | None] = mapped_column(Text)
     country_code: Mapped[str | None] = mapped_column(String(2), ForeignKey("countries.code"))
     city: Mapped[str | None] = mapped_column(String(200))
     org_type: Mapped[str | None] = mapped_column(String(50))

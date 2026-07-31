@@ -3,7 +3,7 @@ import sys
 import time
 from functools import partial
 
-from orion.ingest import anr, cordis
+from orion.ingest import anr, cordis, dedup
 from orion.ingest import reference as reference_module
 from orion.ingest.cordis.config import FRAMEWORKS
 
@@ -11,10 +11,11 @@ REGISTRY = {
     "reference": reference_module.run,
     **{key: partial(cordis.load.run, key) for key in FRAMEWORKS},
     "anr": anr.load.run,
+    "dedup": dedup.merge.run,
 }
 
-# `all` rebuilds everything, reference data first.
-ALL = ["reference", *FRAMEWORKS.keys(), "anr"]
+# `all` rebuilds everything: reference data first, deduplication last.
+ALL = ["reference", *FRAMEWORKS.keys(), "anr", "dedup"]
 
 
 def main() -> int:
