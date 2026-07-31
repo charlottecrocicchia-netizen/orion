@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from orion.core.db import engine
 from orion.ingest.dedup.merge import (
+    drop_orphan_organisations,
     merge_exact,
     merge_fuzzy,
     refresh_normalized_names,
@@ -81,6 +82,27 @@ def test_normalize_name_folds_case_accents_legal_forms_and_synonyms():
     assert normalize_name("Institut Pasteur (Paris)") == "institute pasteur"
     assert normalize_name("  ") is None
     assert normalize_name(None) is None
+
+
+def test_normalize_keeps_non_latin_scripts():
+    """An ASCII-only rule silently excluded Greek, Cyrillic and CJK names."""
+    assert normalize_name("ΔΙΑΖΩΜΑ") == "διαζωμα"
+    assert normalize_name("河南科隆集团有限公司") == "河南科隆集团有限公司"
+    assert normalize_name("Кировский завод") == "кировскии завод"
+    # Same organisation written with different punctuation still collapses.
+    assert normalize_name("Π.ΣΚΕΝΤΕΡΙΔΗΣ ΚΑΙ ΣΙΑ") == normalize_name("Π ΣΚΕΝΤΕΡΙΔΗΣ ΚΑΙ ΣΙΑ")
+    # Placeholder names carry no identity and must stay unmatched.
+    assert normalize_name("_") is None
+    assert normalize_name("---") is None
+
+
+def test_a_fully_parenthesised_name_is_not_erased():
+    """Parentheses normally hold a qualifier; here they wrap the whole name."""
+    assert (
+        normalize_name("(Research Organization of Bioproducts OOD)")
+        == "recherche organization bioproducts"
+    )
+    assert normalize_name("Institut Pasteur (Paris)") == "institute pasteur"
 
 
 def test_normalize_never_returns_an_empty_key_for_a_legal_form_only_name():
@@ -187,6 +209,35 @@ def test_fuzzy_merge_joins_near_identical_names_but_spares_short_ones(db_session
     # Short names stay apart: a trigram score means little on three letters.
     assert _count(db_session, Organisation, Organisation.id == short_a) == 1
     assert _count(db_session, Organisation, Organisation.id == short_b) == 1
+
+
+def test_orphan_organisations_are_dropped(db_session):
+    """An organisation with no participation describes nothing."""
+    orphan_id = _org(db_session, f"{MARK} Organisation Fantome").id
+    attached = _org(db_session, f"{MARK} Organisation Reelle")
+    project = _project(db_session, f"{MARK}-orphan")
+    _participation(db_session, project, attached, f"{MARK}-orphan-1")
+    attached_id = attached.id
+    db_session.add(
+        OrganisationIdentifier(organisation_id=orphan_id, scheme="pic", value=f"{MARK}999")
+    )
+    db_session.flush()
+
+    stats = RunStats()
+    drop_orphan_organisations(db_session, stats)
+    db_session.expunge_all()
+
+    assert _count(db_session, Organisation, Organisation.id == orphan_id) == 0
+    assert _count(db_session, Organisation, Organisation.id == attached_id) == 1
+    # The identifier cascaded away with its organisation.
+    assert (
+        _count(
+            db_session,
+            OrganisationIdentifier,
+            OrganisationIdentifier.value == f"{MARK}999",
+        )
+        == 0
+    )
 
 
 def test_organisations_in_different_countries_are_never_merged(db_session):

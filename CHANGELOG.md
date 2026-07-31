@@ -6,10 +6,25 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Deduplication now keys on names in any script. The comparison key kept
+  only ASCII characters, so Greek, Cyrillic and CJK names collapsed to an
+  empty key and were silently excluded from deduplication — harmless today
+  (20 organisations) but blocking as soon as non-Latin sources are added.
+- A name wrapped entirely in parentheses is no longer erased by the
+  qualifier-stripping rule.
+
+### Removed
+
+- Organisations left with no participation at all are dropped at the end of
+  the deduplication pass (192 on the current data): Orion only describes an
+  organisation through the projects it took part in.
+
 ## [0.1.0] - 2026-07-31
 
 Phase 1 — past funded projects. The database now rebuilds from scratch with
-one command (`make ingest`): 119 172 projects, 103 649 deduplicated
+one command (`make ingest`): 119 172 projects, ~103 500 deduplicated
 organisations and 581 006 participations across CORDIS (Horizon Europe,
 H2020, FP7) and ANR, refreshed weekly by a scheduler container.
 

@@ -227,6 +227,28 @@ def merge_fuzzy(
     stats.add("fuzzy_pairs_examined", len(pairs))
 
 
+def drop_orphan_organisations(session: Session, stats: RunStats) -> None:
+    """Remove organisations left with no participation at all.
+
+    They carry no information — Orion only ever describes an organisation
+    through the projects it took part in — and a handful accumulate from
+    interrupted runs and skipped duplicate rows. Identifiers and aliases
+    cascade away with them.
+    """
+    result = session.execute(
+        delete(Organisation)
+        .where(
+            ~select(Participation.id)
+            .where(Participation.organisation_id == Organisation.id)
+            .exists()
+        )
+        .execution_options(synchronize_session=False)
+    )
+    session.commit()
+    if result.rowcount:
+        stats.add("orphan_organisations_dropped", result.rowcount)
+
+
 def measure(session: Session, stats: RunStats) -> None:
     """Record what the pass left behind, so quality is visible, not assumed."""
     stats.add("organisations_after", session.scalar(select(func.count(Organisation.id))) or 0)
@@ -263,6 +285,7 @@ def run(force: bool = False) -> dict[str, int]:
             refresh_normalized_names(session, stats)
             merge_exact(session, stats)
             merge_fuzzy(session, stats)
+            drop_orphan_organisations(session, stats)
             measure(session, stats)
         finally:
             session.close()

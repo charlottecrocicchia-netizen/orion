@@ -44,14 +44,21 @@ La base publique des projets LIFE existe (`https://webgate.ec.europa.eu/life/pub
 
 ## Dédoublonnage des organisations — métriques (run du 2026-07-31, v0.1.0)
 
-111 791 organisations brutes → **103 649 canoniques** (27 min, journalisé dans `ingestion_runs`, source `dedup`) :
+111 791 organisations brutes → **103 457 canoniques** (~27 min, journalisé dans `ingestion_runs`, source `dedup`) :
 
 - **7 293 fusions exactes** (pays + nom normalisé identiques : casse, accents, ponctuation, formes juridiques et abréviations repliées)
 - **849 fusions floues** (similarité trigramme ≥ 0,92, noms ≥ 12 caractères, même pays ; 9 442 paires candidates examinées)
 - **3 234 fusions refusées par le garde-fou des identifiants** : noms identiques ou quasi identiques mais identifiants forts différents (PIC, SIREN, RNSR…) — deux entités juridiques distinctes, jamais fusionnées
+- **192 organisations orphelines supprimées** (aucune participation : résidus de runs interrompus et de lignes doublons ignorées — une organisation sans projet ne décrit rien)
 - 615 groupes résiduels partagent une clé normalisée sans être fusionnés (majoritairement séparés par leurs identifiants) ; 4 451 projets comptent une même organisation sur plusieurs participations après fusion — les analytics devront compter en DISTINCT
 
+**Idempotence vérifiée** : une seconde passe sur la base déjà dédoublonnée n'a produit **aucune fusion** (103 649 → 103 649). Le pipeline converge.
+
+**Normalisation multi-alphabets** : la clé de comparaison accepte tous les alphabets (grec, cyrillique, CJK). Une première version ne gardait que l'ASCII, ce qui vidait entièrement les noms non latins et les excluait silencieusement du dédoublonnage — défaut sans gravité aujourd'hui (20 organisations) mais bloquant dès l'ajout de sources japonaises ou coréennes. Seuls restent sans clé les noms purement typographiques (`_`, `-`, `.`), ce qui est voulu : ils ne portent aucune identité et ne doivent jamais se rapprocher entre eux.
+
 **Écart assumé vs le brief** (~61 000 organisations attendues) : les garde-fous privilégient la précision — aucune fusion inter-pays, aucune fusion contre des identifiants contradictoires, seuil flou élevé. Beaucoup de « doublons » apparents sont des entités juridiquement distinctes (filiales nationales, laboratoires rattachés). Resserrer viendra en phase 3 (ROR, embeddings), avec métriques avant/après à chaque ajustement.
+
+**Coût** : ~25 min, dont l'essentiel dans la passe floue (auto-jointure trigramme sur toute la table). Acceptable pour un job hebdomadaire nocturne ; à rendre incrémental en phase 3 si le volume croît.
 
 ## Protection des données personnelles
 

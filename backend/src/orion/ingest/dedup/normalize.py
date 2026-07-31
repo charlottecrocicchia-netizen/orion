@@ -67,6 +67,8 @@ LEGAL_FORMS = {
     "uab",
     "ad",
     "ead",
+    "ood",
+    "eood",
 }
 
 # Generic tokens that add noise to the comparison key.
@@ -131,7 +133,26 @@ ABBREVIATIONS = {
 }
 
 _PARENTHETICAL = re.compile(r"\([^)]*\)")
-_NON_ALNUM = re.compile(r"[^a-z0-9]+")
+
+
+def _tokenize(text: str) -> list[str]:
+    """Split on anything that is not a letter or digit, in *any* script.
+
+    An ASCII-only rule would empty out Greek, Cyrillic or CJK names entirely
+    and silently exclude them from deduplication — see ADR 0002 on staying
+    multi-country by construction.
+    """
+    tokens: list[str] = []
+    current: list[str] = []
+    for char in text:
+        if char.isalnum():
+            current.append(char)
+        elif current:
+            tokens.append("".join(current))
+            current = []
+    if current:
+        tokens.append("".join(current))
+    return tokens
 
 
 def normalize_name(raw: str | None) -> str | None:
@@ -147,9 +168,10 @@ def normalize_name(raw: str | None) -> str | None:
 
     folded = unicodedata.normalize("NFKD", raw.strip().lower())
     folded = "".join(c for c in folded if not unicodedata.combining(c))
-    folded = _PARENTHETICAL.sub(" ", folded)
 
-    tokens = [t for t in _NON_ALNUM.split(folded) if t]
+    # Parentheses usually hold a qualifier ("Institut Pasteur (Paris)"), but
+    # some sources wrap the whole name — then stripping them would erase it.
+    tokens = _tokenize(_PARENTHETICAL.sub(" ", folded)) or _tokenize(folded)
     kept: list[str] = []
     for token in tokens:
         if token in LEGAL_FORMS or token in NOISE_TOKENS:
