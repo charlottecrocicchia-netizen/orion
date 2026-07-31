@@ -2,6 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$HOME/.venvs/orion-backend}"
+
 trap 'kill 0' EXIT INT TERM
 
 (cd backend && uv run uvicorn orion.main:app --reload --port 8000) &

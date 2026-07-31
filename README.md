@@ -27,6 +27,13 @@ brew install colima docker docker-compose docker-buildx uv pnpm && colima start
 `"cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]` to
 `~/.docker/config.json`.)
 
+> **If the repo lives in an iCloud-synced folder** (e.g. `~/Documents` with
+> Desktop & Documents sync): iCloud corrupts Python venvs (hidden flags on
+> `.pth` files, " 2" conflict copies). The Makefile therefore keeps the venv
+> in `~/.venvs/orion-backend`. If you call `uv` directly instead of `make`,
+> set `UV_PROJECT_ENVIRONMENT="$HOME/.venvs/orion-backend"` first — or move
+> the repo outside the synced tree.
+
 ## Quickstart — development
 
 ```bash

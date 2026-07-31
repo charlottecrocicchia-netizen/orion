@@ -13,6 +13,9 @@ __pycache__/
 node_modules/
 frontend/dist/
 
+# Downloaded source data (rebuildable, never committed)
+data/
+
 # Tooling & OS
 .claude/
 .DS_Store

@@ -1,0 +1,3 @@
+projectID;projectAcronym;organisationID;vatNumber;name;shortName;SME;activityType;street;postCode;city;country;nutsCode;geolocation;organizationURL;contactForm;contentUpdateDate;rcn;order;role;ecContribution;netEcContribution;totalCost;endOfParticipation;active
+730000001;WINDMAX;123456780001;FR12345678901;COMMISSARIAT TESTFIX ENERGIE ATOMIQUE;CEA;false;REC;Rue Leblanc 25;75015;PARIS;FR;FR101;"48.841,2.276";https://www.example.org/cea;;2021-02-03 10:00:00;2001;1;coordinator;1500000;;1500000;false;true
+730000001;WINDMAX;123456780003;GB999999999;UNIVERSITY OF STRATHCLYDE TESTFIX;STRATH;false;HES;George Street 16;G1 1XQ;GLASGOW;UK;UKM82;"55.861,-4.244";https://www.example.org/strath;;2021-02-03 10:00:00;2002;2;participant;1700000;;1700000;false;true

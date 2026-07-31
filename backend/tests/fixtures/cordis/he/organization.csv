@@ -1,0 +1,5 @@
+projectID;projectAcronym;organisationID;vatNumber;name;shortName;SME;activityType;street;postCode;city;country;nutsCode;geolocation;organizationURL;contactForm;contentUpdateDate;rcn;order;role;ecContribution;netEcContribution;totalCost;endOfParticipation;active
+101000001;HYDROX;123456780001;FR12345678901;COMMISSARIAT TESTFIX ENERGIE ATOMIQUE;CEA;false;REC;Rue Leblanc 25;75015;PARIS;FR;FR101;"48.841,2.276";https://www.example.org/cea;;2023-06-12 18:24:07;1001;1;coordinator;"1200000,5";;1500000;false;true
+101000001;HYDROX;123456780002;;TECHNISCHE UNIVERSITAET WIEN TESTFIX;TUW;false;HES;Karlsplatz 13;1040;WIEN;AT;AT130;"48.198,16.367";https://www.example.org/tuw;;2023-06-12 18:24:07;1002;2;participant;800000;;900000;false;true
+101000002;GREENSTEEL;123456780001;FR12345678901;COMMISSARIAT TESTFIX ENERGIE ATOMIQUE;CEA;false;REC;Rue Leblanc 25;75015;PARIS;FR;FR101;"48.841,2.276";https://www.example.org/cea;;2024-01-05 09:00:00;1003;1;coordinator;2000000;;2500000;false;true
+101000002;GREENSTEEL;;;SMALL GREEK STARTUP TESTFIX;SGS;true;PRC;;;ATHINA;EL;;;;;2024-01-05 09:00:00;1004;2;participant;500000;;600000;false;true

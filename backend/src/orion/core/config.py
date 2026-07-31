@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     env: str = "dev"
     database_url: str = "postgresql+psycopg://orion:orion@localhost:5432/orion"
+    data_dir: str = "data"
 
 
 @lru_cache

@@ -10,7 +10,12 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "alembic>=1.13",
     "pydantic-settings>=2.4",
+    "httpx>=0.27",
+    "pycountry>=24.6",
 ]
+
+[project.scripts]
+orion-ingest = "orion.ingest.cli:main"
 
 [dependency-groups]
 dev = [
@@ -18,6 +23,12 @@ dev = [
     "httpx>=0.27",
     "ruff>=0.8",
 ]
+
+[tool.uv]
+# The machine's Anaconda Python breaks editable installs (.pth not honoured);
+# always use uv-managed interpreters locally. Docker overrides this to use the
+# image's Python via UV_PYTHON_PREFERENCE=only-system.
+python-preference = "only-managed"
 
 [build-system]
 requires = ["hatchling"]

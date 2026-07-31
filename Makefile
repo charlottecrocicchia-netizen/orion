@@ -1,5 +1,9 @@
 .DEFAULT_GOAL := help
 
+# The repo lives in an iCloud-synced folder; keep the Python venv outside of it
+# (iCloud mangles .pth files with hidden flags and " 2" conflict copies).
+export UV_PROJECT_ENVIRONMENT := $(HOME)/.venvs/orion-backend
+
 COMPOSE_DEV := docker compose -f compose.dev.yml
 
 help: ## List available commands
@@ -7,6 +11,7 @@ help: ## List available commands
 
 bootstrap: ## Install backend and frontend dependencies
 	cd backend && uv sync
+	@command -v chflags >/dev/null && find backend/.venv -name "*.pth" -exec chflags nohidden {} + || true
 	cd frontend && pnpm install
 
 db-up: ## Start the local dev database (Docker)
@@ -42,8 +47,8 @@ up: .env ## Run the full production stack locally (http://localhost:8080)
 down: ## Stop the production stack
 	cd infra && docker compose --env-file ../.env -f compose.prod.yml down
 
-ingest: ## Rebuild the database from public sources (phase 1)
-	@echo "make ingest arrives in phase 1 (data pipelines)"
+ingest: migrate ## Rebuild the database from public sources
+	cd backend && uv run orion-ingest all
 
 deploy: ## Deploy to the configured VPS (see infra/README.md)
 	./infra/deploy.sh

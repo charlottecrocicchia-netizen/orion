@@ -1,0 +1,4 @@
+id;acronym;status;title;startDate;endDate;totalCost;ecMaxContribution;legalBasis;topics;ecSignatureDate;frameworkProgramme;masterCall;subCall;fundingScheme;nature;objective;contentUpdateDate;rcn;grantDoi
+101000001;HYDROX;SIGNED;"Hydrogen oxidation catalysts for clean energy";2022-01-01;2025-12-31;"2999250,5";"2500000,25";HORIZON.2.5;HORIZON-CL5-2021-D3-01;2021-12-15;HORIZON;HORIZON-CL5-2021-D3;HORIZON-CL5-2021-D3-01;HORIZON-RIA;;"Developing novel catalysts for hydrogen oxidation.";2023-06-12 18:24:07;238742;10.3030/101000001
+101000002;GREENSTEEL;SIGNED;"Green steel through direct reduction";2023-03-01;2026-02-28;5000000;4000000;HORIZON.2.4;HORIZON-CL4-2022;2023-01-20;HORIZON;HORIZON-CL4-2022;;HORIZON-IA;;"Decarbonising steel production with hydrogen direct reduction.";2024-01-05 09:00:00;240001;10.3030/101000002
+GARBAGE-SHIFTED;odd;row;"whose id is not numeric";;;;;Morphogenesis, mechanobiology, pattern formation;;;;;;;;"shifted content lands in wrong columns";;;
