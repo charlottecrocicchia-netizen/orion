@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import "./i18n";
 
+import { DataCard } from "@/components/data-card";
 import { LanguageToggle } from "@/components/language-toggle";
 import { Logo } from "@/components/logo";
 import { StatusCard } from "@/components/status-card";
@@ -48,7 +49,8 @@ function Shell() {
           <p className="mx-auto mt-5 max-w-xl text-base text-pretty text-muted-foreground md:text-lg">
             {t("subtitle")}
           </p>
-          <div className="mt-12">
+          <div className="mx-auto mt-12 grid max-w-2xl gap-4 sm:grid-cols-2">
+            <DataCard />
             <StatusCard />
           </div>
         </section>

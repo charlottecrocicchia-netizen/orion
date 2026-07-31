@@ -60,7 +60,7 @@ export function StatusCard() {
     state === "ok" ? t("status.ok") : state === "down" ? t("status.down") : "—";
 
   return (
-    <Card className="mx-auto w-full max-w-sm text-left">
+    <Card className="w-full text-left">
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {t("status.title")}
