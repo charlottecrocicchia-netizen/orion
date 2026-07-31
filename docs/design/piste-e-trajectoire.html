@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piste E — Trajectoire</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Barlow,system-ui,sans-serif;font-size:15px;line-height:1.55;background:#FFF;color:#0A0C10}
+  .cond{font-family:'Barlow Semi Condensed',Barlow,sans-serif}
+  .num{font-variant-numeric:tabular-nums}
+  .eyebrow{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.16em;color:#66707E}
+  .muted{color:#66707E}
+  .label{position:sticky;top:0;z-index:50;background:#0A0C10;color:#fff;font-weight:600;font-size:12px;
+    letter-spacing:.06em;text-transform:uppercase;padding:6px 24px}
+  nav{display:flex;align-items:center;gap:32px;padding:0 48px;height:60px;border-bottom:1px solid #D9DDE3;
+    max-width:1280px;margin:0 auto}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;letter-spacing:.08em}
+  nav a{color:#0A0C10;text-decoration:none;font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.1em}
+  nav .links{display:flex;gap:26px}
+  .navr{margin-left:auto;display:flex;gap:20px;align-items:center;color:#66707E;font-size:12.5px}
+  .searchbar{border:1px solid #D9DDE3;padding:8px 14px;min-width:230px;font-size:13px;color:#66707E}
+  .hero{max-width:1280px;margin:0 auto;padding:64px 48px 48px}
+  .hero h1{font-weight:600;font-size:clamp(40px,5.2vw,62px);line-height:1.04;letter-spacing:-.015em;max-width:17ch}
+  .hero .sub{font-size:18px;color:#66707E;margin-top:16px;max-width:52ch}
+  .searchrect{margin-top:30px;max-width:620px;display:flex;align-items:center;gap:12px;border:1.5px solid #0A0C10;
+    padding:15px 18px;font-size:15px;color:#66707E}
+  .searchrect b{color:#0A0C10;font-weight:500}
+  .searchrect .go{margin-left:auto;background:#0A0C10;color:#fff;font-size:12px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.12em;padding:8px 16px}
+  .mission{background:#070B14;color:#F4F6FA;margin-top:56px}
+  .mission .inner{max-width:1280px;margin:0 auto;padding:64px 48px 56px}
+  .mission .eyebrow{color:#8B93A5}
+  .readout{display:grid;grid-template-columns:auto auto auto;gap:72px;margin-top:26px;justify-content:start}
+  .readout .v{font-family:'Barlow Semi Condensed';font-weight:600;font-size:clamp(56px,7vw,92px);line-height:1;letter-spacing:.01em}
+  .readout .k{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.16em;color:#8B93A5;margin-top:8px}
+  .readout .rule{height:2px;background:#22283A;margin-top:14px;position:relative;overflow:hidden}
+  .readout .rule i{position:absolute;inset:0;background:#F4F6FA;transform-origin:left;transform:scaleX(0);transition:transform 1.3s cubic-bezier(.4,0,.2,1)}
+  body.ready .readout .rule i{transform:scaleX(1)}
+  .tele{margin-top:48px}
+  .tele svg{display:block;width:100%}
+  .tele .line{fill:none;stroke:#3A4359;stroke-width:1}
+  .tele .star{fill:#F4F6FA}
+  .tele .peak{fill:#F4F6FA}
+  .tele .ring{fill:none;stroke:#F4F6FA;stroke-opacity:.4;stroke-width:1}
+  .tele text{font-family:Barlow;font-size:10.5px;fill:#8B93A5;letter-spacing:.1em}
+  .tele .peaklbl{font-size:12px;fill:#F4F6FA;font-weight:600}
+  section.results{max-width:1080px;margin:64px auto 0;padding:0 48px}
+  .rhead{display:flex;align-items:baseline;gap:16px}
+  .rhead h2{font-weight:600;font-size:30px;letter-spacing:-.01em}
+  .filters{display:flex;gap:0;margin:18px 0 0;border:1px solid #D9DDE3;width:max-content}
+  .filters span{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+    padding:9px 16px;border-right:1px solid #D9DDE3;color:#66707E}
+  .filters span:last-child{border-right:0}
+  .filters span.on{background:#0A0C10;color:#fff}
+  .thead,.row{display:grid;grid-template-columns:1fr 150px 100px 110px;gap:18px;align-items:baseline}
+  .thead{margin-top:26px;padding-bottom:10px;border-bottom:2px solid #0A0C10;
+    font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:#66707E}
+  .row{padding:18px 0;border-bottom:1px solid #E4E7EB}
+  .row .ttl{font-size:17px;font-weight:500}
+  .row .acr{color:#0B5FFF;font-weight:600;margin-right:8px}
+  .row .snip{font-size:13px;color:#66707E;margin-top:4px}
+  .row .r{text-align:right}
+  .amt{font-family:'Barlow Semi Condensed';font-weight:600;font-size:19px}
+  mark{background:none;color:#0B5FFF;font-weight:500}
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  section.org{max-width:1080px;margin:80px auto 0;padding:0 48px 8px}
+  .orgtop{display:flex;gap:28px;align-items:center;border-top:2px solid #0A0C10;padding-top:28px}
+  .patch{flex:none}
+  .orgtop h2{font-weight:600;font-size:30px;letter-spacing:-.01em;line-height:1.15;max-width:24ch}
+  .orgtop .sub{color:#66707E;margin-top:6px;font-size:14px}
+  .idrow{display:flex;gap:8px;margin-top:10px}
+  .idrow span{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;
+    color:#66707E;border:1px solid #D9DDE3;padding:3px 9px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin:36px 0 0}
+  .kpi{border-top:2px solid #0A0C10;padding-top:12px}
+  .kpi .v{font-family:'Barlow Semi Condensed';font-weight:600;font-size:40px;line-height:1}
+  .kpi .k{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:#66707E;margin-top:6px}
+  .split{display:grid;grid-template-columns:1.25fr 1fr;gap:56px;margin-top:44px}
+  h5{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:#66707E;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:#66707E;
+    font-weight:600;padding:0 8px 9px;border-bottom:2px solid #0A0C10}
+  td{padding:12px 8px;border-bottom:1px solid #E4E7EB}
+  td.r,th.r{text-align:right}
+  .coord{color:#0B5FFF;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .part2{color:#66707E;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:126px}
+  .bars i{flex:1;background:#D9DDE3;transform-origin:bottom;transition:transform 1s cubic-bezier(.3,.7,.2,1)}
+  .bars i.peak{background:#0A0C10}
+  body:not(.ready) .bars i{transform:scaleY(0)}
+  .yaxis{display:flex;gap:6px;margin-top:7px}
+  .yaxis span{flex:1;text-align:center;font-size:10px;color:#66707E}
+  footer{max-width:1080px;margin:64px auto 0;padding:20px 48px 40px;border-top:1px solid #D9DDE3;
+    font-size:12.5px;color:#66707E}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}.reveal{opacity:1;transform:none}}
+</style></head><body>
+
+<div class="label">Piste E — « Trajectoire » · Barlow · monochrome + bleu télémétrie · bande sombre cinématique · clair par défaut</div>
+
+<nav>
+  <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#0A0C10" stroke-width="1"/><circle cx="7" cy="15.5" r="1.5" fill="#0A0C10"/><circle cx="12" cy="10.5" r="1.5" fill="#0A0C10"/><circle cx="17" cy="8" r="1.5" fill="#0B5FFF"/></svg>ORION</div>
+  <div class="links"><a href="#">Projects</a><a href="#">Organisations</a><a href="#" style="color:#66707E">Analytics</a></div>
+  <div class="navr"><span class="searchbar">⌕ Search the map…</span><span>EN</span><span>◐</span></div>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">European R&D funding intelligence</div>
+  <h1>Every public euro of R&D, on one map.</h1>
+  <div class="sub">Twenty-two years of European and French funding — who was funded, with whom,
+    for how much. Searched in English and French.</div>
+  <div class="searchrect">⌕ <b>hydrogen</b><span class="go">Search</span></div>
+</div>
+
+<div class="mission">
+  <div class="inner">
+    <div class="eyebrow">Mission status · 2005 → 2027</div>
+    <div class="readout">
+      <div><div class="v num" data-count="211" data-prefix="€" data-suffix="B">€211B</div><div class="k">Funding tracked</div><div class="rule"><i></i></div></div>
+      <div><div class="v num" data-count="119172">119,172</div><div class="k">Projects</div><div class="rule"><i style="transition-delay:.15s"></i></div></div>
+      <div><div class="v num" data-count="103457">103,457</div><div class="k">Organisations</div><div class="rule"><i style="transition-delay:.3s"></i></div></div>
+    </div>
+    <div class="tele">
+      <svg viewBox="0 0 1120 205" aria-label="Funding per year, 2005 to 2027">
+        <polyline class="line" id="tline" points="10,168.3 60,166.5 110,161.3 160,112.3 210,118.4 260,112.3 310,81.7 360,68.6 410,81.7 460,105.3 510,85.2 560,85.2 610,84.3 660,85.2 710,64.2 760,62.5 810,64.2 860,52 910,10 960,27.5 1010,63.3 1060,60.7 1110,162.1"/>
+        <g>
+          <circle class="star" cx="10" cy="168.3" r="1.8"/><circle class="star" cx="60" cy="166.5" r="1.8"/>
+          <circle class="star" cx="110" cy="161.3" r="1.8"/><circle class="star" cx="160" cy="112.3" r="2.2"/>
+          <circle class="star" cx="210" cy="118.4" r="2.2"/><circle class="star" cx="260" cy="112.3" r="2.2"/>
+          <circle class="star" cx="310" cy="81.7" r="2.5"/><circle class="star" cx="360" cy="68.6" r="2.5"/>
+          <circle class="star" cx="410" cy="81.7" r="2.5"/><circle class="star" cx="460" cy="105.3" r="2.2"/>
+          <circle class="star" cx="510" cy="85.2" r="2.5"/><circle class="star" cx="560" cy="85.2" r="2.5"/>
+          <circle class="star" cx="610" cy="84.3" r="2.5"/><circle class="star" cx="660" cy="85.2" r="2.5"/>
+          <circle class="star" cx="710" cy="64.2" r="2.8"/><circle class="star" cx="760" cy="62.5" r="2.8"/>
+          <circle class="star" cx="810" cy="64.2" r="2.8"/><circle class="star" cx="860" cy="52" r="2.8"/>
+          <circle class="peak" cx="910" cy="10" r="3.6"/><circle class="ring" cx="910" cy="10" r="8"/>
+          <circle class="star" cx="960" cy="27.5" r="3.1"/><circle class="star" cx="1010" cy="63.3" r="2.8"/>
+          <circle class="star" cx="1060" cy="60.7" r="2.8"/><circle class="star" cx="1110" cy="162.1" r="1.8"/>
+        </g>
+        <text x="10" y="196">2005 · FP7 RAMP-UP</text><text x="510" y="196">H2020</text>
+        <text x="910" y="196" text-anchor="middle">2023 · PEAK</text><text x="1050" y="196">2027</text>
+        <text class="peaklbl" x="932" y="14">€18.3B</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<section class="results reveal">
+  <div class="rhead"><h2 class="num">1,810 projects</h2><span class="muted">match “hydrogen” · EN + FR</span></div>
+  <div class="filters"><span class="on">Horizon Europe 737</span><span>H2020 545</span><span>FP7 451</span><span>ANR 77</span><span>France 611</span><span>2015–2027</span></div>
+  <div class="thead"><span>Project</span><span>Programme</span><span>Years</span><span class="r">Funding</span></div>
+  <div class="row"><div><div class="ttl"><span class="acr">HYDEA</span>HYdrogen DEmonstrator for Aviation</div>
+      <div class="snip">…H2C (<mark>hydrogen</mark> combustion) propulsion system for aviation · 32 organisations</div></div>
+    <span>Horizon Europe</span><span class="num">2023–26</span><span class="r amt">€80.5M</span></div>
+  <div class="row"><div><div class="ttl"><span class="acr">H2ME 2</span>Hydrogen Mobility Europe 2</div>
+      <div class="snip">…make <mark>hydrogen</mark> mobility a reality across 8 countries · 60 organisations</div></div>
+    <span>Horizon 2020</span><span class="num">2016–23</span><span class="r amt">€35.0M</span></div>
+  <div class="row"><div><div class="ttl"><span class="acr">REFHYNE II</span>Clean Refinery Hydrogen for Europe II</div>
+      <div class="snip">…100 MW PEM electrolyser, green <mark>hydrogen</mark> at Shell Rheinland · 11 organisations</div></div>
+    <span>Horizon 2020</span><span class="num">2021–29</span><span class="r amt">€32.4M</span></div>
+  <div class="row"><div><div class="ttl"><span class="acr">JIVE</span>Joint Initiative for hydrogen Vehicles across Europe</div>
+      <div class="snip">The <mark>hydrogen</mark> fuel-cell bus, zero local emissions · 32 organisations</div></div>
+    <span>Horizon 2020</span><span class="num">2017–24</span><span class="r amt">€32.0M</span></div>
+</section>
+
+<section class="org reveal">
+  <div class="orgtop">
+    <svg class="patch" width="92" height="92" viewBox="0 0 92 92">
+      <circle cx="46" cy="46" r="44" fill="none" stroke="#0A0C10" stroke-width="1.2"/>
+      <circle cx="46" cy="46" r="36" fill="none" stroke="#D9DDE3" stroke-width="1"/>
+      <path d="M28 60 40 44l10 3 14-22" fill="none" stroke="#0A0C10" stroke-width="1.1"/>
+      <circle cx="28" cy="60" r="2.2" fill="#0A0C10"/><circle cx="40" cy="44" r="2.2" fill="#0A0C10"/>
+      <circle cx="50" cy="47" r="2.2" fill="#0A0C10"/><circle cx="64" cy="25" r="2.6" fill="#0B5FFF"/>
+    </svg>
+    <div>
+      <h2>Commissariat à l'énergie atomique et aux énergies alternatives</h2>
+      <div class="sub">Research organisation · Paris, France · cea.fr</div>
+      <div class="idrow"><span>PIC ✓</span><span>RNSR ✓</span><span>FR</span></div>
+    </div>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="v num" data-count="1.78" data-prefix="€" data-suffix="B" data-dec="2">€1.78B</div><div class="k">Total funding</div></div>
+    <div class="kpi"><div class="v num" data-count="2210">2,210</div><div class="k">Projects</div></div>
+    <div class="kpi"><div class="v num" data-count="555">555</div><div class="k">As coordinator</div></div>
+    <div class="kpi"><div class="v">2005–2027</div><div class="k">Active period</div></div>
+  </div>
+  <div class="split">
+    <div><h5>Portfolio · top by funding</h5>
+      <table><tr><th>Project</th><th>Role</th><th>Year</th><th class="r">Funding</th></tr>
+        <tr><td><b>FAMES</b> · FD-SOI pilot line</td><td><span class="coord">Coord</span></td><td class="num">2023</td><td class="r amt" style="font-size:15px">€189.6M</td></tr>
+        <tr><td><b>EUROfusion</b> · fusion roadmap</td><td><span class="part2">Part</span></td><td class="num">2014</td><td class="r amt" style="font-size:15px">€70.9M</td></tr>
+        <tr><td><b>EUROfusion</b> · fusion roadmap</td><td><span class="part2">Part</span></td><td class="num">2021</td><td class="r amt" style="font-size:15px">€59.2M</td></tr>
+        <tr><td><b>WAYTOGO FAST</b> · FD-SOI</td><td><span class="part2">Part</span></td><td class="num">2015</td><td class="r amt" style="font-size:15px">€13.8M</td></tr>
+        <tr><td><b>QUCUBE</b> · silicon spin qubits</td><td><span class="coord">Coord</span></td><td class="num">2019</td><td class="r amt" style="font-size:15px">€11.0M</td></tr></table></div>
+    <div><h5>Funding by year · M€</h5>
+      <div class="bars">
+        <i style="height:29%"></i><i style="height:29%"></i><i style="height:36%"></i><i style="height:48%"></i><i style="height:42%"></i><i style="height:44%"></i><i style="height:27%"></i><i class="peak" style="height:100%"></i><i style="height:42%"></i><i style="height:22%"></i><i style="height:20%"></i>
+      </div>
+      <div class="yaxis"><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span></div></div>
+  </div>
+</section>
+
+<footer>Piste E « Trajectoire » — Barlow · monochrome, bleu télémétrie en touches · la bande sombre porte les chiffres,
+  le reste du site reste clair. Thème sombre étendu disponible en option.</footer>
+
+<script>
+(function(){
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  requestAnimationFrame(()=>document.body.classList.add('ready'));
+  if (!reduced){
+    const line = document.getElementById('tline');
+    if (line){ const len = line.getTotalLength();
+      line.style.strokeDasharray = len; line.style.strokeDashoffset = len;
+      line.getBoundingClientRect();
+      line.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1) .2s';
+      requestAnimationFrame(()=>{ line.style.strokeDashoffset = '0'; }); }
+    const fmt = (v, dec) => dec ? v.toFixed(dec) : Math.round(v).toLocaleString('en-US');
+    document.querySelectorAll('[data-count]').forEach(el=>{
+      const target = parseFloat(el.dataset.count), dec = +(el.dataset.dec||0);
+      const pre = el.dataset.prefix||'', suf = el.dataset.suffix||'';
+      const t0 = performance.now(), D = 1100;
+      function tick(t){ const p = Math.min((t-t0)/D,1), e = 1-Math.pow(1-p,3);
+        el.textContent = pre + fmt(target*e, dec) + suf;
+        if (p<1) requestAnimationFrame(tick); }
+      requestAnimationFrame(tick);
+    });
+    const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.12});
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+  }
+})();
+</script>
+</body></html>
