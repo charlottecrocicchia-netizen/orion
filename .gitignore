@@ -16,7 +16,8 @@ frontend/dist/
 # Downloaded source data (rebuildable, never committed)
 data/
 
-# Tooling & OS
-.claude/
+# Tooling & OS — local settings stay out, shared skills are versioned
+.claude/*
+!.claude/skills/
 .DS_Store
 *.log
