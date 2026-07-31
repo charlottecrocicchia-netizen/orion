@@ -6,6 +6,27 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Multi-country, multi-currency public data schema (ADR 0002): funders,
+  programmes, calls, projects, organisations (+ extensible identifiers and
+  aliases), participations, topics, countries and exchange-rate reference
+  tables; pg_trgm/unaccent enabled, pgvector-ready Postgres image.
+- Ingestion core: cached downloads, Pydantic row validation with drift
+  guards, idempotent batched upserts, per-run journal, `orion-ingest` CLI
+  and a real `make ingest`.
+- CORDIS pipelines (Horizon Europe, H2020, FP7) with committed fixtures and
+  integration tests — first real load: 84 452 projects, 80 225 raw
+  organisations, 463 147 participations.
+- `GET /api/sources` (freshness and volumetry per source) and a homepage
+  data card showing live totals.
+- Data source register (`docs/data-sources.md`) with verified licences.
+
+### Fixed
+
+- Keep the Python venv outside the iCloud-synced tree (iCloud corrupts
+  `.pth` files); pin uv to managed interpreters away from Anaconda.
+
 ## [0.0.1] - 2026-07-31
 
 ### Added

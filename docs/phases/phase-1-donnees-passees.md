@@ -1,19 +1,23 @@
 # Phase 1 — Données passées
 
-- **Statut : proposé le 2026-07-31, en attente de validation**
+- **Statut : validé le 2026-07-31, en cours d'exécution**
+- **Amendements à la validation** : (a) FP7 inclus ; (b) le modèle de données et le registre des sources sont conçus **multi-pays et multi-devises** dès maintenant — des sources hors Europe (US, UK, Japon…) seront ajoutées plus tard. Concrètement : table `funders` (bailleur, juridiction, devise par défaut), montants stockés en devise d'origine + contre-valeur EUR calculée (table `exchange_rates`, politique documentée dans l'ADR 0002), identifiants d'organisations extensibles par schéma (PIC, SIREN/SIRET, ROR réservé…), pays normalisés ISO 3166-1, langues taguées sur les champs textuels.
 - **Objectif : la base Orion contient l'historique des projets R&D financés en Europe et en France** (~106 000 projets et ~61 000 organisations attendus, chiffres du brief), **reconstructible de zéro en une commande** (`make ingest`), avec mises à jour automatiques planifiées et traçabilité complète de chaque enregistrement.
 
 ## Modèle de données cible (formalisé dans l'ADR 0002 au démarrage)
 
 Entités publiques, migrées par Alembic :
 
-- **`projects`** — acronyme, titre, résumé, dates, coût total, financement, statut, programme, appel d'origine, lien officiel
-- **`organisations`** — nom canonique, pays, ville, type d'acteur, identifiants pivots (PIC européen, SIREN/SIRET français quand disponibles), géolocalisation
-- **`participations`** — projet × organisation : rôle (coordinateur/partenaire), pays, montant
-- **`programmes`** — hiérarchie cadre → programme (Horizon Europe → cluster, ANR → AAPG…)
+- **`funders`** — le bailleur (Commission européenne, ANR, ADEME…, demain NSF, UKRI, JSPS) avec juridiction et devise par défaut : la clé de voûte du multi-pays
+- **`projects`** — acronyme, titre, résumé (avec langue), dates, coût total et financement **en devise d'origine + contre-valeur EUR**, statut, bailleur, programme, appel d'origine, lien officiel
+- **`organisations`** — nom canonique, pays (ISO 3166-1), ville, type d'acteur, géolocalisation
+- **`organisation_identifiers`** — identifiants par schéma extensible (PIC, SIREN, SIRET… ROR réservé pour l'international) : aucun identifiant national codé en dur
+- **`participations`** — projet × organisation : rôle (coordinateur/partenaire), pays, montant (devise + EUR)
+- **`programmes`** — hiérarchie bailleur → cadre → programme (Horizon Europe → cluster, ANR → AAPG…)
 - **`calls`** — appels d'origine des projets (la table sera étendue en phase 5 pour les appels à venir)
 - **`topics`** — classifications thématiques par source (euroSciVoc pour CORDIS, axes ANR…) ; l'unification inter-sources est un sujet de phase 3
-- **`organisation_aliases`** — chaque libellé brut rencontré (source, nom, pays, identifiants) relié à l'organisation canonique : c'est le support du dédoublonnage
+- **`organisation_aliases`** — chaque libellé brut rencontré (source, nom, pays) relié à l'organisation canonique : c'est le support du dédoublonnage
+- **`countries`** et **`exchange_rates`** — référentiels : pays ISO (région, membre UE) et taux de change annuels pour la contre-valeur EUR (vides de taux tant que toutes les sources sont en EUR)
 
 Traçabilité (§4.3 du brief) : chaque ligne garde sa source, son identifiant source, ses dates de première/dernière importation et son payload brut (JSONB) — on peut re-mapper sans re-télécharger.
 
@@ -67,6 +71,6 @@ Extensions Postgres activées dès cette phase : `unaccent`, `pg_trgm` (dédoubl
 - Développement : 2 à 4 sessions, avec un jalon démontrable après chaque source (CORDIS seul est déjà une démo)
 - Fondatrice : rien à fournir — tout est open data, aucun compte ni clé d'API nécessaire
 
-## Question ouverte
+## Question ouverte — tranchée
 
-1. **FP7 (2007-2013)** : le brief cible ~106 k projets ; ce total n'est vraisemblablement atteint qu'en incluant FP7, que CORDIS publie au même format que H2020/Horizon Europe. Coût marginal quasi nul (même famille de parseurs), intérêt réel pour les tendances longues. **Recommandation : l'inclure.**
+1. **FP7 (2007-2013) : inclus** (validation du 2026-07-31).
