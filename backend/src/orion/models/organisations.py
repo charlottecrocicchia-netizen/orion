@@ -1,15 +1,31 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from orion.models.base import Base
+
+
+def _trigram_index(name: str, column: str) -> Index:
+    """GIN trigram index backing fuzzy organisation matching (created in 0002)."""
+    return Index(name, column, postgresql_using="gin", postgresql_ops={column: "gin_trgm_ops"})
 
 
 class Organisation(Base):
     """Canonical organisation; provenance lives in aliases and identifiers."""
 
     __tablename__ = "organisations"
+    __table_args__ = (_trigram_index("ix_organisations_name_trgm", "name"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(Text)
@@ -45,6 +61,7 @@ class OrganisationAlias(Base):
     __tablename__ = "organisation_aliases"
     __table_args__ = (
         UniqueConstraint("source", "name_raw", "country_raw", name="uq_org_aliases_source_raw"),
+        _trigram_index("ix_org_aliases_name_raw_trgm", "name_raw"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -53,4 +70,5 @@ class OrganisationAlias(Base):
     )
     source: Mapped[str] = mapped_column(String(50))
     name_raw: Mapped[str] = mapped_column(Text)
-    country_raw: Mapped[str | None] = mapped_column(String(10))
+    # Raw label as published: a code for CORDIS, a full country name for ANR.
+    country_raw: Mapped[str | None] = mapped_column(String(100))
