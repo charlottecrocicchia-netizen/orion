@@ -20,6 +20,7 @@ from orion.models import (
     Participation,
     Programme,
     Project,
+    ProjectText,
 )
 
 BATCH = 1000
@@ -77,6 +78,7 @@ def _load_projects(session: Session, path: Path, funder_id: int, stats: RunStats
     programme_cache: dict[str, int] = {}
     call_cache: dict[str, int] = {}
     batch: list[dict] = []
+    texts: list[tuple[str, str, str, str | None]] = []
 
     for raw_row in iter_rows(path):
         try:
@@ -87,6 +89,9 @@ def _load_projects(session: Session, path: Path, funder_id: int, stats: RunStats
         if not row.is_valid():
             stats.add("invalid_projects")
             continue
+        texts.extend(
+            (row.source_id, lang, title, abstract) for lang, title, abstract in row.texts()
+        )
 
         programme_id = (
             _programme_id(
@@ -129,6 +134,18 @@ def _load_projects(session: Session, path: Path, funder_id: int, stats: RunStats
             batch = []
     if batch:
         upsert(session, Project, batch, ["source", "source_id"], PROJECT_UPDATE_COLS, True)
+    session.commit()
+
+    project_map: dict[str, int] = dict(
+        session.execute(select(Project.source_id, Project.id).where(Project.source == SOURCE)).all()
+    )
+    text_rows = [
+        {"project_id": project_map[sid], "lang": lang, "title": title, "abstract": abstract}
+        for sid, lang, title, abstract in texts
+        if sid in project_map
+    ]
+    upsert(session, ProjectText, text_rows, ["project_id", "lang"], ["title", "abstract"])
+    stats.add("texts", len(text_rows))
     session.commit()
 
 

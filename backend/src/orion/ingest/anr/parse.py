@@ -61,6 +61,10 @@ class AnrProjectRow(BaseModel):
     title_lang: str
     abstract: str | None
     abstract_lang: str | None
+    title_fr: str | None
+    title_en: str | None
+    abstract_fr: str | None
+    abstract_en: str | None
     start_date: date | None
     funding_amount: Decimal | None
     programme_code: str | None
@@ -89,6 +93,10 @@ class AnrProjectRow(BaseModel):
             title_lang=title_lang,
             abstract=abstract,
             abstract_lang=abstract_lang,
+            title_fr=title_fr,
+            title_en=title_en,
+            abstract_fr=abstract_fr,
+            abstract_en=abstract_en,
             start_date=_parse_date(
                 row.get("Projet.T0 scientifique") or row.get("Projet.Date_debut")
             ),
@@ -103,6 +111,15 @@ class AnrProjectRow(BaseModel):
 
     def is_valid(self) -> bool:
         return bool(self.source_id.startswith("ANR-") and self.title)
+
+    def texts(self) -> list[tuple[str, str, str | None]]:
+        """(lang, title, abstract) for every language this row carries."""
+        out: list[tuple[str, str, str | None]] = []
+        if self.title_fr:
+            out.append(("fr", self.title_fr, self.abstract_fr))
+        if self.title_en:
+            out.append(("en", self.title_en, self.abstract_en))
+        return out
 
 
 class AnrPartnerRow(BaseModel):

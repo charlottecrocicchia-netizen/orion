@@ -1,4 +1,5 @@
-"""Full-text and semantic search over projects and organisations.
+"""Full-text bilingual search over projects and organisations."""
 
-Populated in phase 2.
-"""
+from orion.search import service
+
+__all__ = ["service"]

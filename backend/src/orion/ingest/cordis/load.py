@@ -29,6 +29,7 @@ from orion.models import (
     Participation,
     Programme,
     Project,
+    ProjectText,
     ProjectTopic,
     Topic,
 )
@@ -120,6 +121,7 @@ def _load_projects(
     )
 
     batch: list[dict] = []
+    texts: list[tuple[str, str, str | None]] = []
     for raw_row in iter_rows(files["project.csv"]):
         try:
             row = ProjectRow.from_csv(raw_row)
@@ -129,6 +131,7 @@ def _load_projects(
         if not row.is_valid():
             stats.add("invalid_projects")
             continue
+        texts.append((row.source_id, row.title, row.objective))
 
         programme_id = framework_programme_id
         if row.legal_basis and row.legal_basis != fw.programme_code:
@@ -189,7 +192,17 @@ def _load_projects(
     pairs = session.execute(
         select(Project.source_id, Project.id).where(Project.source == fw.source)
     )
-    return dict(pairs.all())
+    project_map = dict(pairs.all())
+
+    text_rows = [
+        {"project_id": project_map[sid], "lang": "en", "title": title, "abstract": abstract}
+        for sid, title, abstract in texts
+        if sid in project_map
+    ]
+    upsert(session, ProjectText, text_rows, ["project_id", "lang"], ["title", "abstract"])
+    stats.add("texts", len(text_rows))
+    session.commit()
+    return project_map
 
 
 def _resolve_organisation(
