@@ -4,7 +4,7 @@ import { initReactI18next } from "react-i18next";
 const resources = {
   en: {
     translation: {
-      badge: "Phase 0 — Foundations",
+      badge: "Phase 1 — Data",
       tagline: "R&D funding intelligence for Europe",
       subtitle:
         "Deep analytics on 100,000+ funded R&D projects across Europe and France, combined with the calls that matter next — searchable in plain language.",
@@ -24,12 +24,12 @@ const resources = {
       },
       theme: { toggle: "Toggle theme" },
       lang: { switch: "Changer de langue" },
-      footer: { phase: "Phase 0 · v0.0.1" },
+      footer: { phase: "Phase 1 · v0.0.1" },
     },
   },
   fr: {
     translation: {
-      badge: "Phase 0 — Fondations",
+      badge: "Phase 1 — Données",
       tagline: "L'intelligence des financements R&D en Europe",
       subtitle:
         "L'analyse fine de plus de 100 000 projets R&D financés en Europe et en France, et les appels à projets qui comptent — le tout interrogeable en langage naturel.",
@@ -49,7 +49,7 @@ const resources = {
       },
       theme: { toggle: "Changer de thème" },
       lang: { switch: "Switch to English" },
-      footer: { phase: "Phase 0 · v0.0.1" },
+      footer: { phase: "Phase 1 · v0.0.1" },
     },
   },
 } as const;
