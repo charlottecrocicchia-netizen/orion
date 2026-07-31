@@ -60,9 +60,24 @@ services:
       - api
       - web
 
-  # scheduler: the ingestion jobs container arrives in phase 1
+  scheduler:
+    image: ${API_IMAGE:-ghcr.io/charlottecrocicchia-netizen/orion-api:latest}
+    build: ../backend
+    restart: unless-stopped
+    command: ["uv", "run", "--no-sync", "orion-scheduler"]
+    environment:
+      ORION_ENV: ${ORION_ENV:-production}
+      ORION_DATABASE_URL: postgresql+psycopg://orion:${POSTGRES_PASSWORD}@postgres:5432/orion
+      ORION_INGEST_CRON: ${ORION_INGEST_CRON:-0 3 * * 1}
+      ORION_INGEST_ON_START: ${ORION_INGEST_ON_START:-false}
+    volumes:
+      - ingest_data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   pgdata:
   caddy_data:
   caddy_config:
+  ingest_data:

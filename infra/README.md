@@ -49,3 +49,11 @@ make down
 `make up` generates a root `.env` with a random database password if none
 exists. The API applies Alembic migrations on start (`MIGRATE_ON_START`,
 default `true`).
+
+## Scheduled refresh
+
+The `scheduler` container replays the full ingestion weekly (Monday 03:00
+UTC by default — `ORION_INGEST_CRON`, crontab syntax). Downloads are cached
+in the `ingest_data` volume and skipped when sources are unchanged; every
+run is journaled in `ingestion_runs` and visible through `/api/sources`.
+Set `ORION_INGEST_ON_START=true` to populate a fresh deployment on boot.
