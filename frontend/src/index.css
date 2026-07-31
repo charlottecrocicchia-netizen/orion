@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.99 0.002 286);
+  --foreground: oklch(0.21 0.02 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 285);
+  --muted: oklch(0.96 0.004 286);
+  --muted-foreground: oklch(0.52 0.015 285);
+  --border: oklch(0.92 0.005 286);
+  --input: oklch(0.92 0.005 286);
+  --primary: oklch(0.55 0.2 278);
+  --primary-foreground: oklch(0.98 0.01 278);
+  --ring: oklch(0.65 0.15 278);
+  --success: oklch(0.63 0.15 155);
+  --destructive: oklch(0.6 0.21 25);
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(0.17 0.012 285);
+  --foreground: oklch(0.93 0.006 286);
+  --card: oklch(0.21 0.014 285);
+  --card-foreground: oklch(0.93 0.006 286);
+  --muted: oklch(0.26 0.015 285);
+  --muted-foreground: oklch(0.68 0.012 286);
+  --border: oklch(0.29 0.015 285);
+  --input: oklch(0.29 0.015 285);
+  --primary: oklch(0.7 0.15 278);
+  --primary-foreground: oklch(0.16 0.03 278);
+  --ring: oklch(0.6 0.14 278);
+  --success: oklch(0.7 0.14 155);
+  --destructive: oklch(0.66 0.19 25);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-destructive: var(--destructive);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
