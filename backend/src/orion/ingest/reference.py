@@ -1,3 +1,5 @@
+import gettext
+import unicodedata
 from decimal import Decimal, InvalidOperation
 
 import pycountry
@@ -221,6 +223,96 @@ def normalize_country(raw: str | None) -> str | None:
         return None
     code = COUNTRY_CODE_FIXES.get(raw.strip().upper(), raw.strip().upper())
     return code if code in _known_codes() else None
+
+
+_NAME_INDEX: dict[str, str] | None = None
+
+# French exonyms that no ISO listing carries (sources use everyday names).
+FRENCH_EXONYMS = {
+    "moldavie": "MD",
+    "birmanie": "MM",
+    "coree du sud": "KR",
+    "coree du nord": "KP",
+    "etats unis": "US",
+    "grande bretagne": "GB",
+    "angleterre": "GB",
+    "ecosse": "GB",
+    "pays de galles": "GB",
+    "vatican": "VA",
+    "cap vert": "CV",
+    "timor oriental": "TL",
+    "republique tcheque": "CZ",
+    "tchequie": "CZ",
+    "macedoine": "MK",
+    "coree": "KR",
+    # Inverted forms and older French names used by ANR.
+    "cook iles": "CK",
+    "norfolk ile": "NF",
+    "saint kitts et nevis": "KN",
+}
+
+
+def _key(name: str) -> str:
+    """Fold case, accents and punctuation so 'Corée (République de)' meets 'Coree'."""
+    folded = unicodedata.normalize("NFKD", name.strip().lower())
+    folded = "".join(c for c in folded if not unicodedata.combining(c))
+    return " ".join("".join(c if c.isalnum() else " " for c in folded).split())
+
+
+def _name_index() -> dict[str, str]:
+    """Country names to ISO codes: English and French, full and short forms."""
+    global _NAME_INDEX
+    if _NAME_INDEX is not None:
+        return _NAME_INDEX
+
+    french = gettext.translation(
+        "iso3166-1", pycountry.LOCALES_DIR, languages=["fr"], fallback=True
+    )
+    index: dict[str, str] = {}
+
+    def add(name: str | None, code: str) -> None:
+        if not name:
+            return
+        index.setdefault(_key(name), code)
+        # ISO renders qualifiers after a comma ("Russie, Fédération de") while
+        # sources use the bare name ("Russie") — index both.
+        head = name.split(",")[0]
+        if head != name:
+            index.setdefault(_key(head), code)
+
+    for country in pycountry.countries:
+        for name in (country.name, getattr(country, "common_name", None)):
+            add(name, country.alpha_2)
+            add(french.gettext(name) if name else None, country.alpha_2)
+        official = getattr(country, "official_name", None)
+        add(official, country.alpha_2)
+        add(french.gettext(official) if official else None, country.alpha_2)
+
+    for code, name in EXTRA_COUNTRIES:
+        add(name, code)
+    index.update(FRENCH_EXONYMS)
+
+    _NAME_INDEX = index
+    return index
+
+
+def resolve_country(raw: str | None) -> str | None:
+    """Resolve an ISO code *or* a country name (English/French) to alpha-2."""
+    if not raw:
+        return None
+    value = raw.strip()
+    if len(value) <= 3:
+        return normalize_country(value)
+
+    index = _name_index()
+    candidates = [value]
+    if "(" in value:  # "Corée (République de)" → also try "Corée"
+        candidates.append(value.split("(")[0])
+    for candidate in candidates:
+        code = index.get(_key(candidate))
+        if code:
+            return code
+    return None
 
 
 def parse_decimal(raw: str | None) -> Decimal | None:

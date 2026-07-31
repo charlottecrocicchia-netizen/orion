@@ -3,17 +3,18 @@ import sys
 import time
 from functools import partial
 
-from orion.ingest import cordis
+from orion.ingest import anr, cordis
 from orion.ingest import reference as reference_module
 from orion.ingest.cordis.config import FRAMEWORKS
 
 REGISTRY = {
     "reference": reference_module.run,
     **{key: partial(cordis.load.run, key) for key in FRAMEWORKS},
+    "anr": anr.load.run,
 }
 
 # `all` rebuilds everything, reference data first.
-ALL = ["reference", *FRAMEWORKS.keys()]
+ALL = ["reference", *FRAMEWORKS.keys(), "anr"]
 
 
 def main() -> int:
