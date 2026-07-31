@@ -7,14 +7,48 @@ Registre vivant : chaque source publique ingérée par Orion, avec sa juridictio
 | CORDIS Horizon Europe (`cordis-horizon`) | UE | EUR | CC BY 4.0 — décision 2011/833/EU, réutilisation commerciale autorisée avec attribution (vérifiée le 2026-07-31 sur la politique de réutilisation de la Commission) | ~mensuelle (dernier rafraîchissement source : 2026-07-21) | 23 278 projets, 144 117 participations (2026-07-31) |
 | CORDIS H2020 (`cordis-h2020`) | UE | EUR | idem CC BY 4.0 | figée (programme clos) + corrections | 35 389 projets, 178 967 participations (2026-07-31) |
 | CORDIS FP7 (`cordis-fp7`) | UE | EUR | idem CC BY 4.0 | figée (programme clos) | 25 785 projets, 140 063 participations (2026-07-31) |
-| ANR (`anr`) | FR | EUR | à vérifier à l'ingestion (attendu : Licence Ouverte 2.0 / Etalab) | annuelle+ | — (à venir) |
-| ADEME (`ademe`) | FR | EUR | à vérifier à l'ingestion (attendu : Licence Ouverte 2.0) | continue | — (à venir) |
-| LIFE (`life`) | UE | EUR | à vérifier (base CINEA) — source la moins standardisée | ? | — (à venir) |
+| ANR (`anr`) | FR | EUR | **ODbL 1.0** (Open Database License) — vérifiée le 2026-07-31 sur data.gouv.fr, champ `license: odc-odbl`. ⚠️ **Pas** la Licence Ouverte : clause de partage à l'identique, voir l'alerte ci-dessous | ~mensuelle (dernière publication : 2026-07-02) | 34 720 projets, 117 859 participations (2026-07-31) |
+| ADEME (`ademe`) | FR | EUR | **Licence Ouverte 2.0** — vérifiée le 2026-07-31 (`license: lov2`), réutilisation commerciale libre avec attribution | quotidienne | **ingestion suspendue — décision requise, voir ci-dessous** |
+| LIFE (`life`) | UE | EUR | Commission européenne (CC BY 4.0 a priori, à confirmer sur l'export retenu) | ? | — **pas d'export machine trouvé**, voir ci-dessous |
+
+## ⚠️ Alerte licence : ANR est en ODbL, décision requise avant mise en ligne publique
+
+Les données ANR sont publiées sous **ODbL 1.0**, et non sous la Licence Ouverte attendue. L'ODbL impose, en plus de l'attribution, une clause de **partage à l'identique** : quiconque publie une « base dérivée » doit la mettre à disposition sous ODbL. Ce que le produit affiche (résultats de recherche, analyses) relève des « œuvres produites » et reste libre de licence, mais la question de savoir si la base d'Orion constitue une base dérivée publiquement diffusée se pose dès que le service est en ligne.
+
+- **Aujourd'hui : aucun problème.** L'ingestion et l'usage sont locaux, non publics — l'ODbL n'encadre pas l'usage privé. Rien n'est bloqué côté développement.
+- **Avant la mise en ligne : arbitrage nécessaire** (options possibles : cloisonner les données ANR de la base diffusée, publier l'extrait dérivé sous ODbL, se limiter à des « œuvres produites » avec attribution, ou faire valider la lecture par un juriste). À trancher par la fondatrice, si besoin avec un avis juridique.
+- Les mêmes vérifications sont à faire pour l'ADEME et LIFE avant leur ingestion.
+
+## ⚠️ ADEME : la source ouverte ne correspond pas au produit (décision requise)
+
+La licence est excellente (Licence Ouverte 2.0, aucune contrainte), mais **le contenu ne correspond pas à ce qu'Orion promet**. Le jeu de données publié par l'ADEME est celui des « données essentielles des conventions de subvention » (décret n° 2017-779) : *toutes* les aides versées, pas les projets de R&D.
+
+Analyse du fichier réel (2026-07-31, 39 282 lignes, 11,2 Md€) :
+
+- **2,3 % des lignes seulement** évoquent la recherche ou l'innovation (902 lignes, 274 M€) — et encore s'agit-il surtout d'expérimentations opérationnelles (collecte séparée de biodéchets, sites démonstrateurs de réemploi), pas de R&D industrielle.
+- Les principaux dispositifs sont « Fonds Tourisme Durable – Restaurateurs », « Tremplin pour la transition écologique des PME », « Renouvellement Forestier ».
+- Le champ `dispositifAide` est vide sur 30 % des lignes : **aucun filtre fiable** ne permet d'isoler la R&D ; un filtrage par mots-clés sur le texte libre serait fragile.
+- Point positif isolé : le SIRET du bénéficiaire est présent sur 99 % des lignes (bonne matière d'identité), mais pour des bénéficiaires qui sont majoritairement des hôtels, communes et exploitants forestiers.
+
+**Conséquence** : ingérer ce fichier ajouterait ~39 000 enregistrements hors sujet qui diluent précisément les analyses censées différencier Orion (veille concurrentielle R&D, cartographie de partenaires, tendances thématiques). À noter : la cible de volumétrie du brief (~106 000 projets) est **déjà atteinte** avec CORDIS + ANR, sans l'ADEME.
+
+Options soumises à la fondatrice : (a) ne pas ingérer l'ADEME et viser plutôt **France 2030** comme source française de R&D industrielle ; (b) n'ingérer que le sous-ensemble filtré par mots-clés (~900 lignes, qualité incertaine) ; (c) tout ingérer en marquant les aides hors R&D. Recommandation : (a).
+
+## LIFE : pas d'export exploitable identifié à ce stade
+
+Le risque anticipé dans le plan se confirme partiellement. La base publique des projets LIFE existe (`https://webgate.ec.europa.eu/life/publicWebsite/search`) mais est un moteur de recherche web : aucun export CSV/Excel ni API documentée n'a été trouvé le 2026-07-31 (l'endpoint d'API deviné renvoie une erreur 500). Le portail `data.europa.eu` ne référence pas de jeu consolidé des projets LIFE.
+
+Pistes restantes, par ordre de préférence : identifier l'API interne réellement utilisée par le moteur de recherche, chercher un jeu de données LIFE consolidé sur `data.europa.eu` avec une requête plus fine, ou en dernier recours une extraction légère si les conditions d'utilisation l'autorisent. À arbitrer : LIFE représente un volume modeste au regard de CORDIS et de l'ANR, et ne doit pas retarder la fin de la phase 1.
+
+## Protection des données personnelles
+
+Les fichiers « partenaires » de l'ANR contiennent des **données personnelles** : nom, prénom et ORCID du responsable scientifique de chaque partenaire. Ces colonnes sont **écartées à la lecture du fichier** (`PERSONAL_DATA_COLUMNS` dans `orion/ingest/anr/parse.py`, garanti par un test) : elles n'entrent jamais en base, pas même dans le payload brut. Orion n'a pas besoin d'identifier des personnes pour analyser des financements — minimisation par conception.
 
 ## URLs officielles
 
 - CORDIS bulk : `https://cordis.europa.eu/data/cordis-HORIZONprojects-csv.zip` · `…/cordis-h2020projects-csv.zip` · `…/cordis-fp7projects-csv.zip`
 - Politique de réutilisation Commission : `https://commission.europa.eu/legal-notice_en`
+- ANR sur data.gouv.fr : `anr-01-projets-anr-dos-et-dgds-detail-des-projets-et-des-partenaires` (DGDS) · `anr-02-projets-anr-dgpie-detail-des-projets-et-des-partenaires` (DGPIE)
 
 ## Attribution à afficher dans le produit
 
