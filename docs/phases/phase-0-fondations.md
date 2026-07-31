@@ -1,6 +1,6 @@
 # Phase 0 — Fondations
 
-- **Statut : validé le 2026-07-31, en cours d'exécution**
+- **Statut : terminée le 2026-07-31** (tag `v0.0.1`)
 - **Amendement à la validation** : pas de mise en ligne — aucun hébergeur pour l'instant. La démo de fin de phase est la stack de production complète tournant **en local via Docker** ; le pipeline de déploiement (images GHCR, CI, script VPS générique, runbook) est livré prêt à brancher sur une cible future.
 - **Objectif : un « hello world » Orion complet** — repo propre, squelette modulaire, CI verte, stack de production locale, mise en ligne future réduite à une formalité.
 
@@ -13,14 +13,14 @@
 
 ## Livrables (définition du « fini »)
 
-- [ ] `make up` lance la stack de production complète en local (Postgres + API + web statique + Caddy) ; la page d'accueil Orion s'affiche sur http://localhost:8080 (placeholder soigné, dark mode)
-- [ ] `GET /api/health` renvoie l'état de l'API et de la base ; `/api/docs` sert l'OpenAPI
-- [ ] CI verte sur GitHub Actions : lint, types, tests backend et frontend, build des images
-- [ ] Un push sur `main` publie les images `orion-api` et `orion-web` sur GHCR ; un job de déploiement déclenchable existe (il n'attend que les secrets du futur serveur)
-- [ ] `infra/deploy.sh` générique (tout VPS Docker) + runbook `infra/README.md` : la mise en ligne future = créer un serveur, renseigner 3 secrets, lancer le job
-- [ ] Un développeur tiers peut lancer le projet en local en < 15 minutes avec le seul README
-- [ ] Aucun secret ni artefact de build dans le repo ; `.env.example` documenté
-- [ ] Tag `v0.0.1`, CHANGELOG initialisé, ADR 0001 en « Accepté »
+- [x] `make up` lance la stack de production complète en local (Postgres + API + web statique + Caddy) ; la page d'accueil Orion s'affiche sur http://localhost:8080 (placeholder soigné, dark mode)
+- [x] `GET /api/health` renvoie l'état de l'API et de la base ; `/api/docs` sert l'OpenAPI
+- [x] CI verte sur GitHub Actions : lint, types, tests backend et frontend, build des images (run n°1 vert en 1 min 44)
+- [x] Un push sur `main` publie les images `orion-api` et `orion-web` sur GHCR ; un job de déploiement déclenchable existe (il n'attend que les secrets du futur serveur)
+- [x] `infra/deploy.sh` générique (tout VPS Docker) + runbook `infra/README.md` : la mise en ligne future = créer un serveur, renseigner 3 secrets, lancer le job
+- [x] Un développeur tiers peut lancer le projet en local en < 15 minutes avec le seul README (`brew install … && colima start`, `make bootstrap`, `make dev`)
+- [x] Aucun secret ni artefact de build dans le repo ; `.env.example` documenté
+- [x] Tag `v0.0.1`, CHANGELOG initialisé, ADR 0001 en « Accepté »
 
 ## Étapes
 
