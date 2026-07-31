@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piste A — Observatoire</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.5}
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  .theme{padding:0 0 48px}
+  .dark{background:#0B0E14;color:#E9EDF5;
+    background-image:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(109,124,255,.08),transparent 60%)}
+  .dark{--surface:#131824;--surface2:#1A2130;--border:#232B3B;--muted:#97A1B4;--text:#E9EDF5;
+    --accent:#7C8AFF;--accent2:#3EDDF0;--chipbg:rgba(124,138,255,.12);--chiptx:#A9B4FF;--mark:rgba(62,221,240,.18)}
+  .light{background:#F6F8FB;color:#12161F;--surface:#FFFFFF;--surface2:#EEF1F7;--border:#E4E9F1;--muted:#5B6575;
+    --text:#12161F;--accent:#4F5DE8;--accent2:#0891B2;--chipbg:rgba(79,93,232,.08);--chiptx:#4F5DE8;--mark:rgba(8,145,178,.14)}
+  .label{position:sticky;top:0;z-index:9;background:#7C8AFF;color:#0B0E14;font-weight:600;font-size:12px;
+    letter-spacing:.06em;text-transform:uppercase;padding:6px 24px}
+  .nav{display:flex;align-items:center;gap:24px;padding:14px 32px;border-bottom:1px solid var(--border)}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;letter-spacing:-.01em}
+  .search{flex:1;max-width:560px;display:flex;align-items:center;gap:10px;background:var(--surface);
+    border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:var(--muted)}
+  .search b{color:var(--text);font-weight:500}
+  .search .kbd{margin-left:auto;font-size:11px;border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+  .navr{margin-left:auto;display:flex;gap:14px;color:var(--muted);font-size:13px;align-items:center}
+  .wrap{display:grid;grid-template-columns:248px 1fr;gap:28px;padding:24px 32px;max-width:1200px;margin:0 auto}
+  .facets h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 0 8px}
+  .facets h4:first-child{margin-top:0}
+  .f{display:flex;justify-content:space-between;padding:5px 8px;border-radius:7px;color:var(--text);cursor:pointer}
+  .f small{color:var(--muted)}.f:hover{background:var(--surface)}
+  .f.on{background:var(--chipbg);color:var(--chiptx);font-weight:500}
+  .hist{display:flex;align-items:flex-end;gap:3px;height:44px;padding:6px 8px}
+  .hist i{flex:1;background:linear-gradient(180deg,var(--accent),var(--accent2));opacity:.75;border-radius:2px 2px 0 0}
+  .meta{display:flex;align-items:baseline;gap:14px;margin-bottom:14px}
+  .meta .mono{font-size:13px;color:var(--muted)}
+  .meta b{font-size:18px;font-weight:600}
+  .sort{margin-left:auto;color:var(--muted);font-size:13px}
+  .sort b{color:var(--accent)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px}
+  .card:hover{border-color:var(--accent)}
+  .row1{display:flex;align-items:baseline;gap:10px}
+  .acr{font-weight:600;font-size:15px}
+  .ttl{color:var(--muted)}
+  .amt{margin-left:auto;font-weight:600;font-size:15px}
+  .snip{color:var(--muted);margin:7px 0 10px;font-size:13px}
+  mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 2px}
+  .chips{display:flex;gap:8px;font-size:12px;color:var(--muted);align-items:center}
+  .chip{background:var(--chipbg);color:var(--chiptx);border-radius:999px;padding:2px 9px;font-weight:500}
+  .org{max-width:1200px;margin:36px auto 0;padding:0 32px}
+  .orgcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+  .orghead{display:flex;gap:14px;align-items:center;margin-bottom:6px}
+  .avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;color:#0B0E14;font-weight:700}
+  .orghead h2{font-size:19px;letter-spacing:-.01em}
+  .idchips{display:flex;gap:6px;margin-left:auto}
+  .idchips span{border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--muted)}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .kpi{background:var(--surface2);border-radius:10px;padding:12px 14px}
+  .kpi .v{font-size:22px;font-weight:600;letter-spacing:-.02em}
+  .kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:2px}
+  .split{display:grid;grid-template-columns:1fr 300px;gap:24px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
+    padding:0 10px 8px;border-bottom:1px solid var(--border)}
+  td{padding:10px;border-bottom:1px solid var(--border)}
+  td.r,th.r{text-align:right}
+  .role{font-size:11px;border-radius:999px;padding:1px 8px}
+  .coord{background:var(--chipbg);color:var(--chiptx)}
+  .part{border:1px solid var(--border);color:var(--muted)}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:120px;margin-top:10px}
+  .bars i{flex:1;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:3px 3px 0 0;opacity:.85}
+  .bars5 h5,.split h5{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+  .yaxis{display:flex;gap:5px;margin-top:4px}
+  .yaxis span{flex:1;text-align:center;font-size:9px;color:var(--muted)}
+</style></head><body>
+
+<div class="label">Piste A — « Observatoire » · Inter + JetBrains Mono · indigo → cyan · sombre d'abord</div>
+
+<div class="theme dark">
+  <div class="nav">
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24"><defs><linearGradient id="ga" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#7C8AFF"/><stop offset="1" stop-color="#3EDDF0"/></linearGradient></defs>
+      <path d="M4.5 19 10 12.5l4.5 1L19.5 5" fill="none" stroke="url(#ga)" stroke-width="1.4" stroke-opacity=".6"/>
+      <circle cx="4.5" cy="19" r="1.8" fill="#7C8AFF"/><circle cx="10" cy="12.5" r="1.8" fill="#8F87FF"/>
+      <circle cx="14.5" cy="13.5" r="1.8" fill="#5FB9F5"/><circle cx="19.5" cy="5" r="2.2" fill="#3EDDF0"/></svg>
+      Orion</div>
+    <div class="search">⌕&nbsp; <b>hydrogen</b><span class="kbd">⌘K</span></div>
+    <div class="navr"><span>Projects</span><span>Organisations</span><span class="mono">EN</span><span>◐</span></div>
+  </div>
+  <div class="wrap">
+    <aside class="facets">
+      <h4>Funder</h4>
+      <div class="f on"><span>European Commission</span><small class="mono">1,733</small></div>
+      <div class="f"><span>ANR</span><small class="mono">77</small></div>
+      <h4>Programme</h4>
+      <div class="f on"><span>Horizon Europe</span><small class="mono">737</small></div>
+      <div class="f"><span>Horizon 2020</span><small class="mono">545</small></div>
+      <div class="f"><span>FP7</span><small class="mono">451</small></div>
+      <div class="f"><span>ANR — AAPG &amp; autres</span><small class="mono">77</small></div>
+      <h4>Years · 2015 – 2027</h4>
+      <div class="hist"><i style="height:38%"></i><i style="height:28%"></i><i style="height:43%"></i><i style="height:39%"></i><i style="height:35%"></i><i style="height:47%"></i><i style="height:52%"></i><i style="height:53%"></i><i style="height:100%"></i><i style="height:89%"></i><i style="height:69%"></i><i style="height:79%"></i><i style="height:10%"></i></div>
+      <h4>Country</h4>
+      <div class="f"><span>🇩🇪 Germany</span><small class="mono">744</small></div>
+      <div class="f on"><span>🇫🇷 France</span><small class="mono">611</small></div>
+      <div class="f"><span>🇬🇧 United Kingdom</span><small class="mono">555</small></div>
+      <div class="f"><span>🇮🇹 Italy</span><small class="mono">527</small></div>
+      <div class="f"><span>🇪🇸 Spain</span><small class="mono">484</small></div>
+      <h4>EU funding</h4>
+      <div class="f"><span>Min €</span><small class="mono">—</small></div>
+      <div class="f"><span>Max €</span><small class="mono">—</small></div>
+    </aside>
+    <main>
+      <div class="meta"><b>1,810 projects</b><span class="mono">for “hydrogen” · EN + FR</span>
+        <span class="sort">Sort <b>Relevance</b> · Amount · Date</span></div>
+      <div class="card"><div class="row1"><span class="acr">HYDEA</span><span class="ttl">HYdrogen DEmonstrator for Aviation</span><span class="amt mono">€80.5M</span></div>
+        <div class="snip">…proposes a robust technology maturation plan to develop an H2C (<mark>Hydrogen</mark> Combustion) propulsion system for aviation…</div>
+        <div class="chips"><span class="chip">Horizon Europe</span><span>2023 – 2026</span><span>32 organisations</span><span>🇫🇷 🇩🇪 🇮🇹 +12</span></div></div>
+      <div class="card"><div class="row1"><span class="acr">H2ME 2</span><span class="ttl">Hydrogen Mobility Europe 2</span><span class="amt mono">€35.0M</span></div>
+        <div class="snip">…brings together action in 8 European countries to address the innovations required to make <mark>hydrogen</mark> mobility a reality…</div>
+        <div class="chips"><span class="chip">Horizon 2020</span><span>2016 – 2023</span><span>60 organisations</span><span>🇩🇪 🇫🇷 🇬🇧 +18</span></div></div>
+      <div class="card"><div class="row1"><span class="acr">REFHYNE II</span><span class="ttl">Clean Refinery Hydrogen for Europe II</span><span class="amt mono">€32.4M</span></div>
+        <div class="snip">…will install a 100 MW PEM electrolyser at Shell Energy and Chemicals Park Rheinland, using renewable power to produce green <mark>hydrogen</mark>…</div>
+        <div class="chips"><span class="chip">Horizon 2020</span><span>2021 – 2029</span><span>11 organisations</span><span>🇩🇪 🇳🇱 🇬🇧 +5</span></div></div>
+      <div class="card"><div class="row1"><span class="acr">JIVE</span><span class="ttl">Joint Initiative for hydrogen Vehicles across Europe</span><span class="amt mono">€32.0M</span></div>
+        <div class="snip">The <mark>hydrogen</mark> fuel cell bus is one of very few options for the elimination of harmful local emissions in public transport…</div>
+        <div class="chips"><span class="chip">Horizon 2020</span><span>2017 – 2024</span><span>32 organisations</span><span>🇬🇧 🇩🇪 🇩🇰 +14</span></div></div>
+      <div class="card"><div class="row1"><span class="acr">GreenHyScale</span><span class="ttl">100 MW green hydrogen production, replicable &amp; scalable</span><span class="amt mono">€30.0M</span></div>
+        <div class="snip">…pave the way for large-scale deployment of electrolysis onshore and offshore, in line with the EU <mark>hydrogen</mark> strategy…</div>
+        <div class="chips"><span class="chip">Horizon 2020</span><span>2021 – 2026</span><span>11 organisations</span><span>🇩🇰 🇫🇷 🇧🇪 +4</span></div></div>
+    </main>
+  </div>
+
+  <div class="org">
+    <div class="orgcard">
+      <div class="orghead"><div class="avatar">C</div><h2>Commissariat à l'énergie atomique et aux énergies alternatives</h2>
+        <div class="idchips"><span>PIC</span><span>RNSR</span><span>🇫🇷 FR</span></div></div>
+      <div class="sub">Research organisation · Paris, France · cea.fr</div>
+      <div class="kpis">
+        <div class="kpi"><div class="v mono">€1.78B</div><div class="k">Total EU + FR funding</div></div>
+        <div class="kpi"><div class="v mono">2,210</div><div class="k">Projects</div></div>
+        <div class="kpi"><div class="v mono">555</div><div class="k">As coordinator</div></div>
+        <div class="kpi"><div class="v mono">2005 – 2027</div><div class="k">Active period</div></div>
+      </div>
+      <div class="split">
+        <div><h5>Portfolio · top by funding</h5>
+          <table><tr><th>Project</th><th>Role</th><th>Year</th><th>Programme</th><th class="r">Funding</th></tr>
+            <tr><td><b>FAMES</b> — FD-SOI pilot line</td><td><span class="role coord">coordinator</span></td><td class="mono">2023</td><td>Horizon Europe</td><td class="r mono">€189.6M</td></tr>
+            <tr><td><b>EUROfusion</b> — fusion roadmap</td><td><span class="role part">participant</span></td><td class="mono">2014</td><td>H2020</td><td class="r mono">€70.9M</td></tr>
+            <tr><td><b>EUROfusion</b> — fusion roadmap</td><td><span class="role part">participant</span></td><td class="mono">2021</td><td>Horizon Europe</td><td class="r mono">€59.2M</td></tr>
+            <tr><td><b>WAYTOGO FAST</b> — FD-SOI generations</td><td><span class="role part">participant</span></td><td class="mono">2015</td><td>H2020</td><td class="r mono">€13.8M</td></tr>
+            <tr><td><b>QUCUBE</b> — 3D silicon spin qubits</td><td><span class="role coord">coordinator</span></td><td class="mono">2019</td><td>H2020</td><td class="r mono">€11.0M</td></tr></table></div>
+        <div class="bars5"><h5>EU + FR funding by year · M€</h5>
+          <div class="bars"><i style="height:29%"></i><i style="height:29%"></i><i style="height:36%"></i><i style="height:48%"></i><i style="height:42%"></i><i style="height:44%"></i><i style="height:27%"></i><i style="height:100%"></i><i style="height:42%"></i><i style="height:22%"></i><i style="height:20%"></i></div>
+          <div class="yaxis"><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="label" style="background:#4F5DE8;color:#fff">Piste A — variante claire</div>
+<div class="theme light">
+  <div class="nav">
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4.5 19 10 12.5l4.5 1L19.5 5" fill="none" stroke="#4F5DE8" stroke-width="1.4" stroke-opacity=".5"/><circle cx="4.5" cy="19" r="1.8" fill="#4F5DE8"/><circle cx="10" cy="12.5" r="1.8" fill="#5B54E0"/><circle cx="14.5" cy="13.5" r="1.8" fill="#2596C7"/><circle cx="19.5" cy="5" r="2.2" fill="#0891B2"/></svg>Orion</div>
+    <div class="search">⌕&nbsp; <b>hydrogen</b><span class="kbd">⌘K</span></div>
+    <div class="navr"><span>Projects</span><span>Organisations</span><span class="mono">EN</span><span>◑</span></div>
+  </div>
+  <div class="wrap" style="padding-bottom:8px">
+    <aside class="facets">
+      <h4>Funder</h4>
+      <div class="f on"><span>European Commission</span><small class="mono">1,733</small></div>
+      <div class="f"><span>ANR</span><small class="mono">77</small></div>
+      <h4>Years · 2015 – 2027</h4>
+      <div class="hist"><i style="height:38%"></i><i style="height:28%"></i><i style="height:43%"></i><i style="height:39%"></i><i style="height:35%"></i><i style="height:47%"></i><i style="height:52%"></i><i style="height:53%"></i><i style="height:100%"></i><i style="height:89%"></i><i style="height:69%"></i><i style="height:79%"></i><i style="height:10%"></i></div>
+    </aside>
+    <main>
+      <div class="meta"><b>1,810 projects</b><span class="mono">for “hydrogen”</span><span class="sort">Sort <b>Relevance</b></span></div>
+      <div class="card"><div class="row1"><span class="acr">HYDEA</span><span class="ttl">HYdrogen DEmonstrator for Aviation</span><span class="amt mono">€80.5M</span></div>
+        <div class="snip">…technology maturation plan to develop an H2C (<mark>Hydrogen</mark> Combustion) propulsion system for aviation…</div>
+        <div class="chips"><span class="chip">Horizon Europe</span><span>2023 – 2026</span><span>32 organisations</span></div></div>
+      <div class="card"><div class="row1"><span class="acr">H2ME 2</span><span class="ttl">Hydrogen Mobility Europe 2</span><span class="amt mono">€35.0M</span></div>
+        <div class="chips" style="margin-top:8px"><span class="chip">Horizon 2020</span><span>2016 – 2023</span><span>60 organisations</span></div></div>
+      <div class="kpis" style="margin-top:18px">
+        <div class="kpi"><div class="v mono">€1.78B</div><div class="k">CEA · total funding</div></div>
+        <div class="kpi"><div class="v mono">2,210</div><div class="k">Projects</div></div>
+        <div class="kpi"><div class="v mono">555</div><div class="k">As coordinator</div></div>
+        <div class="kpi"><div class="v mono">2005 – 2027</div><div class="k">Active period</div></div>
+      </div>
+    </main>
+  </div>
+</div>
+</body></html>

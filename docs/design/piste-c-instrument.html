@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piste C — Instrument</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;line-height:1.45}
+  .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  .theme{padding:0 0 40px}
+  .dark{background:#0C0C0C;color:#EDEDED;--surface:#111111;--border:#262626;--muted:#8C8C8C;--text:#EDEDED;
+    --accent:#FF6B1A;--mark:#3A2210;--hover:#161616}
+  .light{background:#FFFFFF;color:#0B0B0B;--surface:#FFFFFF;--border:#DEDEDE;--muted:#6A6A6A;--text:#0B0B0B;
+    --accent:#E85000;--mark:#FFE4D3;--hover:#FAFAFA}
+  .label{position:sticky;top:0;z-index:9;background:#FF6B1A;color:#0C0C0C;font-weight:600;font-size:12px;
+    letter-spacing:.06em;text-transform:uppercase;padding:6px 24px;font-family:'IBM Plex Mono',monospace}
+  .nav{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border)}
+  .nav>*{padding:11px 18px;border-right:1px solid var(--border)}
+  .logo{display:flex;align-items:center;gap:9px;font-family:'IBM Plex Mono',monospace;font-weight:600;
+    font-size:14px;letter-spacing:.14em}
+  .logo .sq{display:flex;gap:2px;align-items:flex-end}
+  .logo .sq i{width:5px;height:5px;background:var(--accent)}
+  .logo .sq i:nth-child(2){height:8px}
+  .logo .sq i:nth-child(3){height:11px}
+  .search{flex:1;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:13px}
+  .search b{color:var(--text);font-weight:500}
+  .search::before{content:"/ ";color:var(--accent)}
+  .navr{display:flex;gap:16px;color:var(--muted);font-size:11px;text-transform:uppercase;
+    letter-spacing:.1em;border-right:0}
+  .navr .on{color:var(--accent)}
+  .ticker{display:flex;gap:24px;padding:5px 18px;border-bottom:1px solid var(--border);
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.05em}
+  .ticker b{color:var(--text);font-weight:500}
+  .wrap{display:grid;grid-template-columns:232px 1fr;max-width:1240px;margin:0 auto}
+  .facets{border-right:1px solid var(--border);padding:14px 16px}
+  .facets h4{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
+    letter-spacing:.12em;color:var(--muted);margin:16px 0 6px}
+  .facets h4:first-child{margin-top:0}
+  .f{display:flex;justify-content:space-between;padding:3px 4px;cursor:pointer}
+  .f small{color:var(--muted)}
+  .f:hover{background:var(--hover)}
+  .f.on{color:var(--accent)}
+  .f.on::before{content:"▪ ";}
+  .hist{display:flex;align-items:flex-end;gap:2px;height:38px;padding:5px 4px;border-bottom:1px solid var(--border)}
+  .hist i{flex:1;background:var(--muted);opacity:.5}
+  .hist i.hi{background:var(--accent);opacity:1}
+  main{padding:14px 20px}
+  .meta{display:flex;align-items:baseline;gap:14px;margin-bottom:10px;font-family:'IBM Plex Mono',monospace}
+  .meta b{font-size:15px;font-weight:600}
+  .meta span{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .sort{margin-left:auto}
+  .sort b{color:var(--accent);font-size:11px}
+  .thead,.res{display:grid;grid-template-columns:110px 1fr 120px 90px 70px 90px;gap:12px;align-items:baseline}
+  .thead{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--muted);padding:6px 8px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .res{padding:8px;border-bottom:1px solid var(--border);cursor:pointer}
+  .res:hover{background:var(--hover)}
+  .acr{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12.5px}
+  .ttl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .snip{grid-column:2/7;color:var(--muted);font-size:12px;padding-top:2px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  mark{background:var(--mark);color:inherit;padding:0 1px}
+  .tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;border:1px solid var(--border);padding:1px 5px}
+  .r{text-align:right}.amt{font-family:'IBM Plex Mono',monospace;font-weight:600}
+  .org{max-width:1240px;margin:32px auto 0;border-top:1px solid var(--border)}
+  .orghead{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border)}
+  .orghead>*{padding:12px 18px;border-right:1px solid var(--border)}
+  .orghead h2{font-size:16px;font-weight:600;letter-spacing:.01em}
+  .orghead .idc{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.08em}
+  .orghead .idc b{color:var(--accent)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)}
+  .kpi{padding:12px 18px;border-right:1px solid var(--border)}
+  .kpi:last-child{border-right:0}
+  .kpi .v{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600}
+  .kpi .v em{font-style:normal;color:var(--accent)}
+  .kpi .k{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:.11em;color:var(--muted);margin-top:3px}
+  .split{display:grid;grid-template-columns:1fr 300px}
+  .split>div{padding:14px 18px}
+  .split>div:first-child{border-right:1px solid var(--border)}
+  h5{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+    color:var(--muted);margin-bottom:8px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:.1em;color:var(--muted);padding:4px 8px;border-bottom:1px solid var(--border)}
+  td{padding:7px 8px;border-bottom:1px solid var(--border)}
+  .coord{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase}
+  .part{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase}
+  .bars{display:flex;align-items:flex-end;gap:3px;height:104px;border-bottom:1px solid var(--border)}
+  .bars i{flex:1;background:var(--muted);opacity:.45}
+  .bars i.hi{background:var(--accent);opacity:1}
+  .yaxis{display:flex;gap:3px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+  .yaxis span{flex:1;text-align:center;font-size:8.5px;color:var(--muted)}
+</style></head><body>
+
+<div class="label">Piste C — « Instrument » · IBM Plex Sans + Mono · accent unique orange · densité maximale</div>
+
+<div class="theme dark">
+  <div class="nav">
+    <div class="logo"><span class="sq"><i></i><i></i><i></i></span>ORION</div>
+    <div class="search"><b>hydrogen</b>&nbsp;<span style="opacity:.5">▍</span></div>
+    <div class="navr"><span class="on">Projects</span><span>Organisations</span><span>EN</span><span>◐</span></div>
+  </div>
+  <div class="ticker"><span><b>119,172</b> PROJECTS</span><span><b>103,457</b> ORGANISATIONS</span><span><b>581,006</b> PARTICIPATIONS</span><span>UPDATED <b>31 JUL 2026</b></span><span>SOURCES <b>CORDIS · ANR</b></span></div>
+  <div class="wrap">
+    <aside class="facets">
+      <h4>Funder</h4>
+      <div class="f on"><span>European Commission</span><small class="mono">1733</small></div>
+      <div class="f"><span>ANR</span><small class="mono">77</small></div>
+      <h4>Programme</h4>
+      <div class="f on"><span>Horizon Europe</span><small class="mono">737</small></div>
+      <div class="f"><span>Horizon 2020</span><small class="mono">545</small></div>
+      <div class="f"><span>FP7</span><small class="mono">451</small></div>
+      <div class="f"><span>ANR — AAPG</span><small class="mono">77</small></div>
+      <h4>Years 2015–2027</h4>
+      <div class="hist"><i style="height:38%"></i><i style="height:28%"></i><i style="height:43%"></i><i style="height:39%"></i><i style="height:35%"></i><i style="height:47%"></i><i style="height:52%"></i><i style="height:53%"></i><i class="hi" style="height:100%"></i><i class="hi" style="height:89%"></i><i style="height:69%"></i><i style="height:79%"></i><i style="height:10%"></i></div>
+      <h4>Country</h4>
+      <div class="f"><span>DE Germany</span><small class="mono">744</small></div>
+      <div class="f on"><span>FR France</span><small class="mono">611</small></div>
+      <div class="f"><span>GB United Kingdom</span><small class="mono">555</small></div>
+      <div class="f"><span>IT Italy</span><small class="mono">527</small></div>
+      <div class="f"><span>ES Spain</span><small class="mono">484</small></div>
+      <h4>EU funding €</h4>
+      <div class="f"><span>MIN</span><small class="mono">—</small></div>
+      <div class="f"><span>MAX</span><small class="mono">—</small></div>
+    </aside>
+    <main>
+      <div class="meta"><b>1,810</b><span>results · “hydrogen” · EN+FR</span>
+        <span class="sort mono"><span style="color:var(--muted)">SORT</span> <b>RELEVANCE</b> · AMOUNT · DATE</span></div>
+      <div class="thead"><span>Acronym</span><span>Title</span><span>Programme</span><span>Years</span><span class="r">Orgs</span><span class="r">Funding</span></div>
+      <div class="res"><span class="acr">HYDEA</span><span class="ttl">HYdrogen DEmonstrator for Aviation</span><span><span class="tag">HORIZON</span></span><span class="mono">2023–26</span><span class="r mono">32</span><span class="r amt">80.5M</span>
+        <span class="snip">…technology maturation plan to develop an H2C (<mark>hydrogen</mark> combustion) propulsion system for aviation…</span></div>
+      <div class="res"><span class="acr">H2ME 2</span><span class="ttl">Hydrogen Mobility Europe 2</span><span><span class="tag">H2020</span></span><span class="mono">2016–23</span><span class="r mono">60</span><span class="r amt">35.0M</span>
+        <span class="snip">…8 European countries to address the innovations required to make <mark>hydrogen</mark> mobility a reality…</span></div>
+      <div class="res"><span class="acr">REFHYNE II</span><span class="ttl">Clean Refinery Hydrogen for Europe II</span><span><span class="tag">H2020</span></span><span class="mono">2021–29</span><span class="r mono">11</span><span class="r amt">32.4M</span>
+        <span class="snip">…100 MW PEM electrolyser at Shell Rheinland, renewable power to produce green <mark>hydrogen</mark>…</span></div>
+      <div class="res"><span class="acr">JIVE</span><span class="ttl">Joint Initiative for hydrogen Vehicles across Europe</span><span><span class="tag">H2020</span></span><span class="mono">2017–24</span><span class="r mono">32</span><span class="r amt">32.0M</span>
+        <span class="snip">The <mark>hydrogen</mark> fuel-cell bus: eliminating harmful local emissions in public transport…</span></div>
+      <div class="res"><span class="acr">H2ME</span><span class="ttl">Hydrogen Mobility Europe</span><span><span class="tag">H2020</span></span><span class="mono">2015–20</span><span class="r mono">39</span><span class="r amt">32.0M</span>
+        <span class="snip">…Europe's 4 most ambitious national initiatives on <mark>hydrogen</mark> mobility…</span></div>
+      <div class="res"><span class="acr">GREENHYSCALE</span><span class="ttl">100 MW green hydrogen production, replicable &amp; scalable</span><span><span class="tag">H2020</span></span><span class="mono">2021–26</span><span class="r mono">11</span><span class="r amt">30.0M</span>
+        <span class="snip">…large-scale electrolysis onshore and offshore, in line with the EU <mark>hydrogen</mark> strategy…</span></div>
+    </main>
+  </div>
+
+  <div class="org">
+    <div class="orghead">
+      <h2>COMMISSARIAT A L'ENERGIE ATOMIQUE ET AUX ENERGIES ALTERNATIVES</h2>
+      <span class="idc">FR · RESEARCH ORG</span>
+      <span class="idc">PIC <b>✓</b> RNSR <b>✓</b></span>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="v">€<em>1.78</em>B</div><div class="k">Total EU+FR funding</div></div>
+      <div class="kpi"><div class="v">2,210</div><div class="k">Projects</div></div>
+      <div class="kpi"><div class="v">555</div><div class="k">As coordinator</div></div>
+      <div class="kpi"><div class="v">2005–2027</div><div class="k">Active period</div></div>
+    </div>
+    <div class="split">
+      <div><h5>Portfolio · top by funding</h5>
+        <table><tr><th>Project</th><th>Role</th><th>Year</th><th>Programme</th><th class="r">Funding</th></tr>
+          <tr><td class="acr">FAMES</td><td><span class="coord">Coord</span></td><td class="mono">2023</td><td><span class="tag">HORIZON</span></td><td class="r amt">189.6M</td></tr>
+          <tr><td class="acr">EUROFUSION</td><td><span class="part">Part</span></td><td class="mono">2014</td><td><span class="tag">H2020</span></td><td class="r amt">70.9M</td></tr>
+          <tr><td class="acr">EUROFUSION</td><td><span class="part">Part</span></td><td class="mono">2021</td><td><span class="tag">HORIZON</span></td><td class="r amt">59.2M</td></tr>
+          <tr><td class="acr">WAYTOGO FAST</td><td><span class="part">Part</span></td><td class="mono">2015</td><td><span class="tag">H2020</span></td><td class="r amt">13.8M</td></tr>
+          <tr><td class="acr">QUCUBE</td><td><span class="coord">Coord</span></td><td class="mono">2019</td><td><span class="tag">H2020</span></td><td class="r amt">11.0M</td></tr></table></div>
+      <div><h5>Funding by year · M€</h5>
+        <div class="bars"><i style="height:29%"></i><i style="height:29%"></i><i style="height:36%"></i><i style="height:48%"></i><i style="height:42%"></i><i style="height:44%"></i><i style="height:27%"></i><i class="hi" style="height:100%"></i><i style="height:42%"></i><i style="height:22%"></i><i style="height:20%"></i></div>
+        <div class="yaxis"><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="label" style="background:#E85000;color:#fff">Piste C — variante claire</div>
+<div class="theme light">
+  <div class="nav">
+    <div class="logo"><span class="sq"><i></i><i></i><i></i></span>ORION</div>
+    <div class="search"><b>hydrogen</b></div>
+    <div class="navr"><span class="on">Projects</span><span>Organisations</span><span>EN</span><span>◑</span></div>
+  </div>
+  <div class="ticker"><span><b>119,172</b> PROJECTS</span><span><b>103,457</b> ORGANISATIONS</span><span>UPDATED <b>31 JUL 2026</b></span></div>
+  <div class="wrap">
+    <aside class="facets">
+      <h4>Funder</h4>
+      <div class="f on"><span>European Commission</span><small class="mono">1733</small></div>
+      <div class="f"><span>ANR</span><small class="mono">77</small></div>
+      <h4>Years 2015–2027</h4>
+      <div class="hist"><i style="height:38%"></i><i style="height:28%"></i><i style="height:43%"></i><i style="height:39%"></i><i style="height:35%"></i><i style="height:47%"></i><i style="height:52%"></i><i style="height:53%"></i><i class="hi" style="height:100%"></i><i class="hi" style="height:89%"></i><i style="height:69%"></i><i style="height:79%"></i><i style="height:10%"></i></div>
+    </aside>
+    <main>
+      <div class="meta"><b>1,810</b><span>results · “hydrogen”</span><span class="sort mono"><b>RELEVANCE</b></span></div>
+      <div class="thead"><span>Acronym</span><span>Title</span><span>Programme</span><span>Years</span><span class="r">Orgs</span><span class="r">Funding</span></div>
+      <div class="res"><span class="acr">HYDEA</span><span class="ttl">HYdrogen DEmonstrator for Aviation</span><span><span class="tag">HORIZON</span></span><span class="mono">2023–26</span><span class="r mono">32</span><span class="r amt">80.5M</span></div>
+      <div class="res"><span class="acr">H2ME 2</span><span class="ttl">Hydrogen Mobility Europe 2</span><span><span class="tag">H2020</span></span><span class="mono">2016–23</span><span class="r mono">60</span><span class="r amt">35.0M</span></div>
+      <div class="res"><span class="acr">REFHYNE II</span><span class="ttl">Clean Refinery Hydrogen for Europe II</span><span><span class="tag">H2020</span></span><span class="mono">2021–29</span><span class="r mono">11</span><span class="r amt">32.4M</span></div>
+      <div class="kpis" style="margin-top:16px;border-top:1px solid var(--border)">
+        <div class="kpi"><div class="v">€<em>1.78</em>B</div><div class="k">CEA · Total funding</div></div>
+        <div class="kpi"><div class="v">2,210</div><div class="k">Projects</div></div>
+        <div class="kpi"><div class="v">555</div><div class="k">As coordinator</div></div>
+        <div class="kpi"><div class="v">2005–2027</div><div class="k">Active</div></div>
+      </div>
+    </main>
+  </div>
+</div>
+</body></html>
