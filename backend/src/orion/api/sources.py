@@ -48,7 +48,8 @@ def sources(db: Annotated[Session, Depends(get_db)]) -> SourcesResponse:
         ).all()
     )
 
-    codes = sorted((set(projects_by_source) | set(last_success)) - {"reference"})
+    # reference and dedup are maintenance passes, not data sources.
+    codes = sorted((set(projects_by_source) | set(last_success)) - {"reference", "dedup"})
     return SourcesResponse(
         totals=totals,
         sources=[

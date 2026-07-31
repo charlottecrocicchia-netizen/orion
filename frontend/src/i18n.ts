@@ -24,7 +24,7 @@ const resources = {
       },
       theme: { toggle: "Toggle theme" },
       lang: { switch: "Changer de langue" },
-      footer: { phase: "Phase 1 · v0.0.1" },
+      footer: { phase: "Phase 1 · v0.1.0" },
     },
   },
   fr: {
@@ -49,7 +49,7 @@ const resources = {
       },
       theme: { toggle: "Changer de thème" },
       lang: { switch: "Switch to English" },
-      footer: { phase: "Phase 1 · v0.0.1" },
+      footer: { phase: "Phase 1 · v0.1.0" },
     },
   },
 } as const;

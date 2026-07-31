@@ -6,5 +6,5 @@ def test_sources_reports_totals_and_per_source_freshness(client):
     assert set(body["totals"]) == {"projects", "organisations", "participations"}
     assert all(isinstance(v, int) for v in body["totals"].values())
     for source in body["sources"]:
-        assert source["source"] != "reference"
+        assert source["source"] not in {"reference", "dedup"}
         assert isinstance(source["projects"], int)

@@ -1,6 +1,6 @@
 [project]
 name = "orion-backend"
-version = "0.0.1"
+version = "0.1.0"
 description = "Orion API — R&D funding intelligence for Europe"
 requires-python = ">=3.12"
 dependencies = [
