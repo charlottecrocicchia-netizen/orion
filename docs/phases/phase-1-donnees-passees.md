@@ -1,6 +1,6 @@
 # Phase 1 — Données passées
 
-- **Statut : validé le 2026-07-31, en cours d'exécution**
+- **Statut : terminée le 2026-07-31** (tag `v0.1.0`)
 - **Amendements à la validation** : (a) FP7 inclus ; (b) le modèle de données et le registre des sources sont conçus **multi-pays et multi-devises** dès maintenant — des sources hors Europe (US, UK, Japon…) seront ajoutées plus tard. Concrètement : table `funders` (bailleur, juridiction, devise par défaut), montants stockés en devise d'origine + contre-valeur EUR calculée (table `exchange_rates`, politique documentée dans l'ADR 0002), identifiants d'organisations extensibles par schéma (PIC, SIREN/SIRET, ROR réservé…), pays normalisés ISO 3166-1, langues taguées sur les champs textuels.
 - **Objectif : la base Orion contient l'historique des projets R&D financés en Europe et en France** (~106 000 projets et ~61 000 organisations attendus, chiffres du brief), **reconstructible de zéro en une commande** (`make ingest`), avec mises à jour automatiques planifiées et traçabilité complète de chaque enregistrement.
 
@@ -39,15 +39,21 @@ Extensions Postgres activées dès cette phase : `unaccent`, `pg_trgm` (dédoubl
 
 ## Livrables (définition du « fini »)
 
-- [ ] `make ingest` part d'une base vide et reconstruit tout en une commande (cible < 45 min en local, hors téléchargements déjà en cache)
-- [ ] Volumes au rendez-vous (ordre de grandeur du brief : ~106 k projets, ~61 k organisations après dédoublonnage) ; chiffres réels et écarts documentés dans `docs/data-sources.md`
-- [ ] Rejouer l'ingestion ne change rien : idempotence prouvée par un test (deux passes → mêmes comptes)
-- [ ] Chaque enregistrement porte source, identifiant source, dates d'import et payload brut
-- [ ] Tests verts en CI sans réseau : parsers sur fixtures committées (quelques Ko par source), test d'intégration upsert sur le Postgres de service
-- [ ] Scheduler actif dans la stack locale, journal `ingestion_runs` alimenté, `/api/sources` expose la fraîcheur
-- [ ] Démo : la page d'accueil affiche la volumétrie et la fraîcheur réelles des données
-- [ ] Licences vérifiées source par source (LIFE compris) avec mentions d'attribution prêtes à afficher dans le produit
-- [ ] ADR 0002 accepté, CHANGELOG à jour, tag `v0.1.0`
+- [x] `make ingest` part d'une base vide et reconstruit tout en une commande (~35-40 min constatées hors téléchargements : CORDIS ~6 min, ANR ~2 min, dédoublonnage ~27 min)
+- [x] Volumes au rendez-vous : **119 172 projets** (cible ~106 k dépassée sans ADEME ni LIFE) ; 103 649 organisations — écart vs ~61 k expliqué dans `docs/data-sources.md` (dédoublonnage volontairement prudent)
+- [x] Rejouer l'ingestion ne change rien : idempotence prouvée par tests **et** par re-run réel de cordis-horizon (comptes strictement identiques)
+- [x] Chaque enregistrement porte source, identifiant source, dates d'import ; payload brut sur les projets
+- [x] Tests verts en CI sans réseau : fixtures committées, base de test dédiée créée et migrée par la suite elle-même (26 tests backend)
+- [x] Scheduler actif dans la stack locale (cron lundi 03:00 UTC), journal `ingestion_runs` alimenté (échecs compris), `/api/sources` expose fraîcheur et volumétrie
+- [x] Démo : la page d'accueil affiche la volumétrie et la fraîcheur réelles (http://localhost:8080)
+- [x] Licences vérifiées source par source — CORDIS CC-BY 4.0, ANR **ODbL** (prérequis juridique bloquant du go-live, décision fondatrice), ADEME Licence Ouverte (source écartée), LIFE reporté
+- [x] ADR 0002 accepté, CHANGELOG à jour, tag `v0.1.0`
+
+## Décisions fondatrice du 2026-07-31 (arbitrages de sources)
+
+- **ADEME : non ingérée.** La source ouverte est le fichier de transparence des subventions (2,3 % de R&D, pas de filtre fiable) — hors sujet pour le produit. **France 2030** sera visé plus tard comme source française de R&D industrielle.
+- **ANR : ingestion maintenue malgré la licence ODbL.** Arbitrage juridique **avant toute mise en ligne publique** — prérequis bloquant du go-live, tracé dans `docs/data-sources.md`.
+- **LIFE : reporté**, ne bloque pas la v0.1.0. Piste future : récupération via OpenAIRE.
 
 ## Hors périmètre (volontairement)
 

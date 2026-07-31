@@ -8,10 +8,14 @@ Registre vivant : chaque source publique ingérée par Orion, avec sa juridictio
 | CORDIS H2020 (`cordis-h2020`) | UE | EUR | idem CC BY 4.0 | figée (programme clos) + corrections | 35 389 projets, 178 967 participations (2026-07-31) |
 | CORDIS FP7 (`cordis-fp7`) | UE | EUR | idem CC BY 4.0 | figée (programme clos) | 25 785 projets, 140 063 participations (2026-07-31) |
 | ANR (`anr`) | FR | EUR | **ODbL 1.0** (Open Database License) — vérifiée le 2026-07-31 sur data.gouv.fr, champ `license: odc-odbl`. ⚠️ **Pas** la Licence Ouverte : clause de partage à l'identique, voir l'alerte ci-dessous | ~mensuelle (dernière publication : 2026-07-02) | 34 720 projets, 117 859 participations (2026-07-31) |
-| ADEME (`ademe`) | FR | EUR | **Licence Ouverte 2.0** — vérifiée le 2026-07-31 (`license: lov2`), réutilisation commerciale libre avec attribution | quotidienne | **ingestion suspendue — décision requise, voir ci-dessous** |
-| LIFE (`life`) | UE | EUR | Commission européenne (CC BY 4.0 a priori, à confirmer sur l'export retenu) | ? | — **pas d'export machine trouvé**, voir ci-dessous |
+| ADEME (`ademe`) | FR | EUR | Licence Ouverte 2.0 (vérifiée le 2026-07-31) | — | **Décision fondatrice du 2026-07-31 : non ingérée** (source hors sujet, voir ci-dessous) ; **France 2030** sera visé plus tard comme source française de R&D industrielle |
+| LIFE (`life`) | UE | EUR | à confirmer sur l'export retenu | — | **Décision fondatrice du 2026-07-31 : reporté**, ne bloque pas la v0.1.0 ; piste de récupération future via **OpenAIRE** |
 
-## ⚠️ Alerte licence : ANR est en ODbL, décision requise avant mise en ligne publique
+## ⚠️ PRÉREQUIS BLOQUANT DE LA MISE EN LIGNE — ANR sous ODbL
+
+**Décision fondatrice du 2026-07-31 : l'ingestion ANR continue telle quelle en local ; la question ODbL sera tranchée avec un juriste avant toute mise en ligne publique.** Ce point est un **prérequis bloquant du go-live** : il doit figurer dans la checklist de la phase 6 (produit vendable) et ne peut pas être découvert au dernier moment.
+
+### Contexte de l'alerte
 
 Les données ANR sont publiées sous **ODbL 1.0**, et non sous la Licence Ouverte attendue. L'ODbL impose, en plus de l'attribution, une clause de **partage à l'identique** : quiconque publie une « base dérivée » doit la mettre à disposition sous ODbL. Ce que le produit affiche (résultats de recherche, analyses) relève des « œuvres produites » et reste libre de licence, mais la question de savoir si la base d'Orion constitue une base dérivée publiquement diffusée se pose dès que le service est en ligne.
 
@@ -34,11 +38,20 @@ Analyse du fichier réel (2026-07-31, 39 282 lignes, 11,2 Md€) :
 
 Options soumises à la fondatrice : (a) ne pas ingérer l'ADEME et viser plutôt **France 2030** comme source française de R&D industrielle ; (b) n'ingérer que le sous-ensemble filtré par mots-clés (~900 lignes, qualité incertaine) ; (c) tout ingérer en marquant les aides hors R&D. Recommandation : (a).
 
-## LIFE : pas d'export exploitable identifié à ce stade
+## LIFE : reporté (décision fondatrice du 2026-07-31)
 
-Le risque anticipé dans le plan se confirme partiellement. La base publique des projets LIFE existe (`https://webgate.ec.europa.eu/life/publicWebsite/search`) mais est un moteur de recherche web : aucun export CSV/Excel ni API documentée n'a été trouvé le 2026-07-31 (l'endpoint d'API deviné renvoie une erreur 500). Le portail `data.europa.eu` ne référence pas de jeu consolidé des projets LIFE.
+La base publique des projets LIFE existe (`https://webgate.ec.europa.eu/life/publicWebsite/search`) mais est un moteur de recherche web : aucun export CSV/Excel ni API documentée n'a été trouvé le 2026-07-31. **Décision : reporté, ne bloque pas la v0.1.0 ; piste privilégiée pour plus tard : récupération via OpenAIRE** (qui agrège les projets LIFE), sinon l'API interne du moteur de recherche si ses conditions l'autorisent.
 
-Pistes restantes, par ordre de préférence : identifier l'API interne réellement utilisée par le moteur de recherche, chercher un jeu de données LIFE consolidé sur `data.europa.eu` avec une requête plus fine, ou en dernier recours une extraction légère si les conditions d'utilisation l'autorisent. À arbitrer : LIFE représente un volume modeste au regard de CORDIS et de l'ANR, et ne doit pas retarder la fin de la phase 1.
+## Dédoublonnage des organisations — métriques (run du 2026-07-31, v0.1.0)
+
+111 791 organisations brutes → **103 649 canoniques** (27 min, journalisé dans `ingestion_runs`, source `dedup`) :
+
+- **7 293 fusions exactes** (pays + nom normalisé identiques : casse, accents, ponctuation, formes juridiques et abréviations repliées)
+- **849 fusions floues** (similarité trigramme ≥ 0,92, noms ≥ 12 caractères, même pays ; 9 442 paires candidates examinées)
+- **3 234 fusions refusées par le garde-fou des identifiants** : noms identiques ou quasi identiques mais identifiants forts différents (PIC, SIREN, RNSR…) — deux entités juridiques distinctes, jamais fusionnées
+- 615 groupes résiduels partagent une clé normalisée sans être fusionnés (majoritairement séparés par leurs identifiants) ; 4 451 projets comptent une même organisation sur plusieurs participations après fusion — les analytics devront compter en DISTINCT
+
+**Écart assumé vs le brief** (~61 000 organisations attendues) : les garde-fous privilégient la précision — aucune fusion inter-pays, aucune fusion contre des identifiants contradictoires, seuil flou élevé. Beaucoup de « doublons » apparents sont des entités juridiquement distinctes (filiales nationales, laboratoires rattachés). Resserrer viendra en phase 3 (ROR, embeddings), avec métriques avant/après à chaque ajustement.
 
 ## Protection des données personnelles
 
