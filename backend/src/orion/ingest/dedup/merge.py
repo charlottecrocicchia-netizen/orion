@@ -275,6 +275,18 @@ def measure(session: Session, stats: RunStats) -> None:
     stats.add("projects_with_repeated_organisation", doubled or 0)
 
 
+def refresh_organisation_stats() -> None:
+    """Rebuild the materialized organisation aggregates.
+
+    CONCURRENTLY cannot run inside a transaction, hence the autocommit
+    connection; it keeps reads unblocked while the view rebuilds.
+    """
+    from orion.core.db import engine
+
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        conn.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY organisation_stats"))
+
+
 def run(force: bool = False) -> dict[str, int]:
     with record_run("dedup") as stats:
         session = SessionLocal()
@@ -289,4 +301,6 @@ def run(force: bool = False) -> dict[str, int]:
             measure(session, stats)
         finally:
             session.close()
+        refresh_organisation_stats()
+        stats.add("organisation_stats_refreshed", 1)
     return stats.counts
