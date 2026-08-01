@@ -42,7 +42,12 @@ pays s'ouvre.*
 | Accessibilité | le globe est intrinsèquement inaccessible → il ne peut être qu'un *enhancement* ; la liste pays actuelle reste le chemin clavier/lecteur d'écran | bonne (SVG + liste jumelle, même modèle que l'Explorateur) | idem A |
 | Analyse (choroplèthe lisible, comparaison) | moyenne — une sphère cache toujours la moitié du monde | **bonne** — c'est l'outil de travail | nulle |
 
-### Ma recommandation (tu décides)
+### Ma recommandation — **décision actée le 1ᵉʳ août 2026 : option B**
+
+La fondatrice suit la recommandation : **carte 2D choroplèthe en phase 3** ;
+le globe interactif devient le joyau de la homepage vitrine en phase 6
+(consigné dans [phase-6-notes.md](phase-6-notes.md) pour ne pas le perdre).
+Le raisonnement d'origine, conservé pour mémoire :
 
 **B en phase 3, A en phase 6.** La carte 2D choroplèthe livre l'usage analytique
 des trois personas pour un tiers du coût, dans la DA, accessible — c'est l'outil.

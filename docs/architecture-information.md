@@ -168,6 +168,9 @@ Distincte de l'outil : une page publique de présentation, style Apple/SpaceX �
 grands chiffres animés, la constellation, les histoires — qui vend le produit.
 L'outil (recherche, explorateur, hubs) vit derrière ; l'accueil actuel de l'outil
 (recherche-first) reste l'accueil des utilisateurs connectés jusqu'à P6.
+**Décidé (1ᵉʳ août 2026)** : son joyau est le **globe WebGL interactif** —
+l'outil de la P3 reste la carte 2D ; cahier des charges dans
+[phase-6-notes.md](phase-6-notes.md).
 
 ### Passé / futur (phase 5)
 
