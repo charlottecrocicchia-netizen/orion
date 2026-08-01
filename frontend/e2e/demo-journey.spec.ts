@@ -19,9 +19,18 @@ test("home leads with the pinned hero, then the acts follow", async ({ page }) =
   await expect(page.locator(".hero-gradient")).toContainText(/€\d+B/, { timeout: 10_000 });
   await expect(page.getByText("funded projects", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "Funding per year" })).toBeVisible();
-  // Scrolling through the pin completes the figure — the scrub gesture.
+  // Scrolling through the pin drives the shared progress. Asserted on the
+  // projects KPI growing — dataset-agnostic (the CI corpus is tiny, and the
+  // seeded hero rounds to €0B regardless of progress).
+  await page.locator(".pin-spacer").waitFor({ state: "attached", timeout: 5_000 });
+  const kpi = page
+    .getByText("funded projects", { exact: true })
+    .locator("xpath=preceding-sibling::div[1]");
+  const before = Number((await kpi.innerText()).replace(/[^\d]/g, ""));
   await page.mouse.wheel(0, 2400);
-  await expect(page.locator(".hero-gradient")).toHaveText(/€21\dB/, { timeout: 10_000 });
+  await expect
+    .poll(async () => Number((await kpi.innerText()).replace(/[^\d]/g, "")), { timeout: 10_000 })
+    .toBeGreaterThan(before);
   // Act 2 (the ink tile) and its editorial entries; act 3's staged map.
   await expect(page.getByRole("heading", { name: "What are you looking for?" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Explore the 41 disciplines/ })).toBeVisible();
