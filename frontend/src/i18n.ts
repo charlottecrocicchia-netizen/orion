@@ -30,6 +30,7 @@ const resources = {
         openExplorerHint: "Compose your own view of the data",
         mapLabel: "Map of Europe — funding by country",
         mapLegend: "EU + FR funding",
+        mapFlows: "on hover, the country's top collaborations",
         mapHint: "Click a country to open its hub",
       },
       search: {
@@ -218,7 +219,7 @@ const resources = {
         down: "Unreachable",
         licences: "Licences and attribution",
       },
-      footer: { data: "About the data", phase: "Phase 3 · v0.2.0" },
+      footer: { data: "About the data", phase: "Phase 3 · v0.3.0" },
       theme: { toggle: "Toggle theme" },
       lang: { switch: "Passer en français" },
       notFound: { title: "Page not found", back: "Back to search" },
@@ -253,6 +254,7 @@ const resources = {
         openExplorerHint: "Composez votre propre vue des données",
         mapLabel: "Carte d'Europe — financements par pays",
         mapLegend: "Financements UE + FR",
+        mapFlows: "au survol, les principales collaborations du pays",
         mapHint: "Cliquez un pays pour ouvrir sa fiche",
       },
       search: {
@@ -484,7 +486,7 @@ const resources = {
         down: "Injoignable",
         licences: "Licences et attribution",
       },
-      footer: { data: "À propos des données", phase: "Phase 3 · v0.2.0" },
+      footer: { data: "À propos des données", phase: "Phase 3 · v0.3.0" },
       theme: { toggle: "Changer de thème" },
       lang: { switch: "Switch to English" },
       notFound: { title: "Page introuvable", back: "Retour à la recherche" },

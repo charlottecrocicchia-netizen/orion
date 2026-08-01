@@ -6,7 +6,9 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
-Phase 3 — analytics and geography, ready for the v0.3.0 recette.
+## [0.3.0] - 2026-08-01
+
+Phase 3 — analytics and geography.
 
 ### Added
 

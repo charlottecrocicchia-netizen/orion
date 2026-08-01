@@ -174,16 +174,25 @@ export function EuropeMap({
           );
         })}
         {hoverArcs.map((arc) => (
-          <path
-            key={arc.key}
-            d={arc.d}
-            fill="none"
-            stroke="var(--color-accent)"
-            strokeWidth={arc.width}
-            strokeOpacity="0.55"
-            strokeLinecap="round"
-            pointerEvents="none"
-          />
+          // Flow arcs wear the palette's warm ochre (series-2): readable on
+          // every choropleth step, with a background halo for crossings.
+          <g key={arc.key} pointerEvents="none">
+            <path
+              d={arc.d}
+              fill="none"
+              stroke="var(--color-background)"
+              strokeWidth={arc.width + 2.2}
+              strokeOpacity="0.85"
+              strokeLinecap="round"
+            />
+            <path
+              d={arc.d}
+              fill="none"
+              stroke="var(--color-series-2)"
+              strokeWidth={arc.width}
+              strokeLinecap="round"
+            />
+          </g>
         ))}
       </svg>
 
@@ -218,6 +227,18 @@ export function EuropeMap({
         </span>
         <span className="tnum">
           0 → {formatCompactEur(maxFunding, i18n.language)}
+        </span>
+        <span className="ml-5 flex items-center gap-1.5">
+          <svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true">
+            <path
+              d="M1,9 Q11,-3 21,9"
+              fill="none"
+              stroke="var(--color-series-2)"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+          {t("explore.mapFlows")}
         </span>
         <span className="ml-auto hidden sm:block">{t("explore.mapHint")}</span>
       </div>
