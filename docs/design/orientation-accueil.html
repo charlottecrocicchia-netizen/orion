@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Orion — Accueil « hall d'orientation » (maquette, proposé)</title>
+<style>
+  :root {
+    --background: #ffffff; --surface: #f5f5f7; --foreground: #1d1d1f;
+    --muted: #86868b; --border: #e8e8ed; --border-soft: #f0f0f3;
+    --accent: #2d4fe3; --accent-soft: #eef1fd; --gradient-to: #8b5cf6;
+    --s2: #b45309; --s3: #0d9488; --s4: #9d174d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--background); color: var(--foreground);
+    font-family: "Inter", -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  .display { font-family: "Instrument Sans", "Inter", sans-serif; letter-spacing: -0.025em; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  header { height: 64px; display: flex; align-items: center; }
+  header .wrap { display: flex; align-items: center; gap: 24px; width: 100%; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 17px; }
+  nav { display: flex; gap: 20px; font-size: 14px; color: var(--muted); }
+  .search-pill { margin-left: auto; background: var(--surface); border-radius: 999px;
+    padding: 6px 14px; font-size: 13px; color: var(--muted); }
+
+  /* ——— Hero compressé : le contexte, plus la thèse ——— */
+  .context { margin-top: 44px; text-align: center; }
+  .context .line { font-size: 15px; color: var(--muted); }
+  .context .line b { color: var(--foreground); font-weight: 600; }
+  .strip { margin: 18px auto 0; max-width: 720px; opacity: 0.9; }
+
+  /* ——— La thèse : la question ——— */
+  .ask { margin-top: 44px; text-align: center; }
+  .ask h1 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 600; }
+  .freetext { margin: 22px auto 0; max-width: 660px; display: flex; align-items: center;
+    gap: 12px; border: 1px solid var(--border); border-radius: 18px; padding: 18px 22px;
+    box-shadow: 0 12px 40px rgba(29,29,31,.06); font-size: 17px; color: var(--muted);
+    text-align: left; }
+  .freetext .caret { width: 2px; height: 22px; background: var(--accent);
+    animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .examples { margin-top: 14px; display: flex; justify-content: center; gap: 10px;
+    flex-wrap: wrap; font-size: 13px; }
+  .examples span { color: var(--muted); }
+  .examples a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted
+    rgba(45,79,227,.45); padding-bottom: 1px; }
+
+  /* ——— Les portes : des miniatures vivantes ——— */
+  .doors { margin-top: 52px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .doors { grid-template-columns: repeat(2, 1fr); } }
+  .door { border: 1px solid var(--border); border-radius: 20px; padding: 22px;
+    text-align: left; transition: transform .2s, box-shadow .2s, border-color .2s;
+    cursor: pointer; background: var(--background); }
+  .door:hover { transform: translateY(-2px); border-color: var(--accent);
+    box-shadow: 0 12px 32px rgba(29,29,31,.08); }
+  .door .mini { height: 92px; display: flex; align-items: center; justify-content: center; }
+  .door h2 { font-size: 16.5px; font-weight: 600; margin-top: 14px; }
+  .door p { font-size: 12.5px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+  .door.soon { border-style: dashed; cursor: default; }
+  .door.soon:hover { transform: none; border-color: var(--border); box-shadow: none; }
+  .door.soon .mini { opacity: 0.45; }
+  .badge-soon { display: inline-block; margin-top: 10px; background: var(--surface);
+    border-radius: 999px; padding: 3px 10px; font-size: 11px; color: var(--muted); }
+
+  /* ——— En ce moment ——— */
+  .now { margin-top: 56px; }
+  .now h2 { font-size: 12px; font-weight: 500; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); }
+  .signals { margin-top: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .signals { grid-template-columns: 1fr; } }
+  .signal { display: flex; align-items: baseline; gap: 12px; border-left: 3px solid var(--accent);
+    background: var(--surface); border-radius: 0 14px 14px 0; padding: 14px 18px;
+    cursor: pointer; transition: background .2s; }
+  .signal:hover { background: var(--accent-soft); }
+  .signal .delta { font-weight: 600; font-size: 18px; white-space: nowrap; }
+  .signal:nth-child(1) .delta { color: var(--s3); }
+  .signal:nth-child(2) .delta { color: var(--accent); }
+  .signal:nth-child(3) .delta { color: var(--s2); }
+  .signal .what { font-size: 13.5px; line-height: 1.45; }
+  .signal .what small { display: block; color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+
+  .foot-note { margin: 56px 0 40px; font-size: 11.5px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="logo">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <circle cx="4" cy="16" r="2" fill="#2d4fe3"/><circle cx="11" cy="8" r="1.6" fill="#1d1d1f"/>
+        <circle cx="18" cy="12" r="2" fill="#1d1d1f"/><path d="M4 16 11 8l7 4" stroke="#c9cdd6"/>
+      </svg>
+      Orion
+    </span>
+    <nav><span>Projets</span><span>Organisations</span><span>Explorer</span></nav>
+    <span class="search-pill">⌕ Rechercher…&nbsp;&nbsp;⌘K</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Le contexte, compressé : une ligne + le bandeau constellation -->
+  <section class="context">
+    <p class="line"><b>€211 milliards</b> de financements R&D publics cartographiés ·
+      <b>119 172</b> projets · <b>213</b> pays · 2005 → 2027</p>
+    <svg class="strip" viewBox="0 0 720 56" aria-hidden="true">
+      <polyline fill="none" stroke="#e8e8ed" stroke-width="1"
+        points="8,46 40,44 72,41 104,25 136,28 168,25 200,15 232,11 264,15 296,23 328,17 360,17 392,16 424,17 456,10 488,10 520,10 552,7 584,-1 616,3 648,14 680,13 712,48"/>
+      <circle cx="584" cy="0" r="3.5" fill="#2d4fe3"/>
+      <text x="584" y="14" text-anchor="middle" font-size="9" fill="#2d4fe3" font-weight="600">2023</text>
+    </svg>
+  </section>
+
+  <!-- La thèse : la question, le texte libre, les exemples -->
+  <section class="ask">
+    <h1 class="display">Que cherchez-vous ?</h1>
+    <div class="freetext"><span class="caret"></span>l'hydrogène par pays depuis 2020…</div>
+    <p class="examples">
+      <span>Essayez :</span>
+      <a>qui coordonne le quantique ?</a>
+      <a>CNRS vs Fraunhofer</a>
+      <a>où va l'argent du solaire ?</a>
+    </p>
+  </section>
+
+  <!-- Les quatre portes : chaque porte est une miniature de sa destination -->
+  <section class="doors">
+    <div class="door">
+      <div class="mini">
+        <svg viewBox="0 0 150 88" width="150" aria-hidden="true">
+          <rect x="0" y="0" width="86" height="88" rx="7" fill="#2d4fe3" fill-opacity=".85"/>
+          <rect x="90" y="0" width="60" height="42" rx="7" fill="#2d4fe3" fill-opacity=".55"/>
+          <rect x="90" y="46" width="60" height="42" rx="7" fill="#2d4fe3" fill-opacity=".3"/>
+          <text x="10" y="20" font-size="9" fill="#fff" font-weight="600">informatique</text>
+          <text x="10" y="32" font-size="8.5" fill="#fff" opacity=".85">€27,5 Md</text>
+        </svg>
+      </div>
+      <h2>Explorer un thème</h2>
+      <p>41 disciplines, leurs montants et leurs trajectoires — l'hydrogène, le quantique, la santé…</p>
+    </div>
+    <div class="door">
+      <div class="mini">
+        <svg viewBox="0 0 150 88" width="150" aria-hidden="true">
+          <line x1="75" y1="44" x2="26" y2="16" stroke="#e8e8ed" stroke-width="2.4"/>
+          <line x1="75" y1="44" x2="124" y2="14" stroke="#e8e8ed" stroke-width="1.6"/>
+          <line x1="75" y1="44" x2="132" y2="58" stroke="#e8e8ed" stroke-width="1.2"/>
+          <line x1="75" y1="44" x2="38" y2="72" stroke="#e8e8ed" stroke-width="2"/>
+          <circle cx="26" cy="16" r="5" fill="#1d1d1f"/><circle cx="124" cy="14" r="4" fill="#1d1d1f"/>
+          <circle cx="132" cy="58" r="3.4" fill="#1d1d1f"/><circle cx="38" cy="72" r="4.5" fill="#1d1d1f"/>
+          <circle cx="75" cy="44" r="6.5" fill="#2d4fe3"/>
+        </svg>
+      </div>
+      <h2>Analyser une organisation</h2>
+      <p>Portefeuille, partenaires récurrents, thèmes — puis comparez jusqu'à quatre acteurs.</p>
+    </div>
+    <div class="door">
+      <div class="mini">
+        <svg viewBox="0 0 150 88" width="150" aria-hidden="true">
+          <polyline fill="none" stroke="#2d4fe3" stroke-width="2.4"
+            points="8,64 38,50 68,54 98,30 128,36 144,22"/>
+          <polyline fill="none" stroke="#b45309" stroke-width="1.9"
+            points="8,70 38,62 68,42 98,48 128,52 144,44"/>
+          <circle cx="144" cy="22" r="3" fill="#2d4fe3"/>
+          <circle cx="144" cy="44" r="3" fill="#b45309"/>
+        </svg>
+      </div>
+      <h2>Comparer des pays</h2>
+      <p>Le globe, la carte, les flux de collaboration — la France face à ses voisins.</p>
+    </div>
+    <div class="door soon">
+      <div class="mini">
+        <svg viewBox="0 0 150 88" width="150" aria-hidden="true">
+          <rect x="14" y="10" width="122" height="16" rx="8" fill="#f5f5f7"/>
+          <rect x="14" y="34" width="98" height="16" rx="8" fill="#f5f5f7"/>
+          <rect x="14" y="58" width="110" height="16" rx="8" fill="#f5f5f7"/>
+          <circle cx="129" cy="42" r="3" fill="#b45309"/>
+        </svg>
+      </div>
+      <h2>Voir les appels ouverts</h2>
+      <p>Les appels Horizon Europe et ANR, reliés aux tendances que vous voyez déjà ici.</p>
+      <span class="badge-soon">Phase 5 · automne 2026</span>
+    </div>
+  </section>
+
+  <!-- En ce moment : le momentum, daté, cliquable -->
+  <section class="now">
+    <h2>En ce moment</h2>
+    <div class="signals">
+      <div class="signal">
+        <span class="delta">↑ 38 %</span>
+        <span class="what">Le génie de l'environnement accélère depuis 2021
+          <small>ouvrir la tendance dans l'Explorateur</small></span>
+      </div>
+      <div class="signal">
+        <span class="delta">€1,27 Md</span>
+        <span class="what">L'Espagne signe sa meilleure année 2026
+          <small>voir la fiche pays</small></span>
+      </div>
+      <div class="signal">
+        <span class="delta">707</span>
+        <span class="what">projets hydrogène sous Horizon Europe
+          <small>voir le treemap des programmes</small></span>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot-note">Maquette statique (proposé) — les portes sont des miniatures vivantes
+    des destinations ; signaux « En ce moment » calculés à l'implémentation.</p>
+</main>
+</body>
+</html>
