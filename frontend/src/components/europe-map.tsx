@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
@@ -39,9 +39,12 @@ const ZOOM_MS = 450;
 export function EuropeMap({
   countries,
   flows,
+  autoOpen,
 }: {
   countries: CountryIndexEntry[];
   flows: CountryFlow[];
+  /** Open this country's hub on mount — the globe's morph hands over here. */
+  autoOpen?: string | null;
 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -110,6 +113,15 @@ export function EuropeMap({
     requestAnimationFrame(frame);
   };
 
+  useEffect(() => {
+    if (!autoOpen) return;
+    const target = wrapRef.current?.querySelector<SVGPathElement>(
+      `path[data-code="${autoOpen}"]`,
+    );
+    if (target) openCountry(autoOpen, target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
+
   const moveTip = (event: React.MouseEvent, entry: CountryIndexEntry | undefined, code: string) => {
     const rect = wrapRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -140,6 +152,7 @@ export function EuropeMap({
             <path
               key={country.code}
               d={country.path}
+              data-code={country.code}
               role="link"
               tabIndex={zooming ? -1 : 0}
               aria-label={

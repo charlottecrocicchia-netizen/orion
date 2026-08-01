@@ -3,27 +3,84 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { AmountBar } from "@/components/amount-bar";
+import { useState } from "react";
+
 import { EuropeMap } from "@/components/europe-map";
+import { WorldGlobe } from "@/components/world-globe";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { countryFlag, formatCompactEur } from "@/lib/format";
+
+type GeoView = "globe" | "map";
+
+function storedView(): GeoView {
+  try {
+    return window.localStorage.getItem("orion.geoview") === "map" ? "map" : "globe";
+  } catch {
+    return "globe";
+  }
+}
 
 export function ExploreCountriesPage() {
   const { t, i18n } = useTranslation();
+  const [view, setView] = useState<GeoView>(storedView);
+  const [autoOpen, setAutoOpen] = useState<string | null>(null);
   const { data, isPending } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: flows } = useQuery({ queryKey: ["country-flows"], queryFn: api.countryFlows });
   const maxFunding = Math.max(...(data?.map((c) => c.funding_eur) ?? []), 0);
 
+  const switchView = (next: GeoView) => {
+    setView(next);
+    setAutoOpen(null);
+    try {
+      window.localStorage.setItem("orion.geoview", next);
+    } catch {
+      /* private mode */
+    }
+  };
+
   return (
     <div className="mx-auto w-full max-w-[880px] px-6 pt-12">
-      <p className="text-sm font-medium text-accent">{t("explore.title")}</p>
-      <h1 className="display-tight mt-1 text-[clamp(28px,4vw,40px)] font-semibold">
-        {t("explore.countriesTitle")}
-      </h1>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-accent">{t("explore.title")}</p>
+          <h1 className="display-tight mt-1 text-[clamp(28px,4vw,40px)] font-semibold">
+            {t("explore.countriesTitle")}
+          </h1>
+        </div>
+        <div className="flex rounded-full bg-surface p-1 text-[12.5px]" role="group">
+          {(["globe", "map"] as const).map((candidate) => (
+            <button
+              key={candidate}
+              type="button"
+              aria-pressed={view === candidate}
+              onClick={() => switchView(candidate)}
+              className={cn(
+                "rounded-full px-3.5 py-1.5 transition-colors",
+                view === candidate
+                  ? "bg-background shadow-[0_1px_4px_rgba(29,29,31,.12)]"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t(`explore.view${candidate === "globe" ? "Globe" : "Map"}`)}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {data ? (
         <div className="mt-8">
-          <EuropeMap countries={data} flows={flows ?? []} />
+          {view === "globe" ? (
+            <WorldGlobe
+              countries={data}
+              onOpenCountry={(code) => {
+                setAutoOpen(code);
+                setView("map");
+              }}
+            />
+          ) : (
+            <EuropeMap countries={data} flows={flows ?? []} autoOpen={autoOpen} />
+          )}
         </div>
       ) : null}
 
@@ -34,28 +91,44 @@ export function ExploreCountriesPage() {
               <Link
                 key={country.code}
                 to={`/explore/countries/${country.code}`}
-                className="group flex items-baseline gap-4 border-b border-border-soft py-3.5 transition-colors hover:bg-surface/60"
+                className="group grid grid-cols-[56px_34px_minmax(0,1fr)_auto] items-center gap-4 border-b border-border-soft py-3.5"
               >
-                <span className="tnum w-7 text-right text-[13px] text-muted-foreground">
+                <span
+                  className={cn(
+                    "display-tight tnum text-right text-[26px] font-semibold",
+                    index === 0 ? "text-accent" : "text-border",
+                  )}
+                >
                   {index + 1}
                 </span>
-                <span aria-hidden="true" className="text-lg leading-none">
+                <span aria-hidden="true" className="text-xl leading-none">
                   {countryFlag(country.code)}
                 </span>
-                <span className="font-medium group-hover:text-accent">{country.name}</span>
-                {country.eu_member ? (
-                  <span className="rounded border px-1.5 py-px text-[10px] uppercase text-muted-foreground">
-                    {t("country.euMember")}
+                <span className="min-w-0">
+                  <span className="flex items-baseline gap-2.5">
+                    <span className="truncate text-[15.5px] font-semibold transition-colors group-hover:text-accent">
+                      {country.name}
+                    </span>
+                    {country.eu_member ? (
+                      <span className="whitespace-nowrap text-[10.5px] uppercase tracking-wide text-muted-foreground">
+                        {t("country.euMember")}
+                      </span>
+                    ) : null}
                   </span>
-                ) : null}
-                <span className="tnum ml-auto whitespace-nowrap text-sm text-muted-foreground">
-                  {t("search.projectsCount", { count: country.projects_count })}
+                  <span className="mt-1.5 block h-[5px] overflow-hidden rounded-full bg-surface">
+                    <span
+                      className="block h-full rounded-full bg-gradient-to-r from-accent to-gradient-to"
+                      style={{ width: `${Math.max((country.funding_eur / maxFunding) * 100, 1)}%` }}
+                    />
+                  </span>
                 </span>
-                <span className="flex w-24 shrink-0 flex-col items-end">
-                  <span className="display-tight tnum whitespace-nowrap text-[16px] font-semibold">
+                <span className="text-right">
+                  <span className="display-tight tnum block whitespace-nowrap text-[19px] font-semibold">
                     {formatCompactEur(country.funding_eur, i18n.language)}
                   </span>
-                  <AmountBar value={country.funding_eur} max={maxFunding} />
+                  <span className="tnum block text-[11.5px] text-muted-foreground">
+                    {t("search.projectsCount", { count: country.projects_count })}
+                  </span>
                 </span>
               </Link>
             ))}

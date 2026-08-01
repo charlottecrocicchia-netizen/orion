@@ -165,11 +165,13 @@ function Tabs({ q }: { q: string }) {
   const suffix = q ? `?q=${encodeURIComponent(q)}` : "";
   const cls = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "rounded-full px-4 py-1.5 text-sm",
-      isActive ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
+      "rounded-full px-4 py-1.5 text-sm transition-colors",
+      isActive
+        ? "bg-background shadow-[0_1px_4px_rgba(29,29,31,.12)]"
+        : "text-muted-foreground hover:text-foreground",
     );
   return (
-    <div className="flex gap-1.5">
+    <div className="flex rounded-full bg-surface p-1">
       <NavLink to={`/projects${suffix}`} className={cls} end>
         {t("search.projectsTab")}
       </NavLink>

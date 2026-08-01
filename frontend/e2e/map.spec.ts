@@ -6,6 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("orion.lang", "en");
     window.localStorage.setItem("orion.theme", "light");
+    window.localStorage.setItem("orion.geoview", "map");
   });
 });
 
