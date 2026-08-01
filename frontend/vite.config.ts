@@ -14,6 +14,9 @@ export default defineConfig({
     proxy: { "/api": "http://localhost:8000" },
   },
   test: {
+    // Scoped to src: the Playwright specs under e2e/ also end in .spec.ts and
+    // would otherwise be collected here, where their fixtures cannot run.
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
   },
