@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Orion — L'Explorateur (maquette, proposé)</title>
+<style>
+  /* Direction D « Lumière » — tokens identiques à l'app */
+  :root {
+    --background: #ffffff; --surface: #f5f5f7; --foreground: #1d1d1f;
+    --muted: #86868b; --border: #e8e8ed; --border-soft: #f0f0f3;
+    --accent: #2d4fe3; --accent-soft: #eef1fd; --gradient-to: #8b5cf6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--background); color: var(--foreground);
+    font-family: "Inter", -apple-system, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .display { font-family: "Instrument Sans", "Inter", sans-serif; letter-spacing: -0.025em; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+
+  header { height: 64px; display: flex; align-items: center; }
+  header .wrap { display: flex; align-items: center; gap: 24px; width: 100%; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 17px; }
+  .logo svg { display: block; }
+  nav { display: flex; gap: 20px; font-size: 14px; color: var(--muted); }
+  nav .active { color: var(--foreground); }
+  .search-pill {
+    margin-left: auto; display: flex; align-items: center; gap: 24px;
+    background: var(--surface); border-radius: 999px; padding: 6px 8px 6px 16px;
+    font-size: 13px; color: var(--muted);
+  }
+  .search-pill kbd {
+    background: var(--background); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px 6px; font-size: 10px; font-family: inherit;
+  }
+
+  /* ——— La phrase de composition ——— */
+  .composer { margin-top: 48px; }
+  .composer .eyebrow { color: var(--accent); font-size: 14px; font-weight: 500; }
+  .sentence {
+    margin-top: 14px; font-size: clamp(24px, 3.2vw, 34px); font-weight: 600;
+    line-height: 1.45; max-width: 30ch;
+  }
+  .seg {
+    display: inline-block; color: var(--accent); cursor: pointer;
+    border-bottom: 2px dotted color-mix(in srgb, var(--accent) 45%, transparent);
+    padding-bottom: 1px; white-space: nowrap;
+  }
+  .seg .caret { font-size: 0.6em; vertical-align: 2px; opacity: 0.6; }
+  .seg.filter {
+    font-size: 0.55em; vertical-align: 6px; background: var(--accent-soft);
+    border: none; border-radius: 999px; padding: 6px 14px; font-weight: 500;
+  }
+  .seg.filter .x { opacity: 0.55; margin-left: 6px; }
+
+  /* ——— Zone graphique ——— */
+  .board {
+    margin-top: 36px; border: 1px solid var(--border); border-radius: 20px;
+    padding: 28px 28px 20px; box-shadow: 0 18px 60px rgba(29, 29, 31, 0.05);
+  }
+  .board-head { display: flex; align-items: baseline; gap: 16px; }
+  .board-title { font-size: 15px; font-weight: 600; }
+  .board-sub { font-size: 12.5px; color: var(--muted); }
+  .board-actions { margin-left: auto; display: flex; gap: 8px; }
+  .btn {
+    font-size: 12.5px; padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--border); background: transparent; cursor: pointer;
+    color: var(--foreground); font-family: inherit;
+  }
+  .btn.primary { background: var(--foreground); color: var(--background); border-color: var(--foreground); }
+  .chart { margin-top: 18px; }
+  .legend { display: flex; gap: 18px; margin-top: 10px; flex-wrap: wrap; }
+  .legend .item { display: flex; align-items: baseline; gap: 7px; font-size: 12.5px; }
+  .legend .swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; vertical-align: middle; }
+  .legend .val { color: var(--muted); }
+
+  /* onglets de vue + curseur temporel */
+  .board-foot {
+    display: flex; align-items: center; margin-top: 18px; padding-top: 14px;
+    border-top: 1px solid var(--border-soft); gap: 6px;
+  }
+  .view-tab {
+    font-size: 12.5px; padding: 6px 13px; border-radius: 999px; color: var(--muted); cursor: pointer;
+  }
+  .view-tab.active { background: var(--foreground); color: var(--background); }
+  .view-tab.soon { opacity: 0.45; cursor: default; }
+  .time { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--muted); }
+  .rail { position: relative; width: 220px; height: 3px; background: var(--surface); border-radius: 2px; }
+  .rail .span { position: absolute; left: 0%; right: 0%; height: 100%; background: var(--accent); border-radius: 2px; opacity: 0.7; }
+  .rail .knob {
+    position: absolute; top: 50%; width: 13px; height: 13px; border-radius: 50%;
+    background: var(--background); border: 2px solid var(--accent); transform: translate(-50%, -50%);
+  }
+
+  /* ——— Vues préparées ——— */
+  .stories { margin-top: 56px; }
+  .stories h2 { font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .story-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 16px; }
+  .story {
+    border: 1px solid var(--border); border-radius: 18px; padding: 20px;
+    cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .story:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 12px 32px rgba(29, 29, 31, 0.08); }
+  .story .k { font-size: 11px; color: var(--accent); font-weight: 500; }
+  .story h3 { font-size: 16.5px; font-weight: 600; margin-top: 6px; line-height: 1.3; }
+  .story p { font-size: 12.5px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
+
+  .foot-note { margin: 48px 0 40px; font-size: 11.5px; color: var(--muted); }
+  .url-chip {
+    display: inline-block; background: var(--surface); border-radius: 8px; padding: 4px 10px;
+    font-family: ui-monospace, "SF Mono", monospace; font-size: 11px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="logo">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <circle cx="4" cy="16" r="2" fill="#2d4fe3"/><circle cx="11" cy="8" r="1.6" fill="#1d1d1f"/>
+        <circle cx="18" cy="12" r="2" fill="#1d1d1f"/><path d="M4 16 11 8l7 4" stroke="#c9cdd6" stroke-width="1"/>
+      </svg>
+      Orion
+    </span>
+    <nav>
+      <span>Projets</span><span>Organisations</span><span class="active">Explorer</span>
+    </nav>
+    <span class="search-pill">⌕ Rechercher… <kbd>⌘K</kbd></span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- La phrase de composition : chaque segment est un menu -->
+  <section class="composer">
+    <p class="eyebrow">Explorer</p>
+    <p class="sentence display">
+      Montrer <span class="seg">les financements<span class="caret"> ▾</span></span>
+      par <span class="seg">pays<span class="caret"> ▾</span></span>,
+      <span class="seg">top 5<span class="caret"> ▾</span></span>,
+      dans le temps
+      <span class="seg filter">2005 → 2027<span class="x">×</span></span>
+      <span class="seg filter">+ filtre</span>
+    </p>
+  </section>
+
+  <!-- La vue -->
+  <section class="board">
+    <div class="board-head">
+      <span class="board-title">Financements par pays · top 5 · Md€ / an</span>
+      <span class="board-sub">part des participants · sources CORDIS + ANR</span>
+      <div class="board-actions">
+        <button class="btn">CSV</button>
+        <button class="btn">PNG</button>
+        <button class="btn primary">Partager</button>
+      </div>
+    </div>
+
+    <div class="chart"><svg id="lines" viewBox="0 0 1120 400" width="100%" role="img"
+      aria-label="Financements par pays et par an, top 5, 2005-2027"></svg></div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="board-foot">
+      <span class="view-tab active">Courbes</span>
+      <span class="view-tab">Barres</span>
+      <span class="view-tab">Treemap</span>
+      <span class="view-tab soon">Carte · V2</span>
+      <span class="view-tab">Table</span>
+      <div class="time">
+        <span class="tnum">2005</span>
+        <div class="rail"><div class="span"></div><div class="knob" style="left:0%"></div><div class="knob" style="left:100%"></div></div>
+        <span class="tnum">2027</span>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot-note" style="margin-top:14px">
+    Cette vue est une URL : <span class="url-chip">orion.app/explore?metric=funding&amp;by=country&amp;compare=FR~DE~GB~ES~IT&amp;time=2005..2027</span>
+  </p>
+
+  <!-- Les portes d'entrée éditoriales -->
+  <section class="stories">
+    <h2>Vues préparées — cliquez, puis modifiez</h2>
+    <div class="story-grid">
+      <div class="story">
+        <span class="k">Treemap · thème</span>
+        <h3>Où va l'argent de l'hydrogène ?</h3>
+        <p>2 458 projets, €synthèse par programme. Le filtre thème utilise la recherche bilingue.</p>
+      </div>
+      <div class="story">
+        <span class="k">Courbes · comparaison</span>
+        <h3>Le Brexit vu des financements</h3>
+        <p>La participation britannique s'effondre en 2022, puis revient avec l'association à Horizon Europe.</p>
+      </div>
+      <div class="story">
+        <span class="k">Barres · France</span>
+        <h3>Le top 10 français</h3>
+        <p>CNRS, CEA, Inserm… les dix premières organisations françaises par financement.</p>
+      </div>
+      <div class="story">
+        <span class="k">Barres · rôle</span>
+        <h3>Qui coordonne l'Europe ?</h3>
+        <p>La part de projets menés en coordination, pays par pays.</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot-note">
+    Maquette statique (proposé) — données réelles Orion au 1ᵉʳ août 2026 ·
+    © Union européenne, CORDIS (CC BY 4.0) · ANR (ODbL 1.0)
+  </p>
+</main>
+
+<script>
+  // Vraies séries (Md€/an, part des participants), extraites de l'API le 1/08/2026.
+  const SERIES = [
+    { code: "FR", label: "France", color: "#2d4fe3", final: "32,4 Md€",
+      data: {2005:0.24,2006:0.38,2007:0.85,2008:1.31,2009:1.53,2010:1.17,2011:1.24,2012:1.3,2013:1.39,2014:1.48,2015:1.35,2016:1.26,2017:1.35,2018:1.35,2019:1.63,2020:1.86,2021:1.82,2022:2.12,2023:2.77,2024:2.3,2025:2.01,2026:1.62,2027:0.09} },
+    { code: "DE", label: "Allemagne", color: "#1d1d1f", final: "27,0 Md€",
+      data: {2005:0,2007:0.05,2008:1.03,2009:0.73,2010:1.01,2011:1.07,2012:1.18,2013:1.35,2014:1.0,2015:1.48,2016:1.31,2017:1.27,2018:1.19,2019:1.42,2020:1.61,2021:1.68,2022:1.73,2023:2.47,2024:2.02,2025:1.5,2026:1.75,2027:0.11} },
+    { code: "GB", label: "Royaume-Uni", color: "#8b5cf6", final: "16,7 Md€",
+      data: {2005:0,2007:0.01,2008:0.75,2009:0.76,2010:0.81,2011:1.01,2012:1.13,2013:1.39,2014:0.96,2015:1.41,2016:1.36,2017:1.12,2018:1.02,2019:1.01,2020:0.88,2021:0.84,2022:0.1,2023:0.05,2024:0.12,2025:0.78,2026:1.08,2027:0.12} },
+    { code: "ES", label: "Espagne", color: "#a7adba", final: "16,1 Md€",
+      data: {2007:0.01,2008:0.38,2009:0.28,2010:0.42,2011:0.51,2012:0.57,2013:0.68,2014:0.48,2015:0.78,2016:0.84,2017:0.84,2018:0.8,2019:0.94,2020:1.07,2021:0.98,2022:1.17,2023:1.68,2024:1.32,2025:0.96,2026:1.27,2027:0.08} },
+    { code: "IT", label: "Italie", color: "#c9cdd6", final: "14,4 Md€",
+      data: {2007:0.01,2008:0.52,2009:0.41,2010:0.51,2011:0.55,2012:0.57,2013:0.63,2014:0.55,2015:0.74,2016:0.75,2017:0.71,2018:0.71,2019:0.82,2020:0.94,2021:0.93,2022:1.0,2023:1.25,2024:1.1,2025:0.8,2026:0.8,2027:0.07} },
+  ];
+
+  const svg = document.getElementById("lines");
+  const W = 1120, H = 400, PAD_L = 44, PAD_R = 96, PAD_T = 16, PAD_B = 30;
+  const Y0 = 2005, Y1 = 2027, MAX = 3;
+  const x = (year) => PAD_L + ((year - Y0) * (W - PAD_L - PAD_R)) / (Y1 - Y0);
+  const y = (value) => H - PAD_B - (value / MAX) * (H - PAD_T - PAD_B);
+  const ns = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs) => {
+    const node = document.createElementNS(ns, tag);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    svg.appendChild(node);
+    return node;
+  };
+
+  // grille horizontale discrète + axe
+  for (let g = 0; g <= 3; g++) {
+    el("line", { x1: PAD_L, x2: W - PAD_R, y1: y(g), y2: y(g), stroke: "#f0f0f3" });
+    el("text", { x: PAD_L - 8, y: y(g) + 4, "text-anchor": "end", "font-size": 11, fill: "#86868b" }).textContent = g;
+  }
+  for (const year of [2005, 2010, 2015, 2020, 2025, 2027]) {
+    el("text", { x: x(year), y: H - 8, "text-anchor": "middle", "font-size": 11, fill: "#86868b" }).textContent = year;
+  }
+
+  // annotation Brexit (l'histoire dans la donnée)
+  el("line", { x1: x(2022), x2: x(2022), y1: y(2.9), y2: y(0.12), stroke: "#e8e8ed", "stroke-dasharray": "3 4" });
+  el("text", { x: x(2022) - 6, y: y(2.82), "text-anchor": "end", "font-size": 11, fill: "#86868b" }).textContent = "Brexit — sortie d'Horizon";
+
+  const legend = document.getElementById("legend");
+  SERIES.forEach((serie, index) => {
+    const years = Object.keys(serie.data).map(Number).sort((a, b) => a - b);
+    const points = years.map((yr) => `${x(yr).toFixed(1)},${y(serie.data[yr]).toFixed(1)}`).join(" ");
+    const line = el("polyline", {
+      points, fill: "none", stroke: serie.color, "stroke-width": serie.code === "FR" ? 2.5 : 1.8,
+      "stroke-linejoin": "round", opacity: serie.code === "ES" || serie.code === "IT" ? 0.8 : 1,
+    });
+    const lastYear = years[years.length - 1];
+    // étiquette de fin de courbe (valeur 2023 pour l'écartement visuel)
+    el("text", {
+      x: W - PAD_R + 10, y: y(serie.data[2023] ?? serie.data[lastYear]) + 4,
+      "font-size": 12, "font-weight": serie.code === "FR" ? 600 : 400, fill: serie.color,
+    }).textContent = serie.label;
+    // dessin animé — la signature D
+    const length = line.getTotalLength();
+    line.style.strokeDasharray = length;
+    line.style.strokeDashoffset = length;
+    line.getBoundingClientRect();
+    line.style.transition = `stroke-dashoffset 1.3s ${0.12 * index}s cubic-bezier(.4,0,.2,1)`;
+    requestAnimationFrame(() => { line.style.strokeDashoffset = "0"; });
+
+    const item = document.createElement("span");
+    item.className = "item";
+    item.innerHTML = `<span class="swatch" style="background:${serie.color}"></span>${serie.label} <span class="val tnum">${serie.final}</span>`;
+    legend.appendChild(item);
+  });
+
+  // pic France annoté
+  el("circle", { cx: x(2023), cy: y(2.77), r: 4, fill: "#2d4fe3" });
+  el("text", { x: x(2023), y: y(2.77) - 10, "text-anchor": "middle", "font-size": 12, "font-weight": 600, fill: "#2d4fe3" }).textContent = "2,77 Md€";
+</script>
+</body>
+</html>
