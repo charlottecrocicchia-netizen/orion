@@ -1,74 +1,64 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 
 import "./i18n";
 
-import { DataCard } from "@/components/data-card";
-import { LanguageToggle } from "@/components/language-toggle";
-import { Logo } from "@/components/logo";
-import { StatusCard } from "@/components/status-card";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Badge } from "@/components/ui/badge";
+import { Layout } from "@/components/layout";
+import { AboutDataPage } from "@/pages/about-data";
+import { CountryHubPage } from "@/pages/country-hub";
+import { ExploreCountriesPage } from "@/pages/explore-countries";
+import { ExploreProgrammesPage } from "@/pages/explore-programmes";
+import { HomePage } from "@/pages/home";
+import { NotFoundPage } from "@/pages/not-found";
+import { OrganisationHubPage } from "@/pages/organisation-hub";
+import { ProgrammeHubPage } from "@/pages/programme-hub";
+import { ProjectDetailPage } from "@/pages/project-detail";
+import { OrganisationsSearchPage, ProjectsSearchPage } from "@/pages/search";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 60_000, retry: 1, refetchOnWindowFocus: false },
+  },
+});
 
-function Shell() {
-  const { t } = useTranslation();
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
+export function AppRoutes() {
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[420px]"
-        style={{
-          background:
-            "radial-gradient(60% 55% at 50% 0%, color-mix(in oklab, var(--color-primary) 9%, transparent), transparent)",
-        }}
-      />
-      <header className="relative z-10">
-        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
-          <Logo />
-          <div className="flex items-center gap-1">
-            <LanguageToggle />
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
-      <main className="relative z-10 flex flex-1 items-center justify-center px-6">
-        <section className="w-full max-w-2xl py-20 text-center">
-          <Badge
-            variant="outline"
-            className="mb-6 gap-1.5 border-primary/25 py-1 pr-2.5 pl-1.5 text-primary"
-          >
-            <span className="inline-block size-1.5 rounded-full bg-primary" aria-hidden="true" />
-            {t("badge")}
-          </Badge>
-          <h1 className="text-4xl font-semibold tracking-tight text-balance md:text-5xl">
-            {t("tagline")}
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-pretty text-muted-foreground md:text-lg">
-            {t("subtitle")}
-          </p>
-          <div className="mx-auto mt-12 grid max-w-2xl gap-4 sm:grid-cols-2">
-            <DataCard />
-            <StatusCard />
-          </div>
-        </section>
-      </main>
-      <footer className="relative z-10 border-t">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-6 text-xs text-muted-foreground">
-          <span>© 2026 Orion</span>
-          <span>{t("footer.phase")}</span>
-        </div>
-      </footer>
-    </div>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/projects" element={<ProjectsSearchPage />} />
+          <Route path="/projects/:id" element={<ProjectDetailPage />} />
+          <Route path="/organisations" element={<OrganisationsSearchPage />} />
+          <Route path="/organisations/:id" element={<OrganisationHubPage />} />
+          <Route path="/explore/countries" element={<ExploreCountriesPage />} />
+          <Route path="/explore/countries/:code" element={<CountryHubPage />} />
+          <Route path="/explore/programmes" element={<ExploreProgrammesPage />} />
+          <Route path="/explore/programmes/:id" element={<ProgrammeHubPage />} />
+          <Route path="/about-data" element={<AboutDataPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Shell />
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }

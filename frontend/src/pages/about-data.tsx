@@ -1,0 +1,116 @@
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "@/lib/api";
+import { formatInt } from "@/lib/format";
+
+const SOURCE_LABELS: Record<string, string> = {
+  "cordis-horizon": "CORDIS · Horizon Europe",
+  "cordis-h2020": "CORDIS · Horizon 2020",
+  "cordis-fp7": "CORDIS · FP7",
+  anr: "ANR · Projets financés",
+};
+
+export function AboutDataPage() {
+  const { t, i18n } = useTranslation();
+  const { data: sources, isPending } = useQuery({ queryKey: ["sources"], queryFn: api.sources });
+  const { data: health } = useQuery({ queryKey: ["health"], queryFn: api.health, retry: false });
+
+  const dateFmt = new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium" });
+
+  return (
+    <div className="mx-auto w-full max-w-[760px] px-6 pt-10">
+      <h1 className="display-tight text-[clamp(28px,4vw,40px)] font-semibold">{t("about.title")}</h1>
+      <p className="mt-3 max-w-[60ch] text-muted-foreground">{t("about.intro")}</p>
+
+      <section className="mt-10">
+        <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+          {t("about.source")}s
+        </h2>
+        {isPending ? (
+          <Skeleton className="h-40 w-full" />
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-[11px] uppercase tracking-[.08em] text-muted-foreground">
+                <th className="py-2 pr-3 font-medium">{t("about.source")}</th>
+                <th className="py-2 pr-3 text-right font-medium">{t("about.projects")}</th>
+                <th className="py-2 text-right font-medium">{t("about.updated")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sources?.sources.map((source) => (
+                <tr key={source.source} className="border-b border-border-soft">
+                  <td className="py-2.5 pr-3">{SOURCE_LABELS[source.source] ?? source.source}</td>
+                  <td className="tnum py-2.5 pr-3 text-right">
+                    {formatInt(source.projects, i18n.language)}
+                  </td>
+                  <td className="tnum py-2.5 text-right text-muted-foreground">
+                    {source.last_success_at
+                      ? dateFmt.format(new Date(source.last_success_at))
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+          {t("about.licences")}
+        </h2>
+        <ul className="space-y-2 text-sm text-muted-foreground">
+          <li>
+            © European Union, CORDIS —{" "}
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              CC BY 4.0
+            </a>
+          </li>
+          <li>
+            ANR — données publiques,{" "}
+            <a
+              href="https://opendatacommons.org/licenses/odbl/1-0/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              ODbL 1.0
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+          {t("about.systemStatus")}
+        </h2>
+        <div className="flex flex-wrap gap-6 text-sm">
+          <div>
+            <span className="text-muted-foreground">{t("about.api")} · </span>
+            <span className={health ? "text-foreground" : "text-muted-foreground"}>
+              {health ? t("about.operational") : t("about.down")}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("about.database")} · </span>
+            <span>
+              {health?.checks.database === "ok" ? t("about.operational") : t("about.down")}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">{t("about.version")} · </span>
+            <span className="tnum">{health?.version ?? "—"}</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
