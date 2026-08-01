@@ -13,6 +13,9 @@ test("formatOrgName sentence-cases shouting names, keeps acronyms and place name
     "CNRS - Delegation regionale Midi-Pyrenees",
   );
   expect(formatOrgName("AIRBUS OPERATIONS SAS")).toBe("Airbus operations SAS");
+  expect(formatOrgName("FRAUNHOFER GESELLSCHAFT ZUR FOERDERUNG DER ANGEWANDTEN FORSCHUNG EV")).toBe(
+    "Fraunhofer gesellschaft zur foerderung der angewandten forschung EV",
+  );
 });
 
 test("formatOrgName leaves mixed-case and very short names untouched", () => {

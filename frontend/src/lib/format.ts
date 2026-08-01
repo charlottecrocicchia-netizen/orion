@@ -23,7 +23,8 @@ export function countryFlag(code: string): string {
 const SMALL_WORDS = new Set([
   "de", "du", "des", "la", "le", "les", "l", "d", "et", "en", "sur", "sous", "aux", "au",
   "a", "pour", "par", "of", "the", "and", "for", "in", "on", "at", "von", "und", "der",
-  "die", "das", "für", "di", "e", "del", "della", "dei", "delle", "y", "el", "van", "het",
+  "die", "das", "für", "fuer", "zur", "zum", "im", "am", "di", "e", "del", "della",
+  "dei", "delle", "y", "el", "van", "het", "voor", "en",
 ]);
 
 /** Sentence-case a shouting source name (« Centre national de la recherche

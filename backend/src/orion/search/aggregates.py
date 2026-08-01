@@ -9,7 +9,9 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from orion.search.service import _cached, _programme_roots
+from orion.search.service import _cached, _cached_bounded, _programme_roots
+
+PARTNERS_CACHE_MAX = 256
 
 
 def global_stats(session: Session) -> dict[str, Any]:
@@ -277,3 +279,87 @@ def programme_hub(session: Session, programme_id: int) -> dict[str, Any] | None:
         }
 
     return _cached(session, f"programme_hub:{root}", build)
+
+
+def organisation_partners(session: Session, organisation_id: int, limit: int = 10) -> list[dict]:
+    """Recurring partners: organisations sharing projects with this one,
+    ranked by shared projects then by the partner's share on those projects."""
+
+    def build() -> list[dict[str, Any]]:
+        rows = session.execute(
+            text("""
+            SELECT pb.organisation_id AS id, max(o.name) AS name,
+                   max(o.country_code) AS country, max(o.org_type) AS org_type,
+                   count(DISTINCT pa.project_id) AS shared_projects,
+                   sum(pb.amount_eur) AS partner_amount_eur
+            FROM participations pa
+            JOIN participations pb
+              ON pb.project_id = pa.project_id
+             AND pb.organisation_id <> pa.organisation_id
+            JOIN organisations o ON o.id = pb.organisation_id
+            WHERE pa.organisation_id = :org
+            GROUP BY pb.organisation_id
+            ORDER BY shared_projects DESC, partner_amount_eur DESC NULLS LAST
+            LIMIT :limit
+            """),
+            {"org": organisation_id, "limit": limit},
+        ).all()
+        return [
+            {
+                "id": r.id,
+                "name": r.name,
+                "country": r.country,
+                "org_type": r.org_type,
+                "shared_projects": r.shared_projects,
+                "partner_amount_eur": float(r.partner_amount_eur)
+                if r.partner_amount_eur is not None
+                else None,
+            }
+            for r in rows
+        ]
+
+    return _cached_bounded(
+        session,
+        f"partners:{organisation_id}:{limit}",
+        build,
+        prefix="partners:",
+        cap=PARTNERS_CACHE_MAX,
+    )
+
+
+def country_flows(session: Session, limit: int = 60) -> list[dict]:
+    """Cross-border collaboration flows: for each country pair, the shared
+    projects and both sides' participation amounts. Feeds the phase-3 map."""
+
+    def build() -> list[dict[str, Any]]:
+        rows = session.execute(
+            text("""
+            WITH pc AS (
+                SELECT project_id, country_code,
+                       sum(amount_eur) AS amount
+                FROM participations
+                WHERE country_code IS NOT NULL
+                GROUP BY project_id, country_code
+            )
+            SELECT a.country_code AS a, b.country_code AS b,
+                   count(*) AS projects,
+                   sum(coalesce(a.amount, 0) + coalesce(b.amount, 0)) AS amount_eur
+            FROM pc a
+            JOIN pc b ON b.project_id = a.project_id AND a.country_code < b.country_code
+            GROUP BY a.country_code, b.country_code
+            ORDER BY projects DESC
+            LIMIT :limit
+            """),
+            {"limit": limit},
+        ).all()
+        return [
+            {
+                "a": r.a,
+                "b": r.b,
+                "projects": r.projects,
+                "amount_eur": float(r.amount_eur or 0),
+            }
+            for r in rows
+        ]
+
+    return _cached(session, f"country_flows:{limit}", build)

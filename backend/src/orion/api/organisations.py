@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from orion.core.db import get_db
 from orion.models import Organisation, OrganisationIdentifier
+from orion.search import aggregates
 
 router = APIRouter()
 
@@ -145,3 +146,12 @@ def organisation_projects(
             for r in rows
         ],
     }
+
+
+@router.get("/organisations/{organisation_id}/partners")
+def organisation_partners(
+    organisation_id: int, db: Annotated[Session, Depends(get_db)], limit: int = 10
+) -> list[dict[str, Any]]:
+    if db.get(Organisation, organisation_id) is None:
+        raise HTTPException(status_code=404, detail="Organisation not found")
+    return aggregates.organisation_partners(db, organisation_id, limit=min(max(limit, 1), 25))

@@ -49,6 +49,13 @@ def countries(db: Annotated[Session, Depends(get_db)]) -> list[dict[str, Any]]:
     return aggregates.countries_index(db)
 
 
+@router.get("/countries/flows")
+def countries_flows(
+    db: Annotated[Session, Depends(get_db)], limit: int = 60
+) -> list[dict[str, Any]]:
+    return aggregates.country_flows(db, limit=min(max(limit, 1), 200))
+
+
 @router.get("/countries/{code}")
 def country(code: str, db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
     hub = aggregates.country_hub(db, code)

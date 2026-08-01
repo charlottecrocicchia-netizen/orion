@@ -15,7 +15,7 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from orion.search.service import _CACHE, _cached, _materialize_match, _programme_roots
+from orion.search.service import _cached_bounded, _materialize_match, _programme_roots
 
 METRICS = ("funding", "projects", "organisations", "avg", "coordination")
 PARTICIPATION_DIMS = {"country", "organisation", "orgtype"}
@@ -251,9 +251,6 @@ def aggregate(
     compare = [c for c in (compare or []) if c][:6] or None
 
     key = f"explore:{metric}:{by}:{split}:{compare}:{year_from}:{year_to}:{q}:{country}:{limit}"
-    if len([k for k in _CACHE if k.startswith("explore:")]) > EXPLORE_CACHE_MAX:
-        for stale in [k for k in _CACHE if k.startswith("explore:")][: EXPLORE_CACHE_MAX // 2]:
-            _CACHE.pop(stale, None)
 
     def build() -> dict[str, Any]:
         return _build(
@@ -271,7 +268,7 @@ def aggregate(
 
     if q:
         _materialize_match(session, q)
-    return _cached(session, key, build)
+    return _cached_bounded(session, key, build, prefix="explore:", cap=EXPLORE_CACHE_MAX)
 
 
 def _build(

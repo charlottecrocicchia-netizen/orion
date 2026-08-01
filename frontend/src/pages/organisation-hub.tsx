@@ -2,8 +2,10 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
 import { Kpi, KpiStatic } from "@/components/kpi";
+import { PartnerGraph } from "@/components/partner-graph";
 import { YearBars } from "@/components/year-bars";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,6 +34,10 @@ export function OrganisationHubPage() {
     queryKey: ["organisation-projects", id, page],
     queryFn: () => api.organisationProjects(id, portfolioParams),
     placeholderData: keepPreviousData,
+  });
+  const { data: partners } = useQuery({
+    queryKey: ["organisation-partners", id],
+    queryFn: () => api.organisationPartners(id),
   });
 
   if (isPending) {
@@ -206,6 +212,37 @@ export function OrganisationHubPage() {
           ) : null}
         </div>
       </div>
+
+      {partners && partners.length > 0 ? (
+        <section className="mt-16">
+          <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+            {t("org.partners")}
+          </h2>
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+            <PartnerGraph center={data.name} partners={partners} />
+            <div>
+              {partners.map((partner) => (
+                <Link
+                  key={partner.id}
+                  to={`/organisations/${partner.id}`}
+                  className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
+                >
+                  {partner.country ? <CountryFlags codes={[partner.country]} /> : null}
+                  <span className="min-w-0 truncate transition-colors group-hover:text-accent">
+                    {formatOrgName(partner.name)}
+                  </span>
+                  <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
+                    {t("org.sharedProjects", { count: partner.shared_projects })}
+                  </span>
+                  <span className="tnum w-20 whitespace-nowrap text-right font-medium">
+                    {formatCompactEur(partner.partner_amount_eur, i18n.language)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <ExploreExits
         exits={[

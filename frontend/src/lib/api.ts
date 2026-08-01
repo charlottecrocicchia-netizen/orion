@@ -83,9 +83,20 @@ export interface ExploreResponse {
   meta: { limit: number; compare: string[] | null; q: string | null; country: string | null };
 }
 
+export interface OrganisationPartner {
+  id: number;
+  name: string;
+  country: string | null;
+  org_type: string | null;
+  shared_projects: number;
+  partner_amount_eur: number | null;
+}
+
 export const api = {
   explore: (params: URLSearchParams) =>
     get<ExploreResponse>(`/api/explore/aggregate?${params}`),
+  organisationPartners: (id: string) =>
+    get<OrganisationPartner[]>(`/api/organisations/${id}/partners`),
   stats: () => get<Stats>("/api/stats"),
   searchProjects: (params: URLSearchParams) =>
     get<ProjectSearchResponse>(`/api/search/projects?${params}`),

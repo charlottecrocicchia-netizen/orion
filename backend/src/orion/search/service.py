@@ -47,6 +47,18 @@ def _cached(session: Session, key: str, build: Callable[[], Any]) -> Any:
     return value
 
 
+def _cached_bounded(
+    session: Session, key: str, build: Callable[[], Any], *, prefix: str, cap: int
+) -> Any:
+    """_cached with a per-prefix entry cap: unbounded key families (per-query
+    matches, per-view aggregates, per-organisation partners) evict their own
+    oldest half instead of growing for the process lifetime."""
+    if len([k for k in _CACHE if k.startswith(prefix)]) > cap:
+        for stale in [k for k in _CACHE if k.startswith(prefix)][: cap // 2]:
+            _CACHE.pop(stale, None)
+    return _cached(session, key, build)
+
+
 @dataclass
 class ProjectFilters:
     q: str | None = None
@@ -127,10 +139,7 @@ def _materialize_match(session: Session, q: str) -> int:
         rows = session.execute(text(_MATCH_SQL), {"q": q}).all()
         return [r[0] for r in rows], [float(r[1]) for r in rows]
 
-    if len(_CACHE) > MATCH_CACHE_MAX:
-        for stale in [k for k in _CACHE if k.startswith("match:")][: MATCH_CACHE_MAX // 2]:
-            _CACHE.pop(stale, None)
-    ids, ranks = _cached(session, key, build)
+    ids, ranks = _cached_bounded(session, key, build, prefix="match:", cap=MATCH_CACHE_MAX)
 
     session.execute(text("DROP TABLE IF EXISTS _orion_match"))
     session.execute(
