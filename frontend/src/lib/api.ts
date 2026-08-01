@@ -99,12 +99,31 @@ export interface CountryFlow {
   amount_eur: number;
 }
 
+export interface CompareEntry {
+  id: number;
+  name: string;
+  country: string | null;
+  org_type: string | null;
+  kpis: {
+    projects_count: number;
+    total_funding_eur: number;
+    coordinator_count: number;
+    first_year: number | null;
+    last_year: number | null;
+  };
+  funding_by_year: { year: number; amount_eur: number }[];
+  top_themes: { key: string; label: string | null; projects: number }[];
+  top_partners: OrganisationPartner[];
+}
+
 export const api = {
   explore: (params: URLSearchParams) =>
     get<ExploreResponse>(`/api/explore/aggregate?${params}`),
   organisationPartners: (id: string) =>
     get<OrganisationPartner[]>(`/api/organisations/${id}/partners`),
   countryFlows: () => get<CountryFlow[]>("/api/countries/flows?limit=200"),
+  compareOrganisations: (ids: string[]) =>
+    get<CompareEntry[]>(`/api/compare/organisations?ids=${ids.join("~")}`),
   stats: () => get<Stats>("/api/stats"),
   searchProjects: (params: URLSearchParams) =>
     get<ProjectSearchResponse>(`/api/search/projects?${params}`),

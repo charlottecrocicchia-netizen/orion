@@ -49,6 +49,17 @@ def countries(db: Annotated[Session, Depends(get_db)]) -> list[dict[str, Any]]:
     return aggregates.countries_index(db)
 
 
+@router.get("/compare/organisations")
+def compare_organisations(
+    db: Annotated[Session, Depends(get_db)],
+    ids: Annotated[str, Query(description="tilde-separated organisation ids, 2 to 4")],
+) -> list[dict[str, Any]]:
+    parsed = [int(i) for i in ids.split("~") if i.isdigit()][:4]
+    if len(parsed) < 1:
+        raise HTTPException(status_code=400, detail="ids must hold 1 to 4 organisation ids")
+    return aggregates.compare_organisations(db, parsed)
+
+
 @router.get("/countries/flows")
 def countries_flows(
     db: Annotated[Session, Depends(get_db)], limit: int = 60

@@ -184,6 +184,17 @@ const resources = {
         tableValue: "Value",
         sources: "© European Union, CORDIS (CC BY 4.0) · ANR (ODbL 1.0)",
       },
+      compare: {
+        eyebrow: "Benchmark",
+        title: "Compare organisations",
+        cta: "Compare",
+        add: "Add an organisation",
+        addPlaceholder: "⌕ Add an organisation…",
+        remove: "Remove {{name}}",
+        themes: "Top themes",
+        chartLabel: "Funding by year, compared",
+        empty: "Search an organisation above to start the comparison — up to four side by side.",
+      },
       about: {
         title: "About the data",
         intro:
@@ -387,6 +398,17 @@ const resources = {
         tableKey: "Entrée",
         tableValue: "Valeur",
         sources: "© Union européenne, CORDIS (CC BY 4.0) · ANR (ODbL 1.0)",
+      },
+      compare: {
+        eyebrow: "Benchmark",
+        title: "Comparer des organisations",
+        cta: "Comparer",
+        add: "Ajouter une organisation",
+        addPlaceholder: "⌕ Ajouter une organisation…",
+        remove: "Retirer {{name}}",
+        themes: "Thèmes principaux",
+        chartLabel: "Financement par année, comparé",
+        empty: "Cherchez une organisation ci-dessus pour démarrer la comparaison — jusqu'à quatre côte à côte.",
       },
       about: {
         title: "À propos des données",

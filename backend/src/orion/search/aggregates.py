@@ -363,3 +363,90 @@ def country_flows(session: Session, limit: int = 60) -> list[dict]:
         ]
 
     return _cached(session, f"country_flows:{limit}", build)
+
+
+COMPARE_MAX = 4
+
+
+def compare_organisations(session: Session, ids: list[int]) -> list[dict]:
+    """Side-by-side benchmark: KPIs, yearly series, top themes and top
+    partners for two to four organisations, in the requested order."""
+    ids = list(dict.fromkeys(ids))[:COMPARE_MAX]
+
+    def build() -> list[dict[str, Any]]:
+        rows = session.execute(
+            text("""
+            SELECT o.id, o.name, o.country_code, o.org_type,
+                   os.projects_count, os.total_funding_eur, os.coordinator_count,
+                   os.first_year, os.last_year
+            FROM organisations o
+            LEFT JOIN organisation_stats os ON os.organisation_id = o.id
+            WHERE o.id = ANY(:ids)
+            """),
+            {"ids": ids},
+        ).all()
+        by_year = session.execute(
+            text("""
+            SELECT pa.organisation_id AS org, extract(year FROM p.start_date)::int AS y,
+                   sum(pa.amount_eur) AS amount
+            FROM participations pa JOIN projects p ON p.id = pa.project_id
+            WHERE pa.organisation_id = ANY(:ids) AND p.start_date IS NOT NULL
+              AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
+            GROUP BY 1, 2 ORDER BY 1, 2
+            """),
+            {"ids": ids},
+        ).all()
+        themes = session.execute(
+            text("""
+            SELECT pa.organisation_id AS org,
+                   substring(t.code from '^(/[0-9]+/[0-9]+)') AS key,
+                   max(l2.label) AS label,
+                   count(DISTINCT pa.project_id) AS projects
+            FROM participations pa
+            JOIN project_topics pt ON pt.project_id = pa.project_id
+            JOIN topics t ON t.id = pt.topic_id AND t.scheme = 'euroscivoc'
+            LEFT JOIN topics l2 ON l2.scheme = 'euroscivoc'
+                 AND l2.code = substring(t.code from '^(/[0-9]+/[0-9]+)')
+            WHERE pa.organisation_id = ANY(:ids)
+            GROUP BY 1, 2 ORDER BY 1, projects DESC
+            """),
+            {"ids": ids},
+        ).all()
+
+        series: dict[int, list[dict[str, Any]]] = {}
+        for org, year, amount in by_year:
+            series.setdefault(org, []).append({"year": year, "amount_eur": float(amount or 0)})
+        top_themes: dict[int, list[dict[str, Any]]] = {}
+        for org, key, label, projects in themes:
+            bucket = top_themes.setdefault(org, [])
+            if key is not None and len(bucket) < 5:
+                bucket.append({"key": key, "label": label, "projects": projects})
+
+        by_id = {r.id: r for r in rows}
+        out = []
+        for organisation_id in ids:
+            row = by_id.get(organisation_id)
+            if row is None:
+                continue
+            out.append(
+                {
+                    "id": row.id,
+                    "name": row.name,
+                    "country": row.country_code,
+                    "org_type": row.org_type,
+                    "kpis": {
+                        "projects_count": row.projects_count or 0,
+                        "total_funding_eur": float(row.total_funding_eur or 0),
+                        "coordinator_count": row.coordinator_count or 0,
+                        "first_year": row.first_year,
+                        "last_year": row.last_year,
+                    },
+                    "funding_by_year": series.get(row.id, []),
+                    "top_themes": top_themes.get(row.id, []),
+                    "top_partners": organisation_partners(session, row.id, limit=5),
+                }
+            )
+        return out
+
+    key = "compare:" + "~".join(str(i) for i in ids)
+    return _cached_bounded(session, key, build, prefix="compare:", cap=64)

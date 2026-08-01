@@ -92,3 +92,19 @@ def test_country_flows_pair_projects_and_amounts(db_session, seeded):
     assert pair["projects"] == 2
     # both sides' shares on the two shared projects: (2M+0.5M) + (1M+1.5M)
     assert pair["amount_eur"] == pytest.approx(5_000_000)
+
+
+def test_compare_organisations_shape_and_order(db_session, seeded):
+    from sqlalchemy import text as sql_text
+
+    db_session.execute(sql_text("REFRESH MATERIALIZED VIEW organisation_stats"))
+    result = aggregates.compare_organisations(db_session, [seeded["beta"], seeded["alpha"]])
+
+    assert [entry["id"] for entry in result] == [seeded["beta"], seeded["alpha"]]
+    alpha = result[1]
+    assert alpha["kpis"]["projects_count"] == 3
+    assert alpha["kpis"]["total_funding_eur"] == pytest.approx(3_300_000)
+    years = {point["year"] for point in alpha["funding_by_year"]}
+    assert years == {2022}
+    partner_ids = [p["id"] for p in alpha["top_partners"]]
+    assert partner_ids[0] == seeded["beta"]

@@ -99,6 +99,12 @@ export function OrganisationHubPage() {
             {data.website.replace(/^https?:\/\//, "")}
           </a>
         ) : null}
+        <Link
+          to={`/compare?orgs=${data.id}`}
+          className="rounded-full border px-3 py-0.5 text-[12px] transition-colors hover:border-accent hover:text-accent"
+        >
+          {t("compare.cta")}
+        </Link>
       </div>
 
       <div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
