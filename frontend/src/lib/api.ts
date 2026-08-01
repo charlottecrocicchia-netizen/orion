@@ -60,7 +60,32 @@ export interface OrganisationSearchResponse {
   };
 }
 
+export interface ExplorePoint {
+  year: number;
+  value: number | null;
+}
+
+export interface ExploreSeries {
+  key: string | number;
+  label: string | null;
+  value?: number | null;
+  points?: ExplorePoint[];
+}
+
+export interface ExploreResponse {
+  metric: string;
+  by: string;
+  split: boolean;
+  unit: "eur" | "count" | "pct";
+  basis: "participants" | "projects";
+  series: ExploreSeries[];
+  total: number | null;
+  meta: { limit: number; compare: string[] | null; q: string | null; country: string | null };
+}
+
 export const api = {
+  explore: (params: URLSearchParams) =>
+    get<ExploreResponse>(`/api/explore/aggregate?${params}`),
   stats: () => get<Stats>("/api/stats"),
   searchProjects: (params: URLSearchParams) =>
     get<ProjectSearchResponse>(`/api/search/projects?${params}`),

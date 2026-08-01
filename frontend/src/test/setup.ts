@@ -18,3 +18,21 @@ Object.defineProperty(window, "matchMedia", {
 });
 
 Object.defineProperty(window, "scrollTo", { writable: true, value: vi.fn() });
+
+// jsdom has no ResizeObserver; charts measure their container with it.
+class ResizeObserverStub {
+  callback: ResizeObserverCallback;
+  constructor(callback: ResizeObserverCallback) {
+    this.callback = callback;
+  }
+  observe(target: Element) {
+    this.callback(
+      [{ contentRect: { width: 960, height: 400 } } as ResizeObserverEntry],
+      this as unknown as ResizeObserver,
+    );
+    void target;
+  }
+  unobserve() {}
+  disconnect() {}
+}
+vi.stubGlobal("ResizeObserver", ResizeObserverStub);

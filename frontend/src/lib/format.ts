@@ -108,6 +108,31 @@ export function orgTypeKey(raw: string | null | undefined): string | null {
   return ORG_TYPE_KEYS[raw] ?? "other";
 }
 
+export function formatValue(
+  value: number | null | undefined,
+  unit: string,
+  locale: string,
+): string {
+  if (value == null) return "\u2014";
+  if (unit === "eur") return formatCompactEur(value, locale);
+  if (unit === "pct") return `${value.toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
+  return formatInt(Math.round(value), locale);
+}
+
+interface LabelledSeries {
+  key: string | number;
+  label: string | null;
+}
+
+export function seriesLabel(serie: LabelledSeries, t: (key: string) => string): string {
+  if (typeof serie.key === "string" && !serie.label) {
+    // Canonical org-type keys translate; other bare keys display as-is.
+    const translated = t(`orgType.${serie.key}`);
+    if (!translated.startsWith("orgType.")) return translated;
+  }
+  return formatOrgName(serie.label ?? String(serie.key));
+}
+
 export function yearsRange(from: number | null, to: number | null): string {
   if (from == null && to == null) return "—";
   if (from != null && to != null) return from === to ? String(from) : `${from} – ${to}`;

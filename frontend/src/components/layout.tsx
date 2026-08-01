@@ -50,7 +50,7 @@ export function Layout() {
             <NavLink to="/organisations" className={navLinkClass}>
               {t("nav.organisations")}
             </NavLink>
-            <NavLink to="/explore/countries" className={navLinkClass}>
+            <NavLink to="/explore" className={navLinkClass}>
               {t("nav.explore")}
             </NavLink>
           </div>

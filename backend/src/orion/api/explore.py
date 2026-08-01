@@ -1,12 +1,42 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from orion.core.db import get_db
-from orion.search import aggregates
+from orion.search import aggregates, explore
 
 router = APIRouter()
+
+
+@router.get("/explore/aggregate")
+def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every composed view
+    db: Annotated[Session, Depends(get_db)],
+    metric: str = "funding",
+    by: str = "country",
+    split: bool = False,
+    compare: Annotated[str | None, Query(description="tilde-separated keys")] = None,
+    year_from: int | None = None,
+    year_to: int | None = None,
+    q: str | None = None,
+    country: str | None = None,
+    limit: int = 8,
+) -> dict[str, Any]:
+    result = explore.aggregate(
+        db,
+        metric=metric,
+        by=by,
+        split=split,
+        compare=compare.split("~") if compare else None,
+        year_from=year_from,
+        year_to=year_to,
+        q=q or None,
+        country=country or None,
+        limit=limit,
+    )
+    if result is None:
+        raise HTTPException(status_code=400, detail="Unsupported metric/dimension combination")
+    return result
 
 
 @router.get("/stats")

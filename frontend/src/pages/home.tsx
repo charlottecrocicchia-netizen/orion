@@ -92,7 +92,11 @@ export function HomePage() {
         ))}
       </div>
 
-      <div className="mx-auto mt-14 grid max-w-[760px] gap-3 text-left sm:grid-cols-2">
+      <div className="mx-auto mt-14 grid max-w-[980px] gap-3 text-left sm:grid-cols-3">
+        <Link to="/explore" className="lift rounded-2xl border border-accent/35 p-5 hover:border-accent">
+          <div className="font-medium text-accent">{t("explore.openExplorer")}</div>
+          <div className="mt-1 text-sm text-muted-foreground">{t("explore.openExplorerHint")}</div>
+        </Link>
         <Link
           to="/explore/countries"
           className="lift rounded-2xl border p-5 hover:border-accent"
