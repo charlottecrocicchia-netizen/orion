@@ -61,7 +61,7 @@ export function Layout() {
               className="hidden items-center gap-6 rounded-full bg-surface py-1.5 pl-4 pr-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground md:flex"
             >
               <span>⌕ {t("searchShort")}</span>
-              <kbd className="rounded-md border bg-background px-1.5 py-0.5 font-sans text-[10px]">
+              <kbd className="rounded-md border bg-background px-1.5 py-0.5 font-mono text-[10px]">
                 ⌘K
               </kbd>
             </button>
@@ -81,7 +81,7 @@ export function Layout() {
             <Link to="/about-data" className="transition-colors hover:text-foreground">
               {t("footer.data")}
             </Link>
-            <span>{t("footer.phase")}</span>
+            <span className="font-mono text-[11px]">{t("footer.phase")}</span>
           </div>
         </div>
       </footer>

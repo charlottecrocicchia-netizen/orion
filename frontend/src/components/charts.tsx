@@ -29,7 +29,7 @@ function TipBox({ tip }: { tip: Tip | null }) {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute z-10 max-w-[260px] rounded-lg bg-foreground px-3 py-2 text-[12px] leading-relaxed text-background shadow-lg"
+      className="pointer-events-none absolute z-10 max-w-[260px] rounded-lg bg-foreground px-3 py-2 text-[12px] leading-relaxed text-background shadow-key"
       style={{
         left: tip.x,
         top: tip.y,

@@ -8,15 +8,19 @@ interface KpiProps {
   label: string;
   kind?: "int" | "eur";
   hero?: boolean;
+  /** When set, the shared reveal (StatHero) drives the figure instead of
+   *  the built-in count-up — one synchronized gesture. */
+  progress?: number;
 }
 
-export function Kpi({ value, label, kind = "int", hero = false }: KpiProps) {
+export function Kpi({ value, label, kind = "int", hero = false, progress }: KpiProps) {
   const { i18n } = useTranslation();
-  const animated = useCountUp(value);
+  const animated = useCountUp(progress == null ? value : null);
+  const shown = progress == null ? animated : value == null ? null : value * progress;
   const text =
     kind === "eur"
-      ? formatCompactEur(animated, i18n.language)
-      : formatInt(animated == null ? null : Math.round(animated), i18n.language);
+      ? formatCompactEur(shown, i18n.language)
+      : formatInt(shown == null ? null : Math.round(shown), i18n.language);
 
   return (
     <div>

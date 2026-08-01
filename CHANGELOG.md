@@ -6,6 +6,30 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Orientation & identity: the home orients around intents (free-text ask,
+  doors, computed momentum signals) below the restored hero; the world globe
+  greets on the countries page with the flat map a toggle away (projection
+  morph between the two, honest coverage note); the Explorer names its
+  ready-made analyses, accepts free text, and wires the Map view for euro
+  country views.
+- The design doctrine (docs/design-doctrine.md) — the project's canonical
+  design reference, applied in validated steps.
+- Doctrine step 1, foundations: the full type scale as tokens (Inter
+  tightened at display sizes, cv01/ss03, weights capped at 600), global
+  tabular figures, hairline borders, ONE elevation shadow (`shadow-key`),
+  Geist Mono for technical labels, and the StatHero — hero figure, KPIs and
+  constellation drawn by one shared reveal (IntersectionObserver, once,
+  reduced-motion safe). Motion and GSAP installed for step 2.
+
+### Changed
+
+- Display face: Instrument Sans retired; Inter (tightened, alternate glyphs)
+  is the single family, with the hero at clamp(80-120px)/500/−0.032em.
+- The hero gradient leaves violet for a deep-ultramarine ramp (doctrine trap
+  #2); the constellation line wears the accent.
+
 ## [0.3.0] - 2026-08-01
 
 Phase 3 — analytics and geography.

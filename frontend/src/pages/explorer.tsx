@@ -123,7 +123,7 @@ function Segment({
       {open ? (
         <div
           role="menu"
-          className="absolute left-0 top-[calc(100%+8px)] z-30 min-w-[240px] rounded-xl border bg-background p-1.5 text-left text-[14px] font-normal tracking-normal shadow-[0_16px_48px_rgba(29,29,31,.14)] dark:shadow-[0_16px_48px_rgba(0,0,0,.5)]"
+          className="absolute left-0 top-[calc(100%+8px)] z-30 min-w-[240px] rounded-xl border bg-background p-1.5 text-left text-[14px] font-normal tracking-normal shadow-key"
         >
           {children(() => setOpen(false))}
         </div>
@@ -539,7 +539,7 @@ export function ExplorerPage() {
       </p>
 
       {/* The view */}
-      <section className="mt-9 rounded-[20px] border p-7 pb-5 shadow-[0_18px_60px_rgba(29,29,31,.05)] dark:shadow-none">
+      <section className="mt-9 rounded-[20px] border p-7 pb-5">
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
           <h1 className="text-[15px] font-semibold">{boardTitle}</h1>
           <span className="text-[12.5px] text-muted-foreground">

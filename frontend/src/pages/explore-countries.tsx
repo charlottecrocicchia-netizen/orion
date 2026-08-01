@@ -58,7 +58,7 @@ export function ExploreCountriesPage() {
               className={cn(
                 "rounded-full px-3.5 py-1.5 transition-colors",
                 view === candidate
-                  ? "bg-background shadow-[0_1px_4px_rgba(29,29,31,.12)]"
+                  ? "border border-border bg-background"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >

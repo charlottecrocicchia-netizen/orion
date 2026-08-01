@@ -55,7 +55,7 @@ function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (id: nu
       {q.trim().length >= 3 && suggestions.length > 0 ? (
         <div
           role="listbox"
-          className="absolute left-0 top-[calc(100%+6px)] z-30 w-[320px] rounded-xl border bg-background p-1.5 shadow-[0_16px_48px_rgba(29,29,31,.14)] dark:shadow-[0_16px_48px_rgba(0,0,0,.5)]"
+          className="absolute left-0 top-[calc(100%+6px)] z-30 w-[320px] rounded-xl border bg-background p-1.5 shadow-key"
         >
           {suggestions.map((hit) => (
             <button

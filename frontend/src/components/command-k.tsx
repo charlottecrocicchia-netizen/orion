@@ -54,7 +54,7 @@ export function CommandK({ open, onOpenChange }: CommandKProps) {
         aria-modal="true"
         aria-label={t("searchPlaceholder")}
         onClick={(event) => event.stopPropagation()}
-        className="page-enter mx-auto mt-[16vh] w-[min(600px,calc(100vw-32px))] overflow-hidden rounded-2xl border bg-background shadow-[0_24px_80px_rgba(29,29,31,.18)] dark:shadow-[0_24px_80px_rgba(0,0,0,.6)]"
+        className="page-enter mx-auto mt-[16vh] w-[min(600px,calc(100vw-32px))] overflow-hidden rounded-2xl border bg-background shadow-key"
       >
         <form onSubmit={submit} className="flex items-center gap-3 border-b px-5">
           <span aria-hidden="true" className="text-muted-foreground">

@@ -3,33 +3,17 @@ import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { FormEvent } from "react";
 
-import { Constellation } from "@/components/constellation";
-import { Kpi } from "@/components/kpi";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCountUp } from "@/hooks/use-count-up";
+import { StatHero } from "@/components/stat-hero";
 import { api } from "@/lib/api";
 import type { ExploreResponse } from "@/lib/api";
 import { parseIntent } from "@/lib/intent";
 import { formatInt, themeLabel } from "@/lib/format";
 
 /** The home leads with the hero — the founder's call: the big number seizes
- *  first, the paths offer themselves below the fold. The orientation hall
- *  (question, doors, momentum) follows on scroll, untouched pending the
- *  design brief in progress. */
-
-function HeroFigure({ value }: { value: number | null }) {
-  const { i18n } = useTranslation();
-  const animated = useCountUp(value, 1000);
-  const text =
-    animated == null
-      ? "—"
-      : `€${(animated / 1e9).toLocaleString(i18n.language, { maximumFractionDigits: 0 })}B`;
-  return (
-    <div className="display-tight hero-gradient tnum text-[clamp(64px,9vw,112px)] font-semibold leading-none">
-      {text}
-    </div>
-  );
-}
+ *  first, the paths offer themselves below the fold. The hero itself is the
+ *  doctrine's StatHero (step 1): figure, KPIs and curve on one shared reveal.
+ *  The orientation hall below stays untouched pending its own brief. */
 
 function useIntentNavigate() {
   const navigate = useNavigate();
@@ -156,29 +140,26 @@ export function HomePage() {
 
   return (
     <div className="mx-auto w-full max-w-[1240px] px-6 pb-4 pt-14">
-      {/* The hero — big and proud, as before */}
+      {/* The hero — big and proud: one synchronized reveal (doctrine step 1) */}
       <section className="text-center">
         <p className="mb-4 text-sm font-medium text-accent">{t("hero.eyebrow")}</p>
         {stats ? (
-          <HeroFigure value={stats.totals.funding_eur} />
+          <StatHero
+            funding={stats.totals.funding_eur}
+            sub={from && to ? t("hero.sub", { from, to }) : " "}
+            kpis={[
+              { value: stats.totals.projects, label: t("hero.projects") },
+              { value: stats.totals.organisations, label: t("hero.organisations") },
+              { value: stats.totals.countries, label: t("hero.countries") },
+            ]}
+            years={years}
+          />
         ) : (
-          <Skeleton className="mx-auto h-28 w-[420px] max-w-full" />
+          <>
+            <Skeleton className="mx-auto h-28 w-[420px] max-w-full" />
+            <Skeleton className="mx-auto mt-16 h-40 w-full max-w-[1120px]" />
+          </>
         )}
-        <p className="mt-3 text-lg text-muted-foreground">
-          {from && to ? t("hero.sub", { from, to }) : " "}
-        </p>
-        <div className="mt-8 flex justify-center gap-11">
-          <Kpi value={stats?.totals.projects ?? null} label={t("hero.projects")} hero />
-          <Kpi value={stats?.totals.organisations ?? null} label={t("hero.organisations")} hero />
-          <Kpi value={stats?.totals.countries ?? null} label={t("hero.countries")} hero />
-        </div>
-        <div className="mt-7">
-          {stats ? (
-            <Constellation data={years} />
-          ) : (
-            <Skeleton className="mx-auto h-40 w-full max-w-[1120px]" />
-          )}
-        </div>
       </section>
 
       {/* Below the fold: the orientation (pending the coming design brief) */}
@@ -187,7 +168,7 @@ export function HomePage() {
           {t("home.ask")}
         </h1>
         <form onSubmit={submit} role="search" className="mx-auto mt-6 max-w-[660px]">
-          <div className="flex items-center gap-3 rounded-2xl border bg-background px-5 py-4 shadow-[0_12px_40px_rgba(29,29,31,.06)] focus-within:ring-2 focus-within:ring-accent dark:shadow-none">
+          <div className="flex items-center gap-3 rounded-2xl border bg-background px-5 py-4 focus-within:ring-2 focus-within:ring-accent">
             <span aria-hidden="true" className="text-muted-foreground">
               ⌕
             </span>

@@ -72,7 +72,8 @@ function FacetChip({
       )}
     >
       {flag ? <span aria-hidden="true">{flag}</span> : null}
-      <span>{label}</span>
+      {/* Country chips carry an ISO code — a technical label, set in mono. */}
+      <span className={flag ? "font-mono text-[12px]" : undefined}>{label}</span>
       <span
         aria-hidden="true"
         className={cn("tnum text-[11.5px]", active ? "opacity-70" : "text-muted-foreground")}
@@ -167,7 +168,7 @@ function Tabs({ q }: { q: string }) {
     cn(
       "rounded-full px-4 py-1.5 text-sm transition-colors",
       isActive
-        ? "bg-background shadow-[0_1px_4px_rgba(29,29,31,.12)]"
+        ? "border border-border bg-background"
         : "text-muted-foreground hover:text-foreground",
     );
   return (

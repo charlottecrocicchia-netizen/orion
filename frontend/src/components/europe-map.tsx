@@ -217,7 +217,7 @@ export function EuropeMap({
       {tip ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute z-10 rounded-lg bg-foreground px-3 py-2 text-[12px] leading-relaxed text-background shadow-lg"
+          className="pointer-events-none absolute z-10 rounded-lg bg-foreground px-3 py-2 text-[12px] leading-relaxed text-background shadow-key"
           style={{
             left: tip.x,
             top: tip.y - 12,
