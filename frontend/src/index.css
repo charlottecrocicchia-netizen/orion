@@ -15,7 +15,8 @@
   --border-soft: rgba(29, 29, 31, 0.055);
   --accent: #2d4fe3;
   --accent-soft: #eef1fd;
-  --gradient-to: #1c33b4;
+  --gradient-from: #3b5cff;
+  --gradient-to: #101d7d;
   --success: #1da463;
   --destructive: #d92d20;
   --radius: 0.875rem;
@@ -42,7 +43,8 @@
   --border-soft: rgba(245, 245, 247, 0.05);
   --accent: #8b9aff;
   --accent-soft: #1b2040;
-  --gradient-to: #657af7;
+  --gradient-from: #a5b1ff;
+  --gradient-to: #5b6cf2;
   --success: #34c98a;
   --destructive: #f97066;
   --shadow-elev: 0 16px 48px rgba(0, 0, 0, 0.55);
@@ -65,6 +67,7 @@
   --color-border-soft: var(--border-soft);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-gradient-from: var(--gradient-from);
   --color-gradient-to: var(--gradient-to);
   --color-success: var(--success);
   --color-destructive: var(--destructive);
@@ -144,15 +147,22 @@
 }
 
 @utility hero-gradient {
-  background-image: linear-gradient(92deg, var(--color-accent), var(--color-gradient-to));
+  background-image: linear-gradient(
+    92deg,
+    var(--color-gradient-from),
+    var(--color-gradient-to)
+  );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }
 
-/* Gentle entrance on route change; killed by the reduced-motion block below. */
+/* Gentle entrance on route change; killed by the reduced-motion block below.
+   fill-mode backwards, NOT both: `both` retains an identity transform matrix
+   on the element forever, which makes it a containing block for fixed
+   descendants — and silently breaks GSAP's hero pin. */
 @utility page-enter {
-  animation: page-enter 0.28s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+  animation: page-enter 0.28s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
 }
 
 @keyframes page-enter {

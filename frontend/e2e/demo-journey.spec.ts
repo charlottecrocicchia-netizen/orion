@@ -13,19 +13,29 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("home leads with the hero, then orients below the fold", async ({ page }) => {
+test("home leads with the pinned hero, then the acts follow", async ({ page }) => {
   await page.goto("/");
-  // The hero figure settles on a €…B amount once /api/stats lands.
+  // Act 1: the scrub floor already shows a €…B figure before any scroll.
   await expect(page.locator(".hero-gradient")).toContainText(/€\d+B/, { timeout: 10_000 });
-  await expect(page.getByText("funded projects")).toBeVisible();
+  await expect(page.getByText("funded projects", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "Funding per year" })).toBeVisible();
+  // Scrolling through the pin completes the figure — the scrub gesture.
+  await page.mouse.wheel(0, 2400);
+  await expect(page.locator(".hero-gradient")).toHaveText(/€21\dB/, { timeout: 10_000 });
+  // Act 2 (the ink tile) and its editorial entries; act 3's staged map.
   await expect(page.getByRole("heading", { name: "What are you looking for?" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Explore the 41 disciplines/ })).toBeVisible();
   await expect(page.getByText("Phase 5 · autumn 2026")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The funding map" })).toBeVisible();
 });
 
 test("the enriched demo journey holds end to end", async ({ page }) => {
-  // 1 — search "hydrogen" from the home page.
+  // 1 — search "hydrogen" from the home page. The hero pin arms shortly
+  // after stats land and inserts its spacer (moving everything below);
+  // waiting for it kills the layout race before the first fill.
   await page.goto("/");
+  await expect(page.locator(".hero-gradient")).toContainText(/€\d+B/, { timeout: 10_000 });
+  await page.locator(".pin-spacer").waitFor({ state: "attached", timeout: 5_000 });
   await page.getByRole("searchbox").fill("hydrogen");
   await page.getByRole("searchbox").press("Enter");
   await expect(page).toHaveURL(/\/projects\?q=hydrogen/);

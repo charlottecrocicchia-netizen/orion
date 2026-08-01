@@ -23,12 +23,24 @@ All notable changes to Orion are documented here. The format follows
   constellation drawn by one shared reveal (IntersectionObserver, once,
   reduced-motion safe). Motion and GSAP installed for step 2.
 
+- Doctrine step 2, the signature hero in acts: the pinned hero (GSAP
+  ScrollTrigger pin + scrub — the figure counts and the curve draws under
+  the reader's thumb; mobile and reduced motion fall back to the step-1
+  viewport reveal), the ink tile with three editorial entries replacing the
+  four clicking cards (free-text ask kept, Phase 5 calls note kept), the
+  proof act staging the Europe map with the momentum signals, and the dense
+  parchment footer exposing the whole information architecture.
+
 ### Changed
 
 - Display face: Instrument Sans retired; Inter (tightened, alternate glyphs)
   is the single family, with the hero at clamp(80-120px)/500/−0.032em.
 - The hero gradient leaves violet for a deep-ultramarine ramp (doctrine trap
-  #2); the constellation line wears the accent.
+  #2), widened light-to-deep on its own tokens; the constellation line wears
+  the accent.
+- page-enter now fills backwards, not both — `both` kept an identity
+  transform on <main>, silently re-parenting fixed descendants (the hero
+  pin) to the scrolling flow.
 
 ## [0.3.0] - 2026-08-01
 

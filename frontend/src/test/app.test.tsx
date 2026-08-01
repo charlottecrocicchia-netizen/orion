@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, expect, test, vi } from "vitest";
 
@@ -106,20 +106,29 @@ beforeEach(() => {
   );
 });
 
-test("home leads with the hero, orientation follows below", async () => {
+test("home leads with the hero, acts follow below", async () => {
   renderAt("/");
 
-  expect(screen.getByRole("link", { name: "Projects" })).toBeInTheDocument();
-  // The hero seizes first — the big gradient figure and its KPIs.
+  // Header nav (the dense footer repeats the product links).
+  expect(
+    within(screen.getByRole("banner")).getByRole("link", { name: "Projects" }),
+  ).toBeInTheDocument();
+  // Act 1 — the hero seizes first (jsdom: reduced motion → final state).
   expect(await screen.findByText("€211B")).toBeInTheDocument();
   expect(await screen.findByText("119,172")).toBeInTheDocument();
   expect(screen.getByText("funded projects")).toBeInTheDocument();
-  // The orientation hall follows on scroll, untouched.
+  // Act 2 — the ink tile: the question and the three editorial entries.
   expect(
     screen.getByRole("heading", { name: "What are you looking for?" }),
   ).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Explore a theme/ })).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: /Explore the 41 disciplines/ }),
+  ).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Benchmark the actors/ })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Open the country files/ })).toBeInTheDocument();
   expect(screen.getByText("Phase 5 · autumn 2026")).toBeInTheDocument();
+  // Act 3 — the proof: the staged map.
+  expect(screen.getByRole("heading", { name: "The funding map" })).toBeInTheDocument();
 });
 
 test("the explorer composes a view and renders its chart and table", async () => {

@@ -1,8 +1,12 @@
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import { EuropeMap } from "@/components/europe-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatHero } from "@/components/stat-hero";
 import { api } from "@/lib/api";
@@ -10,10 +14,51 @@ import type { ExploreResponse } from "@/lib/api";
 import { parseIntent } from "@/lib/intent";
 import { formatInt, themeLabel } from "@/lib/format";
 
-/** The home leads with the hero — the founder's call: the big number seizes
- *  first, the paths offer themselves below the fold. The hero itself is the
- *  doctrine's StatHero (step 1): figure, KPIs and curve on one shared reveal.
- *  The orientation hall below stays untouched pending its own brief. */
+gsap.registerPlugin(ScrollTrigger);
+
+/** The home in Apple acts (doctrine step 2). Act 1: the pinned hero — the
+ *  scroll drives one progress, the figure counts while the curve draws
+ *  (GSAP pin + scrub on fine pointers; the step-1 viewport reveal remains
+ *  the fallback for mobile, reduced motion and jsdom). Act 2: the ink tile,
+ *  edge to edge — the question, free text, and three editorial entries in
+ *  place of clicking cards. Act 3: the proof — the Europe map staged full
+ *  width with the computed momentum signals. */
+
+/* Scrub floor: the first paint shows the gesture already begun (a quarter
+ * of the figure, the curve's first reach) — in tension, never empty. */
+const SCRUB_BASE = 0.12;
+
+const pinnable = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(min-width: 1024px)").matches &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function useHeroPin(ready: boolean, onScrub: (p: number) => void) {
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!ready || !ref.current) return;
+    let st: ScrollTrigger | undefined;
+    // Armed after the route's page-enter transform settles — a transformed
+    // ancestor would break the pin's fixed-position math.
+    const arm = window.setTimeout(() => {
+      st = ScrollTrigger.create({
+        trigger: ref.current!,
+        start: "top top",
+        end: "+=120%",
+        pin: true,
+        scrub: 0.6,
+        onUpdate: (self) => onScrub(SCRUB_BASE + (1 - SCRUB_BASE) * self.progress),
+      });
+    }, 420);
+    return () => {
+      window.clearTimeout(arm);
+      st?.kill();
+    };
+  }, [ready, onScrub]);
+
+  return ref;
+}
 
 function useIntentNavigate() {
   const navigate = useNavigate();
@@ -25,73 +70,42 @@ function useIntentNavigate() {
   };
 }
 
-/* ——— The doors' miniatures — our own graphics as iconography ——— */
+/* ——— Act 2: one editorial entry — a full-width row, not a card ——— */
 
-function MiniTreemap() {
+function EditorialEntry({
+  to,
+  title,
+  desc,
+  figure,
+}: {
+  to: string;
+  title: string;
+  desc: string;
+  figure: ReactNode;
+}) {
   return (
-    <svg viewBox="0 0 150 88" className="w-[150px]" aria-hidden="true">
-      <rect width="86" height="88" rx="7" fill="var(--color-accent)" fillOpacity="0.85" />
-      <rect x="90" width="60" height="42" rx="7" fill="var(--color-accent)" fillOpacity="0.55" />
-      <rect x="90" y="46" width="60" height="42" rx="7" fill="var(--color-accent)" fillOpacity="0.3" />
-      <text x="10" y="20" fontSize="9" fill="#fff" fontWeight="600">
-        informatique
-      </text>
-      <text x="10" y="32" fontSize="8.5" fill="#fff" opacity="0.85" className="tnum">
-        €27,5 Md
-      </text>
-    </svg>
+    <Link
+      to={to}
+      className="group grid grid-cols-1 items-baseline gap-x-8 gap-y-1 border-t py-9 transition-colors sm:grid-cols-[minmax(0,1fr)_auto]"
+    >
+      <h2 className="font-display text-[clamp(24px,3vw,34px)] font-[540] tracking-[-0.022em] transition-colors group-hover:text-accent">
+        {title}
+        <span
+          aria-hidden="true"
+          className="ml-3 inline-block transition-transform duration-200 ease-out group-hover:translate-x-1.5"
+        >
+          →
+        </span>
+      </h2>
+      <span className="tnum text-[15px] text-muted-foreground sm:text-right">{figure}</span>
+      <p className="mt-1 max-w-[560px] text-[15px] leading-relaxed text-muted-foreground sm:col-start-1">
+        {desc}
+      </p>
+    </Link>
   );
 }
 
-function MiniConstellation() {
-  return (
-    <svg viewBox="0 0 150 88" className="w-[150px]" aria-hidden="true">
-      <line x1="75" y1="44" x2="26" y2="16" stroke="var(--color-border)" strokeWidth="2.4" />
-      <line x1="75" y1="44" x2="124" y2="14" stroke="var(--color-border)" strokeWidth="1.6" />
-      <line x1="75" y1="44" x2="132" y2="58" stroke="var(--color-border)" strokeWidth="1.2" />
-      <line x1="75" y1="44" x2="38" y2="72" stroke="var(--color-border)" strokeWidth="2" />
-      <circle cx="26" cy="16" r="5" fill="var(--color-foreground)" />
-      <circle cx="124" cy="14" r="4" fill="var(--color-foreground)" />
-      <circle cx="132" cy="58" r="3.4" fill="var(--color-foreground)" />
-      <circle cx="38" cy="72" r="4.5" fill="var(--color-foreground)" />
-      <circle cx="75" cy="44" r="6.5" fill="var(--color-accent)" />
-    </svg>
-  );
-}
-
-function MiniLines() {
-  return (
-    <svg viewBox="0 0 150 88" className="w-[150px]" aria-hidden="true">
-      <polyline
-        fill="none"
-        stroke="var(--color-series-1)"
-        strokeWidth="2.4"
-        points="8,64 38,50 68,54 98,30 128,36 144,22"
-      />
-      <polyline
-        fill="none"
-        stroke="var(--color-series-2)"
-        strokeWidth="1.9"
-        points="8,70 38,62 68,42 98,48 128,52 144,44"
-      />
-      <circle cx="144" cy="22" r="3" fill="var(--color-series-1)" />
-      <circle cx="144" cy="44" r="3" fill="var(--color-series-2)" />
-    </svg>
-  );
-}
-
-function MiniCalls() {
-  return (
-    <svg viewBox="0 0 150 88" className="w-[150px]" aria-hidden="true">
-      <rect x="14" y="10" width="122" height="16" rx="8" fill="var(--color-surface)" />
-      <rect x="14" y="34" width="98" height="16" rx="8" fill="var(--color-surface)" />
-      <rect x="14" y="58" width="110" height="16" rx="8" fill="var(--color-surface)" />
-      <circle cx="129" cy="42" r="3" fill="var(--color-series-2)" />
-    </svg>
-  );
-}
-
-/* ——— Momentum: three computed signals, each a reason to enter ——— */
+/* ——— Momentum: computed signals, each a reason to enter ——— */
 
 function growthOf(series: ExploreResponse["series"][number]): number | null {
   const value = (year: number) =>
@@ -118,6 +132,12 @@ export function HomePage() {
         new URLSearchParams({ metric: "projects", by: "programme", q: "hydrogen", limit: "3" }),
       ),
   });
+  const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
+  const { data: flows } = useQuery({ queryKey: ["country-flows"], queryFn: api.countryFlows });
+
+  // One decision, made before first paint: pinned scrub or viewport reveal.
+  const [scrub, setScrub] = useState<number | null>(() => (pinnable() ? SCRUB_BASE : null));
+  const pinRef = useHeroPin(stats != null && scrub != null, setScrub);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -137,114 +157,122 @@ export function HomePage() {
   const years = stats?.funding_by_year ?? [];
   const from = years[0]?.year;
   const to = years[years.length - 1]?.year;
+  const cueOpacity = scrub == null ? 0 : Math.max(0, 1 - ((scrub - SCRUB_BASE) / 0.3) * 1.2);
 
   return (
-    <div className="mx-auto w-full max-w-[1240px] px-6 pb-4 pt-14">
-      {/* The hero — big and proud: one synchronized reveal (doctrine step 1) */}
-      <section className="text-center">
-        <p className="mb-4 text-sm font-medium text-accent">{t("hero.eyebrow")}</p>
-        {stats ? (
-          <StatHero
-            funding={stats.totals.funding_eur}
-            sub={from && to ? t("hero.sub", { from, to }) : " "}
-            kpis={[
-              { value: stats.totals.projects, label: t("hero.projects") },
-              { value: stats.totals.organisations, label: t("hero.organisations") },
-              { value: stats.totals.countries, label: t("hero.countries") },
-            ]}
-            years={years}
-          />
-        ) : (
-          <>
-            <Skeleton className="mx-auto h-28 w-[420px] max-w-full" />
-            <Skeleton className="mx-auto mt-16 h-40 w-full max-w-[1120px]" />
-          </>
-        )}
-      </section>
-
-      {/* Below the fold: the orientation (pending the coming design brief) */}
-      <section className="mt-20 text-center">
-        <h1 className="display-tight text-[clamp(30px,4.4vw,46px)] font-semibold">
-          {t("home.ask")}
-        </h1>
-        <form onSubmit={submit} role="search" className="mx-auto mt-6 max-w-[660px]">
-          <div className="flex items-center gap-3 rounded-2xl border bg-background px-5 py-4 focus-within:ring-2 focus-within:ring-accent">
-            <span aria-hidden="true" className="text-muted-foreground">
-              ⌕
-            </span>
-            <input
-              name="q"
-              type="search"
-              placeholder={t("home.freeTextPlaceholder")}
-              className="w-full bg-transparent text-[17px] outline-none placeholder:text-muted-foreground"
+    <div>
+      {/* Act 1 — the pinned hero: scroll makes the number count and the curve draw */}
+      <section
+        ref={pinRef}
+        className="flex min-h-[calc(100dvh-64px)] flex-col justify-center bg-background px-6 pb-10 text-center"
+      >
+        <div className="mx-auto w-full max-w-[1240px]">
+          <p className="mb-4 text-sm font-medium text-accent">{t("hero.eyebrow")}</p>
+          {stats ? (
+            <StatHero
+              funding={stats.totals.funding_eur}
+              sub={from && to ? t("hero.sub", { from, to }) : " "}
+              kpis={[
+                { value: stats.totals.projects, label: t("hero.projects") },
+                { value: stats.totals.organisations, label: t("hero.organisations") },
+                { value: stats.totals.countries, label: t("hero.countries") },
+              ]}
+              years={years}
+              progress={scrub}
             />
-          </div>
-        </form>
-        <p className="mt-3.5 text-[13px] text-muted-foreground">
-          {t("home.try")}{" "}
-          {examples.map((example, index) => (
-            <button
-              key={example}
-              type="button"
-              onClick={() => go(example)}
-              className={
-                "text-accent underline-offset-2 hover:underline" + (index > 0 ? " ml-3" : " ml-1")
-              }
+          ) : (
+            <>
+              <Skeleton className="mx-auto h-28 w-[420px] max-w-full" />
+              <Skeleton className="mx-auto mt-16 h-40 w-full max-w-[1120px]" />
+            </>
+          )}
+          {scrub != null ? (
+            <p
+              aria-hidden="true"
+              className="mt-8 text-[12px] uppercase tracking-[.14em] text-muted-foreground transition-opacity"
+              style={{ opacity: cueOpacity }}
             >
-              {example}
-            </button>
-          ))}
-        </p>
-      </section>
-
-      {/* The four doors — living miniatures of their destinations */}
-      <section className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link to="/explore?by=theme&split=0&limit=10" className="lift rounded-[20px] border p-5 hover:border-accent">
-          <div className="flex h-[92px] items-center justify-center">
-            <MiniTreemap />
-          </div>
-          <h2 className="mt-3.5 text-[16.5px] font-semibold">{t("home.doorTheme")}</h2>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-            {t("home.doorThemeDesc")}
-          </p>
-        </Link>
-        <Link to="/organisations" className="lift rounded-[20px] border p-5 hover:border-accent">
-          <div className="flex h-[92px] items-center justify-center">
-            <MiniConstellation />
-          </div>
-          <h2 className="mt-3.5 text-[16.5px] font-semibold">{t("home.doorOrg")}</h2>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-            {t("home.doorOrgDesc")}
-          </p>
-        </Link>
-        <Link to="/explore/countries" className="lift rounded-[20px] border p-5 hover:border-accent">
-          <div className="flex h-[92px] items-center justify-center">
-            <MiniLines />
-          </div>
-          <h2 className="mt-3.5 text-[16.5px] font-semibold">{t("home.doorCountries")}</h2>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-            {t("home.doorCountriesDesc")}
-          </p>
-        </Link>
-        <div className="rounded-[20px] border border-dashed p-5" aria-disabled="true">
-          <div className="flex h-[92px] items-center justify-center opacity-45">
-            <MiniCalls />
-          </div>
-          <h2 className="mt-3.5 text-[16.5px] font-semibold">{t("home.doorCalls")}</h2>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-            {t("home.doorCallsDesc")}
-          </p>
-          <span className="mt-2.5 inline-block rounded-full bg-surface px-2.5 py-1 text-[11px] text-muted-foreground">
-            {t("home.doorCallsBadge")}
-          </span>
+              {t("home.scrollCue")} ↓
+            </p>
+          ) : null}
         </div>
       </section>
 
-      {/* Right now: computed momentum, each signal opens the analysis */}
-      <section className="mt-14">
-        <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-          {t("home.now")}
-        </h2>
+      {/* Act 2 — the ink tile: the question, free text, three editorial entries.
+          The `dark` class turns the section into an ink island in light mode
+          and an elevated tile in dark mode — same tokens, Apple's pulse. */}
+      <section className="dark bg-surface text-foreground">
+        <div className="mx-auto w-full max-w-[1240px] px-6 py-24 text-center">
+          <h1 className="font-display text-title">{t("home.ask")}</h1>
+          <form onSubmit={submit} role="search" className="mx-auto mt-7 max-w-[660px]">
+            <div className="flex items-center gap-3 rounded-2xl border bg-background/60 px-5 py-4 focus-within:ring-2 focus-within:ring-accent">
+              <span aria-hidden="true" className="text-muted-foreground">
+                ⌕
+              </span>
+              <input
+                name="q"
+                type="search"
+                placeholder={t("home.freeTextPlaceholder")}
+                className="w-full bg-transparent text-[17px] outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+          </form>
+          <p className="mt-3.5 text-[13px] text-muted-foreground">
+            {t("home.try")}{" "}
+            {examples.map((example, index) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => go(example)}
+                className={
+                  "text-accent underline-offset-2 hover:underline" + (index > 0 ? " ml-3" : " ml-1")
+                }
+              >
+                {example}
+              </button>
+            ))}
+          </p>
+
+          <div className="mt-16 text-left">
+            <EditorialEntry
+              to="/explore?by=theme&split=0&limit=10"
+              title={t("home.entryThemes")}
+              desc={t("home.entryThemesDesc")}
+              figure={t("home.entryThemesFigure", { count: stats?.totals.projects ?? 0 })}
+            />
+            <EditorialEntry
+              to="/compare"
+              title={t("home.entryOrgs")}
+              desc={t("home.entryOrgsDesc")}
+              figure={t("home.entryOrgsFigure", { count: stats?.totals.organisations ?? 0 })}
+            />
+            <EditorialEntry
+              to="/explore/countries"
+              title={t("home.entryCountries")}
+              desc={t("home.entryCountriesDesc")}
+              figure={t("home.entryCountriesFigure", { count: stats?.totals.countries ?? 0 })}
+            />
+            <p className="border-t pt-6 text-[13px] text-muted-foreground">
+              {t("home.callsNote")}{" "}
+              <span className="font-mono text-[11.5px]">{t("home.callsBadge")}</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Act 3 — the proof: the map staged full width, signals beneath */}
+      <section className="mx-auto w-full max-w-[1240px] px-6 py-24">
+        <h2 className="font-display text-title">{t("home.act3Title")}</h2>
+        <p className="mt-2 max-w-[560px] text-[15px] text-muted-foreground">{t("home.act3Lead")}</p>
+        <div className="mt-10">
+          {countryIndex ? (
+            <EuropeMap countries={countryIndex} flows={flows ?? []} />
+          ) : (
+            <Skeleton className="h-[420px] w-full" />
+          )}
+        </div>
+
+        <h2 className="mt-16 text-label uppercase text-muted-foreground">{t("home.now")}</h2>
         <div className="mt-3.5 grid gap-3.5 lg:grid-cols-2">
           {themeSignal ? (
             <Link

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 
@@ -6,6 +7,8 @@ import { CommandK } from "@/components/command-k";
 import { LanguageToggle } from "@/components/language-toggle";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { api } from "@/lib/api";
+import { formatCompactEur } from "@/lib/format";
 
 function ScopeBadge() {
   const { t } = useTranslation();
@@ -24,6 +27,63 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   isActive
     ? "text-foreground"
     : "text-muted-foreground transition-colors hover:text-foreground";
+
+/** The dense parchment footer (doctrine: "dense et assumé", Apple's) — the
+ *  whole information architecture exposed, corpus figures in tabular nums. */
+function Footer() {
+  const { t, i18n } = useTranslation();
+  const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
+  const columnTitle = "text-label uppercase text-muted-foreground";
+  const link = "block py-1 text-[13px] transition-colors hover:text-accent";
+
+  return (
+    <footer className="mt-24 border-t bg-surface">
+      <div className="mx-auto grid w-full max-w-[1240px] gap-10 px-6 py-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <Logo />
+          <p className="mt-3 text-[13px] text-muted-foreground">{t("footer.tagline")}</p>
+          <p className="mt-1 font-mono text-[11px] text-muted-foreground">{t("footer.scope")}</p>
+        </div>
+        <nav aria-label={t("footer.product")}>
+          <h2 className={columnTitle}>{t("footer.product")}</h2>
+          <ul className="mt-3">
+            <li><Link to="/projects" className={link}>{t("footer.projects")}</Link></li>
+            <li><Link to="/organisations" className={link}>{t("footer.organisations")}</Link></li>
+            <li><Link to="/explore" className={link}>{t("footer.explorer")}</Link></li>
+            <li><Link to="/compare" className={link}>{t("footer.compareOrgs")}</Link></li>
+          </ul>
+        </nav>
+        <nav aria-label={t("footer.exploreCol")}>
+          <h2 className={columnTitle}>{t("footer.exploreCol")}</h2>
+          <ul className="mt-3">
+            <li><Link to="/explore/countries" className={link}>{t("footer.countries")}</Link></li>
+            <li><Link to="/explore/programmes" className={link}>{t("footer.programmes")}</Link></li>
+            <li><Link to="/explore" className={link}>{t("footer.readyMade")}</Link></li>
+            <li><Link to="/about-data" className={link}>{t("footer.data")}</Link></li>
+          </ul>
+        </nav>
+        <div>
+          <h2 className={columnTitle}>{t("footer.corpus")}</h2>
+          <ul className="tnum mt-3 text-[13px] leading-7 text-muted-foreground">
+            <li>{t("footer.figProjects", { count: stats?.totals.projects ?? 0 })}</li>
+            <li>{t("footer.figOrgs", { count: stats?.totals.organisations ?? 0 })}</li>
+            <li>
+              {t("footer.figFunding", {
+                amount: formatCompactEur(stats?.totals.funding_eur ?? null, i18n.language),
+              })}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div className="border-t">
+        <div className="mx-auto flex h-12 w-full max-w-[1240px] items-center justify-between px-6 text-xs text-muted-foreground">
+          <span>© 2026 Orion</span>
+          <span className="font-mono text-[11px]">{t("footer.phase")}</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
 
 export function Layout() {
   const { t } = useTranslation();
@@ -74,17 +134,7 @@ export function Layout() {
       <main id="main" key={pathname} className="page-enter flex-1">
         <Outlet />
       </main>
-      <footer className="mt-24 border-t">
-        <div className="mx-auto flex h-14 w-full max-w-[1240px] items-center justify-between px-6 text-xs text-muted-foreground">
-          <span>© 2026 Orion</span>
-          <div className="flex gap-5">
-            <Link to="/about-data" className="transition-colors hover:text-foreground">
-              {t("footer.data")}
-            </Link>
-            <span className="font-mono text-[11px]">{t("footer.phase")}</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
       <CommandK open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
