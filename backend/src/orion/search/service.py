@@ -461,6 +461,27 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
     by_id = {r["id"]: r for r in detail_rows}
     ordered = [by_id[i] for i in page_ids if i in by_id]
 
+    # Yearly activity for the page only — feeds the sparklines in the list.
+    years_by_org: dict[int, list[dict[str, Any]]] = {}
+    if page_ids:
+        year_rows = session.execute(
+            text("""
+            SELECT pa.organisation_id AS org_id,
+                   extract(year FROM p.start_date)::int AS y,
+                   sum(pa.amount_eur) AS amount
+            FROM participations pa JOIN projects p ON p.id = pa.project_id
+            WHERE pa.organisation_id = ANY(CAST(:ids AS integer[]))
+              AND p.start_date IS NOT NULL
+              AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
+            GROUP BY 1, 2 ORDER BY 1, 2
+            """),
+            {"ids": page_ids},
+        ).all()
+        for org_id, year, amount in year_rows:
+            years_by_org.setdefault(org_id, []).append(
+                {"year": year, "amount_eur": float(amount or 0)}
+            )
+
     total = session.execute(
         text(f"SELECT count(*) FROM organisations o {where}"), params
     ).scalar_one()
@@ -496,6 +517,7 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
                 "total_funding_eur": float(r["total_funding"])
                 if r["total_funding"] is not None
                 else None,
+                "funding_by_year": years_by_org.get(r["id"], []),
             }
             for r in ordered
         ],

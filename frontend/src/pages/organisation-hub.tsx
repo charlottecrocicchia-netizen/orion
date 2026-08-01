@@ -8,7 +8,14 @@ import { YearBars } from "@/components/year-bars";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { formatCompactEur, formatInt, yearsRange } from "@/lib/format";
+import {
+  countryFlag,
+  formatCompactEur,
+  formatInt,
+  formatOrgName,
+  orgTypeKey,
+  yearsRange,
+} from "@/lib/format";
 
 export function OrganisationHubPage() {
   const { id = "" } = useParams();
@@ -39,21 +46,33 @@ export function OrganisationHubPage() {
   if (!data) return null;
 
   const years = data.funding_by_year.filter((d) => d.year >= 2005);
+  const displayName = formatOrgName(data.name);
+  const typeKey = orgTypeKey(data.org_type);
 
   return (
-    <div className="mx-auto w-full max-w-[980px] px-6 pt-8">
+    <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/organisations" className="hover:text-foreground">
+        <Link to="/organisations" className="transition-colors hover:text-foreground">
           {t("nav.organisations")}
         </Link>{" "}
-        › <span>{data.name.slice(0, 40)}…</span>
+        ›{" "}
+        <span>
+          {displayName.slice(0, 40)}
+          {displayName.length > 40 ? "…" : ""}
+        </span>
       </nav>
 
-      <p className="mt-5 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-        {[data.org_type, data.city, data.country].filter(Boolean).join(" · ")}
+      <p className="mt-6 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+        {[
+          typeKey ? t(`orgType.${typeKey}`) : null,
+          data.city ? formatOrgName(data.city) : null,
+          data.country ? `${countryFlag(data.country)} ${data.country}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
       </p>
-      <h1 className="display-tight mt-1 max-w-[26ch] text-[clamp(24px,3.4vw,34px)] font-semibold leading-tight">
-        {data.name}
+      <h1 className="display-tight mt-1.5 max-w-[26ch] text-[clamp(26px,3.6vw,38px)] font-semibold leading-tight">
+        {displayName}
       </h1>
       <div className="mt-3 flex flex-wrap gap-2">
         {data.identifiers.map((identifier) => (
@@ -76,7 +95,7 @@ export function OrganisationHubPage() {
         ) : null}
       </div>
 
-      <div className="mt-9 grid grid-cols-2 gap-6 sm:grid-cols-4">
+      <div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
         <Kpi value={data.kpis.total_funding_eur} label={t("org.totalFunding")} kind="eur" hero />
         <Kpi value={data.kpis.projects_count} label={t("org.projects")} hero />
         <Kpi value={data.kpis.coordinator_count} label={t("org.asCoordinator")} hero />
@@ -86,7 +105,7 @@ export function OrganisationHubPage() {
         />
       </div>
 
-      <div className="mt-11 grid gap-12 lg:grid-cols-[1.25fr_1fr]">
+      <div className="mt-14 grid gap-14 lg:grid-cols-[1.25fr_1fr]">
         <section>
           <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
             {t("org.portfolio")}
@@ -200,7 +219,7 @@ export function OrganisationHubPage() {
             : []),
           {
             label: t("explore.allProjects"),
-            to: `/projects?q=${encodeURIComponent(data.name.split(" ").slice(0, 3).join(" "))}`,
+            to: `/projects?q=${encodeURIComponent(displayName.split(" ").slice(0, 3).join(" "))}`,
           },
           { label: t("explore.programmesTitle"), to: "/explore/programmes" },
         ]}

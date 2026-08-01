@@ -1,32 +1,11 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router";
+import { useState } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import type { FormEvent } from "react";
 
+import { CommandK } from "@/components/command-k";
 import { LanguageToggle } from "@/components/language-toggle";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
-
-function HeaderSearch() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const q = new FormData(event.currentTarget).get("q");
-    navigate(`/projects?q=${encodeURIComponent(String(q ?? "")).trim()}`);
-  };
-
-  return (
-    <form onSubmit={submit} role="search" className="hidden md:block">
-      <input
-        name="q"
-        type="search"
-        placeholder={`⌕  ${t("searchShort")}`}
-        className="w-[230px] rounded-full bg-surface px-4 py-1.5 text-[13px] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
-      />
-    </form>
-  );
-}
 
 function ScopeBadge() {
   const { t } = useTranslation();
@@ -42,10 +21,15 @@ function ScopeBadge() {
 }
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground";
+  isActive
+    ? "text-foreground"
+    : "text-muted-foreground transition-colors hover:text-foreground";
 
 export function Layout() {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -71,27 +55,37 @@ export function Layout() {
             </NavLink>
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <HeaderSearch />
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="hidden items-center gap-6 rounded-full bg-surface py-1.5 pl-4 pr-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground md:flex"
+            >
+              <span>⌕ {t("searchShort")}</span>
+              <kbd className="rounded-md border bg-background px-1.5 py-0.5 font-sans text-[10px]">
+                ⌘K
+              </kbd>
+            </button>
             <ScopeBadge />
             <LanguageToggle />
             <ThemeToggle />
           </div>
         </nav>
       </header>
-      <main id="main" className="flex-1">
+      <main id="main" key={pathname} className="page-enter flex-1">
         <Outlet />
       </main>
-      <footer className="mt-16 border-t">
+      <footer className="mt-24 border-t">
         <div className="mx-auto flex h-14 w-full max-w-[1240px] items-center justify-between px-6 text-xs text-muted-foreground">
           <span>© 2026 Orion</span>
           <div className="flex gap-5">
-            <Link to="/about-data" className="hover:text-foreground">
+            <Link to="/about-data" className="transition-colors hover:text-foreground">
               {t("footer.data")}
             </Link>
             <span>{t("footer.phase")}</span>
           </div>
         </div>
       </footer>
+      <CommandK open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
 }

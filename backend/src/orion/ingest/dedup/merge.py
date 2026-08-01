@@ -27,6 +27,9 @@ MIN_FUZZY_LENGTH = 12
 # holding different values of the same scheme must never be merged.
 STRONG_SCHEMES = ("pic", "siren", "siret", "rnsr", "ror")
 
+# CORDIS activity codes; more reliable than the ANR free-text categories.
+CORDIS_ACTIVITY_TYPES = ["REC", "HES", "PRC", "PUB", "OTH"]
+
 
 def refresh_normalized_names(session: Session, stats: RunStats) -> None:
     """(Re)compute the comparison key for every organisation."""
@@ -113,22 +116,28 @@ def merge_group(session: Session, keeper_id: int, victim_ids: list[int]) -> None
         .values(organisation_id=keeper_id)
         .execution_options(**opts)
     )
-    # Keep the richest available location on the survivor.
+    # Keep the richest available location on the survivor. For the type, the
+    # CORDIS activity codes are authoritative over ANR free-text categories
+    # (the ANR files label e.g. the CEA as « Université »).
     session.execute(
         text(
             "UPDATE organisations k SET "
             "  country_code = coalesce(k.country_code, v.country_code), "
             "  city = coalesce(k.city, v.city), "
-            "  org_type = coalesce(k.org_type, v.org_type), "
+            "  org_type = CASE "
+            "      WHEN k.org_type = ANY(:cordis_types) THEN k.org_type "
+            "      WHEN v.cordis_type IS NOT NULL THEN v.cordis_type "
+            "      ELSE coalesce(k.org_type, v.any_type) END, "
             "  website = coalesce(k.website, v.website), "
             "  lat = coalesce(k.lat, v.lat), lon = coalesce(k.lon, v.lon) "
             "FROM (SELECT max(country_code) country_code, max(city) city, "
-            "        max(org_type) org_type, max(website) website, "
+            "        max(org_type) FILTER (WHERE org_type = ANY(:cordis_types)) cordis_type, "
+            "        max(org_type) any_type, max(website) website, "
             "        max(lat) lat, max(lon) lon "
             "      FROM organisations WHERE id = ANY(:victims)) v "
             "WHERE k.id = :keeper"
         ),
-        {"victims": victim_ids, "keeper": keeper_id},
+        {"victims": victim_ids, "keeper": keeper_id, "cordis_types": CORDIS_ACTIVITY_TYPES},
     )
     session.execute(
         delete(Organisation).where(Organisation.id.in_(victim_ids)).execution_options(**opts)

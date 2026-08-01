@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { formatCompactEur, formatInt } from "@/lib/format";
+import { formatCompactEur } from "@/lib/format";
 
 const VISIBLE_DEFAULT = 12;
 
@@ -17,7 +17,7 @@ export function ExploreProgrammesPage() {
   const visible = showAll ? data : data?.slice(0, VISIBLE_DEFAULT);
 
   return (
-    <div className="mx-auto w-full max-w-[880px] px-6 pt-10">
+    <div className="mx-auto w-full max-w-[880px] px-6 pt-12">
       <p className="text-sm font-medium text-accent">{t("explore.title")}</p>
       <h1 className="display-tight mt-1 text-[clamp(28px,4vw,40px)] font-semibold">
         {t("explore.programmesTitle")}
@@ -30,7 +30,7 @@ export function ExploreProgrammesPage() {
               <Link
                 key={programme.id}
                 to={`/explore/programmes/${programme.id}`}
-                className="group rounded-2xl border p-5 transition-colors hover:border-accent"
+                className="group lift rounded-2xl border p-5 hover:border-accent"
               >
                 <p className="text-[11px] uppercase tracking-[.08em] text-muted-foreground">
                   {programme.funder_name}
@@ -43,8 +43,7 @@ export function ExploreProgrammesPage() {
                     {formatCompactEur(programme.funding_eur, i18n.language)}
                   </span>
                   <span className="tnum text-[13px] text-muted-foreground">
-                    {formatInt(programme.projects_count, i18n.language)}{" "}
-                    {t("org.projects").toLowerCase()}
+                    {t("search.projectsCount", { count: programme.projects_count })}
                   </span>
                 </div>
               </Link>

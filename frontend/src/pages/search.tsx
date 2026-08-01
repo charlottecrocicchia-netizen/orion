@@ -3,12 +3,15 @@ import { Link, NavLink, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { ReactNode } from "react";
 
+import { AmountBar } from "@/components/amount-bar";
+import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
+import { Sparkline } from "@/components/sparkline";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { formatCompactEur, formatInt, yearsRange } from "@/lib/format";
+import { formatCompactEur, formatInt, formatOrgName, orgTypeKey, yearsRange } from "@/lib/format";
 
 function useSearchState() {
   const [params, setParams] = useSearchParams();
@@ -136,9 +139,10 @@ export function ProjectsSearchPage() {
     activeCountries.length > 0 ||
     params.get("year_from") != null ||
     params.get("year_to") != null;
+  const maxFunding = Math.max(...(data?.results.map((h) => h.funding_amount_eur ?? 0) ?? []), 0);
 
   return (
-    <div className="mx-auto w-full max-w-[980px] px-6 pt-8">
+    <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Tabs q={q} />
         <div className="text-[13px] text-muted-foreground">
@@ -216,7 +220,7 @@ export function ProjectsSearchPage() {
           <p className="mt-10 text-muted-foreground">{t("search.noResults", { q })}</p>
         ) : (
           data?.results.map((hit) => (
-            <article key={hit.id} className="border-b py-5 last:border-b-0">
+            <article key={hit.id} className="border-b py-6 last:border-b-0">
               <div className="flex items-baseline gap-3">
                 <h2 className="text-[17px] font-medium">
                   {hit.acronym ? <span className="mr-2 text-accent">{hit.acronym}</span> : null}
@@ -224,8 +228,11 @@ export function ProjectsSearchPage() {
                     {hit.title}
                   </Link>
                 </h2>
-                <span className="display-tight tnum ml-auto whitespace-nowrap text-[17px] font-semibold">
-                  {formatCompactEur(hit.funding_amount_eur, i18n.language)}
+                <span className="ml-auto flex shrink-0 flex-col items-end">
+                  <span className="display-tight tnum whitespace-nowrap text-[17px] font-semibold">
+                    {formatCompactEur(hit.funding_amount_eur, i18n.language)}
+                  </span>
+                  <AmountBar value={hit.funding_amount_eur} max={maxFunding} />
                 </span>
               </div>
               {hit.snippet ? (
@@ -234,10 +241,15 @@ export function ProjectsSearchPage() {
                   dangerouslySetInnerHTML={{ __html: hit.snippet }}
                 />
               ) : null}
-              <p className="mt-1.5 text-[13px] text-muted-foreground">
+              <p className="mt-2 text-[13px] text-muted-foreground">
                 {hit.programme_root ?? hit.source} · {yearsRange(hit.start_year, hit.end_year)} ·{" "}
                 {t("search.organisationsCount", { count: hit.participations_count })}
-                {hit.countries.length > 0 ? ` · ${hit.countries.slice(0, 5).join(" ")}` : ""}
+                {hit.countries.length > 0 ? (
+                  <>
+                    {" · "}
+                    <CountryFlags codes={hit.countries} max={5} />
+                  </>
+                ) : null}
               </p>
             </article>
           ))
@@ -277,9 +289,10 @@ export function OrganisationsSearchPage() {
   });
 
   const activeCountries = params.getAll("country");
+  const maxFunding = Math.max(...(data?.results.map((h) => h.total_funding_eur ?? 0) ?? []), 0);
 
   return (
-    <div className="mx-auto w-full max-w-[980px] px-6 pt-8">
+    <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Tabs q={q} />
         <div className="text-[13px] text-muted-foreground">
@@ -326,27 +339,40 @@ export function OrganisationsSearchPage() {
           ? Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="mt-3 h-14 w-full" />
             ))
-          : data?.results.map((hit) => (
-              <article key={hit.id} className="flex items-baseline gap-4 border-b py-4 last:border-b-0">
-                <div className="min-w-0">
-                  <Link
-                    to={`/organisations/${hit.id}`}
-                    className="font-medium hover:underline underline-offset-2"
-                  >
-                    {hit.name}
-                  </Link>
-                  <span className="ml-3 text-[13px] text-muted-foreground">
-                    {[hit.country, hit.org_type].filter(Boolean).join(" · ")}
-                  </span>
-                </div>
-                <div className="tnum ml-auto whitespace-nowrap text-sm text-muted-foreground">
-                  {formatInt(hit.projects_count, i18n.language)} {t("org.projects").toLowerCase()}
-                </div>
-                <div className="display-tight tnum w-24 whitespace-nowrap text-right text-[16px] font-semibold">
-                  {formatCompactEur(hit.total_funding_eur, i18n.language)}
-                </div>
-              </article>
-            ))}
+          : data?.results.map((hit) => {
+              const typeKey = orgTypeKey(hit.org_type);
+              return (
+                <article
+                  key={hit.id}
+                  className="flex items-center gap-5 border-b py-4 last:border-b-0"
+                >
+                  <div className="min-w-0">
+                    <Link
+                      to={`/organisations/${hit.id}`}
+                      className="font-medium hover:underline underline-offset-2"
+                    >
+                      {formatOrgName(hit.name)}
+                    </Link>
+                    <span className="ml-3 whitespace-nowrap text-[13px] text-muted-foreground">
+                      {hit.country ? <CountryFlags codes={[hit.country]} /> : null}
+                      {typeKey ? ` ${t(`orgType.${typeKey}`)}` : null}
+                    </span>
+                  </div>
+                  <div className="ml-auto hidden shrink-0 sm:block">
+                    <Sparkline data={hit.funding_by_year} />
+                  </div>
+                  <div className="tnum w-24 shrink-0 whitespace-nowrap text-right text-sm text-muted-foreground">
+                    {t("search.projectsCount", { count: hit.projects_count })}
+                  </div>
+                  <div className="flex w-24 shrink-0 flex-col items-end">
+                    <span className="display-tight tnum whitespace-nowrap text-[16px] font-semibold">
+                      {formatCompactEur(hit.total_funding_eur, i18n.language)}
+                    </span>
+                    <AmountBar value={hit.total_funding_eur} max={maxFunding} />
+                  </div>
+                </article>
+              );
+            })}
       </div>
 
       <Pager page={page} hasMore={(data?.total ?? 0) > page * 20} update={update} />

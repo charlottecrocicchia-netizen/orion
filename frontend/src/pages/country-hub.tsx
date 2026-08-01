@@ -7,7 +7,7 @@ import { Kpi } from "@/components/kpi";
 import { YearBars } from "@/components/year-bars";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { countryFlag, formatCompactEur, formatInt } from "@/lib/format";
+import { countryFlag, formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 
 export function CountryHubPage() {
   const { code = "" } = useParams();
@@ -31,15 +31,15 @@ export function CountryHubPage() {
   const years = data.funding_by_year.filter((d) => d.year >= 2005);
 
   return (
-    <div className="mx-auto w-full max-w-[980px] px-6 pt-8">
+    <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/explore/countries" className="hover:text-foreground">
+        <Link to="/explore/countries" className="transition-colors hover:text-foreground">
           {t("explore.countriesTitle")}
         </Link>{" "}
         › <span>{data.name}</span>
       </nav>
 
-      <div className="mt-5 flex items-center gap-3">
+      <div className="mt-6 flex items-center gap-3">
         <span aria-hidden="true" className="text-3xl leading-none">
           {countryFlag(data.code)}
         </span>
@@ -51,21 +51,21 @@ export function CountryHubPage() {
         ) : null}
       </div>
 
-      <div className="mt-9 grid grid-cols-2 gap-6 sm:grid-cols-4">
+      <div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
         <Kpi value={data.kpis.funding_eur} label={t("org.totalFunding")} kind="eur" hero />
         <Kpi value={data.kpis.projects_count} label={t("org.projects")} hero />
         <Kpi value={data.kpis.organisations_count} label={t("country.organisations")} hero />
         <Kpi value={data.kpis.coordinator_count} label={t("country.coordinations")} hero />
       </div>
 
-      <section className="mt-11">
+      <section className="mt-14">
         <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
           {t("org.fundingByYear")} · M€
         </h2>
         <YearBars data={years.map((d) => ({ year: d.year, amount_eur: d.amount_eur / 1e6 }))} />
       </section>
 
-      <div className="mt-12 grid gap-12 lg:grid-cols-2">
+      <div className="mt-14 grid gap-14 lg:grid-cols-2">
         <section>
           <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
             {t("country.topOrganisations")}
@@ -76,7 +76,9 @@ export function CountryHubPage() {
               to={`/organisations/${org.id}`}
               className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
             >
-              <span className="min-w-0 truncate group-hover:text-accent">{org.name}</span>
+              <span className="min-w-0 truncate transition-colors group-hover:text-accent">
+                {formatOrgName(org.name)}
+              </span>
               <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
                 {formatInt(org.projects_count, i18n.language)}
               </span>

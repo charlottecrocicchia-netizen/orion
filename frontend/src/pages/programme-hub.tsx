@@ -7,7 +7,13 @@ import { Kpi, KpiStatic } from "@/components/kpi";
 import { YearBars } from "@/components/year-bars";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { countryFlag, formatCompactEur, formatInt, yearsRange } from "@/lib/format";
+import {
+  countryFlag,
+  formatCompactEur,
+  formatInt,
+  formatOrgName,
+  yearsRange,
+} from "@/lib/format";
 
 export function ProgrammeHubPage() {
   const { id = "" } = useParams();
@@ -31,17 +37,17 @@ export function ProgrammeHubPage() {
   const years = data.funding_by_year.filter((d) => d.year >= 2005);
 
   return (
-    <div className="mx-auto w-full max-w-[980px] px-6 pt-8">
+    <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/explore/programmes" className="hover:text-foreground">
+        <Link to="/explore/programmes" className="transition-colors hover:text-foreground">
           {t("explore.programmesTitle")}
         </Link>{" "}
         › <span>{data.code}</span>
       </nav>
 
-      <h1 className="display-tight mt-5 text-[clamp(28px,4vw,40px)] font-semibold">{data.label}</h1>
+      <h1 className="display-tight mt-6 text-[clamp(28px,4vw,40px)] font-semibold">{data.label}</h1>
 
-      <div className="mt-9 grid grid-cols-2 gap-6 sm:grid-cols-4">
+      <div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
         <Kpi value={data.kpis.funding_eur} label={t("org.totalFunding")} kind="eur" hero />
         <Kpi value={data.kpis.projects_count} label={t("org.projects")} hero />
         <KpiStatic
@@ -51,14 +57,14 @@ export function ProgrammeHubPage() {
         <KpiStatic value={data.code} label={t("project.programme")} />
       </div>
 
-      <section className="mt-11">
+      <section className="mt-14">
         <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
           {t("org.fundingByYear")} · M€
         </h2>
         <YearBars data={years.map((d) => ({ year: d.year, amount_eur: d.amount_eur / 1e6 }))} />
       </section>
 
-      <div className="mt-12 grid gap-12 lg:grid-cols-2">
+      <div className="mt-14 grid gap-14 lg:grid-cols-2">
         <section>
           <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
             {t("programme.topBeneficiaries")}
@@ -74,7 +80,9 @@ export function ProgrammeHubPage() {
                   {countryFlag(org.country)}
                 </span>
               ) : null}
-              <span className="min-w-0 truncate group-hover:text-accent">{org.name}</span>
+              <span className="min-w-0 truncate transition-colors group-hover:text-accent">
+                {formatOrgName(org.name)}
+              </span>
               <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
                 {formatInt(org.projects_count, i18n.language)}
               </span>

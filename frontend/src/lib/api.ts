@@ -48,6 +48,7 @@ export interface OrganisationHit {
   org_type: string | null;
   projects_count: number;
   total_funding_eur: number | null;
+  funding_by_year: { year: number; amount_eur: number }[];
 }
 
 export interface OrganisationSearchResponse {

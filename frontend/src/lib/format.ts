@@ -20,6 +20,94 @@ export function countryFlag(code: string): string {
   return String.fromCodePoint(...[...code].map((c) => 0x1f1a5 + c.charCodeAt(0)));
 }
 
+const SMALL_WORDS = new Set([
+  "de", "du", "des", "la", "le", "les", "l", "d", "et", "en", "sur", "sous", "aux", "au",
+  "a", "pour", "par", "of", "the", "and", "for", "in", "on", "at", "von", "und", "der",
+  "die", "das", "für", "di", "e", "del", "della", "dei", "delle", "y", "el", "van", "het",
+]);
+
+/** Sentence-case a shouting source name (« Centre national de la recherche
+ *  scientifique », not ALL CAPS). Heuristic: short vowel-less tokens stay as
+ *  acronyms (CNRS, UMR); mixed-case names pass through untouched. */
+export function formatOrgName(name: string): string {
+  const letters = name.replace(/[^\p{L}]/gu, "");
+  if (letters.length < 4) return name;
+  const upperRatio = letters.replace(/[^\p{Lu}]/gu, "").length / letters.length;
+  if (upperRatio < 0.85) return name;
+
+  const isAcronym = (token: string) => {
+    if (!/^[\p{Lu}\d.]{2,}$/u.test(token)) return false;
+    const own = token.replace(/[^\p{L}]/gu, "");
+    if (own.length === 0 || SMALL_WORDS.has(token.toLocaleLowerCase())) return false;
+    return own.length <= 3 || (own.length <= 4 && !/[AEIOUY]/.test(own));
+  };
+
+  let started = false;
+  let afterBreak = false;
+  return name
+    .split(/(\s+)/)
+    .map((chunk) => {
+      if (!chunk || /^\s+$/.test(chunk)) return chunk;
+      if (/^[-–—]+$/.test(chunk)) {
+        afterBreak = true;
+        return chunk;
+      }
+      // Hyphenated words are almost always place names (Midi-Pyrenees,
+      // Fontenay-aux-Roses): capitalize every non-linking segment.
+      if (chunk.includes("-")) afterBreak = true;
+      return chunk
+        .split(/([-'’()])/)
+        .map((part) => {
+          if (["-", "'", "’", "(", ")"].includes(part)) {
+            if (part === "-" || part === "(") afterBreak = true;
+            return part;
+          }
+          if (!part) return part;
+          if (isAcronym(part)) {
+            started = true;
+            afterBreak = false;
+            return part;
+          }
+          const lower = part.toLocaleLowerCase();
+          const cap = !started || (afterBreak && !SMALL_WORDS.has(lower));
+          started = true;
+          afterBreak = false;
+          return cap ? lower.charAt(0).toLocaleUpperCase() + lower.slice(1) : lower;
+        })
+        .join("");
+    })
+    .join("");
+}
+
+/** The two source taxonomies (CORDIS activity codes, ANR free-text categories)
+ *  collapse into eight canonical keys, translated through i18n `orgType.*`. */
+const ORG_TYPE_KEYS: Record<string, string> = {
+  REC: "research",
+  "Organisme de recherche": "research",
+  "Organismes de type EPST": "research",
+  HES: "university",
+  Université: "university",
+  "Autre établissement d’enseignement supérieur": "university",
+  PRC: "company",
+  "Entreprises Privées": "company",
+  "GE (grande entreprise)": "company",
+  "ETI (entreprise de taille intermédiaire)": "company",
+  "Divers privé": "company",
+  "PME (petite et moyenne entreprise)": "sme",
+  PUB: "public",
+  "Divers public": "public",
+  "Hôpital / Santé": "health",
+  "Fondation ou association": "nonprofit",
+  Associations: "nonprofit",
+  OTH: "other",
+  ETRANGER: "other",
+};
+
+export function orgTypeKey(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  return ORG_TYPE_KEYS[raw] ?? "other";
+}
+
 export function yearsRange(from: number | null, to: number | null): string {
   if (from == null && to == null) return "—";
   if (from != null && to != null) return from === to ? String(from) : `${from} – ${to}`;

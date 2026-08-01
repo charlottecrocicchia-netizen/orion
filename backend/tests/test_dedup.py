@@ -192,6 +192,22 @@ def test_merge_keeps_the_richest_location(db_session):
     assert db_session.get(Organisation, keeper_id).city == "Lyon"
 
 
+def test_merge_prefers_cordis_activity_codes_over_anr_labels(db_session):
+    """The ANR files label e.g. the CEA as « Université »; the CORDIS activity
+    code carried by the duplicate must win at merge time."""
+    keeper_id = _org(db_session, f"{MARK} Institut Gamma", org_type="Université").id
+    victim_id = _org(db_session, f"{MARK} INSTITUT GAMMA", org_type="REC").id
+    db_session.flush()
+
+    stats = RunStats()
+    refresh_normalized_names(db_session, stats)
+    merge_exact(db_session, stats)
+    db_session.expunge_all()
+
+    assert _count(db_session, Organisation, Organisation.id == victim_id) == 0
+    assert db_session.get(Organisation, keeper_id).org_type == "REC"
+
+
 def test_fuzzy_merge_joins_near_identical_names_but_spares_short_ones(db_session):
     long_a = _org(db_session, f"{MARK} Institut National de Recherche Agronomique").id
     long_b = _org(db_session, f"{MARK} Institut National de Recherche Agronomiques").id

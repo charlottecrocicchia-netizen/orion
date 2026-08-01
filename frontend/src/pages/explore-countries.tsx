@@ -3,15 +3,17 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { AmountBar } from "@/components/amount-bar";
 import { api } from "@/lib/api";
-import { countryFlag, formatCompactEur, formatInt } from "@/lib/format";
+import { countryFlag, formatCompactEur } from "@/lib/format";
 
 export function ExploreCountriesPage() {
   const { t, i18n } = useTranslation();
   const { data, isPending } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
+  const maxFunding = Math.max(...(data?.map((c) => c.funding_eur) ?? []), 0);
 
   return (
-    <div className="mx-auto w-full max-w-[880px] px-6 pt-10">
+    <div className="mx-auto w-full max-w-[880px] px-6 pt-12">
       <p className="text-sm font-medium text-accent">{t("explore.title")}</p>
       <h1 className="display-tight mt-1 text-[clamp(28px,4vw,40px)] font-semibold">
         {t("explore.countriesTitle")}
@@ -39,11 +41,13 @@ export function ExploreCountriesPage() {
                   </span>
                 ) : null}
                 <span className="tnum ml-auto whitespace-nowrap text-sm text-muted-foreground">
-                  {formatInt(country.projects_count, i18n.language)}{" "}
-                  {t("org.projects").toLowerCase()}
+                  {t("search.projectsCount", { count: country.projects_count })}
                 </span>
-                <span className="display-tight tnum w-24 whitespace-nowrap text-right text-[16px] font-semibold">
-                  {formatCompactEur(country.funding_eur, i18n.language)}
+                <span className="flex w-24 shrink-0 flex-col items-end">
+                  <span className="display-tight tnum whitespace-nowrap text-[16px] font-semibold">
+                    {formatCompactEur(country.funding_eur, i18n.language)}
+                  </span>
+                  <AmountBar value={country.funding_eur} max={maxFunding} />
                 </span>
               </Link>
             ))}

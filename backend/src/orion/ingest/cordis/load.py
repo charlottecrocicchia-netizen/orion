@@ -205,19 +205,41 @@ def _load_projects(
     return project_map
 
 
+CORDIS_ACTIVITY_TYPES = frozenset({"REC", "HES", "PRC", "PUB", "OTH"})
+
+
+def _refresh_org_type(session: Session, organisation_id: int, activity_type: str | None) -> None:
+    """CORDIS activity codes are authoritative over ANR free-text categories;
+    upgrade an existing organisation that carries a free-text type."""
+    if activity_type not in CORDIS_ACTIVITY_TYPES:
+        return
+    organisation = session.get(Organisation, organisation_id)
+    if organisation is not None and organisation.org_type not in CORDIS_ACTIVITY_TYPES:
+        organisation.org_type = activity_type
+
+
 def _resolve_organisation(
     session: Session,
     row: OrgRow,
     pic_map: dict[str, int],
     alias_map: dict[tuple[str, str], int],
     stats: RunStats,
+    type_checked: set[int],
 ) -> int:
     if row.pic and row.pic in pic_map:
-        return pic_map[row.pic]
+        organisation_id = pic_map[row.pic]
+        if organisation_id not in type_checked:
+            type_checked.add(organisation_id)
+            _refresh_org_type(session, organisation_id, row.activity_type)
+        return organisation_id
     # Empty string, not NULL: the aliases unique constraint must match on re-runs.
     alias_key = (row.name, row.country_raw or "")
     if not row.pic and alias_key in alias_map:
-        return alias_map[alias_key]
+        organisation_id = alias_map[alias_key]
+        if organisation_id not in type_checked:
+            type_checked.add(organisation_id)
+            _refresh_org_type(session, organisation_id, row.activity_type)
+        return organisation_id
 
     organisation = Organisation(
         name=row.name,
@@ -269,6 +291,7 @@ def _load_participations(
     participations: list[dict] = []
     aliases: list[dict] = []
     seen_uids: set[str] = set()
+    type_checked: set[int] = set()
     for raw_row in iter_rows(files["organization.csv"]):
         try:
             row = OrgRow.from_csv(raw_row)
@@ -283,7 +306,9 @@ def _load_participations(
             stats.add("orphan_participations")
             continue
 
-        organisation_id = _resolve_organisation(session, row, pic_map, alias_map, stats)
+        organisation_id = _resolve_organisation(
+            session, row, pic_map, alias_map, stats, type_checked
+        )
 
         org_key = row.pic or "h" + hashlib.sha1(row.name.encode()).hexdigest()[:12]
         source_uid = f"{row.project_source_id}:{org_key}:{row.order_index or 0}"

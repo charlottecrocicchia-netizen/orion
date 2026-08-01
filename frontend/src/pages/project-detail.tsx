@@ -7,7 +7,7 @@ import { ExploreExits } from "@/components/explore-exits";
 import { KpiStatic } from "@/components/kpi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { formatCompactEur, formatInt } from "@/lib/format";
+import { countryFlag, formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 
 export function ProjectDetailPage() {
   const { id = "" } = useParams();
@@ -40,15 +40,15 @@ export function ProjectDetailPage() {
   const root = data.programme_chain[0];
 
   return (
-    <div className="mx-auto w-full max-w-[980px] px-6 pt-8">
+    <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/projects" className="hover:text-foreground">
+        <Link to="/projects" className="transition-colors hover:text-foreground">
           {t("nav.projects")}
         </Link>{" "}
         › <span>{data.acronym ?? data.source_id}</span>
       </nav>
 
-      <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+      <div className="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
         {data.acronym ? (
           <span className="display-tight text-lg font-semibold text-accent">{data.acronym}</span>
         ) : null}
@@ -62,7 +62,7 @@ export function ProjectDetailPage() {
         {text?.title ?? data.title}
       </h1>
 
-      <div className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
+      <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
         <KpiStatic
           value={formatCompactEur(data.funding_amount_eur, i18n.language)}
           label={t("project.funding")}
@@ -83,7 +83,7 @@ export function ProjectDetailPage() {
       </div>
 
       {text?.abstract ? (
-        <section className="mt-10 max-w-[75ch]">
+        <section className="mt-14 max-w-[75ch]">
           <div className="mb-2 flex items-center gap-3">
             <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
               {t("project.abstract")}
@@ -106,7 +106,7 @@ export function ProjectDetailPage() {
         </section>
       ) : null}
 
-      <section className="mt-10">
+      <section className="mt-14">
         <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
           {t("project.participants", { count: data.participants.length })}
         </h2>
@@ -123,12 +123,12 @@ export function ProjectDetailPage() {
             <tbody>
               {data.participants.map((p) => (
                 <tr key={`${p.organisation_id}-${p.role}-${p.amount_eur}`} className="border-b border-border-soft">
-                  <td className="py-2.5 pr-3">
+                  <td className="py-3 pr-3">
                     <Link
                       to={`/organisations/${p.organisation_id}`}
                       className="hover:underline underline-offset-2"
                     >
-                      {p.name}
+                      {formatOrgName(p.name)}
                     </Link>
                   </td>
                   <td className="py-2.5 pr-3">
@@ -138,8 +138,16 @@ export function ProjectDetailPage() {
                       <span className="text-muted-foreground">{t("project.participant")}</span>
                     )}
                   </td>
-                  <td className="py-2.5 pr-3 text-muted-foreground">{p.country ?? "—"}</td>
-                  <td className="tnum py-2.5 text-right">
+                  <td className="py-3 pr-3 text-muted-foreground">
+                    {p.country ? (
+                      <>
+                        <span aria-hidden="true">{countryFlag(p.country)}</span> {p.country}
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="tnum py-3 text-right">
                     {formatCompactEur(p.amount_eur, i18n.language)}
                   </td>
                 </tr>
@@ -176,7 +184,12 @@ export function ProjectDetailPage() {
       <ExploreExits
         exits={[
           ...(coordinator
-            ? [{ label: coordinator.name, to: `/organisations/${coordinator.organisation_id}` }]
+            ? [
+                {
+                  label: formatOrgName(coordinator.name),
+                  to: `/organisations/${coordinator.organisation_id}`,
+                },
+              ]
             : []),
           ...(root ? [{ label: root.label ?? root.code, to: `/explore/programmes/${root.id}` }] : []),
           ...data.participants

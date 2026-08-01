@@ -95,7 +95,7 @@ export function HomePage() {
       <div className="mx-auto mt-14 grid max-w-[760px] gap-3 text-left sm:grid-cols-2">
         <Link
           to="/explore/countries"
-          className="rounded-2xl border p-5 transition-colors hover:border-accent"
+          className="lift rounded-2xl border p-5 hover:border-accent"
         >
           <div className="font-medium">{t("explore.countries")}</div>
           <div className="mt-1 text-sm text-muted-foreground">
@@ -104,7 +104,7 @@ export function HomePage() {
         </Link>
         <Link
           to="/explore/programmes"
-          className="rounded-2xl border p-5 transition-colors hover:border-accent"
+          className="lift rounded-2xl border p-5 hover:border-accent"
         >
           <div className="font-medium">{t("explore.programmes")}</div>
           <div className="mt-1 text-sm text-muted-foreground">
