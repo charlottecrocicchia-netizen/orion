@@ -1,14 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { formatCompactEur, formatInt } from "@/lib/format";
 
+const VISIBLE_DEFAULT = 12;
+
 export function ExploreProgrammesPage() {
   const { t, i18n } = useTranslation();
+  const [showAll, setShowAll] = useState(false);
   const { data, isPending } = useQuery({ queryKey: ["programmes"], queryFn: api.programmes });
+  const visible = showAll ? data : data?.slice(0, VISIBLE_DEFAULT);
 
   return (
     <div className="mx-auto w-full max-w-[880px] px-6 pt-10">
@@ -20,7 +26,7 @@ export function ExploreProgrammesPage() {
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         {isPending
           ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)
-          : data?.map((programme) => (
+          : visible?.map((programme) => (
               <Link
                 key={programme.id}
                 to={`/explore/programmes/${programme.id}`}
@@ -44,6 +50,13 @@ export function ExploreProgrammesPage() {
               </Link>
             ))}
       </div>
+      {!showAll && (data?.length ?? 0) > VISIBLE_DEFAULT ? (
+        <div className="mt-6 text-center">
+          <Button variant="outline" size="sm" onClick={() => setShowAll(true)}>
+            {t("explore.showAll", { count: data?.length ?? 0 })}
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

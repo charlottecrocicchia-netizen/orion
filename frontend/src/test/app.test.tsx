@@ -81,7 +81,7 @@ test("home renders nav and the animated hero fed by /api/stats", async () => {
 test("projects search renders results, count and facets", async () => {
   renderAt("/projects?q=hydrogen");
 
-  expect(await screen.findByText("1234 results")).toBeInTheDocument();
+  expect(await screen.findByText("1,234 results")).toBeInTheDocument();
   expect(screen.getByText("Green hydrogen at scale")).toBeInTheDocument();
   expect(screen.getByText(/European Commission/)).toBeInTheDocument();
   expect(screen.getByText(/searched in English & French/)).toBeInTheDocument();

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 interface Point {
   year: number;
@@ -8,6 +9,7 @@ interface Point {
 /** The signature element of direction D: the real yearly funding curve drawn
  *  as a constellation — stars sized by amount, the peak year accented. */
 export function Constellation({ data }: { data: Point[] }) {
+  const { i18n } = useTranslation();
   const lineRef = useRef<SVGPolylineElement>(null);
 
   const W = 1120;
@@ -66,7 +68,7 @@ export function Constellation({ data }: { data: Point[] }) {
         fontSize="12"
         fontWeight="600"
       >
-        €{(peak.amount_eur / 1e9).toLocaleString(undefined, { maximumFractionDigits: 1 })}B
+        €{(peak.amount_eur / 1e9).toLocaleString(i18n.language, { maximumFractionDigits: 1 })}B
       </text>
       {[0, Math.floor(points.length / 2), points.length - 1].map((i) => (
         <text

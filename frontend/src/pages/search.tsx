@@ -236,11 +236,7 @@ export function ProjectsSearchPage() {
               ) : null}
               <p className="mt-1.5 text-[13px] text-muted-foreground">
                 {hit.programme_root ?? hit.source} · {yearsRange(hit.start_year, hit.end_year)} ·{" "}
-                {formatInt(hit.participations_count, i18n.language)}{" "}
-                {t("search.organisationsCount", { count: hit.participations_count })
-                  .split(" ")
-                  .slice(1)
-                  .join(" ")}
+                {t("search.organisationsCount", { count: hit.participations_count })}
                 {hit.countries.length > 0 ? ` · ${hit.countries.slice(0, 5).join(" ")}` : ""}
               </p>
             </article>

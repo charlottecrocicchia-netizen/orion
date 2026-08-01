@@ -21,3 +21,4 @@ data/
 !.claude/skills/
 .DS_Store
 *.log
+.captures/

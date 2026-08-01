@@ -7,6 +7,7 @@ const resources = {
       nav: { projects: "Projects", organisations: "Organisations", explore: "Explore" },
       scope: { label: "Scope", europeFr: "Europe + France" },
       searchPlaceholder: "Search projects, organisations…",
+      searchShort: "Search…",
       hero: {
         eyebrow: "European R&D funding intelligence",
         sub: "of public R&D funding, mapped. {{from}} → {{to}}.",
@@ -24,11 +25,12 @@ const resources = {
         exits: "Explore from here",
         allProjects: "All projects",
         allOrganisations: "All organisations",
+        showAll: "Show all {{count, number}} programmes",
       },
       search: {
         projectsTab: "Projects",
         organisationsTab: "Organisations",
-        results: "{{count}} results",
+        results: "{{count, number}} results",
         resultsFor: "for “{{q}}” · searched in English & French",
         noResults:
           "No results for “{{q}}”. Try a broader term — searches cover English and French texts.",
@@ -48,7 +50,8 @@ const resources = {
           date: "Date",
           projects: "Projects",
         },
-        organisationsCount: "{{count}} organisations",
+        organisationsCount_one: "{{count}} organisation",
+        organisationsCount_other: "{{count}} organisations",
         previous: "Previous",
         next: "Next",
       },
@@ -120,6 +123,7 @@ const resources = {
       nav: { projects: "Projets", organisations: "Organisations", explore: "Explorer" },
       scope: { label: "Périmètre", europeFr: "Europe + France" },
       searchPlaceholder: "Rechercher projets, organisations…",
+      searchShort: "Rechercher…",
       hero: {
         eyebrow: "Intelligence des financements R&D en Europe",
         sub: "de financements R&D publics, cartographiés. {{from}} → {{to}}.",
@@ -137,11 +141,12 @@ const resources = {
         exits: "Explorer à partir d'ici",
         allProjects: "Tous les projets",
         allOrganisations: "Toutes les organisations",
+        showAll: "Voir les {{count, number}} programmes",
       },
       search: {
         projectsTab: "Projets",
         organisationsTab: "Organisations",
-        results: "{{count}} résultats",
+        results: "{{count, number}} résultats",
         resultsFor: "pour « {{q}} » · recherche en anglais et en français",
         noResults:
           "Aucun résultat pour « {{q}} ». Essayez un terme plus large — la recherche couvre les textes anglais et français.",
@@ -161,7 +166,8 @@ const resources = {
           date: "Date",
           projects: "Projets",
         },
-        organisationsCount: "{{count}} organisations",
+        organisationsCount_one: "{{count}} organisation",
+        organisationsCount_other: "{{count}} organisations",
         previous: "Précédent",
         next: "Suivant",
       },

@@ -21,7 +21,7 @@ function HeaderSearch() {
       <input
         name="q"
         type="search"
-        placeholder={`⌕  ${t("searchPlaceholder")}`}
+        placeholder={`⌕  ${t("searchShort")}`}
         className="w-[230px] rounded-full bg-surface px-4 py-1.5 text-[13px] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
       />
     </form>
