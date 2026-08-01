@@ -13,6 +13,10 @@ export default defineConfig({
   server: {
     proxy: { "/api": "http://localhost:8000" },
   },
+  preview: {
+    // The e2e job serves the built bundle through `vite preview`.
+    proxy: { "/api": "http://localhost:8000" },
+  },
   test: {
     // Scoped to src: the Playwright specs under e2e/ also end in .spec.ts and
     // would otherwise be collected here, where their fixtures cannot run.

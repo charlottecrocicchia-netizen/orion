@@ -6,6 +6,32 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Bilingual full-text search (English and French analysed side by side,
+  typo-tolerant organisation search) with facets, URL-driven filters and
+  highlighted snippets.
+- The full « Lumière » interface: home with the animated funding
+  constellation, project pages, the unified hub template for organisations,
+  countries and programmes, explore-from-here exits everywhere, FR/EN,
+  light and dark themes, ⌘K search palette.
+- The Explorer: composed views (metric × dimension × comparison × filters)
+  behind one whitelisted aggregate endpoint — auto-selected charts with an
+  accessible table twin, shareable canonical URLs, CSV export with licence
+  attribution, and six curated story cards.
+- The five-minute demo journey is automated with Playwright and runs in CI
+  against a seeded database.
+
+### Changed
+
+- Search latency: the FTS match set is materialized once per query and every
+  aggregate is cached by ingestion stamp ("hydrogen" 695 → ~100 ms cold on
+  the full stack; hubs and repeat views serve in single-digit milliseconds).
+- Organisation types from the two source taxonomies collapse into eight
+  canonical labels; CORDIS activity codes now take precedence over ANR
+  free-text categories at merge and re-ingestion time (the CEA is a research
+  organisation again), with a scripted repair for rows merged before the rule.
+
 ### Fixed
 
 - Deduplication now keys on names in any script. The comparison key kept
