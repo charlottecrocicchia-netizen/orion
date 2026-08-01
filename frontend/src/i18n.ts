@@ -28,6 +28,9 @@ const resources = {
         showAll: "Show all {{count, number}} programmes",
         openExplorer: "The Explorer",
         openExplorerHint: "Compose your own view of the data",
+        mapLabel: "Map of Europe — funding by country",
+        mapLegend: "EU + FR funding",
+        mapHint: "Click a country to open its hub",
       },
       search: {
         projectsTab: "Projects",
@@ -229,6 +232,9 @@ const resources = {
         showAll: "Voir les {{count, number}} programmes",
         openExplorer: "L'Explorateur",
         openExplorerHint: "Composez votre propre vue des données",
+        mapLabel: "Carte d'Europe — financements par pays",
+        mapLegend: "Financements UE + FR",
+        mapHint: "Cliquez un pays pour ouvrir sa fiche",
       },
       search: {
         projectsTab: "Projets",

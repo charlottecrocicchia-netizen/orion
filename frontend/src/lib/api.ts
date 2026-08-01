@@ -92,11 +92,19 @@ export interface OrganisationPartner {
   partner_amount_eur: number | null;
 }
 
+export interface CountryFlow {
+  a: string;
+  b: string;
+  projects: number;
+  amount_eur: number;
+}
+
 export const api = {
   explore: (params: URLSearchParams) =>
     get<ExploreResponse>(`/api/explore/aggregate?${params}`),
   organisationPartners: (id: string) =>
     get<OrganisationPartner[]>(`/api/organisations/${id}/partners`),
+  countryFlows: () => get<CountryFlow[]>("/api/countries/flows?limit=200"),
   stats: () => get<Stats>("/api/stats"),
   searchProjects: (params: URLSearchParams) =>
     get<ProjectSearchResponse>(`/api/search/projects?${params}`),

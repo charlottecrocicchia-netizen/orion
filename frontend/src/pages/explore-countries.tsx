@@ -4,12 +4,14 @@ import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { AmountBar } from "@/components/amount-bar";
+import { EuropeMap } from "@/components/europe-map";
 import { api } from "@/lib/api";
 import { countryFlag, formatCompactEur } from "@/lib/format";
 
 export function ExploreCountriesPage() {
   const { t, i18n } = useTranslation();
   const { data, isPending } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
+  const { data: flows } = useQuery({ queryKey: ["country-flows"], queryFn: api.countryFlows });
   const maxFunding = Math.max(...(data?.map((c) => c.funding_eur) ?? []), 0);
 
   return (
@@ -19,7 +21,13 @@ export function ExploreCountriesPage() {
         {t("explore.countriesTitle")}
       </h1>
 
-      <div className="mt-8">
+      {data ? (
+        <div className="mt-8">
+          <EuropeMap countries={data} flows={flows ?? []} />
+        </div>
+      ) : null}
+
+      <div className="mt-10">
         {isPending
           ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="mt-3 h-12 w-full" />)
           : data?.map((country, index) => (
