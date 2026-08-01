@@ -47,3 +47,12 @@ test("the theme dimension aggregates euroSciVoc level-2 themes", async ({ page }
   await expect(bars.getByText(/electrical engineering/).first()).toBeVisible();
   await expect(page.getByText(/several themes/)).toBeVisible();
 });
+
+test("the map view is wired for euro country views", async ({ page }) => {
+  await page.goto("/explore?by=country&split=0");
+  await page.getByRole("button", { name: "Map", exact: true }).click();
+  await expect(page.getByRole("group", { name: /Map of Europe/ })).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText(/funding · €/)).toBeVisible();
+});

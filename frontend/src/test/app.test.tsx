@@ -106,18 +106,20 @@ beforeEach(() => {
   );
 });
 
-test("home is an orientation hall: the question, the doors, the context line", async () => {
+test("home leads with the hero, orientation follows below", async () => {
   renderAt("/");
 
   expect(screen.getByRole("link", { name: "Projects" })).toBeInTheDocument();
+  // The hero seizes first — the big gradient figure and its KPIs.
+  expect(await screen.findByText("€211B")).toBeInTheDocument();
+  expect(await screen.findByText("119,172")).toBeInTheDocument();
+  expect(screen.getByText("funded projects")).toBeInTheDocument();
+  // The orientation hall follows on scroll, untouched.
   expect(
     screen.getByRole("heading", { name: "What are you looking for?" }),
   ).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Explore a theme/ })).toBeInTheDocument();
-  expect(screen.getByText("See open calls")).toBeInTheDocument();
   expect(screen.getByText("Phase 5 · autumn 2026")).toBeInTheDocument();
-  expect(await screen.findByText("€211B")).toBeInTheDocument();
-  expect(await screen.findByText("119,172")).toBeInTheDocument();
 });
 
 test("the explorer composes a view and renders its chart and table", async () => {

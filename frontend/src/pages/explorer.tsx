@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { FormEvent, ReactNode } from "react";
 
 import { BarsChart, LinesChart, TreemapChart } from "@/components/charts";
+import { EuropeMap } from "@/components/europe-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import type { ExploreResponse } from "@/lib/api";
@@ -205,9 +206,21 @@ export function ExplorerPage() {
       api.explore(new URLSearchParams({ metric: "projects", by: "theme", limit: "25" })),
     enabled: state.by === "theme",
   });
+  const { data: flows } = useQuery({
+    queryKey: ["country-flows"],
+    queryFn: api.countryFlows,
+    enabled: state.view === "map",
+  });
 
   const temporal = state.by === "year" || state.split;
-  const availableViews = temporal ? ["lines", "table"] : ["bars", "treemap", "table"];
+  // The map view only speaks euros: other metrics keep bars/treemap/table.
+  const mappable =
+    !temporal && state.by === "country" && (state.metric === "funding" || state.metric === "avg");
+  const availableViews = temporal
+    ? ["lines", "table"]
+    : mappable
+      ? ["bars", "map", "treemap", "table"]
+      : ["bars", "treemap", "table"];
   const view = availableViews.includes(state.view) ? state.view : availableViews[0];
 
   const toggleCompare = (key: string) => {
@@ -560,6 +573,20 @@ export function ExplorerPage() {
             <LinesChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "bars" ? (
             <BarsChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
+          ) : view === "map" ? (
+            <EuropeMap
+              countries={data.series
+                .filter((serie) => typeof serie.key === "string" && serie.value != null)
+                .map((serie) => ({
+                  code: String(serie.key),
+                  name: serie.label ?? String(serie.key),
+                  eu_member: false,
+                  projects_count: 0,
+                  funding_eur: serie.value ?? 0,
+                }))}
+              flows={flows ?? []}
+              legendLabel={`${t(`explorer.metric.${state.metric}`)} · €`}
+            />
           ) : view === "treemap" ? (
             <TreemapChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : (

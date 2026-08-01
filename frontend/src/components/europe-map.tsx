@@ -40,11 +40,14 @@ export function EuropeMap({
   countries,
   flows,
   autoOpen,
+  legendLabel,
 }: {
   countries: CountryIndexEntry[];
   flows: CountryFlow[];
   /** Open this country's hub on mount — the globe's morph hands over here. */
   autoOpen?: string | null;
+  /** Override the legend label (the Explorer maps its current euro metric). */
+  legendLabel?: string;
 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -131,7 +134,9 @@ export function EuropeMap({
       lines: entry
         ? [
             entry.name,
-            `${formatCompactEur(entry.funding_eur, i18n.language)} · ${t("search.projectsCount", { count: entry.projects_count })}`,
+            entry.projects_count > 0
+              ? `${formatCompactEur(entry.funding_eur, i18n.language)} · ${t("search.projectsCount", { count: entry.projects_count })}`
+              : formatCompactEur(entry.funding_eur, i18n.language),
           ]
         : [code],
     });
@@ -228,7 +233,7 @@ export function EuropeMap({
       ) : null}
 
       <div className="mt-3 flex items-center gap-2 text-[11.5px] text-muted-foreground">
-        <span>{t("explore.mapLegend")}</span>
+        <span>{legendLabel ?? t("explore.mapLegend")}</span>
         <span aria-hidden="true" className="ml-1 flex items-center gap-1">
           {STEPS.map((step) => (
             <span

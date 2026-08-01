@@ -13,13 +13,14 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("home orients: the question, the doors, live context", async ({ page }) => {
+test("home leads with the hero, then orients below the fold", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "What are you looking for?" })).toBeVisible();
-  await expect(page.getByText(/€\d+B/).first()).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByRole("link", { name: /Explore a theme/ })).toBeVisible();
-  await expect(page.getByText("Phase 5 · autumn 2026")).toBeVisible();
+  // The hero figure settles on a €…B amount once /api/stats lands.
+  await expect(page.locator(".hero-gradient")).toContainText(/€\d+B/, { timeout: 10_000 });
+  await expect(page.getByText("funded projects")).toBeVisible();
   await expect(page.getByRole("img", { name: "Funding per year" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What are you looking for?" })).toBeVisible();
+  await expect(page.getByText("Phase 5 · autumn 2026")).toBeVisible();
 });
 
 test("the enriched demo journey holds end to end", async ({ page }) => {
