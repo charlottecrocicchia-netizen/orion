@@ -22,3 +22,5 @@ data/
 .DS_Store
 *.log
 .captures/
+frontend/test-results/
+frontend/playwright-report/
