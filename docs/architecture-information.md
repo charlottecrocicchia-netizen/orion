@@ -139,3 +139,48 @@ Cinq gabarits couvrent tout le site. Chacun déclare : *montrer d'abord* / *rév
 G1 (accueil-recherche complet), G2 (projets + organisations), G3 (fiche projet), G4 (hub organisation complet ; hubs pays et programme **minimaux** : KPIs + portefeuille + portes de sortie), `/about-data`, le sélecteur de scope (une seule option active « Europe + France », mais le mécanisme et l'URL sont en place), le bloc « Explorer à partir d'ici » sur toutes les fiches. Le reste du sitemap vit dans le routeur derrière des drapeaux.
 
 **Ajout au parcours de démo** (proposition) : entre l'étape 4 et 5, un rebond par un hub — projet → organisation → *hub France* → retour recherche filtrée — pour prouver qu'aucune page n'est un cul-de-sac.
+
+## 9. Vision & personas (consigné le 1ᵉʳ août 2026 — guide les phases 3 à 7)
+
+La vision de la fondatrice, à relire avant chaque conception d'écran.
+
+### Les personas — chaque écran se pense pour des profils réels
+
+| Persona | Chez qui | Ce qu'il cherche | Ce que le site doit lui donner |
+|---|---|---|---|
+| **Le veilleur technologique** | Safran, Thales, Airbus | qui travaille sur quoi, quelles technologies émergent, qui coordonne | recherche thématique fine, tendances par thème, réseaux de partenaires, alertes (P5+) |
+| **Le business developer** | Total, Engie | où est l'argent, quels consortiums rejoindre, quels appels arrivent | montants et parts par acteur, benchmark concurrents, calls à venir (P5), export |
+| **L'analyste académique** | CNRS, CEA, universités | positionnement de son labo, comparaison entre pairs, historique d'un domaine | hubs organisation riches, comparaisons Explorateur, séries longues, citations de sources |
+
+Règle : à chaque nouvel écran, dire lequel de ces trois profils il sert d'abord —
+un écran qui ne sert clairement aucun des trois n'est pas construit.
+
+### Le tableau de bord configurable (phase 6)
+
+À la connexion, l'utilisateur compose sa page d'accueil : il épingle des vues de
+l'Explorateur (chaque vue étant déjà une URL, l'épinglage est naturel), des
+organisations suivies, des recherches sauvegardées. La page d'accueil connectée
+est un assemblage personnel, pas une page éditoriale.
+
+### La homepage vitrine (phase 6)
+
+Distincte de l'outil : une page publique de présentation, style Apple/SpaceX —
+grands chiffres animés, la constellation, les histoires — qui vend le produit.
+L'outil (recherche, explorateur, hubs) vit derrière ; l'accueil actuel de l'outil
+(recherche-first) reste l'accueil des utilisateurs connectés jusqu'à P6.
+
+### Passé / futur (phase 5)
+
+Quand les appels à projets arrivent, la navigation sépare explicitement **ce qui
+a été financé** (le passé, nos données actuelles) de **ce qui va l'être** (calls
+ouverts et à venir), avec des ponts : depuis un hub organisation, « les appels
+où ce profil candidaterait » ; depuis un call, « les projets déjà financés sur ce
+thème ».
+
+### Exigence transverse : jamais un rendu « site fait par IA »
+
+Typographie choisie (Instrument Sans + Inter, jamais les défauts système),
+couleurs qui appartiennent à une palette pensée et validée (contrastes, CVD),
+finitions (états de survol, focus, vides, chargements, mouvements avec
+reduced-motion). Chaque livraison visuelle se juge à cette barre : si un écran
+pouvait sortir d'un générateur, il n'est pas fini.
