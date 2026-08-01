@@ -17,6 +17,14 @@
   --success: #1da463;
   --destructive: #d92d20;
   --radius: 0.875rem;
+  /* Categorical series — fixed order, validated (CVD + contrast) against this
+     surface with scripts/validate_palette.js from the dataviz method. */
+  --series-1: #2d4fe3;
+  --series-2: #b45309;
+  --series-3: #0d9488;
+  --series-4: #9d174d;
+  --series-5: #7c3aed;
+  --series-6: #4d7c0f;
   color-scheme: light;
 }
 
@@ -32,6 +40,13 @@
   --gradient-to: #b79cff;
   --success: #34c98a;
   --destructive: #f97066;
+  /* Same fixed order, re-stepped and validated for the dark surface. */
+  --series-1: #6366f1;
+  --series-2: #d97706;
+  --series-3: #0d9488;
+  --series-4: #be185d;
+  --series-5: #8b5cf6;
+  --series-6: #65a30d;
   color-scheme: dark;
 }
 
@@ -47,6 +62,12 @@
   --color-gradient-to: var(--gradient-to);
   --color-success: var(--success);
   --color-destructive: var(--destructive);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-4: var(--series-4);
+  --color-series-5: var(--series-5);
+  --color-series-6: var(--series-6);
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Instrument Sans Variable", "Inter Variable", ui-sans-serif, sans-serif;
   --radius-lg: var(--radius);

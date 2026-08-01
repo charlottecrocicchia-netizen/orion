@@ -4,10 +4,18 @@ interface Point {
 }
 
 /** Tiny activity curve for list rows — shape over precision. */
-export function Sparkline({ data }: { data: Point[] }) {
+export function Sparkline({
+  data,
+  width = 72,
+  height = 22,
+}: {
+  data: Point[];
+  width?: number;
+  height?: number;
+}) {
   if (data.length < 2) return null;
-  const W = 72;
-  const H = 22;
+  const W = width;
+  const H = height;
   const PAD = 2;
   const years = data.map((d) => d.year);
   const from = Math.min(...years);

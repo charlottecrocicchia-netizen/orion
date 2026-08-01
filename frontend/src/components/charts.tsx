@@ -6,15 +6,16 @@ import { useMeasure } from "@/hooks/use-measure";
 import type { ExploreSeries } from "@/lib/api";
 import { formatValue, seriesLabel } from "@/lib/format";
 
-/* Shared palette: three brand colors, then muted repeats — readable in both
-   themes because every value is a theme variable. */
-const SERIES_STYLE: { color: string; opacity: number }[] = [
-  { color: "var(--color-accent)", opacity: 1 },
-  { color: "var(--color-foreground)", opacity: 1 },
-  { color: "var(--color-gradient-to)", opacity: 1 },
-  { color: "var(--color-muted-foreground)", opacity: 1 },
-  { color: "var(--color-accent)", opacity: 0.45 },
-  { color: "var(--color-foreground)", opacity: 0.4 },
+/* Categorical series palette — six distinct hues in a fixed order, anchored on
+   the brand ultramarine, validated per theme (CVD separation + contrast) with
+   the dataviz validator. Color follows the entity, never its rank. */
+const SERIES_COLORS = [
+  "var(--color-series-1)",
+  "var(--color-series-2)",
+  "var(--color-series-3)",
+  "var(--color-series-4)",
+  "var(--color-series-5)",
+  "var(--color-series-6)",
 ];
 
 interface Tip {
@@ -209,7 +210,7 @@ export function LinesChart({
                 ))}
 
               {series.map((serie, index) => {
-                const style = SERIES_STYLE[index % SERIES_STYLE.length];
+                const color = SERIES_COLORS[index % SERIES_COLORS.length];
                 const pts = (serie.points ?? []).filter((p) => p.value != null);
                 const path = pts.map((p) => `${x(p.year).toFixed(1)},${y(p.value ?? 0).toFixed(1)}`);
                 return (
@@ -223,9 +224,8 @@ export function LinesChart({
                     <polyline
                       points={path.join(" ")}
                       fill="none"
-                      stroke={style.color}
-                      strokeOpacity={style.opacity}
-                      strokeWidth={index === 0 ? 2.4 : 1.7}
+                      stroke={color}
+                      strokeWidth={index === 0 ? 2.4 : 1.8}
                       strokeLinejoin="round"
                     />
                   </g>
@@ -233,22 +233,18 @@ export function LinesChart({
               })}
 
               {!single &&
-                endLabels.map(({ serie, index, y: labelY }) => {
-                  const style = SERIES_STYLE[index % SERIES_STYLE.length];
-                  return (
-                    <text
-                      key={String(serie.key)}
-                      x={width - padRight + 10}
-                      y={labelY + 4}
-                      fontSize="12"
-                      fontWeight={index === 0 ? 600 : 400}
-                      fill={style.color}
-                      fillOpacity={style.opacity}
-                    >
-                      {seriesLabel(serie, t).slice(0, 18)}
-                    </text>
-                  );
-                })}
+                endLabels.map(({ serie, index, y: labelY }) => (
+                  <text
+                    key={String(serie.key)}
+                    x={width - padRight + 10}
+                    y={labelY + 4}
+                    fontSize="12"
+                    fontWeight={index === 0 ? 600 : 400}
+                    fill={SERIES_COLORS[index % SERIES_COLORS.length]}
+                  >
+                    {seriesLabel(serie, t).slice(0, 18)}
+                  </text>
+                ))}
 
               {/* one focusable hover column per year — the a11y + tooltip layer */}
               {years.map((year) => (
