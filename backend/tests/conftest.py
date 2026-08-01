@@ -41,6 +41,18 @@ def test_database() -> None:
     )
 
 
+@pytest.fixture(autouse=True)
+def clear_search_cache():
+    """The in-process search cache is keyed by the ingestion stamp, which never
+    moves in the test database — savepoint-rolled-back data would leak between
+    tests through it."""
+    from orion.search import service
+
+    service._CACHE.clear()
+    yield
+    service._CACHE.clear()
+
+
 @pytest.fixture(scope="session")
 def client(test_database):
     from fastapi.testclient import TestClient
