@@ -6,6 +6,14 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-01
+
+Phase 2 — search and navigation. Orion becomes a product you can walk
+through: the five-minute demo journey (bilingual search → filters →
+project → organisation → country hub → back) runs end to end on the
+« Lumière » design direction, and the Explorer turns the dataset into
+composable, shareable views.
+
 ### Added
 
 - Bilingual full-text search (English and French analysed side by side,
@@ -14,7 +22,10 @@ All notable changes to Orion are documented here. The format follows
 - The full « Lumière » interface: home with the animated funding
   constellation, project pages, the unified hub template for organisations,
   countries and programmes, explore-from-here exits everywhere, FR/EN,
-  light and dark themes, ⌘K search palette.
+  light and dark themes, ⌘K search palette. Lists carry a visual spine:
+  results grouped under their funding frame, best-match organisation card,
+  activity sparklines, and a six-hue series palette validated for
+  colorblind separation and contrast in both themes.
 - The Explorer: composed views (metric × dimension × comparison × filters)
   behind one whitelisted aggregate endpoint — auto-selected charts with an
   accessible table twin, shareable canonical URLs, CSV export with licence
