@@ -29,9 +29,9 @@ VALID: frozenset[tuple[str, str]] = frozenset(
         *(
             (m, d)
             for m in ("funding", "projects", "avg")
-            for d in ("year", "country", "programme", "organisation", "funder", "orgtype")
+            for d in ("year", "country", "programme", "organisation", "funder", "orgtype", "theme")
         ),
-        *(("organisations", d) for d in ("year", "country", "funder", "orgtype")),
+        *(("organisations", d) for d in ("year", "country", "funder", "orgtype", "theme")),
         *(("coordination", d) for d in ("year", "country", "organisation", "orgtype")),
     ]
 )
@@ -121,6 +121,23 @@ def _dimension(by: str, participation: bool, params: dict[str, Any]) -> dict[str
             "joins": "JOIN organisations o ON o.id = pa.organisation_id",
             "label": "NULL",
             "clause": "o.org_type IS NOT NULL",
+        }
+    if by == "theme":
+        # euroSciVoc codes carry their ancestry (/23/47/305/961); the level-2
+        # prefix is the analysis grain (41 themes). DISTINCT per (project,
+        # theme) so a project with several leaves under one theme counts once —
+        # a project spanning several themes counts in each (documented basis).
+        return {
+            "key": "tj.tkey",
+            "joins": (
+                "JOIN (SELECT DISTINCT pt.project_id, "
+                "        substring(t.code from '^(/[0-9]+/[0-9]+)') AS tkey "
+                "      FROM project_topics pt JOIN topics t ON t.id = pt.topic_id "
+                "      WHERE t.scheme = 'euroscivoc') tj ON tj.project_id = p.id "
+                "LEFT JOIN topics l2 ON l2.scheme = 'euroscivoc' AND l2.code = tj.tkey"
+            ),
+            "label": "max(l2.label)",
+            "clause": "tj.tkey IS NOT NULL",
         }
     if by == "programme":
         return {"key": "p.programme_id", "joins": "", "label": "NULL", "clause": ""}
@@ -311,8 +328,9 @@ def _build(
         elif by == "organisation":
             params["compare_ids"] = [int(c) for c in compare if c.isdigit()] or [-1]
             clauses.append("pa.organisation_id = ANY(:compare_ids)")
-        elif by in ("orgtype", "funder"):
-            # funder codes are lowercase in the referential; orgtype keys are canonical
+        elif by in ("orgtype", "funder", "theme"):
+            # funder codes are lowercase, orgtype keys canonical, theme keys
+            # are the euroSciVoc level-2 prefixes — none of them upper-cased
             params["compare_keys"] = compare
             clauses.append(f"({dim['key']}) = ANY(:compare_keys)")
         else:

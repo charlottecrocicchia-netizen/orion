@@ -5,7 +5,15 @@ from sqlalchemy.orm import Session
 from orion.core.db import engine
 from orion.ingest.reference import seed_reference
 from orion.ingest.runlog import RunStats
-from orion.models import Funder, Organisation, Participation, Programme, Project
+from orion.models import (
+    Funder,
+    Organisation,
+    Participation,
+    Programme,
+    Project,
+    ProjectTopic,
+    Topic,
+)
 from orion.search import explore
 
 MARK = "ZZEXP"
@@ -76,7 +84,23 @@ def seeded(db_session):
             ]
         )
     db_session.flush()
-    return {"root": root.id, "fr": org_fr.id, "de": org_de.id}
+
+    # Theme fixtures: one level-2 node and two leaves under it, both attached
+    # to the FIRST project — the theme dimension must count that project once.
+    level2 = Topic(scheme="euroscivoc", code="/23/47", label="computer and information sciences")
+    leaf_a = Topic(scheme="euroscivoc", code="/23/47/305", label="internet")
+    leaf_b = Topic(scheme="euroscivoc", code="/23/47/307", label="software")
+    db_session.add_all([level2, leaf_a, leaf_b])
+    db_session.flush()
+    first_project = db_session.scalar(select(Project).where(Project.source_id == f"{MARK}-0"))
+    db_session.add_all(
+        [
+            ProjectTopic(project_id=first_project.id, topic_id=leaf_a.id),
+            ProjectTopic(project_id=first_project.id, topic_id=leaf_b.id),
+        ]
+    )
+    db_session.flush()
+    return {"root": root.id, "fr": org_fr.id, "de": org_de.id, "project0": first_project.id}
 
 
 def _serie(result, key):
@@ -131,6 +155,18 @@ def test_avg_is_funding_over_projects(db_session, seeded):
         db_session, metric="avg", by="programme", compare=[str(seeded["root"])]
     )
     assert _serie(result, seeded["root"])["value"] == pytest.approx(5_000_000)
+
+
+def test_theme_dimension_counts_each_project_once(db_session, seeded):
+    """Two leaves under one level-2 theme on the same project → one project,
+    its funding counted once, the level-2 label attached."""
+    result = explore.aggregate(db_session, metric="projects", by="theme", compare=["/23/47"])
+    serie = _serie(result, "/23/47")
+    assert serie["value"] == 1
+    assert serie["label"] == "computer and information sciences"
+
+    funding = explore.aggregate(db_session, metric="funding", by="theme", compare=["/23/47"])
+    assert _serie(funding, "/23/47")["value"] == pytest.approx(4_000_000)
 
 
 def test_invalid_combinations_return_none(db_session):

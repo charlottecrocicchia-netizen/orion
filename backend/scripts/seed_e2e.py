@@ -26,7 +26,20 @@ from orion.models import (
     Programme,
     Project,
     ProjectText,
+    ProjectTopic,
+    Topic,
 )
+
+# Level-2 euroSciVoc themes and the acronyms attached to each — enough for
+# the Explorer's theme dimension to render in CI.
+THEMES = {
+    "/25/73": (
+        "electrical engineering, electronic engineering, information engineering",
+        ["H2STORE", "HYVALLEY", "GRIDFLEX"],
+    ),
+    "/23/43": ("physical sciences", ["QUBITNET", "FUSIONX"]),
+    "/23/45": ("earth and related environmental sciences", ["MEDAIR", "DEEPSEA"]),
+}
 
 ORGS = {
     "cnrs": ("CENTRE NATIONAL DE LA RECHERCHE SCIENTIFIQUE CNRS", "FR", "REC"),
@@ -223,6 +236,16 @@ def main() -> None:
                         source_uid=f"{source_id}:{org_key}",
                     )
                 )
+
+        by_acronym = {
+            project.acronym: project.id for project in session.scalars(select(Project)).all()
+        }
+        for code, (label, acronyms) in THEMES.items():
+            topic = Topic(scheme="euroscivoc", code=code, label=label)
+            session.add(topic)
+            session.flush()
+            for acronym in acronyms:
+                session.add(ProjectTopic(project_id=by_acronym[acronym], topic_id=topic.id))
 
         session.add(
             IngestionRun(

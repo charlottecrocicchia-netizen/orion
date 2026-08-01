@@ -13,7 +13,15 @@ import { countryFlag, formatValue, seriesLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const METRICS = ["funding", "projects", "organisations", "avg", "coordination"] as const;
-const DIMENSIONS = ["country", "programme", "organisation", "funder", "orgtype", "year"] as const;
+const DIMENSIONS = [
+  "country",
+  "programme",
+  "theme",
+  "organisation",
+  "funder",
+  "orgtype",
+  "year",
+] as const;
 const ORG_TYPE_OPTIONS = [
   "research",
   "university",
@@ -189,6 +197,12 @@ export function ExplorerPage() {
     queryFn: api.programmes,
     enabled: state.by === "programme",
   });
+  const { data: themes } = useQuery({
+    queryKey: ["explore-themes"],
+    queryFn: () =>
+      api.explore(new URLSearchParams({ metric: "projects", by: "theme", limit: "25" })),
+    enabled: state.by === "theme",
+  });
 
   const temporal = state.by === "year" || state.split;
   const availableViews = temporal ? ["lines", "table"] : ["bars", "treemap", "table"];
@@ -242,6 +256,10 @@ export function ExplorerPage() {
             if (state.by === "orgtype") return t(`orgType.${key}`);
             if (state.by === "programme")
               return programmes?.find((p) => String(p.id) === key)?.label.slice(0, 16) ?? key;
+            if (state.by === "theme")
+              return (
+                themes?.series.find((s) => s.key === key)?.label?.slice(0, 22) ?? key
+              );
             return key;
           })
           .join(" · ")
@@ -342,6 +360,16 @@ export function ExplorerPage() {
                           onClick={() => toggleCompare(key)}
                         >
                           {t(`orgType.${key}`)}
+                        </MenuItem>
+                      ))}
+                    {state.by === "theme" &&
+                      themes?.series.map((serie) => (
+                        <MenuItem
+                          key={String(serie.key)}
+                          selected={state.compare.includes(String(serie.key))}
+                          onClick={() => toggleCompare(String(serie.key))}
+                        >
+                          {serie.label ?? String(serie.key)}
                         </MenuItem>
                       ))}
                   </div>
@@ -477,6 +505,7 @@ export function ExplorerPage() {
           <h1 className="text-[15px] font-semibold">{boardTitle}</h1>
           <span className="text-[12.5px] text-muted-foreground">
             {data ? t(`explorer.basis.${data.basis}`) : ""}
+            {state.by === "theme" ? ` · ${t("explorer.multiTheme")}` : ""}
           </span>
           <div className="ml-auto flex gap-2">
             <button

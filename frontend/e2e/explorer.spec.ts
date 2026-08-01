@@ -39,3 +39,11 @@ test("dimension switch re-renders as bars with values", async ({ page }) => {
   await expect(bars).toBeVisible({ timeout: 15_000 });
   await expect(bars.getByText(/European Commission/).first()).toBeVisible();
 });
+
+test("the theme dimension aggregates euroSciVoc level-2 themes", async ({ page }) => {
+  await page.goto("/explore?by=theme&split=0");
+  const bars = page.getByRole("img", { name: /funding · theme/ });
+  await expect(bars).toBeVisible({ timeout: 15_000 });
+  await expect(bars.getByText(/electrical engineering/).first()).toBeVisible();
+  await expect(page.getByText(/several themes/)).toBeVisible();
+});
