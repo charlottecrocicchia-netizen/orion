@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from pydantic import ValidationError
@@ -44,21 +45,37 @@ def _funder(session: Session) -> Funder:
     return funder
 
 
+def _programme_key(code: str, name: str | None) -> str:
+    """Canonical programme key. The ANR files vary the case across editions
+    (Blanc/BLANC, LabCom/LABCOM) and sometimes ship the edition year as the
+    code with the real programme name aside (code «2010», name «SATT»)."""
+    key = (code or "").strip()
+    if re.fullmatch(r"\d{4}", key) and name and name.strip():
+        key = name.strip()
+    return key.upper()
+
+
 def _programme_id(
     session: Session, cache: dict[str, int], funder_id: int, code: str, name: str | None
 ) -> int:
-    if code in cache:
-        return cache[code]
+    key = _programme_key(code, name)
+    if key in cache:
+        return cache[key]
     programme = session.scalar(
-        select(Programme).where(Programme.funder_id == funder_id, Programme.code == code)
+        select(Programme).where(Programme.funder_id == funder_id, Programme.code == key)
     )
+    # Keep the readable spelling as the label: the explicit name if any,
+    # otherwise a mixed-case code («BiodivERsA») demoted by the upper-cased key.
+    display = (name or "").strip() or None
+    if display is None and code.strip() not in ("", key):
+        display = code.strip()
     if programme is None:
-        programme = Programme(funder_id=funder_id, code=code, name=name)
+        programme = Programme(funder_id=funder_id, code=key, name=display)
         session.add(programme)
         session.flush()
-    elif name and not programme.name:
-        programme.name = name
-    cache[code] = programme.id
+    elif display and not programme.name:
+        programme.name = display
+    cache[key] = programme.id
     return programme.id
 
 

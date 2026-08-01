@@ -190,3 +190,26 @@ def test_project_fields_languages_amounts_and_call(db_session):
     assert coordinator is not None
     assert coordinator.role == "coordinator"
     assert coordinator.amount == Decimal("250000.5")
+
+
+def test_programme_codes_are_canonicalized(db_session):
+    """Blanc/BLANC merge into one programme; a year-as-code row folds into the
+    programme named aside; the readable spelling survives as the label."""
+    from orion.ingest.anr.load import _funder, _programme_id
+
+    seed_reference(db_session, RunStats())
+    funder = _funder(db_session)
+    cache: dict[str, int] = {}
+
+    blanc = _programme_id(db_session, cache, funder.id, "Blanc", None)
+    assert _programme_id(db_session, {}, funder.id, "BLANC", None) == blanc
+
+    satt = _programme_id(db_session, {}, funder.id, "2010", "SATT")
+    assert _programme_id(db_session, {}, funder.id, "SATT", None) == satt
+    assert _programme_id(db_session, {}, funder.id, "2025", "SATT") == satt
+
+    from orion.models import Programme
+
+    stored = db_session.get(Programme, blanc)
+    assert stored.code == "BLANC"
+    assert stored.name == "Blanc"  # the mixed-case spelling survives as label
