@@ -125,11 +125,26 @@ interface LabelledSeries {
   label: string | null;
 }
 
+export function themeLabel(
+  key: string,
+  fallback: string | null,
+  t: (key: string) => string,
+): string {
+  // The 41 euroSciVoc level-2 themes are translated in the FR bundle; the EN
+  // bundle has no entries so the source label passes through.
+  const translated = t(`themes.${key}`);
+  if (!translated.startsWith("themes.")) return translated;
+  return fallback ?? key;
+}
+
 export function seriesLabel(serie: LabelledSeries, t: (key: string) => string): string {
-  if (typeof serie.key === "string" && !serie.label) {
-    // Canonical org-type keys translate; other bare keys display as-is.
-    const translated = t(`orgType.${serie.key}`);
-    if (!translated.startsWith("orgType.")) return translated;
+  if (typeof serie.key === "string") {
+    if (serie.key.startsWith("/")) return themeLabel(serie.key, serie.label, t);
+    if (!serie.label) {
+      // Canonical org-type keys translate; other bare keys display as-is.
+      const translated = t(`orgType.${serie.key}`);
+      if (!translated.startsWith("orgType.")) return translated;
+    }
   }
   return formatOrgName(serie.label ?? String(serie.key));
 }

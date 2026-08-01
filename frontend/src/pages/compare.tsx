@@ -8,7 +8,14 @@ import { CountryFlags } from "@/components/country-flags";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { formatCompactEur, formatInt, formatOrgName, orgTypeKey, yearsRange } from "@/lib/format";
+import {
+  formatCompactEur,
+  formatInt,
+  formatOrgName,
+  orgTypeKey,
+  themeLabel,
+  yearsRange,
+} from "@/lib/format";
 
 const MAX_ORGS = 4;
 const seriesColor = (index: number) => `var(--color-series-${index + 1})`;
@@ -220,7 +227,7 @@ export function ComparePage() {
                     key={theme.key}
                     className="flex items-baseline gap-3 border-b border-border-soft py-2 text-[13px]"
                   >
-                    <span className="min-w-0 truncate">{theme.label ?? theme.key}</span>
+                    <span className="min-w-0 truncate">{themeLabel(theme.key, theme.label, t)}</span>
                     <span className="tnum ml-auto text-muted-foreground">
                       {formatInt(theme.projects, i18n.language)}
                     </span>

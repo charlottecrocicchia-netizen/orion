@@ -6,6 +6,30 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+Phase 3 — analytics and geography, ready for the v0.3.0 recette.
+
+### Added
+
+- The theme dimension: euroSciVoc level-2 rollup (41 themes, French labels
+  in the FR interface) across the Explorer, with trend stories and the
+  multi-theme counting rule stated on the view.
+- Recurring partners on every organisation hub — a collaboration
+  constellation beside the ranked list — plus cross-border country flows.
+- The Europe choropleth as the geographic entry: 38 pre-projected countries
+  (17 kB, no runtime dependency), sequential funding scale, per-country
+  collaboration arcs on hover, cinematic zoom into the country hubs.
+- The organisation benchmark (/compare): up to four organisations side by
+  side — KPIs, superposed funding lines, top themes and partners — with a
+  type-to-add picker and a Compare action on every hub.
+- The phase-3 demo journey (map → hub → partners → benchmark → theme trend
+  → CSV export) automated in CI.
+
+### Fixed
+
+- ANR programme referential: case duplicates merged (Blanc/BLANC…) and
+  year-as-code rows resolved through their names (SATT existed as «2010»
+  and «2025») — 474 → 453 roots, loader canonicalizes from now on.
+
 ## [0.2.0] - 2026-08-01
 
 Phase 2 — search and navigation. Orion becomes a product you can walk
