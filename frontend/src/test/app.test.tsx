@@ -106,14 +106,18 @@ beforeEach(() => {
   );
 });
 
-test("home renders nav and the animated hero fed by /api/stats", async () => {
+test("home is an orientation hall: the question, the doors, the context line", async () => {
   renderAt("/");
 
   expect(screen.getByRole("link", { name: "Projects" })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Organisations" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: "What are you looking for?" }),
+  ).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Explore a theme/ })).toBeInTheDocument();
+  expect(screen.getByText("See open calls")).toBeInTheDocument();
+  expect(screen.getByText("Phase 5 · autumn 2026")).toBeInTheDocument();
   expect(await screen.findByText("€211B")).toBeInTheDocument();
   expect(await screen.findByText("119,172")).toBeInTheDocument();
-  expect(screen.getByText("funded projects")).toBeInTheDocument();
 });
 
 test("the explorer composes a view and renders its chart and table", async () => {

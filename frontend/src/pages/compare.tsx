@@ -85,6 +85,35 @@ export function ComparePage() {
   const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
   const ids = (params.get("orgs") ?? "").split("~").filter(Boolean).slice(0, MAX_ORGS);
+  const find = params.get("find");
+
+  // The free-text parser lands "X vs Y" here as find=X~Y: resolve each term
+  // to its best fuzzy match once, then hand over to the regular orgs= state.
+  useEffect(() => {
+    if (!find || ids.length > 0) return;
+    let cancelled = false;
+    void Promise.all(
+      find
+        .split("~")
+        .filter(Boolean)
+        .slice(0, MAX_ORGS)
+        .map((term) =>
+          api
+            .searchOrganisations(new URLSearchParams({ q: term, size: "1" }))
+            .then((r) => r.results[0]?.id),
+        ),
+    ).then((resolved) => {
+      if (cancelled) return;
+      const found = resolved.filter((id): id is number => id != null);
+      const out = new URLSearchParams();
+      if (found.length > 0) out.set("orgs", found.join("~"));
+      setParams(out, { replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [find]);
 
   const { data, isPending } = useQuery({
     queryKey: ["compare", ids.join("~")],

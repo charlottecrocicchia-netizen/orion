@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { FormEvent, ReactNode } from "react";
 
@@ -8,6 +8,7 @@ import { BarsChart, LinesChart, TreemapChart } from "@/components/charts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import type { ExploreResponse } from "@/lib/api";
+import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { countryFlag, formatValue, seriesLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -158,7 +159,8 @@ function MenuItem({
 /* ————— The page ————— */
 
 export function ExplorerPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const state = readState(params);
   const [copied, setCopied] = useState(false);
@@ -267,9 +269,33 @@ export function ExplorerPage() {
 
   const boardTitle = `${t(`explorer.metric.${state.metric}`)} · ${t(`explorer.dim.${state.by}`)}`;
 
+  const submitFreeText = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const intent = parseIntent(String(new FormData(form).get("free") ?? ""), i18n.language);
+    if (!intent) return;
+    if (intent.to === "explore") {
+      setParams(new URLSearchParams(intent.params), { preventScrollReset: true });
+    } else {
+      navigate(`/${intent.to === "projects" ? "projects" : "compare"}?${intent.params}`);
+    }
+    form.reset();
+  };
+
   return (
     <div className="mx-auto w-full max-w-[1240px] px-6 pt-12">
-      <p className="text-sm font-medium text-accent">{t("explorer.eyebrow")}</p>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <p className="text-sm font-medium text-accent">{t("explorer.eyebrow")}</p>
+        <form onSubmit={submitFreeText} className="min-w-[260px] flex-1 sm:max-w-[380px]">
+          <input
+            name="free"
+            type="text"
+            placeholder={`⌕ ${t("explorer.freeText")}`}
+            aria-label={t("explorer.freeText")}
+            className="w-full rounded-full bg-surface px-4 py-2 text-[13px] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
+          />
+        </form>
+      </div>
 
       {/* The composition sentence — the interface itself */}
       <p className="display-tight mt-3 max-w-[34ch] text-[clamp(24px,3.2vw,34px)] font-semibold leading-[1.5]">
@@ -557,9 +583,6 @@ export function ExplorerPage() {
               {t(`explorer.views.${candidate}`)}
             </button>
           ))}
-          <span className="rounded-full px-3.5 py-1.5 text-[12.5px] text-muted-foreground opacity-45">
-            {t("explorer.mapSoon")}
-          </span>
           <span className="ml-auto hidden text-[11.5px] text-muted-foreground sm:block">
             {t("explorer.sources")}
           </span>
