@@ -9,6 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { countryFlag, formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 
+/** CORDIS for every EU framework flavour, ANR for the French corpus. */
+function sourceSite(source: string): string {
+  return source.startsWith("anr") ? "ANR" : "CORDIS";
+}
+
 export function ProjectDetailPage() {
   const { id = "" } = useParams();
   const { t, i18n } = useTranslation();
@@ -48,7 +53,7 @@ export function ProjectDetailPage() {
         › <span>{data.acronym ?? data.source_id}</span>
       </nav>
 
-      <div className="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+      <div className="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-2">
         {data.acronym ? (
           <span className="display-tight text-lg font-semibold text-accent">{data.acronym}</span>
         ) : null}
@@ -56,6 +61,19 @@ export function ProjectDetailPage() {
           <span className="rounded-full border px-2.5 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">
             {data.status}
           </span>
+        ) : null}
+        {/* The source of truth, worn proudly — the data's credibility. */}
+        {data.url ? (
+          <a
+            href={data.url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("project.viewSource", { site: sourceSite(data.source) })}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11.5px] transition-colors hover:border-accent hover:text-accent"
+          >
+            {sourceSite(data.source)} · {data.source_id}
+            <span aria-hidden="true">↗</span>
+          </a>
         ) : null}
       </div>
       <h1 className="display-tight mt-1 max-w-[28ch] text-[clamp(24px,3.4vw,34px)] font-semibold leading-tight">
@@ -172,14 +190,9 @@ export function ProjectDetailPage() {
         </section>
       ) : null}
 
-      <p className="mt-8 text-[12px] text-muted-foreground">
-        {data.url ? (
-          <a href={data.url} target="_blank" rel="noreferrer" className="underline underline-offset-2">
-            {t("project.official")}
-          </a>
-        ) : null}
-        {data.attribution ? <span> · {data.attribution}</span> : null}
-      </p>
+      {data.attribution ? (
+        <p className="mt-8 text-[12px] text-muted-foreground">{data.attribution}</p>
+      ) : null}
 
       <ExploreExits
         exits={[

@@ -20,6 +20,11 @@ import {
   yearsRange,
 } from "@/lib/format";
 
+/* One shared grid template: the header row and every organisation line wear
+ * it together — the spreadsheet alignment is real, not approximate. */
+const ORG_GRID = "sm:grid-cols-[minmax(0,1fr)_150px_88px_120px] sm:gap-5";
+const ORG_GRID_RANKED = "sm:grid-cols-[26px_minmax(0,1fr)_150px_88px_120px] sm:gap-5";
+
 function useSearchState() {
   const [params, setParams] = useSearchParams();
   const update = (patch: Record<string, string | null>) => {
@@ -80,6 +85,12 @@ function FacetChip({
       >
         {formatInt(count, locale)}
       </span>
+      {/* Polaris affordance: an active filter shows how it leaves. */}
+      {active ? (
+        <span aria-hidden="true" className="-mr-1 text-[11px] opacity-80">
+          ✕
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -126,7 +137,7 @@ function groupByFrame(data: ProjectSearchResponse): HitGroup[] {
 function ProjectHitRow({ hit, maxFunding }: { hit: ProjectHit; maxFunding: number }) {
   const { t, i18n } = useTranslation();
   return (
-    <article className="border-b border-border-soft py-6 last:border-b-0">
+    <article className="group -mx-4 rounded-xl border-b border-border-soft px-4 py-6 transition-colors last:border-b-0 hover:bg-surface/70">
       <div className="flex items-baseline gap-3">
         <h2 className="text-[17px] font-medium">
           {hit.acronym ? <span className="mr-2 text-accent">{hit.acronym}</span> : null}
@@ -147,7 +158,10 @@ function ProjectHitRow({ hit, maxFunding }: { hit: ProjectHit; maxFunding: numbe
           dangerouslySetInnerHTML={{ __html: hit.snippet }}
         />
       ) : null}
-      <p className="mt-2 text-[13px] text-muted-foreground">
+      <p className="mt-2.5 flex flex-wrap items-center gap-x-2 text-[11px] uppercase tracking-[.06em] text-muted-foreground">
+        <span className="rounded border px-1.5 py-px font-mono text-[10px] normal-case">
+          {hit.source.startsWith("anr") ? "ANR" : "CORDIS"}
+        </span>
         {yearsRange(hit.start_year, hit.end_year)} ·{" "}
         {t("search.organisationsCount", { count: hit.participations_count })}
         {hit.countries.length > 0 ? (
@@ -324,7 +338,36 @@ export function ProjectsSearchPage() {
         {isPending ? (
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="mt-4 h-20 w-full" />)
         ) : data && data.results.length === 0 && q ? (
-          <p className="mt-10 text-muted-foreground">{t("search.noResults", { q })}</p>
+          <div className="mx-auto mt-16 max-w-[440px] text-center">
+            <svg viewBox="0 0 120 72" className="mx-auto w-[120px]" aria-hidden="true">
+              <line x1="20" y1="48" x2="52" y2="26" stroke="var(--color-border)" strokeWidth="1.4" />
+              <line x1="52" y1="26" x2="88" y2="40" stroke="var(--color-border)" strokeWidth="1.4" />
+              <circle cx="20" cy="48" r="3.5" fill="var(--color-muted-foreground)" />
+              <circle cx="88" cy="40" r="2.8" fill="var(--color-muted-foreground)" />
+              <circle cx="52" cy="26" r="9" fill="none" stroke="var(--color-accent)" strokeWidth="2" />
+              <line x1="59" y1="33" x2="68" y2="42" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <p className="mt-4 text-[15px] text-muted-foreground">{t("search.noResults", { q })}</p>
+            <div className="mt-4 flex justify-center gap-4 text-[13.5px]">
+              {hasFilters ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    update({ funder: null, programme: null, country: null, year_from: null, year_to: null })
+                  }
+                  className="text-accent underline-offset-2 hover:underline"
+                >
+                  {t("search.emptyAction")}
+                </button>
+              ) : null}
+              <Link
+                to={`/organisations?q=${encodeURIComponent(q)}`}
+                className="text-accent underline-offset-2 hover:underline"
+              >
+                {t("search.emptyCross")}
+              </Link>
+            </div>
+          </div>
         ) : sort === "relevance" && q && data ? (
           groupByFrame(data).map((group) => (
             <section key={group.key}>
@@ -473,15 +516,35 @@ export function OrganisationsSearchPage() {
                 </div>
               </article>
             ) : null}
+            {/* The Attio grid: one shared template for the header row and
+                every line — a real spreadsheet alignment, hairlines, high-
+                contrast headers, tabular figures. */}
+            {rest.length > 0 ? (
+              <div
+                className={cn(
+                  "hidden border-b py-2 text-[11px] font-semibold uppercase tracking-[.08em] sm:grid",
+                  ranked ? ORG_GRID_RANKED : ORG_GRID,
+                )}
+              >
+                {ranked ? <span className="tnum text-right">#</span> : null}
+                <span>{t("search.organisationsTab")}</span>
+                <span>{t("search.colTrajectory")}</span>
+                <span className="text-right">{t("search.colProjects")}</span>
+                <span className="text-right">{t("search.colFunding")}</span>
+              </div>
+            ) : null}
             {rest.map((hit, index) => {
               const typeKey = orgTypeKey(hit.org_type);
               return (
                 <article
                   key={hit.id}
-                  className="flex items-center gap-5 border-b border-border-soft py-4 last:border-b-0"
+                  className={cn(
+                    "-mx-3 flex items-center justify-between gap-4 rounded-lg border-b border-border-soft px-3 py-4 transition-colors last:border-b-0 hover:bg-surface/70 sm:mx-0 sm:grid sm:rounded-none sm:px-0",
+                    ranked ? ORG_GRID_RANKED : ORG_GRID,
+                  )}
                 >
                   {ranked ? (
-                    <span className="tnum w-7 shrink-0 text-right text-[13px] text-muted-foreground">
+                    <span className="tnum hidden text-right text-[13px] text-muted-foreground sm:block">
                       {(page - 1) * 20 + index + 1}
                     </span>
                   ) : null}
@@ -492,18 +555,18 @@ export function OrganisationsSearchPage() {
                     >
                       {formatOrgName(hit.name)}
                     </Link>
-                    <span className="ml-3 whitespace-nowrap text-[13px] text-muted-foreground">
+                    <span className="ml-3 whitespace-nowrap text-[11px] uppercase tracking-[.06em] text-muted-foreground">
                       {hit.country ? <CountryFlags codes={[hit.country]} /> : null}
                       {typeKey ? ` ${t(`orgType.${typeKey}`)}` : null}
                     </span>
                   </div>
-                  <div className="ml-auto hidden shrink-0 sm:block">
+                  <div className="hidden text-accent sm:block">
                     <Sparkline data={hit.funding_by_year} />
                   </div>
-                  <div className="tnum w-24 shrink-0 whitespace-nowrap text-right text-sm text-muted-foreground">
-                    {t("search.projectsCount", { count: hit.projects_count })}
+                  <div className="tnum hidden whitespace-nowrap text-right text-sm text-muted-foreground sm:block">
+                    {formatInt(hit.projects_count, i18n.language)}
                   </div>
-                  <div className="flex w-24 shrink-0 flex-col items-end">
+                  <div className="flex flex-col items-end">
                     <span className="display-tight tnum whitespace-nowrap text-[16px] font-semibold">
                       {formatCompactEur(hit.total_funding_eur, i18n.language)}
                     </span>

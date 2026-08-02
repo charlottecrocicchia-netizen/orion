@@ -77,6 +77,11 @@ const resources = {
         resultsFor: "for “{{q}}” · searched in English & French",
         noResults:
           "No results for “{{q}}”. Try a broader term — searches cover English and French texts.",
+        emptyAction: "Clear the filters",
+        emptyCross: "Search organisations instead",
+        colTrajectory: "Trajectory",
+        colProjects: "Projects",
+        colFunding: "Funding",
         filters: {
           funder: "Funder",
           programme: "Programme",
@@ -111,7 +116,7 @@ const resources = {
         participant: "Participant",
         topics: "Topics",
         abstract: "Abstract",
-        official: "Official page",
+        viewSource: "View the project on {{site}}",
       },
       orgType: {
         research: "Research organisation",
@@ -356,6 +361,11 @@ const resources = {
         resultsFor: "pour « {{q}} » · recherche en anglais et en français",
         noResults:
           "Aucun résultat pour « {{q}} ». Essayez un terme plus large — la recherche couvre les textes anglais et français.",
+        emptyAction: "Effacer les filtres",
+        emptyCross: "Chercher dans les organisations",
+        colTrajectory: "Trajectoire",
+        colProjects: "Projets",
+        colFunding: "Financement",
         filters: {
           funder: "Bailleur",
           programme: "Programme",
@@ -390,7 +400,7 @@ const resources = {
         participant: "Participant",
         topics: "Thématiques",
         abstract: "Résumé",
-        official: "Page officielle",
+        viewSource: "Voir le projet sur {{site}}",
       },
       orgType: {
         research: "Organisme de recherche",

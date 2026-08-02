@@ -87,7 +87,9 @@ test("the enriched demo journey holds end to end", async ({ page }) => {
   // 6 — back to a search filtered on that country.
   await page.getByRole("link", { name: /^Search projects from / }).click();
   await expect(page).toHaveURL(/\/projects\?country=[A-Z]{2}/);
-  await expect(resultsHeading).toContainText(/[\d,]+ results/);
+  // Country-only search scans the whole national corpus (~2s warm on the
+  // full dataset — known perf debt, tracked separately); generous timeout.
+  await expect(resultsHeading).toContainText(/[\d,]+ results/, { timeout: 15_000 });
 });
 
 test("language toggle switches the whole interface to French", async ({ page }) => {

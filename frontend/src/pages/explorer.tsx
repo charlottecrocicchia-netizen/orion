@@ -652,10 +652,10 @@ function ExploreTable({ data, temporal }: { data: ExploreResponse; temporal: boo
       <div className="max-h-[420px] overflow-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b text-left text-[11px] uppercase tracking-[.08em] text-muted-foreground">
-              <th className="py-2 pr-3 font-medium">{t("org.year")}</th>
+            <tr className="border-b text-left text-[11px] font-semibold uppercase tracking-[.08em]">
+              <th className="py-2 pr-3">{t("org.year")}</th>
               {data.series.map((serie) => (
-                <th key={String(serie.key)} className="py-2 pr-3 text-right font-medium">
+                <th key={String(serie.key)} className="py-2 pr-3 text-right">
                   {seriesLabel(serie, t)}
                 </th>
               ))}
@@ -663,7 +663,7 @@ function ExploreTable({ data, temporal }: { data: ExploreResponse; temporal: boo
           </thead>
           <tbody>
             {years.map((year) => (
-              <tr key={year} className="border-b border-border-soft">
+              <tr key={year} className="border-b border-border-soft transition-colors hover:bg-surface/60">
                 <td className="tnum py-2 pr-3">{year}</td>
                 {data.series.map((serie) => (
                   <td key={String(serie.key)} className="tnum py-2 pr-3 text-right">
@@ -684,14 +684,14 @@ function ExploreTable({ data, temporal }: { data: ExploreResponse; temporal: boo
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="border-b text-left text-[11px] uppercase tracking-[.08em] text-muted-foreground">
-          <th className="py-2 pr-3 font-medium">{t("explorer.tableKey")}</th>
-          <th className="py-2 text-right font-medium">{t("explorer.tableValue")}</th>
+        <tr className="border-b text-left text-[11px] font-semibold uppercase tracking-[.08em]">
+          <th className="py-2 pr-3">{t("explorer.tableKey")}</th>
+          <th className="py-2 text-right">{t("explorer.tableValue")}</th>
         </tr>
       </thead>
       <tbody>
         {data.series.map((serie) => (
-          <tr key={String(serie.key)} className="border-b border-border-soft">
+          <tr key={String(serie.key)} className="border-b border-border-soft transition-colors hover:bg-surface/60">
             <td className="py-2 pr-3">{seriesLabel(serie, t)}</td>
             <td className="tnum py-2 text-right font-medium">
               {formatValue(serie.value, data.unit, i18n.language)}
