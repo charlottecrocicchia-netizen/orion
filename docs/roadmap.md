@@ -36,7 +36,13 @@ Points d'attention connus :
 - **grandes régions « manager »** (décision fondatrice 2026-08-02) : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension
-  d'agrégation (Explorateur, benchmark, panneaux du globe).
+  d'agrégation (Explorateur, benchmark, panneaux du globe). Spécification
+  couleur retenue : **une teinte par région** (candidates : les six séries
+  validées — Europe outremer, Amérique du Nord ochre, Asie teal…),
+  l'**intensité continuant d'encoder le montant** dans chaque teinte, et le
+  **pays sélectionné à l'encre** — hors de toute teinte de région, déjà en
+  place sur le globe depuis 2026-08-02. Toute déclinaison passe au
+  validateur de palette avant adoption.
 
 ## Puis — phase 5 : les appels (calls)
 

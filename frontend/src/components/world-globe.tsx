@@ -216,7 +216,7 @@ export function WorldGlobe({
       const centroid = centroids.get(code);
       const at = centroid ? ortho(centroid) : null;
       if (!at) return [];
-      return [{ code, at, r: 2.6 + 3.2 * Math.sqrt(flow.amount_eur / maxAmount) }];
+      return [{ code, at, width: 1.2 + 2.4 * Math.sqrt(flow.amount_eur / maxAmount) }];
     });
     return { from, stars };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -287,6 +287,7 @@ export function WorldGlobe({
         </g>
         {geo?.countries.map((country) => {
           const isCovered = covered.has(country.code);
+          const isSelected = mode === "select" && selected === country.code;
           const d = country.rings
             .map((ring) => {
               const path = ringToPath(ring, project);
@@ -299,10 +300,25 @@ export function WorldGlobe({
               key={country.code}
               d={d}
               data-code={country.code}
-              fill={isCovered ? "var(--color-accent)" : "var(--color-surface)"}
-              fillOpacity={isCovered ? (hover === country.code ? 0.6 : 0.32) : 0.9}
-              stroke={isCovered ? "var(--color-accent)" : "var(--color-border)"}
-              strokeOpacity={isCovered ? 0.6 : 1}
+              // The held-open country wears INK — outside every series hue,
+              // present and future (the founder's off-palette selection),
+              // ready for the wave-1 region colors.
+              fill={
+                isSelected
+                  ? "var(--color-foreground)"
+                  : isCovered
+                    ? "var(--color-accent)"
+                    : "var(--color-surface)"
+              }
+              fillOpacity={isSelected ? 0.82 : isCovered ? (hover === country.code ? 0.6 : 0.32) : 0.9}
+              stroke={
+                isSelected
+                  ? "var(--color-foreground)"
+                  : isCovered
+                    ? "var(--color-accent)"
+                    : "var(--color-border)"
+              }
+              strokeOpacity={isSelected ? 1 : isCovered ? 0.6 : 1}
               strokeWidth="0.8"
               className={isCovered && morphT == null ? "cursor-pointer" : undefined}
               onMouseEnter={() => setHover(country.code)}
@@ -321,9 +337,9 @@ export function WorldGlobe({
         })}
         {constellation ? (
           <g pointerEvents="none">
-            {/* Star-chart lines, not scribbles: gently curved, trimmed to the
-                stars' edges, in a quiet ultramarine — the founder called the
-                straight ink chords "traits bizarres", rightly. */}
+            {/* Flow curves, founder's pick over dotted stars: generous arcs
+                from the focused country to each partner, width carrying the
+                amount, no terminal dots — the blue heart stays. */}
             {constellation.stars.map((star) => {
               const [x1, y1] = constellation.from;
               const [x2, y2] = star.at;
@@ -332,19 +348,18 @@ export function WorldGlobe({
               const distance = Math.hypot(dx, dy) || 1;
               const ux = dx / distance;
               const uy = dy / distance;
-              const p1 = [x1 + ux * 9, y1 + uy * 9];
-              const p2 = [x2 - ux * (star.r + 4), y2 - uy * (star.r + 4)];
-              const mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
-              const lift = Math.min(distance * 0.08, 14);
+              const p1 = [x1 + ux * 8, y1 + uy * 8];
+              const mid = [(p1[0] + x2) / 2, (p1[1] + y2) / 2];
+              const lift = Math.min(distance * 0.18, 34);
               const control = [mid[0] - uy * lift, mid[1] + ux * lift];
               return (
                 <path
                   key={`l-${star.code}`}
-                  d={`M${p1[0]},${p1[1]} Q${control[0]},${control[1]} ${p2[0]},${p2[1]}`}
+                  d={`M${p1[0]},${p1[1]} Q${control[0]},${control[1]} ${x2},${y2}`}
                   fill="none"
                   stroke="var(--color-accent)"
-                  strokeOpacity="0.45"
-                  strokeWidth="1"
+                  strokeOpacity="0.55"
+                  strokeWidth={star.width}
                   strokeLinecap="round"
                 />
               );
@@ -363,29 +378,20 @@ export function WorldGlobe({
               fill="var(--color-accent)"
             />
             {constellation.stars.map((star) => (
-              <g key={star.code}>
-                <circle
-                  cx={star.at[0]}
-                  cy={star.at[1]}
-                  r={star.r + 3.5}
-                  fill="var(--color-accent)"
-                  opacity="0.16"
-                />
-                <circle cx={star.at[0]} cy={star.at[1]} r={star.r} fill="var(--color-foreground)" />
-                <text
-                  x={star.at[0] + star.r + 6}
-                  y={star.at[1] + 4}
-                  fontSize="12"
-                  fontWeight="600"
-                  fill="var(--color-foreground)"
-                  stroke="var(--color-background)"
-                  strokeWidth="3.5"
-                  paintOrder="stroke"
-                  strokeLinejoin="round"
-                >
-                  {star.code}
-                </text>
-              </g>
+              <text
+                key={`t-${star.code}`}
+                x={star.at[0] + 7}
+                y={star.at[1] + 4}
+                fontSize="12"
+                fontWeight="600"
+                fill="var(--color-foreground)"
+                stroke="var(--color-background)"
+                strokeWidth="3.5"
+                paintOrder="stroke"
+                strokeLinejoin="round"
+              >
+                {star.code}
+              </text>
             ))}
           </g>
         ) : null}
