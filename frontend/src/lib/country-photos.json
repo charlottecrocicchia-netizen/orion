@@ -1,0 +1,30 @@
+{
+  "_readme": "Registre des photos pays du panneau d'accueil (V1 validée 2026-08-02). Une entrée par pays réellement curé : fichier local optimisé (1200px, JPEG), page source Wikimedia Commons, auteur, licence VÉRIFIÉE via l'API imageinfo/extmetadata à la date d'audit. Règle de curation : CC0 / domaine public / CC BY uniquement (pas de ShareAlike — le duotone d'affichage flirte avec l'adaptation) ; les CC BY exigent l'attribution affichée, que le composant rend depuis ce registre (elle est affichée pour toutes par élégance). Les pays absents utilisent le fallback duotone abstrait. Ne JAMAIS ajouter une image sans vérifier sa page de licence.",
+  "_audit": "2026-08-02 — FR/ES/IT/NL vérifiées ; DE/GB/autres : candidats Quality Images en CC BY-SA écartés, curation à poursuivre (voir docs/conception-globe-accueil.md).",
+  "photos": {
+    "FR": {
+      "file": "/countries/fr.jpg",
+      "author": "Diliff",
+      "licence": "Domaine public",
+      "source": "https://commons.wikimedia.org/wiki/File:Mont_St_Michel_3,_Brittany,_France_-_July_2011.jpg"
+    },
+    "ES": {
+      "file": "/countries/es.jpg",
+      "author": "Jebulon",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Rio_Alhama_canyon,_Alhama_de_Granada,_Andalusia,_Spain.jpg"
+    },
+    "IT": {
+      "file": "/countries/it.jpg",
+      "author": "Free-Photos",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Tuscany_landscape_view_skyline.jpg"
+    },
+    "NL": {
+      "file": "/countries/nl.jpg",
+      "author": "Orangée",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Keukenhof_tulipes_roses_et_vertes.JPG"
+    }
+  }
+}

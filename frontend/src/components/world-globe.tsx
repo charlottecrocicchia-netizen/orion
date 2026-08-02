@@ -1,14 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { CountryIndexEntry } from "@/lib/api";
+import type { CountryFlow, CountryIndexEntry } from "@/lib/api";
+import { formatCompactEur } from "@/lib/format";
 
 /** The world globe — runtime orthographic projection over the shared Natural
- *  Earth geometries, drag to rotate, click a covered country to morph the
- *  projection into the flat analysis map (same 900×675 viewBox, so the
- *  hand-over to EuropeMap is seamless). Pointer-first by design: the flat map
- *  and the ranked list below stay the keyboard and screen-reader path, and
- *  the visible "map" switch is a real button. */
+ *  Earth geometries, drag to rotate. Two lives: on the countries page a click
+ *  morphs the projection into the flat analysis map (same 900×675 viewBox,
+ *  seamless hand-over to EuropeMap); on the home's act 3 (`mode="select"`)
+ *  hovering a covered country lights its PARTNER CONSTELLATION — real flows
+ *  drawn as thin lines to stars sized by amount, the Orion metaphor on the
+ *  planet — and a click hands the country to the panel instead of morphing.
+ *  Pointer-first by design: the flat map and ranked lists stay the keyboard
+ *  and screen-reader path, and every visible switch is a real button. */
 
 interface GeoCountry {
   code: string;
@@ -72,21 +76,52 @@ const MORPH_MS = 700;
 export function WorldGlobe({
   countries,
   onOpenCountry,
+  mode = "morph",
+  flows = [],
+  selected = null,
 }: {
   countries: CountryIndexEntry[];
   onOpenCountry: (code: string) => void;
+  /** "morph" (countries page): click melts into the flat map.
+   *  "select" (home act 3): click hands over to the country panel. */
+  mode?: "morph" | "select";
+  /** Real collaboration flows — fuels the hover constellation. */
+  flows?: CountryFlow[];
+  /** Country held open by the panel — keeps its constellation lit. */
+  selected?: string | null;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [geo, setGeo] = useState<GeoData | null>(null);
   const [view, setView] = useState({ lonC: 12, latC: 42 });
   const [hover, setHover] = useState<string | null>(null);
   const [morphT, setMorphT] = useState<number | null>(null);
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; id: number; captured: boolean } | null>(null);
   const spin = useRef<number | null>(null);
   const covered = useMemo(
     () => new Set(countries.map((entry) => entry.code)),
     [countries],
   );
+  const byCode = useMemo(
+    () => new Map(countries.map((entry) => [entry.code, entry])),
+    [countries],
+  );
+
+  // Approximate centroids (mean of the largest ring) — plenty for anchoring
+  // constellation lines and stars.
+  const centroids = useMemo(() => {
+    const map = new Map<string, [number, number]>();
+    for (const country of geo?.countries ?? []) {
+      const ring = country.rings.reduce((a, b) => (b.length > a.length ? b : a));
+      let lon = 0;
+      let lat = 0;
+      for (const [x, y] of ring) {
+        lon += x;
+        lat += y;
+      }
+      map.set(country.code, [lon / ring.length, lat / ring.length]);
+    }
+    return map;
+  }, [geo]);
 
   useEffect(() => {
     let alive = true;
@@ -146,6 +181,33 @@ export function WorldGlobe({
           return [from[0] + (to[0] - from[0]) * morphT, from[1] + (to[1] - from[1]) * morphT];
         };
 
+  // The partner constellation — the hovered (or panel-held) country becomes
+  // the centre of its real collaboration sky: top-5 flows as thin lines to
+  // stars sized by amount, labelled at the far end.
+  const focus = mode === "select" ? (hover ?? selected) : null;
+  const constellation = useMemo(() => {
+    if (!focus || flows.length === 0) return null;
+    const origin = centroids.get(focus);
+    const from = origin ? ortho(origin) : null;
+    if (!origin || !from) return null;
+    const top = flows
+      .filter((flow) => flow.a === focus || flow.b === focus)
+      .sort((x, y) => y.amount_eur - x.amount_eur)
+      .slice(0, 5);
+    const maxAmount = top[0]?.amount_eur ?? 1;
+    const stars = top.flatMap((flow) => {
+      const code = flow.a === focus ? flow.b : flow.a;
+      const centroid = centroids.get(code);
+      const at = centroid ? ortho(centroid) : null;
+      if (!at) return [];
+      return [{ code, at, r: 2.6 + 3.2 * Math.sqrt(flow.amount_eur / maxAmount) }];
+    });
+    return { from, stars };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus, flows, centroids, view.lonC, view.latC]);
+
+  const focusEntry = focus ? byCode.get(focus) : null;
+
   return (
     <div className="relative">
       <svg
@@ -153,16 +215,29 @@ export function WorldGlobe({
         className="w-full touch-none select-none"
         role="img"
         aria-label={t("explore.globeLabel")}
+        onPointerEnter={stopSpin}
         onPointerDown={(event) => {
           stopSpin();
-          drag.current = { x: event.clientX, y: event.clientY };
-          event.currentTarget.setPointerCapture(event.pointerId);
+          drag.current = {
+            x: event.clientX,
+            y: event.clientY,
+            id: event.pointerId,
+            captured: false,
+          };
         }}
         onPointerMove={(event) => {
           if (!drag.current || morphT != null) return;
           const dx = event.clientX - drag.current.x;
           const dy = event.clientY - drag.current.y;
-          drag.current = { x: event.clientX, y: event.clientY };
+          if (!drag.current.captured) {
+            // Capturing on pointerdown would retarget the eventual click to
+            // this svg (pointer-capture semantics) and silently swallow every
+            // country click — only capture once a real drag has begun.
+            if (Math.hypot(dx, dy) < 4) return;
+            drag.current.captured = true;
+            event.currentTarget.setPointerCapture(drag.current.id);
+          }
+          drag.current = { ...drag.current, x: event.clientX, y: event.clientY };
           setView((current) => ({
             lonC: current.lonC - dx * 0.35,
             latC: Math.min(Math.max(current.latC + dy * 0.35, -50), 75),
@@ -217,12 +292,79 @@ export function WorldGlobe({
               onMouseEnter={() => setHover(country.code)}
               onMouseLeave={() => setHover(null)}
               onClick={() => {
-                if (isCovered && morphT == null) startMorph(country.code);
+                if (!isCovered || morphT != null) return;
+                if (mode === "select") {
+                  stopSpin();
+                  onOpenCountry(country.code);
+                } else {
+                  startMorph(country.code);
+                }
               }}
             />
           );
         })}
+        {constellation ? (
+          <g pointerEvents="none">
+            {constellation.stars.map((star) => (
+              <line
+                key={`l-${star.code}`}
+                x1={constellation.from[0]}
+                y1={constellation.from[1]}
+                x2={star.at[0]}
+                y2={star.at[1]}
+                stroke="var(--color-foreground)"
+                strokeOpacity="0.5"
+                strokeWidth="1.1"
+              />
+            ))}
+            <circle
+              cx={constellation.from[0]}
+              cy={constellation.from[1]}
+              r="13"
+              fill="var(--color-accent)"
+              opacity="0.18"
+            />
+            <circle
+              cx={constellation.from[0]}
+              cy={constellation.from[1]}
+              r="6.5"
+              fill="var(--color-accent)"
+            />
+            {constellation.stars.map((star) => (
+              <g key={star.code}>
+                <circle
+                  cx={star.at[0]}
+                  cy={star.at[1]}
+                  r={star.r + 4}
+                  fill="var(--color-accent)"
+                  opacity="0.14"
+                />
+                <circle cx={star.at[0]} cy={star.at[1]} r={star.r} fill="var(--color-foreground)" />
+                <text
+                  x={star.at[0] + star.r + 5}
+                  y={star.at[1] + 4}
+                  fontSize="12.5"
+                  fontWeight="600"
+                  fill="var(--color-foreground)"
+                >
+                  {star.code}
+                </text>
+              </g>
+            ))}
+          </g>
+        ) : null}
       </svg>
+
+      {mode === "select" && focusEntry ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-[6%] top-[5%] rounded-xl bg-foreground px-3.5 py-2 text-[12.5px] leading-relaxed text-background shadow-key"
+        >
+          <span className="font-semibold">{focusEntry.name}</span>
+          <span className="tnum"> · {formatCompactEur(focusEntry.funding_eur, i18n.language)}</span>
+          <span className="block opacity-75">{t("home.globeFlowsHint")}</span>
+        </div>
+      ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11.5px] text-muted-foreground">
         <span className="flex items-center gap-1.5">

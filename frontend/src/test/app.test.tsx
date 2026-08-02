@@ -127,8 +127,8 @@ test("home leads with the hero, acts follow below", async () => {
   expect(screen.getByRole("link", { name: /Benchmark the actors/ })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Open the country files/ })).toBeInTheDocument();
   expect(screen.getByText("Phase 5 · autumn 2026")).toBeInTheDocument();
-  // Act 3 — the proof: the staged map.
-  expect(screen.getByRole("heading", { name: "The funding map" })).toBeInTheDocument();
+  // Act 3 — the proof: the staged globe.
+  expect(screen.getByRole("heading", { name: "The world of funding" })).toBeInTheDocument();
 });
 
 test("the explorer composes a view and renders its chart and table", async () => {

@@ -35,7 +35,7 @@ test("home leads with the pinned hero, then the acts follow", async ({ page }) =
   await expect(page.getByRole("heading", { name: "What are you looking for?" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Explore the 41 disciplines/ })).toBeVisible();
   await expect(page.getByText("Phase 5 · autumn 2026")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "The funding map" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The world of funding" })).toBeVisible();
 });
 
 test("the enriched demo journey holds end to end", async ({ page }) => {

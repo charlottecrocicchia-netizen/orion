@@ -10,6 +10,21 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("the act-3 globe opens the country panel and Escape closes it", async ({ page }) => {
+  await page.goto("/");
+  // The globe lives in act 3; clicking a covered country slides the panel in.
+  const france = page.locator("path[data-code=FR]");
+  await france.scrollIntoViewIfNeeded();
+  await france.click();
+  const panel = page.getByRole("complementary", { name: "France" });
+  await expect(panel).toBeVisible({ timeout: 10_000 });
+  // Dataset-agnostic: the essentials and the one full CTA are there.
+  await expect(panel.getByRole("link", { name: /Open the France file/ })).toBeVisible();
+  await expect(panel.getByText("What it funds first")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(panel).not.toBeVisible();
+});
+
 test("the globe greets by default and the switch reaches the flat map", async ({ page }) => {
   await page.goto("/explore/countries");
   await expect(page.getByRole("img", { name: /World globe/ })).toBeVisible({ timeout: 15_000 });

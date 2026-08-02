@@ -1,14 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { FormEvent, ReactNode } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
-import { EuropeMap } from "@/components/europe-map";
+import { CountryPanel } from "@/components/country-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatHero } from "@/components/stat-hero";
+import { WorldGlobe } from "@/components/world-globe";
+import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import type { ExploreResponse } from "@/lib/api";
 import { parseIntent } from "@/lib/intent";
@@ -135,6 +138,17 @@ export function HomePage() {
   const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: flows } = useQuery({ queryKey: ["country-flows"], queryFn: api.countryFlows });
 
+  // Act 3: the country the panel holds open, and its funding rank.
+  const [panelCode, setPanelCode] = useState<string | null>(null);
+  const rankedCountries = useMemo(
+    () => [...(countryIndex ?? [])].sort((a, b) => b.funding_eur - a.funding_eur),
+    [countryIndex],
+  );
+  const panelEntry = panelCode
+    ? rankedCountries.find((candidate) => candidate.code === panelCode)
+    : null;
+  const panelRank = panelEntry ? rankedCountries.indexOf(panelEntry) + 1 : 0;
+
   // One decision, made before first paint: pinned scrub or viewport reveal.
   const [scrub, setScrub] = useState<number | null>(() => (pinnable() ? SCRUB_BASE : null));
   const pinRef = useHeroPin(stats != null && scrub != null, setScrub);
@@ -260,17 +274,57 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Act 3 — the proof: the map staged full width, signals beneath */}
+      {/* Act 3 — the proof: the slow globe, partner constellations on hover,
+          click slides it left and the country panel opens (validated V1). */}
       <section className="mx-auto w-full max-w-[1240px] px-6 py-24">
         <h2 className="font-display text-title">{t("home.act3Title")}</h2>
         <p className="mt-2 max-w-[560px] text-[15px] text-muted-foreground">{t("home.act3Lead")}</p>
-        <div className="mt-10">
-          {countryIndex ? (
-            <EuropeMap countries={countryIndex} flows={flows ?? []} />
-          ) : (
-            <Skeleton className="h-[420px] w-full" />
-          )}
-        </div>
+        <MotionConfig reducedMotion="user">
+          <div
+            className={cn(
+              "mt-10 lg:items-center lg:gap-10",
+              panelEntry ? "lg:grid lg:grid-cols-[minmax(0,55fr)_minmax(0,34fr)]" : "",
+            )}
+          >
+            <motion.div
+              layout
+              transition={{ duration: 0.45, ease: [0.2, 0.6, 0.2, 1] }}
+              className={panelEntry ? undefined : "mx-auto max-w-[840px]"}
+            >
+              {countryIndex ? (
+                <WorldGlobe
+                  countries={countryIndex}
+                  flows={flows ?? []}
+                  mode="select"
+                  selected={panelCode}
+                  onOpenCountry={setPanelCode}
+                />
+              ) : (
+                <Skeleton className="h-[420px] w-full" />
+              )}
+            </motion.div>
+            <AnimatePresence>
+              {panelEntry ? (
+                <motion.div
+                  key={panelEntry.code}
+                  initial={{ opacity: 0, x: 36 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 36 }}
+                  transition={{ duration: 0.4, ease: [0.2, 0.6, 0.2, 1] }}
+                  className="fixed inset-x-3 bottom-3 top-20 z-30 overflow-y-auto lg:static lg:inset-auto lg:z-auto lg:overflow-visible"
+                >
+                  <CountryPanel
+                    code={panelEntry.code}
+                    entry={panelEntry}
+                    rank={panelRank}
+                    flows={flows ?? []}
+                    onClose={() => setPanelCode(null)}
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        </MotionConfig>
 
         <h2 className="mt-16 text-label uppercase text-muted-foreground">{t("home.now")}</h2>
         <div className="mt-3.5 grid gap-3.5 lg:grid-cols-2">

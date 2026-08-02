@@ -31,6 +31,14 @@ All notable changes to Orion are documented here. The format follows
   proof act staging the Europe map with the momentum signals, and the dense
   parchment footer exposing the whole information architecture.
 
+- The act-3 globe (validated V1): slow world rotation stopping at first
+  hover, real partner constellations on hover (top-5 flows as stars sized
+  by amount), click slides the globe left and opens the country panel —
+  the country's photo under an ink→ultramarine duotone (per-image
+  Wikimedia licence audit in country-photos.json: FR public domain,
+  ES/IT/NL CC0; abstract duotone fallback elsewhere), plain-language
+  figures, top themes, main partners, one full CTA to the country file.
+
 ### Changed
 
 - Display face: Instrument Sans retired; Inter (tightened, alternate glyphs)
