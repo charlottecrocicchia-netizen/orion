@@ -16,6 +16,22 @@ Référence : [design-doctrine.md](design-doctrine.md).
 | 4 — Fiches & benchmark | Layout record Attio, barres horizontales | À venir |
 | 5 — Passe anti-« IA » | Audit continu, checklist des 10 pièges à chaque écran | Continue |
 
+## Chantier transverse — parcours & visualisations (conception validée à itérer)
+
+Issu de la [conception parcours](conception-parcours-visualisations.md) et des
+[leçons UX de Vega](pieges-vega.md) (2026-08-02). Ordre proposé, révisé après
+les huit leçons :
+
+1. **Autocomplete de recherche** (leçon U7, « le plus rentable à court
+   terme ») : suggestions à la frappe — organisations, thèmes, pays,
+   acronymes — endpoint suggest + combobox accessible (APG).
+2. **Hub « poste de veille »** : profil thématique, signaux datés, mention
+   « fiche consolidée » (précurseur UI de la couche groupes U5).
+3. **Les Angles** sur les Analyses prêtes de l'Explorateur.
+4. **Le dossier** (maquette, puis print stylesheet).
+5. Formes B1-B6 au fil des lots ; **hygiène U2** (constante marque) en
+   chemin.
+
 ## Ensuite — extension des sources, vague 1
 
 Décision fondatrice (2026-08-02) : après le chantier design, ouvrir la
@@ -33,6 +49,12 @@ Points d'attention connus :
 - **flux longue distance sur le globe** : passer les lignes de la
   constellation en géodésiques projetées (les cordes d'écran actuelles ne
   tiennent pas visuellement au transatlantique) ;
+- **la couche groupes** (leçon U5 de Vega, décision fondatrice 2026-08-02) :
+  hiérarchie **groupe → entités légales** — l'industriel veut voir Thales
+  entier, CORDIS donne les filiales. Vue consolidée ET détail par entité ;
+  le garde-fou anti-fusion actuel reste (les entités restent vraies), la
+  couche groupe s'y superpose. Rejoint les homonymes CNRS et le
+  rattachement RNSR. Chantier données majeur, à cadrer avec la vague 1 ;
 - **grandes régions « manager »** (décision fondatrice 2026-08-02) : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension

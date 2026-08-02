@@ -239,11 +239,21 @@ pas de forme « parce qu'elle est belle » : chaque ajout est adossé à une
 question d'un des trois personas et à une règle de la doctrine. Le globe et
 la carte sont gelés et n'apparaissent pas ici.
 
-## 7. Après ta validation — ordre proposé
+## 7. Après ta validation — ordre proposé (révisé après les leçons UX de Vega)
 
-1. Hub « poste de veille » (profil thématique + signaux + mention consolidée)
-   — le plus de valeur par ligne de code.
-2. Les Angles sur les Analyses prêtes de l'Explorateur.
-3. Le dossier (maquette d'abord, puis print stylesheet).
-4. Formes B1-B6 au fil des besoins des trois premiers lots (le bump chart
-   arrive avec les Angles ; la heatmap avec le poste de veille).
+1. **Autocomplete de recherche** (leçon U7 — promu en tête sur décision
+   fondatrice : c'est la porte d'entrée des trois parcours) : endpoint
+   suggest (organisations, thèmes, pays, acronymes ; le trigram existant
+   sert déjà la tolérance aux fautes) + combobox accessible motif APG.
+2. Hub « poste de veille » (profil thématique + signaux + mention
+   consolidée) — le plus de valeur par ligne de code, et le précurseur UI
+   de la couche groupes (U5).
+3. Les Angles sur les Analyses prêtes de l'Explorateur.
+4. Le dossier (maquette d'abord, puis print stylesheet).
+5. Formes B1-B6 au fil des besoins des lots précédents (le bump chart
+   arrive avec les Angles ; la heatmap avec le poste de veille) ; hygiène
+   U2 (constante marque + i18n `{{brand}}`) glissée dans le premier lot
+   frontend qui s'y prête.
+
+La **couche groupes** (U5) est un chantier données, pas un lot de ce
+chantier UI : cadrée à la [roadmap](roadmap.md) avec la vague 1.

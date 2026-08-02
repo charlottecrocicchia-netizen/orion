@@ -1,9 +1,8 @@
 # Pièges de Vega — ce qu'on ne reproduira pas
 
-**Statut : v1** (2026-08-02). Sources : leçons du prompt fondateur (BRIEF.md §1-§3),
-vision & personas (architecture-information.md §9). **La section 4 est réservée
-au document de leçons UX de la fondatrice** — sa grille de lecture est prête,
-le doc sera intégré dès réception.
+**Statut : v2** (2026-08-02). Sources : leçons du prompt fondateur (BRIEF.md
+§1-§3), vision & personas (architecture-information.md §9), et les **huit
+leçons UX de la fondatrice** (fournies le 2026-08-02, intégrées en §4).
 
 Règle d'or inchangée : les leçons de Vega se lisent, son code jamais.
 
@@ -45,25 +44,18 @@ Vega prouvait que la donnée existait ; Orion doit prouver qu'elle **répond à
 des questions** — celles de trois personnes précises, vite, avec des sources
 citées, sur un produit qu'on peut vendre.
 
-## 4. Leçons UX de Vega — section réservée au document de la fondatrice
+## 4. Les huit leçons UX de la fondatrice (2026-08-02)
 
-À intégrer dès réception. Grille de lecture préparée — les questions que le
-document permettra de trancher :
+| # | Le piège vécu sur Vega | La règle pour Orion | État |
+|---|---|---|---|
+| U1 | **Données mal choisies, mal préparées** — tout le reste en souffrait | La donnée se choisit sur critères documentés et se **prépare avant de se montrer** | ✅ appliqué (registre des sources, licences, dédoublonnage, campagnes qualité) — à maintenir comme discipline, pas comme acquis |
+| U2 | **Le nom codé en dur partout** — le renommage fut un cauchemar | La marque visible est une **configuration**, jamais des chaînes disséminées | ⚠️ audité (2026-08-02) : ~15 points visibles — logo, layout (©, aria), `index.html`, 10 libellés i18n ; backend sain (identifiants techniques seulement, pas la marque). **Chantier hygiène léger** : constante `BRAND` + interpolation i18n `{{brand}}` |
+| U3 | **Rien n'était modulable** — chaque évolution cassait l'existant | Ossature extensible, gabarits uniques (hub unique, Explorateur whitelisté) | ✅ au cœur d'Orion — ne jamais y déroger |
+| U4 | **La dette empilée** — des couches sur des couches, jamais de refonte propre | La dette se **paie tout de suite ou se date dans un backlog visible** ; jamais de « on verra » silencieux | ✅ pratiqué (dette perf chiffrée et datée, backlogs explicites) — la règle est désormais écrite |
+| U5 | **Les entités légales au lieu des groupes** — CORDIS donne les filiales, l'industriel veut Thales entier | Une **hiérarchie groupe → entités** : vue consolidée ET détail par entité ; le garde-fou anti-fusion reste (il a raison), la couche groupe vient par-dessus | ❌ angle mort partagé avec Vega — **chantier données majeur, à la roadmap** (rejoint les homonymes CNRS et RNSR) ; précurseur UI : la mention « fiche consolidée » du poste de veille |
+| U6 | **La catégorisation, chantier permanent** — difficile mais cruciale | La taxonomie est un investissement continu, pas un acquis | 🟡 euroSciVoc niveau 2 en place (41 thèmes FR) ; devant nous : couverture ANR, taxonomie plus métier |
+| U7 | **La recherche ne comprenait pas ce qu'on tapait** | **Suggestions à la frappe** (projets, organisations, thèmes, pays), tolérance aux fautes, langage naturel en P4 | ⚠️ fuzzy organisations ✓, texte libre R4 ✓ ; **l'autocomplete manque — le chantier le plus rentable à court terme** (dixit la fondatrice), ajouté aux actionnables |
+| U8 | **Le ton** — ni jargon, ni infantilisant, jamais « rendu IA » | Déjà notre doctrine (ton éditorial, checklist des 10 pièges) | ✅ la leçon de Vega confirme la doctrine |
 
-1. **Navigation** : combien d'onglets/vues Vega avait-il, lesquels étaient
-   réellement utilisés, lesquels étaient morts ? (→ calibrer le nombre de
-   sections d'Orion et le courage de supprimer.)
-2. **Visualisations** : lesquelles servaient une décision, lesquelles étaient
-   du décor ? Y avait-il des formes illisibles (camemberts, dual-axis,
-   rainbow) qu'on a gardées par habitude ?
-3. **Parcours** : où les utilisateurs (la fondatrice incluse) se perdaient-ils ?
-   Quelles questions revenaient sans écran pour y répondre ?
-4. **Recherche** : qu'est-ce qui était introuvable ? La recherche couvrait-elle
-   les textes, les organisations, les deux ?
-5. **Confiance** : les chiffres étaient-ils sourcés ? A-t-on déjà douté d'un
-   total devant un tiers ? (→ nos pills CORDIS/ANR et attributions viennent
-   de là.)
-6. **Rythme** : qu'est-ce qui était lent au point de casser l'usage ?
-   (→ nos budgets p95 viennent de là.)
-
-Chaque réponse deviendra une ligne du tableau §1 : piège → règle → où elle vit.
+Chaque ⚠️/❌/🟡 vit désormais dans la [roadmap](roadmap.md) ou dans l'ordre
+d'implémentation de la [conception parcours](conception-parcours-visualisations.md).
