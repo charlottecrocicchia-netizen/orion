@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maquette — Globe acte 3, panneau V2 « Lumière » (sans photo)</title>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f5f5f7; --ink: #1d1d1f; --muted: #86868b;
+    --border: rgba(29,29,31,.1); --accent: #2d4fe3; --accent-deep: #101d7d;
+    --ochre: #b45309;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "Inter", -apple-system, system-ui, sans-serif;
+    font-feature-settings: "cv01","ss03";
+    font-variant-numeric: lining-nums tabular-nums;
+    min-height: 100vh; padding: 48px clamp(16px, 4vw, 64px);
+  }
+  .note {
+    max-width: 1240px; margin: 0 auto 20px; font-size: 12.5px; color: var(--muted);
+  }
+  .note b { color: var(--ink); font-weight: 600; }
+  .act {
+    max-width: 1240px; margin: 0 auto;
+  }
+  .act h2 {
+    font-size: clamp(30px, 3.4vw, 38px); font-weight: 600;
+    letter-spacing: -0.022em; line-height: 1.08;
+  }
+  .act > p { margin-top: 8px; max-width: 560px; font-size: 15px; color: var(--muted); }
+  .stage {
+    margin-top: 40px; display: grid; grid-template-columns: 45fr 34fr;
+    gap: 40px; align-items: center;
+  }
+  .globe-wrap { position: relative; }
+  .globe-wrap svg { width: 100%; height: auto; display: block; }
+  .cartouche {
+    position: absolute; left: 8%; top: 6%;
+    background: var(--ink); color: #f5f5f7; border-radius: 10px;
+    padding: 8px 12px; font-size: 12.5px; line-height: 1.5;
+    box-shadow: 0 16px 48px rgba(29,29,31,.12);
+  }
+  .cartouche .tn { font-weight: 600; }
+
+  /* ——— Le panneau V2 : la matière du produit en fond ——— */
+  .panel {
+    position: relative; overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 24px;
+    padding: 36px 34px 30px;
+  }
+  .panel .watermark {
+    position: absolute; inset: auto -4% -6% -4%; height: 62%;
+    pointer-events: none; opacity: .55;
+  }
+  .flagline { display: flex; align-items: baseline; gap: 12px; }
+  .flagline .flag { font-size: 30px; }
+  .flagline h3 {
+    font-size: clamp(28px, 3vw, 36px); font-weight: 600; letter-spacing: -0.022em;
+  }
+  .hook { margin-top: 8px; font-size: 15px; line-height: 1.5; color: var(--muted); max-width: 40ch; }
+  .hook b { color: var(--ink); font-weight: 600; }
+  .kpis { margin-top: 26px; display: flex; gap: 34px; }
+  .kpis .v { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .kpis .l { margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+  .sec {
+    margin-top: 28px; font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .theme { margin-top: 12px; display: grid; grid-template-columns: 132px 1fr 64px; gap: 10px; align-items: center; font-size: 13.5px; }
+  .theme .bar { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-deep)); }
+  .theme .amt { text-align: right; color: var(--muted); }
+  .partners { margin-top: 12px; display: flex; gap: 18px; font-size: 13.5px; color: var(--muted); }
+  .partners b { color: var(--ink); font-weight: 600; }
+  .cta {
+    margin-top: 30px; display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff; text-decoration: none;
+    border-radius: 999px; padding: 12px 22px; font-size: 15px; font-weight: 500;
+  }
+  .close {
+    position: absolute; top: 18px; right: 18px; width: 30px; height: 30px;
+    border: 1px solid var(--border); border-radius: 999px; background: var(--bg);
+    color: var(--muted); display: grid; place-items: center; font-size: 13px;
+  }
+</style>
+</head>
+<body>
+  <p class="note"><b>Maquette V2 — panneau « Lumière », sans photo.</b>
+  Instant figé : la France vient d'être cliquée ; le globe a glissé à gauche
+  (constellation de partenaires allumée), le panneau s'est ouvert. Le fond du
+  panneau est la trajectoire réelle du pays en filigrane — la donnée comme matière.</p>
+
+  <section class="act">
+    <h2>Le monde des financements</h2>
+    <p>38 pays couverts aujourd'hui, le reste en attente honnête — survolez un
+    pays pour voir ses collaborations, cliquez pour le rencontrer.</p>
+
+    <div class="stage">
+      <div class="globe-wrap">
+        <div class="cartouche"><span class="tn">France</span> · €32,4 Md<br/>
+        <span style="opacity:.75">5 premières collaborations</span></div>
+        <svg viewBox="0 0 640 640" role="img" aria-label="Globe — la France et sa constellation de partenaires">
+          <defs>
+            <radialGradient id="sphere" cx="38%" cy="32%" r="75%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="78%" stop-color="#f5f5f7"/>
+              <stop offset="100%" stop-color="#e8e8ed"/>
+            </radialGradient>
+          </defs>
+          <circle cx="320" cy="320" r="296" fill="url(#sphere)" stroke="rgba(29,29,31,.1)"/>
+          <!-- graticule -->
+          <g fill="none" stroke="rgba(29,29,31,.06)" stroke-width="1">
+            <ellipse cx="320" cy="320" rx="296" ry="296"/>
+            <ellipse cx="320" cy="320" rx="212" ry="296"/>
+            <ellipse cx="320" cy="320" rx="104" ry="296"/>
+            <line x1="24" y1="320" x2="616" y2="320"/>
+            <ellipse cx="320" cy="320" rx="296" ry="212"/>
+            <ellipse cx="320" cy="320" rx="296" ry="104"/>
+          </g>
+          <!-- décor monde non couvert (gris élégant) -->
+          <g fill="#e2e2e8">
+            <path d="M96 388 q30 -50 78 -44 q40 6 52 40 q8 30 -18 44 q-52 24 -90 2 q-30 -18 -22 -42 Z"/>
+            <path d="M416 470 q40 -18 70 4 q22 18 8 44 q-20 34 -62 26 q-34 -8 -34 -36 q0 -24 18 -38 Z"/>
+            <path d="M150 180 q44 -34 92 -20 q30 10 24 36 q-8 28 -48 32 q-48 6 -74 -14 q-16 -14 6 -34 Z"/>
+          </g>
+          <!-- Europe couverte : outremer gradué -->
+          <g stroke="#ffffff" stroke-width="1.4">
+            <path d="M330 214 q34 -12 58 6 q18 14 10 36 q-10 24 -40 22 q-34 -2 -44 -26 q-8 -22 16 -38 Z" fill="#2d4fe3" fill-opacity=".46"/><!-- DE -->
+            <path d="M282 258 q30 -16 54 -2 q20 12 14 34 q-8 26 -38 28 q-30 2 -44 -18 q-12 -20 14 -42 Z" fill="#2d4fe3" fill-opacity=".92"/><!-- FR -->
+            <path d="M252 330 q26 -18 50 -6 q18 10 12 30 q-8 22 -34 22 q-28 0 -38 -18 q-8 -16 10 -28 Z" fill="#2d4fe3" fill-opacity=".5"/><!-- ES -->
+            <path d="M352 306 q24 -10 40 6 q12 12 4 30 q-10 20 -32 16 q-24 -4 -28 -24 q-2 -18 16 -28 Z" fill="#2d4fe3" fill-opacity=".44"/><!-- IT -->
+            <path d="M262 196 q22 -14 40 -2 q14 10 8 26 q-8 18 -28 16 q-22 -2 -28 -18 q-4 -14 8 -22 Z" fill="#2d4fe3" fill-opacity=".4"/><!-- GB -->
+            <path d="M318 182 q16 -8 28 2 q8 8 2 18 q-8 12 -22 8 q-14 -4 -14 -14 q0 -8 6 -14 Z" fill="#2d4fe3" fill-opacity=".34"/><!-- NL -->
+          </g>
+          <!-- constellation de partenaires (option B recommandée) -->
+          <g stroke="#1d1d1f" stroke-opacity=".5" stroke-width="1.1">
+            <line x1="308" y1="288" x2="368" y2="248"/>
+            <line x1="308" y1="288" x2="286" y2="352"/>
+            <line x1="308" y1="288" x2="382" y2="330"/>
+            <line x1="308" y1="288" x2="284" y2="214"/>
+            <line x1="308" y1="288" x2="332" y2="196"/>
+          </g>
+          <g>
+            <circle cx="308" cy="288" r="7" fill="#2d4fe3"/>
+            <circle cx="308" cy="288" r="13" fill="#2d4fe3" opacity=".18"/>
+            <circle cx="368" cy="248" r="5.4" fill="#1d1d1f"/><!-- DE, plus gros flux -->
+            <circle cx="286" cy="352" r="4.4" fill="#1d1d1f"/>
+            <circle cx="382" cy="330" r="4" fill="#1d1d1f"/>
+            <circle cx="284" cy="214" r="3.6" fill="#1d1d1f"/>
+            <circle cx="332" cy="196" r="3.2" fill="#1d1d1f"/>
+          </g>
+          <g font-size="12" fill="#1d1d1f" font-weight="600">
+            <text x="380" y="244">DE</text>
+            <text x="272" y="370">ES</text>
+            <text x="394" y="334">IT</text>
+            <text x="268" y="206">GB</text>
+            <text x="342" y="190">NL</text>
+          </g>
+        </svg>
+      </div>
+
+      <aside class="panel" aria-label="France — l'essentiel">
+        <button class="close" aria-label="Fermer">✕</button>
+        <!-- filigrane : la trajectoire réelle de la France, matière du panneau -->
+        <svg class="watermark" viewBox="0 0 560 240" aria-hidden="true">
+          <polyline points="10,205 58,196 106,188 154,150 202,158 250,128 298,134 346,120 394,86 442,60 490,102 538,170"
+            fill="none" stroke="#2d4fe3" stroke-width="1.6" stroke-opacity=".5"/>
+          <g fill="#1d1d1f">
+            <circle cx="154" cy="150" r="2.6"/><circle cx="250" cy="128" r="3"/>
+            <circle cx="346" cy="120" r="3.2"/><circle cx="442" cy="60" r="4.4" fill="#2d4fe3"/>
+            <circle cx="538" cy="170" r="2.4"/>
+          </g>
+        </svg>
+        <div class="flagline"><span class="flag">🇫🇷</span><h3>France</h3></div>
+        <p class="hook"><b>3ᵉ pays financé d'Europe</b> — €32,4 milliards répartis
+        sur 55 973 projets depuis 2005.</p>
+        <div class="kpis">
+          <div><div class="v">€32,4 Md</div><div class="l">financements</div></div>
+          <div><div class="v">55 973</div><div class="l">projets</div></div>
+          <div><div class="v">18 959</div><div class="l">organisations</div></div>
+        </div>
+        <p class="sec">Ce qu'elle finance d'abord</p>
+        <div class="theme"><span>informatique</span><span class="bar" style="width:100%"></span><span class="amt">€4,2 Md</span></div>
+        <div class="theme"><span>énergie</span><span class="bar" style="width:72%"></span><span class="amt">€3,0 Md</span></div>
+        <div class="theme"><span>santé</span><span class="bar" style="width:64%"></span><span class="amt">€2,7 Md</span></div>
+        <p class="sec">Avec qui</p>
+        <p class="partners"><span>🇩🇪 <b>Allemagne</b></span><span>🇪🇸 Espagne</span><span>🇮🇹 Italie</span></p>
+        <a class="cta" href="#">Ouvrir la fiche France →</a>
+      </aside>
+    </div>
+  </section>
+</body>
+</html>
