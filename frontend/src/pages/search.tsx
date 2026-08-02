@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
+import { SearchComposer } from "@/components/search-composer";
 import { Sparkline } from "@/components/sparkline";
 import { TrendDelta } from "@/components/trend-delta";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,8 @@ const ORG_GRID_RANKED = "sm:grid-cols-[26px_minmax(0,1fr)_150px_88px_120px] sm:g
 
 function useSearchState() {
   const [params, setParams] = useSearchParams();
+  const replaceAll = (entries: Record<string, string>) =>
+    setParams(new URLSearchParams(entries), { preventScrollReset: true });
   const update = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
     for (const [key, value] of Object.entries(patch)) {
@@ -45,7 +48,54 @@ function useSearchState() {
     next.delete("page");
     setParams(next, { preventScrollReset: true });
   };
-  return { params, update, toggleMulti };
+  return { params, update, toggleMulti, replaceAll };
+}
+
+/** The three teaching examples under the empty composer — each poses a
+ *  full composed question in one click (the page teaches the gesture). */
+function ComposerExamples({
+  kind,
+  replaceAll,
+}: {
+  kind: "projects" | "organisations";
+  replaceAll: (entries: Record<string, string>) => void;
+}) {
+  const { t } = useTranslation();
+  const examples: { label: string; entries: Record<string, string> }[] =
+    kind === "projects"
+      ? [
+          {
+            label: t("search.composer.ex1"),
+            entries: { country: "DE", funder: "ec", q: "hydrogen" },
+          },
+          {
+            label: t("search.composer.ex2"),
+            entries: { q: t("search.composer.ex2Q"), year_from: "2021" },
+          },
+          {
+            label: t("search.composer.ex3"),
+            entries: { country: "FR", funder: "anr", q: t("search.composer.ex3Q") },
+          },
+        ]
+      : [
+          { label: t("search.composer.exOrg1"), entries: { q: "fraunhofer" } },
+          { label: t("search.composer.exOrg2"), entries: { country: "FR", q: "institut" } },
+        ];
+  return (
+    <p className="mt-3 text-[13px] text-muted-foreground">
+      {t("search.composer.try")}
+      {examples.map((example) => (
+        <button
+          key={example.label}
+          type="button"
+          onClick={() => replaceAll(example.entries)}
+          className="ml-3 text-accent underline-offset-2 hover:underline"
+        >
+          {example.label}
+        </button>
+      ))}
+    </p>
+  );
 }
 
 function FacetChip({
@@ -231,7 +281,7 @@ function Pager({
 
 export function ProjectsSearchPage() {
   const { t, i18n } = useTranslation();
-  const { params, update, toggleMulti } = useSearchState();
+  const { params, update, toggleMulti, replaceAll } = useSearchState();
   const q = params.get("q") ?? "";
   const page = Math.max(Number(params.get("page") ?? "1"), 1);
 
@@ -253,6 +303,7 @@ export function ProjectsSearchPage() {
     activeCountries.length > 0 ||
     params.get("year_from") != null ||
     params.get("year_to") != null;
+  const composed = Boolean(q) || hasFilters;
 
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
@@ -274,6 +325,13 @@ export function ProjectsSearchPage() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* The composable bar IS the page (conception validated 2026-08-02):
+          the question first, the list follows. */}
+      <div className="mt-6">
+        <SearchComposer kind="projects" params={params} update={update} toggleMulti={toggleMulti} />
+        {!composed ? <ComposerExamples kind="projects" replaceAll={replaceAll} /> : null}
       </div>
 
       <div className="mt-5 flex items-baseline gap-3">
@@ -333,7 +391,12 @@ export function ProjectsSearchPage() {
       </div>
 
       <div className="mt-2">
-        {isPending ? (
+        {!composed ? (
+          // No directory (conception rule): the question first.
+          <p className="mt-14 text-center text-[15px] text-muted-foreground">
+            {t("search.composer.invite")}
+          </p>
+        ) : isPending ? (
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="mt-4 h-20 w-full" />)
         ) : data && data.results.length === 0 && q ? (
           <div className="mx-auto mt-16 max-w-[440px] text-center">
@@ -391,11 +454,9 @@ export function ProjectsSearchPage() {
         )}
       </div>
 
-      <Pager
-        page={page}
-        hasMore={(data?.total ?? 0) > page * 20}
-        update={update}
-      />
+      {composed ? (
+        <Pager page={page} hasMore={(data?.total ?? 0) > page * 20} update={update} />
+      ) : null}
 
       <ExploreExits
         exits={[
@@ -410,7 +471,7 @@ export function ProjectsSearchPage() {
 
 export function OrganisationsSearchPage() {
   const { t, i18n } = useTranslation();
-  const { params, update, toggleMulti } = useSearchState();
+  const { params, update, toggleMulti, replaceAll } = useSearchState();
   const q = params.get("q") ?? "";
   const page = Math.max(Number(params.get("page") ?? "1"), 1);
   const sort = params.get("sort") ?? (q ? "relevance" : "funding");
@@ -424,6 +485,7 @@ export function OrganisationsSearchPage() {
   });
 
   const activeCountries = params.getAll("country");
+  const composed = Boolean(q) || activeCountries.length > 0;
   const ranked = sort === "funding" || sort === "projects";
   const bestMatch =
     q && sort === "relevance" && page === 1 && (data?.results.length ?? 0) > 0
@@ -451,6 +513,16 @@ export function OrganisationsSearchPage() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="mt-6">
+        <SearchComposer
+          kind="organisations"
+          params={params}
+          update={update}
+          toggleMulti={toggleMulti}
+        />
+        {!composed ? <ComposerExamples kind="organisations" replaceAll={replaceAll} /> : null}
       </div>
 
       <div className="mt-5 flex items-baseline gap-3">

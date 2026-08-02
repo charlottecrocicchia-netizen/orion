@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 test("typing in the palette suggests an organisation and opens it", async ({ page }) => {
   await page.goto("/projects");
   await page.getByRole("button", { name: /Search…/ }).click();
-  const box = page.getByRole("combobox");
+  const box = page.getByRole("combobox", { name: /Search projects/ });
   await box.fill("centre");
   const listbox = page.getByRole("listbox");
   await expect(listbox).toBeVisible({ timeout: 10_000 });
@@ -26,7 +26,7 @@ test("typing in the palette suggests an organisation and opens it", async ({ pag
 test("countries match locally and navigate to the country file", async ({ page }) => {
   await page.goto("/projects");
   await page.getByRole("button", { name: /Search…/ }).click();
-  const box = page.getByRole("combobox");
+  const box = page.getByRole("combobox", { name: /Search projects/ });
   await box.fill("franc");
   await expect(page.getByRole("option", { name: /France/ })).toBeVisible({ timeout: 10_000 });
   await page.getByRole("option", { name: /France/ }).click();
@@ -36,7 +36,7 @@ test("countries match locally and navigate to the country file", async ({ page }
 test("plain Enter keeps the old reflex — full-text search", async ({ page }) => {
   await page.goto("/projects");
   await page.getByRole("button", { name: /Search…/ }).click();
-  await page.getByRole("combobox").fill("hydrogen storage");
+  await page.getByRole("combobox", { name: /Search projects/ }).fill("hydrogen storage");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/projects\?q=hydrogen(\+|%20)storage/);
 });
