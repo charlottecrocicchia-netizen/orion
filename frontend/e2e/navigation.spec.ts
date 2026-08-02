@@ -53,6 +53,24 @@ test("the placeholder pages say the date and bridge to what exists", async ({ pa
   await expect(page).toHaveURL(/\/dossier/);
 });
 
+test("programmes group by frame and filter instantly", async ({ page }) => {
+  await page.goto("/explore/programmes");
+  await expect(page.getByText("Framework programmes")).toBeVisible({ timeout: 15_000 });
+  // Filtering narrows both sections live.
+  await page.getByRole("searchbox").fill("horizon");
+  await expect(page.getByRole("link", { name: /Horizon 2020/ })).toBeVisible();
+  await expect(page.getByText(/National programmes/)).toHaveCount(0);
+});
+
+test("the themes index ranks the disciplines and opens the Explorer", async ({ page }) => {
+  await page.goto("/explore/themes");
+  await expect(page.getByRole("heading", { name: "Themes" })).toBeVisible();
+  const first = page.getByRole("link", { name: /% of the corpus|€/ }).first();
+  await expect(first).toBeVisible({ timeout: 15_000 });
+  await first.click();
+  await expect(page).toHaveURL(/\/explore\?by=theme&split=1&compare=/);
+});
+
 test("maps explore at the keyboard too: Enter selects, the panel CTA leaves", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("orion.geoview", "map");

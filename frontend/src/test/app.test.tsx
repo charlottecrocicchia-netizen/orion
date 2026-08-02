@@ -123,11 +123,11 @@ test("home leads with the hero, acts follow below", async () => {
   expect(
     screen.getByRole("heading", { name: "What are you looking for?" }),
   ).toBeInTheDocument();
-  expect(
-    screen.getByRole("link", { name: /Explore the 41 disciplines/ }),
-  ).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Benchmark the actors/ })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Open the country files/ })).toBeInTheDocument();
+  // Lot D: the doors say the verbs, with living content behind them.
+  expect(screen.getByRole("link", { name: /Discover/ })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Analyse.*hydrogen/ })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Build/ })).toBeInTheDocument();
+  expect(screen.getByText(/alerts and follows/)).toBeInTheDocument();
   expect(screen.getByText("Phase 5 · autumn 2026")).toBeInTheDocument();
   // Act 3 — the proof: the staged globe.
   expect(screen.getByRole("heading", { name: "The world of funding" })).toBeInTheDocument();

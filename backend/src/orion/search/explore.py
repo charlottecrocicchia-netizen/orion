@@ -65,7 +65,9 @@ ORG_TYPE_KEYS: dict[str, str] = {
     "ETRANGER": "other",
 }
 
-LIMIT_MAX = 25
+# 50 covers the full theme dimension (41 euroSciVoc level-2 themes) —
+# the themes index reads them all in one call.
+LIMIT_MAX = 50
 EXPLORE_CACHE_MAX = 128
 # A country with three participations and two coordinations is not "a country
 # that coordinates": ratio views need a minimum sample.

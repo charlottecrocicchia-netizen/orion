@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orion — maquette · la recherche composable</title>
+<style>
+  :root {
+    --ink: #16181d; --muted: #6b7280; --faint: #9aa1ac;
+    --accent: #3b5cff; --accent-deep: #101d7d; --accent-soft: #eef1ff;
+    --hairline: rgba(22,24,29,.12); --hairline-soft: rgba(22,24,29,.07);
+    --surface: #f6f7f9; --shadow: 0 10px 30px -12px rgba(16,29,125,.18);
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Inter, -apple-system, "Segoe UI", sans-serif; font-feature-settings:"tnum","cv01"; color:var(--ink); background:#fff; font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .page { max-width: 880px; margin:0 auto; padding: 64px 36px 110px; }
+  .eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  h1 { margin-top:12px; font-size: clamp(32px,4.6vw,46px); font-weight:550; letter-spacing:-.026em; line-height:1.04; max-width:22ch; }
+  .lead { margin-top:16px; max-width:56ch; font-size:16.5px; color:#3a3f48; }
+  .scene { margin-top:72px; }
+  .scene-head { display:flex; align-items:baseline; gap:14px; border-bottom:1px solid var(--hairline); padding-bottom:10px; }
+  .scene-head .n { font-family:var(--mono); font-size:12px; color:var(--accent); }
+  .scene-head h2 { font-size:20px; font-weight:600; letter-spacing:-.012em; }
+  .scene-head .why { margin-left:auto; font-size:12.5px; color:var(--muted); text-align:right; max-width:40ch; }
+  .scene-body { margin-top:26px; }
+
+  .bar { display:flex; align-items:center; flex-wrap:wrap; gap:8px; border:1px solid var(--hairline); border-radius:18px; padding:13px 18px; box-shadow:var(--shadow); }
+  .bar .glass { color:var(--faint); }
+  .tag { display:inline-flex; align-items:baseline; gap:7px; border-radius:999px; padding:5px 12px; font-size:13.5px; font-weight:520; background:var(--accent-soft); color:var(--accent-deep); }
+  .tag .type { font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); opacity:.75; }
+  .tag .x { color:var(--accent); opacity:.5; font-size:12px; }
+  .freetext { font-size:15px; }
+  .caret { display:inline-block; width:1.5px; height:18px; background:var(--accent); vertical-align:-3px; animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity:0 } }
+  .ghost { color:var(--faint); font-size:15px; }
+
+  .suggest { margin-top:8px; border:1px solid var(--hairline); border-radius:14px; box-shadow:var(--shadow); padding:6px; max-width:460px; }
+  .s-row { display:flex; align-items:baseline; gap:10px; border-radius:9px; padding:8px 12px; font-size:14px; }
+  .s-row.active { background:var(--accent-soft); color:var(--accent-deep); box-shadow: inset 2.5px 0 0 var(--accent); }
+  .s-row .k { font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-left:auto; }
+  .s-note { padding:7px 12px 4px; font-size:11px; color:var(--faint); }
+
+  .under { margin-top:14px; display:flex; align-items:baseline; gap:18px; font-size:13px; color:var(--muted); }
+  .under b { color:var(--ink); font-weight:600; }
+  .results { margin-top:18px; }
+  .r-row { display:flex; align-items:baseline; gap:14px; border-top:1px solid var(--hairline-soft); padding:11px 2px; font-size:14px; }
+  .r-row .acr { font-weight:600; }
+  .r-row .t { color:var(--muted); min-width:0; }
+  .r-row .amt { margin-left:auto; font-weight:600; white-space:nowrap; }
+  .facet-hint { margin-top:22px; border-top:1px solid var(--hairline); padding-top:14px; font-size:12.5px; color:var(--muted); }
+  .facet-pill { display:inline-block; border:1px solid var(--hairline); border-radius:999px; padding:3px 10px; font-size:12px; margin:4px 4px 0 0; color:#3a3f48; }
+  .facet-pill b { color:var(--muted); font-weight:500; font-size:11px; }
+  .examples { margin-top:12px; font-size:13px; color:var(--muted); }
+  .examples a { color:var(--accent); text-decoration:none; border-bottom:1px dotted rgba(59,92,255,.4); margin-left:10px; }
+  .colo { margin-top:80px; border-top:1px solid var(--hairline); padding-top:16px; display:flex; gap:22px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+  .colo .m { font-family:var(--mono); font-size:10.5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="eyebrow">Orion · maquette · proposition 2026-08-02 · à itérer avant implémentation</p>
+  <h1>La recherche composable</h1>
+  <p class="lead">
+    La page Projets cesse d'être un annuaire : une barre où l'on tape
+    librement, chaque critère reconnu devient un tag typé, les résultats
+    suivent en direct. Accompagne <b>docs/conception-recherche-composable.md</b>.
+  </p>
+
+  <section class="scene">
+    <div class="scene-head"><span class="n">A</span><h2>L'arrivée — la page enseigne le geste</h2>
+      <span class="why">plus d'annuaire : la barre, des exemples, les chiffres vrais</span></div>
+    <div class="scene-body">
+      <div class="bar"><span class="glass">⌕</span><span class="ghost">Composez : un pays, un bailleur, un thème, des années…</span><span class="caret"></span></div>
+      <p class="examples">Essayez
+        <a>Allemagne + European Commission + hydrogen</a>
+        <a>CNRS + quantique</a>
+        <a>PME + santé + 2021 → 2024</a>
+      </p>
+      <p class="under"><b>119 172</b> projets · <b>103 457</b> organisations — la question d'abord, la liste ensuite.</p>
+    </div>
+  </section>
+
+  <section class="scene">
+    <div class="scene-head"><span class="n">B</span><h2>La frappe — les suggestions typées posent les tags</h2>
+      <span class="why">le moteur du lot 1 (palette ⌘K), en mode filtre : Entrée = tag, pas navigation</span></div>
+    <div class="scene-body">
+      <div class="bar">
+        <span class="glass">⌕</span>
+        <span class="tag"><span class="type">pays</span> 🇩🇪 Allemagne <span class="x">×</span></span>
+        <span class="freetext">europ</span><span class="caret"></span>
+      </div>
+      <div class="suggest">
+        <div class="s-row active">European Commission <span class="k">bailleur</span></div>
+        <div class="s-row">Horizon Europe (2021-2027) <span class="k">programme</span></div>
+        <div class="s-row">European Molecular Biology Laboratory <span class="k">organisation</span></div>
+        <div class="s-row">Chercher « europ » dans les textes <span class="k">texte libre</span></div>
+        <div class="s-note">↑↓ pour choisir · Entrée pose le tag · ce qui n'est pas reconnu reste du texte libre (recherche bilingue)</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene">
+    <div class="scene-head"><span class="n">C</span><h2>La question posée — les résultats suivent en direct</h2>
+      <span class="why">l'état complet vit dans l'URL ; les facettes posent des tags au clic</span></div>
+    <div class="scene-body">
+      <div class="bar">
+        <span class="glass">⌕</span>
+        <span class="tag"><span class="type">pays</span> 🇩🇪 Allemagne <span class="x">×</span></span>
+        <span class="tag"><span class="type">bailleur</span> European Commission <span class="x">×</span></span>
+        <span class="tag"><span class="type">texte</span> « hydrogen » <span class="x">×</span></span>
+        <span class="caret"></span>
+      </div>
+      <p class="under"><b>612</b> projets correspondent · recherche en anglais &amp; français · <span style="color:var(--accent)">partager cette recherche →</span></p>
+      <div class="results">
+        <div class="r-row"><span class="acr">H2GIGA</span><span class="t">Serienfertigung von Elektrolyseuren — scale-up de l'électrolyse</span><span class="amt">€24,6M</span></div>
+        <div class="r-row"><span class="acr">HYPOP</span><span class="t">Hydrogen public opinion — l'acceptabilité des infrastructures H2</span><span class="amt">€3,1M</span></div>
+        <div class="r-row"><span class="acr">SHIMMER</span><span class="t">Safe hydrogen injection — mélange H2 dans le réseau gazier</span><span class="amt">€2,4M</span></div>
+      </div>
+      <div class="facet-hint">
+        Affiner — un clic pose le tag :
+        <div>
+          <span class="facet-pill">Horizon Europe <b>· 214</b></span>
+          <span class="facet-pill">H2020 <b>· 361</b></span>
+          <span class="facet-pill">2021 → 2024 <b>· 388</b></span>
+          <span class="facet-pill">Coordinateur allemand <b>· 187</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="colo">
+    <span class="m">ORION · MAQUETTE RECHERCHE COMPOSABLE · V1</span>
+    <span>proposition à itérer — rien d'implémenté</span>
+    <span>tout existe côté API sauf le tag organisation (extension proposée)</span>
+  </div>
+</div>
+</body>
+</html>

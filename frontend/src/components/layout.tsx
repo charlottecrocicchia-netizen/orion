@@ -81,6 +81,7 @@ function Footer() {
           <ul className="mt-3">
             <li><Link to="/explore/countries" className={link}>{t("footer.countries")}</Link></li>
             <li><Link to="/explore/programmes" className={link}>{t("footer.programmes")}</Link></li>
+            <li><Link to="/explore/themes" className={link}>{t("footer.themesLink")}</Link></li>
             <li><Link to="/analyses" className={link}>{t("footer.analysesLink")}</Link></li>
             <li><Link to="/calls" className={link}>{t("footer.callsLink")}</Link></li>
             <li><Link to="/workspace" className={link}>{t("footer.workspaceLink")}</Link></li>

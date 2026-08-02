@@ -14,8 +14,10 @@ import { WorldGlobe } from "@/components/world-globe";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import type { ExploreResponse } from "@/lib/api";
+import { useDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
-import { formatInt, themeLabel } from "@/lib/format";
+import { STORIES } from "@/lib/stories";
+import { formatInt, formatOrgName, themeLabel } from "@/lib/format";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -123,7 +125,15 @@ export function HomePage() {
   const { t, i18n } = useTranslation();
   const go = useIntentNavigate();
   const navigate = useNavigate();
+  const dossier = useDossier();
   const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
+  // The Discover door leads to a REAL file: the corpus' top organisation.
+  const { data: topOrgData } = useQuery({
+    queryKey: ["top-organisation"],
+    queryFn: () =>
+      api.explore(new URLSearchParams({ metric: "funding", by: "organisation", limit: "1" })),
+  });
+  const topOrg = topOrgData?.series?.[0] ?? null;
   const { data: themeTrend } = useQuery({
     queryKey: ["signal-themes"],
     queryFn: () =>
@@ -248,28 +258,45 @@ export function HomePage() {
             ))}
           </p>
 
+          {/* Lot D (architecture validated 2026-08-02): the doors say the
+              four VERBS, and each carries LIVING content — a real file, a
+              real deck, your actual dossier — never a promise (KAILA
+              lesson). The future verb stays visible, dated, unlinked. */}
           <div className="mt-16 text-left">
             <EditorialEntry
-              to="/explore?by=theme&split=0&limit=10"
-              title={t("home.entryThemes")}
-              desc={t("home.entryThemesDesc")}
-              figure={t("home.entryThemesFigure", { count: stats?.totals.projects ?? 0 })}
+              to={topOrg ? `/organisations/${topOrg.key}` : "/organisations"}
+              title={t("nav.discover")}
+              desc={
+                topOrg
+                  ? t("home.doorDiscoverDesc", { name: formatOrgName(String(topOrg.label ?? "")) })
+                  : t("nav.menu.organisationsDesc")
+              }
+              figure={t("home.doorDiscoverFigure", {
+                count: stats?.totals.organisations ?? 0,
+              })}
             />
             <EditorialEntry
-              to="/compare"
-              title={t("home.entryOrgs")}
-              desc={t("home.entryOrgsDesc")}
-              figure={t("home.entryOrgsFigure", { count: stats?.totals.organisations ?? 0 })}
+              to="/explore?angles=hydrogen"
+              title={t("nav.analyse")}
+              desc={t("home.doorAnalyseDesc")}
+              figure={t("home.doorAnalyseFigure", { count: STORIES.length })}
             />
             <EditorialEntry
-              to="/explore/countries"
-              title={t("home.entryCountries")}
-              desc={t("home.entryCountriesDesc")}
-              figure={t("home.entryCountriesFigure", { count: stats?.totals.countries ?? 0 })}
+              to="/dossier"
+              title={t("nav.build")}
+              desc={
+                dossier.items.length > 0
+                  ? t("home.doorBuildDescSome", { count: dossier.items.length })
+                  : t("home.doorBuildDescEmpty")
+              }
+              figure={dossier.items.length > 0 ? `▤ ${dossier.items.length}` : null}
             />
-            <p className="border-t pt-6 text-[13px] text-muted-foreground">
-              {t("home.callsNote")}{" "}
-              <span className="font-mono text-[11.5px]">{t("home.callsBadge")}</span>
+            <p className="border-t pt-6 text-[15px] text-muted-foreground">
+              <span className="font-display text-[19px] font-[540] tracking-[-0.015em] text-foreground/55">
+                {t("home.doorFollow")}
+              </span>
+              <span className="ml-4">{t("home.doorFollowNote")}</span>
+              <span className="ml-3 font-mono text-[11px]">{t("home.callsBadge")}</span>
             </p>
           </div>
         </div>

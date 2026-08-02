@@ -11,6 +11,7 @@ import { CallsPage } from "@/pages/calls";
 import { CountryHubPage } from "@/pages/country-hub";
 import { ExploreCountriesPage } from "@/pages/explore-countries";
 import { ExploreProgrammesPage } from "@/pages/explore-programmes";
+import { ExploreThemesPage } from "@/pages/explore-themes";
 import { HomePage } from "@/pages/home";
 import { NotFoundPage } from "@/pages/not-found";
 import { OrganisationHubPage } from "@/pages/organisation-hub";
@@ -56,6 +57,7 @@ export function AppRoutes() {
           <Route path="/explore/countries" element={<ExploreCountriesPage />} />
           <Route path="/explore/countries/:code" element={<CountryHubPage />} />
           <Route path="/explore/programmes" element={<ExploreProgrammesPage />} />
+          <Route path="/explore/themes" element={<ExploreThemesPage />} />
           <Route path="/explore/programmes/:id" element={<ProgrammeHubPage />} />
           <Route path="/about-data" element={<AboutDataPage />} />
           <Route path="*" element={<NotFoundPage />} />

@@ -124,6 +124,20 @@ All notable changes to Orion are documented here. The format follows
   (the URL mechanics stay for wave 1 and the P6 zone subscriptions);
   the footer sitemap gains the new pages.
 
+- The Discover pages stop being directories (grande recette): the
+  programmes page regroups by frame — the three EC framework programmes
+  as editorial rows, the ANR's 450 national programmes as a dense list
+  sorted by funding, one instant filter over both, no more uniform
+  cartouches; the themes index (/explore/themes) opens the missing door —
+  the 41 euroSciVoc disciplines with their weight, corpus share,
+  twenty-year spark and mature-windows movement, sortable by funding or
+  momentum, every row opening the Explorer pre-composed on that
+  discipline (the aggregate limit cap rises to 50 to serve all 41 in one
+  call); the home ink tile says the four VERBS with living content
+  behind each — the corpus' top organisation's file, the hydrogen deck,
+  your actual session dossier — and the future verb stays visible,
+  dated, unlinked.
+
 ### Changed
 
 - On a map, the first click explores — it never teleports (founder rule):

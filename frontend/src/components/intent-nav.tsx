@@ -48,6 +48,12 @@ function useIntents(): { key: string; label: string; entries: Entry[] }[] {
           desc: t("nav.menu.programmesDesc"),
         },
         {
+          to: "/explore/themes",
+          label: t("nav.menu.themes"),
+          desc: t("nav.menu.themesDesc"),
+          isNew: true,
+        },
+        {
           to: "/calls",
           label: t("nav.menu.calls"),
           desc: t("nav.menu.callsDesc"),

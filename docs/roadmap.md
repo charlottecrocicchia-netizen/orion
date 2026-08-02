@@ -68,14 +68,29 @@ pas de pavés) ; le sélecteur « Europe + France » discret ou masqué tant
 qu'une seule zone existe (la mécanique URL reste dessous, elle porte les
 abonnements par zone) ; « Construire » à valider à l'usage.
 
-État : **lots A-C livrés** (2026-08-02) — la barre aux quatre intentions
-(menus décrits, badges datés, Échap/clic dehors), la bibliothèque
-`/analyses` (renvoi court gardé dans l'Explorateur), les placeholders
-`/calls` et `/workspace` (grammaire raffinée validée en captures), le
-sélecteur de périmètre masqué. **Reste : lot D** (l'accueil aligné sur
-les intentions, contenu vivant façon KAILA) et l'**index des thèmes**
-`/explore/themes` (la 5ᵉ page, entrera au menu Découvrir à sa
-livraison — pas de porte morte d'ici là).
+État : **tous les lots livrés** (2026-08-02) — A-C (barre quatre
+intentions, `/analyses`, placeholders raffinés, périmètre masqué), puis
+**lot D** (les portes de l'accueil disent les verbes avec du contenu
+vivant : la première organisation du corpus, le deck hydrogène, votre
+dossier en cours ; le verbe futur reste daté et non cliquable) et
+l'**index des thèmes** `/explore/themes` (41 disciplines : poids,
+étincelle vingt ans, avant/après en fenêtres mûres, tri
+montant/progression, chaque rangée ouvre l'Explorateur pré-composé —
+entrée au menu Découvrir et au footer). Grande recette fondatrice du
+même jour : globe/cartes et donuts **validés, on ne touche plus** ;
+la page Programmes regroupée par cadre (cadres CE en rangées
+éditoriales, 450 ANR en liste dense filtrable — plus de cartouches).
+
+## Chantier suivant — la recherche composable (conception à itérer)
+
+Commande fondatrice (grande recette 2026-08-02) : les pages Découvrir
+cessent d'être des annuaires. **Proposition livrée, à itérer avant toute
+implémentation** — [conception-recherche-composable.md](conception-recherche-composable.md)
+et sa [maquette](design/recherche-composable-maquette.html) : une barre
+où la frappe libre devient des tags typés (pays, bailleur, programme,
+années, texte bilingue — tout existe côté API ; le tag organisation est
+la seule extension backend proposée), résultats en direct, facettes
+poseuses de tags, état dans l'URL. Quatre lots y sont découpés.
 
 ## Ensuite — extension des sources, vague 1
 
