@@ -41,8 +41,8 @@ const resources = {
         act3Lead:
           "38 countries covered today, the rest greyed honestly — hover a country for its collaborations, click to meet it.",
         globeFlowsHint: "top 5 collaborations",
-        panelRank_one: "Top funded country in Europe",
-        panelRank_other: "No. {{count}} funded country in Europe",
+        panelRank_one: "Top funded country in Europe — in Orion's data",
+        panelRank_other: "No. {{count}} funded country in Europe — in Orion's data",
         panelHook: "{{amount}} across {{projects}} projects since 2005.",
         panelFunding: "funding",
         panelProjects: "projects",
@@ -341,8 +341,8 @@ const resources = {
         act3Lead:
           "38 pays couverts aujourd'hui, le reste grisé honnêtement — survolez un pays pour ses collaborations, cliquez pour le rencontrer.",
         globeFlowsHint: "5 premières collaborations",
-        panelRank_one: "Premier pays financé d'Europe",
-        panelRank_other: "{{count}}ᵉ pays financé d'Europe",
+        panelRank_one: "Premier pays financé d'Europe — dans les données Orion",
+        panelRank_other: "{{count}}ᵉ pays financé d'Europe — dans les données Orion",
         panelHook: "{{amount}} répartis sur {{projects}} projets depuis 2005.",
         panelFunding: "financements",
         panelProjects: "projets",

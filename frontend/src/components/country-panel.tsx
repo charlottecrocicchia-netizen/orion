@@ -78,13 +78,17 @@ export function CountryPanel({
     >
       {/* The photo layer — grayscale under an ultramarine tint (the duotone
           contract), or the abstract duotone when no vetted photo exists. */}
+      {/* Balance matters: the veil earns text legibility, but past ~50% it
+          swallows low-contrast photos whole (the founder saw "no photo" on
+          Tuscany and the tulip fields). Contrast is pushed on the image
+          instead, and the veil stays light enough for the subject to live. */}
       <div aria-hidden="true" className="absolute inset-0 bg-[#1d1d1f]">
         {photo ? (
           <img
             src={photo.file}
             alt=""
             loading="lazy"
-            className="h-full w-full object-cover grayscale contrast-105"
+            className="h-full w-full object-cover grayscale contrast-125 brightness-105"
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-b from-[#3b5cff] via-[#1c2f9e] to-[#101d5e]" />
@@ -98,7 +102,7 @@ export function CountryPanel({
       ) : null}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-b from-[rgba(29,29,31,.38)] via-[rgba(29,29,31,.62)] to-[rgba(16,29,125,.85)]"
+        className="absolute inset-0 bg-gradient-to-b from-[rgba(29,29,31,.30)] via-[rgba(29,29,31,.46)] to-[rgba(16,29,125,.66)]"
       />
 
       <div className="relative flex-1 p-8 pb-6">

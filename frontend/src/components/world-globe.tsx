@@ -38,7 +38,7 @@ function flat([lon, lat]: [number, number]): [number, number] {
   return [(lon - FLAT.lon0) * FLAT.k, (FLAT.lat1 - lat) * FLAT.k * FLAT.latScale];
 }
 
-function makeOrtho(lonC: number, latC: number) {
+function makeOrtho(lonC: number, latC: number, radius = R) {
   const sinLatC = Math.sin(latC * RAD);
   const cosLatC = Math.cos(latC * RAD);
   return ([lon, lat]: [number, number]): [number, number] | null => {
@@ -46,8 +46,8 @@ function makeOrtho(lonC: number, latC: number) {
     const phi = lat * RAD;
     const cosc = sinLatC * Math.sin(phi) + cosLatC * Math.cos(phi) * Math.cos(lambda);
     if (cosc < 0.015) return null;
-    const x = R * Math.cos(phi) * Math.sin(lambda);
-    const y = R * (cosLatC * Math.sin(phi) - sinLatC * Math.cos(phi) * Math.cos(lambda));
+    const x = radius * Math.cos(phi) * Math.sin(lambda);
+    const y = radius * (cosLatC * Math.sin(phi) - sinLatC * Math.cos(phi) * Math.cos(lambda));
     return [CX + x, CY - y];
   };
 }
@@ -79,6 +79,7 @@ export function WorldGlobe({
   mode = "morph",
   flows = [],
   selected = null,
+  zoom = 1,
 }: {
   countries: CountryIndexEntry[];
   onOpenCountry: (code: string) => void;
@@ -89,10 +90,14 @@ export function WorldGlobe({
   flows?: CountryFlow[];
   /** Country held open by the panel — keeps its constellation lit. */
   selected?: string | null;
+  /** >1 crops the sphere and frames the covered region (home act 3) —
+   *  the grey waiting-world stops dominating; rotation still reveals it. */
+  zoom?: number;
 }) {
   const { t, i18n } = useTranslation();
   const [geo, setGeo] = useState<GeoData | null>(null);
-  const [view, setView] = useState({ lonC: 12, latC: 42 });
+  const [view, setView] = useState({ lonC: 12, latC: zoom > 1 ? 48 : 42 });
+  const radius = R * zoom;
   const [hover, setHover] = useState<string | null>(null);
   const [morphT, setMorphT] = useState<number | null>(null);
   const drag = useRef<{ x: number; y: number; id: number; captured: boolean } | null>(null);
@@ -133,19 +138,30 @@ export function WorldGlobe({
     };
   }, []);
 
-  // A slow initial spin, stopped by the first interaction; none under
-  // reduced motion (the CSS kill-switch cannot reach a rAF loop).
+  // The idle motion, doubled on founder feedback (0.018°/frame was nearly
+  // imperceptible) and stopped at first pointer contact. Framed (zoom > 1)
+  // it PENDULUMS ±16° around the covered region — a continuous spin would
+  // carry Europe out of the crop and parade the grey waiting-world instead.
+  // Unframed it keeps the slow full rotation. None under reduced motion
+  // (the CSS kill-switch cannot reach a rAF loop).
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const lon0 = zoom > 1 ? 12 : null;
+    let phase = 0;
     const step = () => {
-      setView((current) => ({ ...current, lonC: current.lonC + 0.018 }));
+      if (lon0 != null) {
+        phase += 0.0025;
+        setView((current) => ({ ...current, lonC: lon0 + 16 * Math.sin(phase) }));
+      } else {
+        setView((current) => ({ ...current, lonC: current.lonC + 0.036 }));
+      }
       spin.current = requestAnimationFrame(step);
     };
     spin.current = requestAnimationFrame(step);
     return () => {
       if (spin.current != null) cancelAnimationFrame(spin.current);
     };
-  }, []);
+  }, [zoom]);
 
   const stopSpin = () => {
     if (spin.current != null) {
@@ -170,7 +186,7 @@ export function WorldGlobe({
     requestAnimationFrame(frame);
   };
 
-  const ortho = makeOrtho(view.lonC, view.latC);
+  const ortho = makeOrtho(view.lonC, view.latC, radius);
   const project =
     morphT == null
       ? ortho
@@ -251,7 +267,7 @@ export function WorldGlobe({
           <circle
             cx={CX}
             cy={CY}
-            r={R + 1}
+            r={radius + 1}
             fill="var(--color-accent-soft)"
             fillOpacity={morphT == null ? 0.45 : 0.45 * (1 - morphT)}
             stroke="var(--color-border)"
@@ -305,29 +321,45 @@ export function WorldGlobe({
         })}
         {constellation ? (
           <g pointerEvents="none">
-            {constellation.stars.map((star) => (
-              <line
-                key={`l-${star.code}`}
-                x1={constellation.from[0]}
-                y1={constellation.from[1]}
-                x2={star.at[0]}
-                y2={star.at[1]}
-                stroke="var(--color-foreground)"
-                strokeOpacity="0.5"
-                strokeWidth="1.1"
-              />
-            ))}
+            {/* Star-chart lines, not scribbles: gently curved, trimmed to the
+                stars' edges, in a quiet ultramarine — the founder called the
+                straight ink chords "traits bizarres", rightly. */}
+            {constellation.stars.map((star) => {
+              const [x1, y1] = constellation.from;
+              const [x2, y2] = star.at;
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const distance = Math.hypot(dx, dy) || 1;
+              const ux = dx / distance;
+              const uy = dy / distance;
+              const p1 = [x1 + ux * 9, y1 + uy * 9];
+              const p2 = [x2 - ux * (star.r + 4), y2 - uy * (star.r + 4)];
+              const mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+              const lift = Math.min(distance * 0.08, 14);
+              const control = [mid[0] - uy * lift, mid[1] + ux * lift];
+              return (
+                <path
+                  key={`l-${star.code}`}
+                  d={`M${p1[0]},${p1[1]} Q${control[0]},${control[1]} ${p2[0]},${p2[1]}`}
+                  fill="none"
+                  stroke="var(--color-accent)"
+                  strokeOpacity="0.45"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                />
+              );
+            })}
             <circle
               cx={constellation.from[0]}
               cy={constellation.from[1]}
-              r="13"
+              r="11"
               fill="var(--color-accent)"
-              opacity="0.18"
+              opacity="0.16"
             />
             <circle
               cx={constellation.from[0]}
               cy={constellation.from[1]}
-              r="6.5"
+              r="5.5"
               fill="var(--color-accent)"
             />
             {constellation.stars.map((star) => (
@@ -335,17 +367,21 @@ export function WorldGlobe({
                 <circle
                   cx={star.at[0]}
                   cy={star.at[1]}
-                  r={star.r + 4}
+                  r={star.r + 3.5}
                   fill="var(--color-accent)"
-                  opacity="0.14"
+                  opacity="0.16"
                 />
                 <circle cx={star.at[0]} cy={star.at[1]} r={star.r} fill="var(--color-foreground)" />
                 <text
-                  x={star.at[0] + star.r + 5}
+                  x={star.at[0] + star.r + 6}
                   y={star.at[1] + 4}
-                  fontSize="12.5"
+                  fontSize="12"
                   fontWeight="600"
                   fill="var(--color-foreground)"
+                  stroke="var(--color-background)"
+                  strokeWidth="3.5"
+                  paintOrder="stroke"
+                  strokeLinejoin="round"
                 >
                   {star.code}
                 </text>

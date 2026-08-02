@@ -282,7 +282,7 @@ export function HomePage() {
         <MotionConfig reducedMotion="user">
           <div
             className={cn(
-              "mt-10 lg:items-center lg:gap-10",
+              "mt-10 lg:items-start lg:gap-10",
               panelEntry ? "lg:grid lg:grid-cols-[minmax(0,55fr)_minmax(0,34fr)]" : "",
             )}
           >
@@ -298,6 +298,7 @@ export function HomePage() {
                   mode="select"
                   selected={panelCode}
                   onOpenCountry={setPanelCode}
+                  zoom={1.45}
                 />
               ) : (
                 <Skeleton className="h-[420px] w-full" />
@@ -307,10 +308,10 @@ export function HomePage() {
               {panelEntry ? (
                 <motion.div
                   key={panelEntry.code}
-                  initial={{ opacity: 0, x: 36 }}
+                  initial={{ opacity: 0, x: 72 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 36 }}
-                  transition={{ duration: 0.4, ease: [0.2, 0.6, 0.2, 1] }}
+                  exit={{ opacity: 0, x: 72 }}
+                  transition={{ duration: 0.38, delay: 0.1, ease: [0.2, 0.6, 0.2, 1] }}
                   className="fixed inset-x-3 bottom-3 top-20 z-30 overflow-y-auto lg:static lg:inset-auto lg:z-auto lg:overflow-visible"
                 >
                   <CountryPanel

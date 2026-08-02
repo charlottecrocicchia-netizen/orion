@@ -29,7 +29,14 @@ Points d'attention connus :
 - dédoublonnage inter-sources des organisations (les garde-fous
   identifiants existants s'appliquent) ;
 - couverture géographique du globe/carte à étendre au-delà de l'Europe
-  (la note d'honnêteté sur la couverture reste de mise).
+  (la note d'honnêteté sur la couverture reste de mise) ;
+- **flux longue distance sur le globe** : passer les lignes de la
+  constellation en géodésiques projetées (les cordes d'écran actuelles ne
+  tiennent pas visuellement au transatlantique) ;
+- **grandes régions « manager »** (décision fondatrice 2026-08-02) : dès
+  les sources mondiales, le globe et l'analyse doivent aussi raisonner en
+  régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension
+  d'agrégation (Explorateur, benchmark, panneaux du globe).
 
 ## Puis — phase 5 : les appels (calls)
 

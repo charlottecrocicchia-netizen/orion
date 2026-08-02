@@ -12,9 +12,14 @@ test.beforeEach(async ({ page }) => {
 
 test("the act-3 globe opens the country panel and Escape closes it", async ({ page }) => {
   await page.goto("/");
-  // The globe lives in act 3; clicking a covered country slides the panel in.
+  // The globe lives in act 3 and SPINS — Playwright's stability wait would
+  // never resolve. Do what a human does: bring it into view, let the
+  // pointer enter (which stops the spin, product behaviour), then aim.
   const france = page.locator("path[data-code=FR]");
-  await france.scrollIntoViewIfNeeded();
+  await france.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
+  const box = await france.boundingBox();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.waitForTimeout(200);
   await france.click();
   const panel = page.getByRole("complementary", { name: "France" });
   await expect(panel).toBeVisible({ timeout: 10_000 });
