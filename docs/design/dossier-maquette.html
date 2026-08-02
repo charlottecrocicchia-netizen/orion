@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maquette — Le dossier (lot 4) : blocs cités</title>
+<style>
+  :root {
+    --bg:#fff; --surface:#f5f5f7; --ink:#1d1d1f; --muted:#86868b;
+    --border:rgba(29,29,31,.1); --accent:#2d4fe3; --s2:#b45309; --s3:#0d9488;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:"Inter",-apple-system,system-ui,sans-serif;
+    font-feature-settings:"cv01","ss03";font-variant-numeric:lining-nums tabular-nums;
+    padding:44px clamp(16px,4vw,60px);font-size:14px}
+  .note{max-width:1100px;margin:0 auto 18px;font-size:12.5px;color:var(--muted)}
+  .note b{color:var(--ink);font-weight:600}
+  .stage{max-width:1100px;margin:0 auto 56px}
+  .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+
+  /* ——— Scène 1 : le geste d'accumulation ——— */
+  .accumulate{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;margin-top:16px}
+  .board{border:1px solid var(--border);border-radius:20px;padding:22px 26px}
+  .board h3{font-size:15px;font-weight:600}
+  .board .composer{font-size:13px;color:var(--muted);margin-top:2px}
+  .board .composer b{color:var(--accent);font-weight:500}
+  .board svg{width:100%;height:auto;margin-top:14px}
+  .addbtn{margin-top:12px;display:inline-flex;gap:7px;align-items:center;
+    border:1px solid var(--border);border-radius:999px;padding:7px 14px;font-size:12.5px;
+    color:var(--accent);border-color:rgba(45,79,227,.35);cursor:pointer}
+  .tray{border:1px solid var(--border);border-radius:20px;padding:18px;height:fit-content;
+    position:sticky;top:20px}
+  .tray h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  .tray h3 .count{color:var(--accent)}
+  .tray-item{display:flex;gap:10px;align-items:center;border-bottom:1px solid rgba(29,29,31,.06);
+    padding:10px 0;font-size:12.5px}
+  .tray-item .thumb{width:44px;height:30px;border-radius:6px;background:var(--surface);
+    display:grid;place-items:center;flex:none}
+  .tray-item .thumb svg{width:34px;height:20px}
+  .tray-item .meta{min-width:0}
+  .tray-item .meta .t{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tray-item .meta .s{color:var(--muted);font-size:11px}
+  .tray-item .x{margin-left:auto;color:var(--muted);cursor:pointer}
+  .take{margin-top:14px;display:block;width:100%;text-align:center;background:var(--accent);
+    color:#fff;border:0;border-radius:999px;padding:10px 0;font-size:13.5px;font-weight:500;cursor:pointer}
+
+  /* ——— Scène 2 : le dossier assemblé ——— */
+  .dossier{border:1px solid var(--border);border-radius:24px;padding:40px 44px;margin-top:16px}
+  .dossier-head .eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  .dossier-head h1{font-size:clamp(26px,3.2vw,34px);font-weight:600;letter-spacing:-.022em;margin-top:6px}
+  .dossier-head .meta{margin-top:10px;font-size:12.5px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap}
+  .dossier-head .meta b{color:var(--ink);font-weight:600}
+  .block{border-top:1px solid var(--border);margin-top:30px;padding-top:26px}
+  .block h2{font-size:17px;font-weight:600;letter-spacing:-.015em}
+  .block .phrase{margin-top:3px;font-size:12.5px;color:var(--muted)}
+  .block .phrase b{color:var(--ink);font-weight:500}
+  .block svg{width:100%;height:auto;margin-top:14px}
+  .provenance{margin-top:12px;display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;
+    font-size:11px;color:var(--muted)}
+  .provenance .pill{border:1px solid var(--border);border-radius:6px;padding:2px 7px;
+    font-family:ui-monospace,"SF Mono",monospace;font-size:10px;text-transform:uppercase}
+  .provenance a{color:var(--accent);text-decoration:none}
+  .dossier-foot{border-top:1px solid var(--border);margin-top:34px;padding-top:16px;
+    font-size:11px;color:var(--muted);line-height:1.6}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:16px;max-width:1100px;margin-inline:auto}
+  .toolbar .print{background:var(--ink);color:#fff;border:0;border-radius:999px;padding:10px 20px;
+    font-size:13.5px;font-weight:500;cursor:pointer}
+</style>
+</head>
+<body>
+  <p class="note"><b>Maquette lot 4 — le dossier.</b> Le principe (leçon adoptée
+  de la spec externe) : un dossier est un <b>assemblage de blocs cités</b> —
+  chaque bloc porte sa vue, sa phrase-requête, la date des données et ses
+  sources. Aucun chiffre orphelin : « ouvrir la vue vivante » remonte à l'URL
+  Explorateur exacte. Scène 1 : le geste d'accumulation. Scène 2 : le dossier
+  prêt à emporter (le bouton imprime via une feuille print dédiée — un bloc
+  par page, sources en pied).</p>
+
+  <!-- ——— Scène 1 ——— -->
+  <div class="stage">
+    <p class="lbl">Scène 1 — accumuler depuis l'Explorateur et Compare</p>
+    <div class="accumulate">
+      <div class="board">
+        <h3>La vue courante</h3>
+        <p class="composer">Montrer <b>les financements</b> pour <b>« hydrogène »</b> par <b>pays</b> depuis <b>2005</b></p>
+        <svg viewBox="0 0 720 190" aria-hidden="true">
+          <g font-size="11.5">
+            <text x="8" y="30" fill="#1d1d1f">DE</text><rect x="44" y="19" width="520" height="14" rx="4" fill="#2d4fe3" fill-opacity=".85"/><text x="572" y="31" fill="#86868b">€2,1 Md</text>
+            <text x="8" y="64" fill="#1d1d1f">FR</text><rect x="44" y="53" width="450" height="14" rx="4" fill="#2d4fe3" fill-opacity=".65"/><text x="502" y="65" fill="#86868b">€1,8 Md</text>
+            <text x="8" y="98" fill="#1d1d1f">NL</text><rect x="44" y="87" width="300" height="14" rx="4" fill="#2d4fe3" fill-opacity=".5"/><text x="352" y="99" fill="#86868b">€1,2 Md</text>
+            <text x="8" y="132" fill="#1d1d1f">ES</text><rect x="44" y="121" width="250" height="14" rx="4" fill="#2d4fe3" fill-opacity=".4"/><text x="302" y="133" fill="#86868b">€1,0 Md</text>
+            <text x="8" y="166" fill="#1d1d1f">IT</text><rect x="44" y="155" width="205" height="14" rx="4" fill="#2d4fe3" fill-opacity=".32"/><text x="257" y="167" fill="#86868b">€0,8 Md</text>
+          </g>
+        </svg>
+        <span class="addbtn">+ Ajouter au dossier</span>
+      </div>
+
+      <aside class="tray">
+        <h3>Dossier <span class="count">· 3 vues</span></h3>
+        <div class="tray-item">
+          <span class="thumb"><svg viewBox="0 0 34 20"><polyline points="1,16 8,13 15,14 22,8 28,9 33,4" fill="none" stroke="#2d4fe3" stroke-width="1.6"/></svg></span>
+          <span class="meta"><span class="t">La trajectoire hydrogène</span><br/><span class="s">courbes · 2005-2027</span></span>
+          <span class="x">✕</span>
+        </div>
+        <div class="tray-item">
+          <span class="thumb"><svg viewBox="0 0 34 20"><rect x="1" y="2" width="18" height="16" rx="2" fill="#2d4fe3" fill-opacity=".8"/><rect x="21" y="2" width="12" height="7" rx="2" fill="#2d4fe3" fill-opacity=".45"/><rect x="21" y="11" width="12" height="7" rx="2" fill="#2d4fe3" fill-opacity=".25"/></svg></span>
+          <span class="meta"><span class="t">Par programme</span><br/><span class="s">treemap · 12 entrées</span></span>
+          <span class="x">✕</span>
+        </div>
+        <div class="tray-item">
+          <span class="thumb"><svg viewBox="0 0 34 20"><rect x="2" y="4" width="24" height="4" rx="2" fill="#2d4fe3" fill-opacity=".8"/><rect x="2" y="12" width="17" height="4" rx="2" fill="#0d9488" fill-opacity=".7"/></svg></span>
+          <span class="meta"><span class="t">CNRS vs Fraunhofer</span><br/><span class="s">totaux comparés</span></span>
+          <span class="x">✕</span>
+        </div>
+        <button class="take">Assembler le dossier →</button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ——— Scène 2 ——— -->
+  <div class="stage">
+    <p class="lbl">Scène 2 — le dossier assemblé, prêt à emporter</p>
+    <div class="toolbar">
+      <span style="font-size:12.5px;color:var(--muted)">3 blocs · chaque chiffre remonte à sa vue</span>
+      <button class="print">Emporter (imprimer / PDF)</button>
+    </div>
+    <article class="dossier">
+      <header class="dossier-head">
+        <p class="eyebrow">Orion · Dossier</p>
+        <h1>L'hydrogène européen — où va l'argent, qui le prend</h1>
+        <p class="meta">
+          <span>Assemblé le <b>2 août 2026</b></span>
+          <span>Données du <b>29 juillet 2026</b> (dernière ingestion)</span>
+          <span>Périmètre : <b>UE + France · 2005-2027</b></span>
+        </p>
+      </header>
+
+      <section class="block">
+        <h2>1 · La trajectoire</h2>
+        <p class="phrase">Montrer <b>les financements</b> pour <b>« hydrogène »</b> par <b>année</b> — 2005 → 2027</p>
+        <svg viewBox="0 0 720 150" aria-hidden="true">
+          <line x1="10" y1="128" x2="710" y2="128" stroke="rgba(29,29,31,.1)"/>
+          <polyline fill="none" stroke="#2d4fe3" stroke-width="2"
+            points="10,118 80,114 150,108 220,96 290,100 360,76 430,60 500,28 570,24 640,50 710,96"/>
+          <circle cx="570" cy="24" r="3.5" fill="#2d4fe3"/>
+          <text x="570" y="14" text-anchor="middle" font-size="11" font-weight="600" fill="#2d4fe3">€1,6 Md</text>
+        </svg>
+        <p class="provenance">
+          <span class="pill">CORDIS</span><span class="pill">ANR</span>
+          <span>Données du 29/07/2026</span>
+          <a href="#">Ouvrir la vue vivante ↗</a>
+        </p>
+      </section>
+
+      <section class="block">
+        <h2>2 · Par programme</h2>
+        <p class="phrase">Montrer <b>les financements</b> pour <b>« hydrogène »</b> par <b>programme</b> — top 12</p>
+        <svg viewBox="0 0 720 150" aria-hidden="true">
+          <rect x="6" y="6" width="380" height="138" rx="7" fill="#2d4fe3" fill-opacity=".85"/>
+          <rect x="392" y="6" width="190" height="80" rx="7" fill="#2d4fe3" fill-opacity=".5"/>
+          <rect x="588" y="6" width="126" height="80" rx="7" fill="#2d4fe3" fill-opacity=".34"/>
+          <rect x="392" y="92" width="322" height="52" rx="7" fill="#2d4fe3" fill-opacity=".2"/>
+          <text x="20" y="30" font-size="12.5" font-weight="600" fill="#fff">Horizon Europe · €4,1 Md</text>
+          <text x="404" y="28" font-size="11.5" font-weight="600" fill="#fff">H2020 · €2,6 Md</text>
+          <text x="600" y="28" font-size="11" font-weight="600" fill="#1d1d1f">FP7</text>
+          <text x="404" y="112" font-size="11" font-weight="600" fill="#1d1d1f">ANR · €0,9 Md</text>
+        </svg>
+        <p class="provenance">
+          <span class="pill">CORDIS</span><span class="pill">ANR</span>
+          <span>Données du 29/07/2026</span>
+          <a href="#">Ouvrir la vue vivante ↗</a>
+        </p>
+      </section>
+
+      <section class="block">
+        <h2>3 · CNRS et Fraunhofer, totaux comparés</h2>
+        <p class="phrase">Comparer <b>CNRS</b> et <b>Fraunhofer</b> — financement total UE + FR</p>
+        <svg viewBox="0 0 720 96" aria-hidden="true">
+          <g font-size="12">
+            <text x="6" y="30" fill="#1d1d1f">CNRS</text>
+            <rect x="110" y="18" width="520" height="16" rx="4" fill="#2d4fe3"/><text x="638" y="31" fill="#1d1d1f" font-weight="600">€3,0 Md</text>
+            <text x="6" y="72" fill="#1d1d1f">Fraunhofer</text>
+            <rect x="110" y="60" width="312" height="16" rx="4" fill="#b45309"/><text x="430" y="73" fill="#1d1d1f" font-weight="600">€1,8 Md</text>
+          </g>
+        </svg>
+        <p class="provenance">
+          <span class="pill">CORDIS</span>
+          <span>Données du 29/07/2026</span>
+          <a href="#">Ouvrir la vue vivante ↗</a>
+        </p>
+      </section>
+
+      <footer class="dossier-foot">
+        Sources : Contains European Union public data (CORDIS), © European
+        Union, CC BY 4.0 · Contient des données de l'Agence nationale de la
+        recherche (data.gouv.fr), ODbL 1.0. Chaque bloc référence sa vue
+        Orion d'origine ; les chiffres reflètent l'état des données à la date
+        indiquée par bloc.
+      </footer>
+    </article>
+  </div>
+</body>
+</html>
