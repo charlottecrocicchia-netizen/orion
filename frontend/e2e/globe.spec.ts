@@ -12,15 +12,15 @@ test.beforeEach(async ({ page }) => {
 
 test("the act-3 globe opens the country panel and Escape closes it", async ({ page }) => {
   await page.goto("/");
-  // The globe lives in act 3 and SPINS — Playwright's stability wait would
-  // never resolve. Do what a human does: bring it into view, let the
-  // pointer enter (which stops the spin, product behaviour), then aim.
+  // The globe lives in act 3 and SPINS continuously.
   const france = page.locator("path[data-code=FR]");
   await france.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
-  const box = await france.boundingBox();
-  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
-  await page.waitForTimeout(200);
-  await france.click();
+  // The globe now keeps turning (recette 2026-08-02) and pauses on
+  // hover/FOCUS — focusing France pauses it deterministically, then
+  // Enter selects (the keyboard path shares the click path).
+  await france.focus();
+  await page.waitForTimeout(150);
+  await page.keyboard.press("Enter");
   const panel = page.getByRole("complementary", { name: "France" });
   await expect(panel).toBeVisible({ timeout: 10_000 });
   // Dataset-agnostic: the essentials and the one full CTA are there.

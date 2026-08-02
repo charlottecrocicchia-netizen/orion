@@ -80,6 +80,7 @@ export function WorldGlobe({
   flows = [],
   selected = null,
   zoom = 1,
+  speed = 2.2,
 }: {
   countries: CountryIndexEntry[];
   onOpenCountry: (code: string) => void;
@@ -90,9 +91,11 @@ export function WorldGlobe({
   flows?: CountryFlow[];
   /** Country held open by the panel — keeps its constellation lit. */
   selected?: string | null;
-  /** >1 crops the sphere and frames the covered region (home act 3) —
-   *  the grey waiting-world stops dominating; rotation still reveals it. */
+  /** >1 crops the sphere and frames the covered region — the grey
+   *  waiting-world stops dominating; rotation still reveals it. */
   zoom?: number;
+  /** Rotation pace, degrees per second (founder is comparing live). */
+  speed?: number;
 }) {
   const { t, i18n } = useTranslation();
   const [geo, setGeo] = useState<GeoData | null>(null);
@@ -138,22 +141,31 @@ export function WorldGlobe({
     };
   }, []);
 
-  // The idle motion, doubled on founder feedback (0.018°/frame was nearly
-  // imperceptible) and stopped at first pointer contact. Framed (zoom > 1)
-  // it PENDULUMS ±16° around the covered region — a continuous spin would
-  // carry Europe out of the crop and parade the grey waiting-world instead.
-  // Unframed it keeps the slow full rotation. None under reduced motion
-  // (the CSS kill-switch cannot reach a rAF loop).
+  // The rotation, reworked on founder feedback (2026-08-02): the globe
+  // turns on its axis VISIBLY and keeps turning — including after a
+  // country is selected. The loop never dies; it only PAUSES while the
+  // pointer hovers, a shape holds focus, or a drag is in flight (so
+  // aiming at a small country stays comfortable), and resumes the moment
+  // the pointer leaves. `speed` is degrees per second (the founder is
+  // comparing paces live). Framed (zoom > 1) the old ±16° pendulum
+  // remains for croppings that a full spin would carry away. None under
+  // reduced motion (the CSS kill-switch cannot reach a rAF loop).
+  const paused = useRef(false);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const lon0 = zoom > 1 ? 12 : null;
     let phase = 0;
-    const step = () => {
-      if (lon0 != null) {
-        phase += 0.0025;
-        setView((current) => ({ ...current, lonC: lon0 + 16 * Math.sin(phase) }));
-      } else {
-        setView((current) => ({ ...current, lonC: current.lonC + 0.036 }));
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.1);
+      last = now;
+      if (!paused.current) {
+        if (lon0 != null) {
+          phase += 0.15 * dt * speed;
+          setView((current) => ({ ...current, lonC: lon0 + 16 * Math.sin(phase) }));
+        } else {
+          setView((current) => ({ ...current, lonC: current.lonC + speed * dt }));
+        }
       }
       spin.current = requestAnimationFrame(step);
     };
@@ -161,13 +173,15 @@ export function WorldGlobe({
     return () => {
       if (spin.current != null) cancelAnimationFrame(spin.current);
     };
-  }, [zoom]);
+  }, [zoom, speed]);
 
+  /** Pause (not kill) the rotation — hover, focus and drags call this;
+   *  releasing resumes through the always-running loop. */
   const stopSpin = () => {
-    if (spin.current != null) {
-      cancelAnimationFrame(spin.current);
-      spin.current = null;
-    }
+    paused.current = true;
+  };
+  const resumeSpin = () => {
+    paused.current = false;
   };
 
   const startMorph = (code: string) => {
@@ -232,6 +246,7 @@ export function WorldGlobe({
         role="img"
         aria-label={t("explore.globeLabel")}
         onPointerEnter={stopSpin}
+        onPointerLeave={resumeSpin}
         onPointerDown={(event) => {
           stopSpin();
           drag.current = {
@@ -351,7 +366,10 @@ export function WorldGlobe({
                 stopSpin();
                 setHover(country.code);
               }}
-              onBlur={() => setHover(null)}
+              onBlur={() => {
+                resumeSpin();
+                setHover(null);
+              }}
               onClick={activate}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {

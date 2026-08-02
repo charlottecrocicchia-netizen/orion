@@ -18,6 +18,21 @@ import { useDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { formatInt, formatOrgName, themeLabel } from "@/lib/format";
+import { useRevealProgress } from "@/hooks/use-reveal-progress";
+
+/** Rotation paces under recette (fondatrice compares live, then we pin
+ *  the winner and drop the control). Degrees per second. */
+const SPIN_SPEEDS = { slow: 1.1, medium: 2.2, fast: 4.2 } as const;
+type SpinChoice = keyof typeof SPIN_SPEEDS;
+
+function storedSpin(): SpinChoice {
+  try {
+    const value = window.localStorage.getItem("orion.globespeed");
+    return value === "slow" || value === "fast" ? value : "medium";
+  } catch {
+    return "medium";
+  }
+}
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -126,6 +141,51 @@ export function HomePage() {
   const go = useIntentNavigate();
   const navigate = useNavigate();
   const dossier = useDossier();
+  const [spin, setSpin] = useState<SpinChoice>(storedSpin);
+  const pickSpin = (choice: SpinChoice) => {
+    setSpin(choice);
+    try {
+      window.localStorage.setItem("orion.globespeed", choice);
+    } catch {
+      /* private mode */
+    }
+  };
+  // The ink tile rises toward the reader as it enters (Apple entrance,
+  // recette 2026-08-02); reduced motion lands it instantly.
+  const tile = useRevealProgress(true, 850);
+  // The ask breathes: the placeholder TYPES the example questions in a
+  // loop (recette: "more presence, more alive") — real product examples,
+  // static under reduced motion.
+  const [typed, setTyped] = useState("");
+  useEffect(() => {
+    const samples = [t("home.example1"), t("home.example2"), t("home.example3")];
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setTyped(t("home.freeTextPlaceholder"));
+      return;
+    }
+    let sample = 0;
+    let length = 0;
+    let erasing = false;
+    let timer = 0;
+    const tick = () => {
+      const current = samples[sample % samples.length];
+      length += erasing ? -1 : 1;
+      setTyped(current.slice(0, Math.max(length, 0)));
+      let delay = erasing ? 22 : 46;
+      if (!erasing && length >= current.length) {
+        erasing = true;
+        delay = 2100;
+      } else if (erasing && length <= 0) {
+        erasing = false;
+        sample += 1;
+        delay = 420;
+      }
+      timer = window.setTimeout(tick, delay);
+    };
+    timer = window.setTimeout(tick, 900);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
   const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
   // The Discover door leads to a REAL file: the corpus' top organisation.
   const { data: topOrgData } = useQuery({
@@ -226,19 +286,27 @@ export function HomePage() {
       {/* Act 2 — the ink tile: the question, free text, three editorial entries.
           The `dark` class turns the section into an ink island in light mode
           and an elevated tile in dark mode — same tokens, Apple's pulse. */}
-      <section className="dark bg-surface text-foreground">
-        <div className="mx-auto w-full max-w-[1240px] px-6 py-24 text-center">
+      <section className="dark overflow-hidden bg-surface text-foreground">
+        <div
+          ref={tile.ref}
+          style={{
+            opacity: 0.25 + 0.75 * tile.progress,
+            transform: `translateY(${((1 - tile.progress) * 64).toFixed(1)}px) scale(${(0.98 + 0.02 * tile.progress).toFixed(4)})`,
+          }}
+          className="mx-auto w-full max-w-[1240px] px-6 py-24 text-center"
+        >
           <h1 className="font-display text-title">{t("home.ask")}</h1>
-          <form onSubmit={submit} role="search" className="mx-auto mt-7 max-w-[660px]">
-            <div className="flex items-center gap-3 rounded-2xl border bg-background/60 px-5 py-4 focus-within:ring-2 focus-within:ring-accent">
-              <span aria-hidden="true" className="text-muted-foreground">
+          <form onSubmit={submit} role="search" className="mx-auto mt-8 max-w-[720px]">
+            <div className="flex items-center gap-3.5 rounded-[20px] border bg-background/60 px-6 py-5 transition-shadow duration-300 focus-within:shadow-key focus-within:ring-2 focus-within:ring-accent">
+              <span aria-hidden="true" className="text-[19px] text-muted-foreground">
                 ⌕
               </span>
               <input
                 name="q"
                 type="search"
-                placeholder={t("home.freeTextPlaceholder")}
-                className="w-full bg-transparent text-[17px] outline-none placeholder:text-muted-foreground"
+                placeholder={typed || t("home.freeTextPlaceholder")}
+                aria-label={t("home.freeTextPlaceholder")}
+                className="w-full bg-transparent text-[18.5px] outline-none placeholder:text-muted-foreground"
               />
             </div>
           </form>
@@ -335,11 +403,37 @@ export function HomePage() {
                       ? navigate(`/explore/countries/${code}`)
                       : setPanelCode(code)
                   }
-                  zoom={1.45}
+                  // Whole sphere, visibly turning (recette 2026-08-02) —
+                  // the pace selector below is a live trial.
+                  zoom={1}
+                  speed={SPIN_SPEEDS[spin]}
                 />
               ) : (
                 <Skeleton className="h-[420px] w-full" />
               )}
+              {/* Rotation pace trial (recette): the founder compares live;
+                  the winner gets pinned and this control goes away. */}
+              <div className="mt-3 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+                <span className="font-mono uppercase tracking-[0.1em]">
+                  {t("home.spinLabel")}
+                </span>
+                {(Object.keys(SPIN_SPEEDS) as SpinChoice[]).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    aria-pressed={spin === choice}
+                    onClick={() => pickSpin(choice)}
+                    className={cn(
+                      "rounded-full px-2.5 py-1 transition-colors",
+                      spin === choice
+                        ? "bg-surface text-foreground"
+                        : "hover:text-foreground",
+                    )}
+                  >
+                    {t(`home.spin.${choice}`)}
+                  </button>
+                ))}
+              </div>
             </motion.div>
             <AnimatePresence>
               {panelEntry ? (
