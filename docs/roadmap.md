@@ -11,9 +11,9 @@ Référence : [design-doctrine.md](design-doctrine.md).
 | --- | --- | --- |
 | 1 — Fondations | Tokens typographiques, tabular figures globales, encre/hairlines/une ombre, Geist Mono, StatHero | **Validée** (2026-08-02) |
 | 2 — Hero signature | Accueil en actes, hero piné GSAP (scrub), trois entrées éditoriales, footer parchemin | **Validée** (2026-08-02) |
-| 3 — Explorateur & listes | Grilles type Attio/Linear, filtres Polaris, sparklines, hover réels ; **lien source CORDIS/ANR visible sur chaque fiche projet** | En cours |
-| 3 bis — Globe en acte 3 | Le globe remplace la carte sur l'accueil : rotation lente, flux au survol, panneau pays au clic (2 maquettes : photo / sans photo) | Conception en cours, implémentation après validation |
-| 4 — Fiches & benchmark | Layout record Attio, barres horizontales | À venir |
+| 3 — Explorateur & listes | Grilles type Attio/Linear, filtres Polaris, sparklines, hover réels ; lien source CORDIS/ANR sur chaque fiche projet | **Validée** (2026-08-02) |
+| 3 bis — Globe en acte 3 | Globe V1 photo, constellation de flux, panneau pays, sélection lumineuse (9 retours fondatrice intégrés) | **Livrée** (2026-08-02) — gelée, on y reviendra |
+| 4 — Fiches & benchmark | Layout record Attio, barres horizontales, TrajectorySpark | **Validée** (2026-08-02) |
 | 5 — Passe anti-« IA » | Audit continu, checklist des 10 pièges à chaque écran | Continue |
 
 ## Chantier transverse — parcours & visualisations (conception validée à itérer)
@@ -22,12 +22,10 @@ Issu de la [conception parcours](conception-parcours-visualisations.md) et des
 [leçons UX de Vega](pieges-vega.md) (2026-08-02). Ordre proposé, révisé après
 les huit leçons :
 
-1. **Autocomplete de recherche** (leçon U7, « le plus rentable à court
-   terme ») : suggestions à la frappe — organisations, thèmes, pays,
-   acronymes — endpoint suggest + combobox accessible (APG).
-2. **Hub « poste de veille »** : profil thématique, signaux datés, mention
-   « fiche consolidée » (précurseur UI de la couche groupes U5).
-3. **Les Angles** sur les Analyses prêtes de l'Explorateur.
+1. **Autocomplete de recherche** — **livré** (2026-08-02, lot 1, recette
+   validée).
+2. **Hub « poste de veille »** — **livré** (2026-08-02, lot 2, en recette).
+3. **Les Angles** sur les Analyses prêtes de l'Explorateur (+ peek Apple).
 4. **Le dossier** (maquette, puis print stylesheet).
 5. Formes B1-B6 au fil des lots ; **hygiène U2** (constante marque) en
    chemin.
