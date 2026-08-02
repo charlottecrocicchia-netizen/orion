@@ -4,14 +4,18 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { FormEvent, ReactNode } from "react";
 
+import { AnglesDeck } from "@/components/angles-deck";
 import { BarsChart, LinesChart, TreemapChart } from "@/components/charts";
+import { BumpChart } from "@/components/bump-chart";
+import { ExploreTable } from "@/components/explore-table";
 import { EuropeMap } from "@/components/europe-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import type { ExploreResponse } from "@/lib/api";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
-import { countryFlag, formatValue, seriesLabel } from "@/lib/format";
+import { readState, resolveView, toApiParams } from "@/lib/explore-state";
+import type { ExplorerState } from "@/lib/explore-state";
+import { countryFlag, seriesLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const METRICS = ["funding", "projects", "organisations", "avg", "coordination"] as const;
@@ -36,35 +40,6 @@ const ORG_TYPE_OPTIONS = [
 ];
 const YEAR_MIN = 2005;
 const YEAR_MAX = 2027;
-
-interface ExplorerState {
-  metric: string;
-  by: string;
-  split: boolean;
-  compare: string[];
-  from: number | null;
-  to: number | null;
-  q: string;
-  country: string;
-  limit: number;
-  view: string;
-}
-
-function readState(params: URLSearchParams): ExplorerState {
-  const time = /^(\d{4})\.\.(\d{4})$/.exec(params.get("time") ?? "");
-  return {
-    metric: params.get("metric") ?? "funding",
-    by: params.get("by") ?? "country",
-    split: params.has("split") ? params.get("split") === "1" : !params.has("by"),
-    compare: (params.get("compare") ?? "").split("~").filter(Boolean),
-    from: time ? Number(time[1]) : null,
-    to: time ? Number(time[2]) : null,
-    q: params.get("q") ?? "",
-    country: params.get("country") ?? "",
-    limit: Number(params.get("limit") ?? "5"),
-    view: params.get("view") ?? "auto",
-  };
-}
 
 /* ————— A dotted-underline sentence segment opening a small menu ————— */
 
@@ -163,7 +138,31 @@ export function ExplorerPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const state = readState(params);
+  // Angles mode (lot 3): a story with a deck opens as a carousel; the
+  // composer below mirrors the ACTIVE angle, and any composer interaction
+  // writes a clean URL (no angles param) — the story is a starting point,
+  // never a cage.
+  const anglesStory = STORIES.find(
+    (candidate) => candidate.key === params.get("angles") && candidate.deck,
+  );
+  const angleIndex = anglesStory
+    ? Math.min(
+        Math.max(Number(params.get("angle") ?? "0") || 0, 0),
+        anglesStory.deck!.length - 1,
+      )
+    : 0;
+  const activeSlide = anglesStory?.deck?.[angleIndex];
+  const state = readState(activeSlide ? new URLSearchParams(activeSlide.params) : params);
+
+  const setAngle = (index: number) => {
+    if (!anglesStory) return;
+    const out = new URLSearchParams();
+    out.set("angles", anglesStory.key);
+    out.set("angle", String(index));
+    setParams(out, { replace: true, preventScrollReset: true });
+  };
+  const openInComposer = (query: string) =>
+    setParams(new URLSearchParams(query), { preventScrollReset: true });
   const [copied, setCopied] = useState(false);
 
   const patch = (changes: Partial<ExplorerState>) => {
@@ -181,13 +180,7 @@ export function ExplorerPage() {
     setParams(out, { preventScrollReset: true });
   };
 
-  const apiParams = new URLSearchParams({ metric: state.metric, by: state.by, limit: String(state.limit) });
-  if (state.by !== "year" && state.split) apiParams.set("split", "true");
-  if (state.compare.length > 0) apiParams.set("compare", state.compare.join("~"));
-  if (state.from != null) apiParams.set("year_from", String(state.from));
-  if (state.to != null) apiParams.set("year_to", String(state.to));
-  if (state.q) apiParams.set("q", state.q);
-  if (state.country) apiParams.set("country", state.country);
+  const apiParams = toApiParams(state);
 
   const { data, isPending, isError } = useQuery({
     queryKey: ["explore", apiParams.toString()],
@@ -212,16 +205,7 @@ export function ExplorerPage() {
     enabled: state.view === "map",
   });
 
-  const temporal = state.by === "year" || state.split;
-  // The map view only speaks euros: other metrics keep bars/treemap/table.
-  const mappable =
-    !temporal && state.by === "country" && (state.metric === "funding" || state.metric === "avg");
-  const availableViews = temporal
-    ? ["lines", "table"]
-    : mappable
-      ? ["bars", "map", "treemap", "table"]
-      : ["bars", "treemap", "table"];
-  const view = availableViews.includes(state.view) ? state.view : availableViews[0];
+  const { temporal, availableViews, view } = resolveView(state);
 
   const toggleCompare = (key: string) => {
     const next = state.compare.includes(key)
@@ -538,7 +522,18 @@ export function ExplorerPage() {
         </Segment>
       </p>
 
-      {/* The view */}
+      {/* The view — or, for a story with a deck, its Angles */}
+      {anglesStory ? (
+        <AnglesDeck
+          slides={anglesStory.deck!.map((slide) => ({
+            query: slide.params,
+            title: t(slide.titleKey),
+          }))}
+          active={angleIndex}
+          onActive={setAngle}
+          onOpenInComposer={openInComposer}
+        />
+      ) : (
       <section className="mt-9 rounded-[20px] border p-7 pb-5">
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
           <h1 className="text-[15px] font-semibold">{boardTitle}</h1>
@@ -571,6 +566,8 @@ export function ExplorerPage() {
             <p className="py-24 text-center text-muted-foreground">{t("explorer.emptyView")}</p>
           ) : view === "lines" ? (
             <LinesChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
+          ) : view === "bump" ? (
+            <BumpChart series={data.series} ariaLabel={boardTitle} />
           ) : view === "bars" ? (
             <BarsChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "map" ? (
@@ -615,6 +612,7 @@ export function ExplorerPage() {
           </span>
         </div>
       </section>
+      )}
 
       {/* Prepared views */}
       <section className="mt-14">
@@ -625,7 +623,7 @@ export function ExplorerPage() {
           {STORIES.map((story) => (
             <Link
               key={story.key}
-              to={`/explore?${story.params}`}
+              to={story.deck ? `/explore?angles=${story.key}` : `/explore?${story.params}`}
               className="lift rounded-2xl border p-5 hover:border-accent"
             >
               <h3 className="text-[16px] font-semibold leading-snug">
@@ -634,6 +632,11 @@ export function ExplorerPage() {
               <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
                 {t(`explorer.stories.${story.key}.desc`)}
               </p>
+              {story.deck ? (
+                <span className="mt-2.5 inline-block rounded-full bg-surface px-2.5 py-1 text-[11px] text-muted-foreground">
+                  {t("explorer.angles.badge", { count: story.deck.length })}
+                </span>
+              ) : null}
             </Link>
           ))}
         </div>
@@ -642,63 +645,3 @@ export function ExplorerPage() {
   );
 }
 
-function ExploreTable({ data, temporal }: { data: ExploreResponse; temporal: boolean }) {
-  const { t, i18n } = useTranslation();
-  if (temporal) {
-    const years = [
-      ...new Set(data.series.flatMap((s) => (s.points ?? []).map((p) => p.year))),
-    ].sort((a, b) => a - b);
-    return (
-      <div className="max-h-[420px] overflow-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-[11px] font-semibold uppercase tracking-[.08em]">
-              <th className="py-2 pr-3">{t("org.year")}</th>
-              {data.series.map((serie) => (
-                <th key={String(serie.key)} className="py-2 pr-3 text-right">
-                  {seriesLabel(serie, t)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {years.map((year) => (
-              <tr key={year} className="border-b border-border-soft transition-colors hover:bg-surface/60">
-                <td className="tnum py-2 pr-3">{year}</td>
-                {data.series.map((serie) => (
-                  <td key={String(serie.key)} className="tnum py-2 pr-3 text-right">
-                    {formatValue(
-                      (serie.points ?? []).find((p) => p.year === year)?.value,
-                      data.unit,
-                      i18n.language,
-                    )}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
-  return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b text-left text-[11px] font-semibold uppercase tracking-[.08em]">
-          <th className="py-2 pr-3">{t("explorer.tableKey")}</th>
-          <th className="py-2 text-right">{t("explorer.tableValue")}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.series.map((serie) => (
-          <tr key={String(serie.key)} className="border-b border-border-soft transition-colors hover:bg-surface/60">
-            <td className="py-2 pr-3">{seriesLabel(serie, t)}</td>
-            <td className="tnum py-2 text-right font-medium">
-              {formatValue(serie.value, data.unit, i18n.language)}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}

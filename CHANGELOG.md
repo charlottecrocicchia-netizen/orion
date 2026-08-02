@@ -67,6 +67,16 @@ All notable changes to Orion are documented here. The format follows
   file — N source names merged" from the aliases (the group layer's UI
   precursor).
 
+- Lot 3, the Angles: a ready-made analysis now opens as a DECK — the
+  same question under several looks, slid horizontally (CSS scroll-snap,
+  the next slide peeking Apple-style, arrows, arrow keys, dots), every
+  angle a real Explorer state and URL (?angles=story&angle=n deep-links,
+  guarded against smooth-scroll downgrades), the composer mirroring the
+  active angle so any edit hands over cleanly. The bump chart joins the
+  library (ranks over time, gap-safe, halo direct labels) as the "Ranks"
+  view of every split temporal state; the Explorer's state grammar and
+  twin table are extracted into shared modules on the way.
+
 ### Changed
 
 - Display face: Instrument Sans retired; Inter (tightened, alternate glyphs)

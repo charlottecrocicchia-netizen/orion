@@ -19,18 +19,42 @@ test("the default view draws the top-5 countries over time", async ({ page }) =>
   await expect(chart.getByText("France")).toBeVisible();
 });
 
-test("a story opens the explorer pre-filled, then stays editable", async ({ page }) => {
+test("a story opens as Angles, slides, and hands over to the composer", async ({ page }) => {
   await page.goto("/explore");
   await page.getByRole("link", { name: /Where does hydrogen money go/ }).click();
+  await expect(page).toHaveURL(/angles=hydrogen/);
+  await expect(page.getByRole("region", { name: /angles/i })).toBeVisible();
+  await expect(page.getByRole("group", { name: /Angle 1 of 5/ })).toBeVisible();
+
+  // The next arrow advances the deck and the URL deep-links the angle.
+  await page.getByRole("button", { name: "Next angle" }).click();
+  await expect(page).toHaveURL(/angle=1/);
+
+  // The composer mirrors the active angle and stays editable — the story
+  // is a starting point, not a cage.
+  await expect(page.getByRole("button", { name: /« hydrogen »/ })).toBeVisible();
+
+  // Handing over to the composer leaves angles mode with the slide's state.
+  await page
+    .getByRole("group", { name: /Angle 2 of 5/ })
+    .getByRole("button", { name: /Open in the composer/ })
+    .click();
   await expect(page).toHaveURL(/q=hydrogen/);
   await expect(page).toHaveURL(/view=treemap/);
-  // The theme chip is removable — the story is a starting point, not a cage.
-  await expect(page.getByRole("button", { name: /« hydrogen »/ })).toBeVisible();
+  expect(page.url()).not.toContain("angles=");
   const treemap = page.getByRole("img", { name: /funding · programme/ });
   await expect(treemap.locator("rect").first()).toBeVisible({ timeout: 15_000 });
 
   await page.getByRole("button", { name: "Table" }).click();
   await expect(page.getByRole("columnheader", { name: "Entry" })).toBeVisible();
+});
+
+test("the ranks view races the series over time", async ({ page }) => {
+  await page.goto("/explore?by=theme&split=1&limit=5&view=bump");
+  const chart = page.getByRole("img", { name: /funding · theme/ });
+  await expect(chart).toBeVisible({ timeout: 15_000 });
+  await expect(chart.locator("polyline").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ranks" })).toBeVisible();
 });
 
 test("dimension switch re-renders as bars with values", async ({ page }) => {
