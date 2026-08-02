@@ -41,8 +41,18 @@ les huit leçons :
 4 bis. **Fiche organisation complète** (recette lot 2 vs KAILA) : timeline
    financements/projets, split participé/coordonné, carte des
    collaborateurs.
-5. Formes B1-B6 au fil des lots ; **hygiène U2** (constante marque) en
-   chemin.
+5. Formes B1-B6 au fil des lots (B1 bump et B3 avant/après livrées) ;
+   **hygiène U2** (constante marque) en chemin.
+
+## Chantier « première visite » → refonte de l'architecture du site
+
+Réveillé et élargi par la fondatrice (2026-08-02, recette lot 3) :
+**proposition livrée, à itérer avant toute implémentation** —
+[architecture-site.md](architecture-site.md) (navigation par intentions
+Découvrir / Analyser / Construire / Espace de travail ; cinq pages
+nouvelles dont deux placeholders élégants datés P5/P6 ; mapping complet de
+l'existant) et sa [maquette de navigation](design/navigation-maquette.html).
+Les lots d'implémentation (A-D) y sont proposés, aucun n'est lancé.
 
 ## Ensuite — extension des sources, vague 1
 
