@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -46,6 +46,7 @@ export function CountryPanel({
   const { t, i18n } = useTranslation();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const photo: CountryPhoto | undefined = PHOTOS[code];
+  const [photoFailed, setPhotoFailed] = useState(false);
 
   const { data: themes } = useQuery({
     queryKey: ["panel-themes", code],
@@ -83,10 +84,21 @@ export function CountryPanel({
       {/* The photo speaks for itself (founder's call — the duotone tint is
           gone): natural colors under a neutral ink scrim, just enough for
           the parchment text and the CTA. If the growing curation ever turns
-          patchwork, a light uniform grade comes back — not the blue flood. */}
+          patchwork, a light uniform grade comes back — not the blue flood.
+          EAGER on purpose: the panel is user-triggered and shows one image;
+          lazy-loading inside a fixed/animated ancestor is the classic
+          silent-failure family (recette 2026-08-02, photos reported blank).
+          If the image still fails, the abstract gradient takes over rather
+          than leaving a bare ink slab. */}
       <div aria-hidden="true" className="absolute inset-0 bg-[#1d1d1f]">
-        {photo ? (
-          <img src={photo.file} alt="" loading="lazy" className="h-full w-full object-cover" />
+        {photo && !photoFailed ? (
+          <img
+            src={photo.file}
+            alt=""
+            decoding="async"
+            onError={() => setPhotoFailed(true)}
+            className="h-full w-full object-cover"
+          />
         ) : (
           <div className="h-full w-full bg-gradient-to-b from-[#3b5cff] via-[#1c2f9e] to-[#101d5e]" />
         )}
@@ -193,7 +205,7 @@ export function CountryPanel({
           {t("home.panelOpen", { name: entry.name })} →
         </Link>
 
-        {photo ? (
+        {photo && !photoFailed ? (
           <p className="mt-5 font-mono text-[9.5px] tracking-[.03em] text-white/55">
             {t("home.panelPhotoCredit", { author: photo.author, licence: photo.licence })}
           </p>

@@ -269,7 +269,13 @@ export function CommandK({ open, onOpenChange }: CommandKProps) {
                     onClick={() => go(option.to)}
                     className={cn(
                       "mx-2 flex cursor-pointer items-baseline gap-2.5 rounded-lg px-3 py-2.5 text-[14.5px]",
-                      index === active ? "bg-accent-soft text-accent" : "",
+                      // The active option must be UNMISSABLE in both themes
+                      // (recette 2026-08-02: "the arrows don't seem to
+                      // work" — they did; the highlight was too faint,
+                      // especially in dark): soft bg + a hard accent bar.
+                      index === active
+                        ? "bg-accent-soft text-accent shadow-[inset_2.5px_0_0_var(--color-accent)]"
+                        : "",
                     )}
                   >
                     {option.flag ? <span aria-hidden="true">{option.flag}</span> : null}
