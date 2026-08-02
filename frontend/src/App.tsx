@@ -14,6 +14,7 @@ import { NotFoundPage } from "@/pages/not-found";
 import { OrganisationHubPage } from "@/pages/organisation-hub";
 import { ProgrammeHubPage } from "@/pages/programme-hub";
 import { ComparePage } from "@/pages/compare";
+import { DossierPage } from "@/pages/dossier";
 import { ExplorerPage } from "@/pages/explorer";
 import { ProjectDetailPage } from "@/pages/project-detail";
 import { OrganisationsSearchPage, ProjectsSearchPage } from "@/pages/search";
@@ -44,6 +45,7 @@ export function AppRoutes() {
           <Route path="/organisations" element={<OrganisationsSearchPage />} />
           <Route path="/organisations/:id" element={<OrganisationHubPage />} />
           <Route path="/compare" element={<ComparePage />} />
+          <Route path="/dossier" element={<DossierPage />} />
           <Route path="/explore" element={<ExplorerPage />} />
           <Route path="/explore/countries" element={<ExploreCountriesPage />} />
           <Route path="/explore/countries/:code" element={<CountryHubPage />} />

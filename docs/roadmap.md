@@ -42,9 +42,11 @@ les huit leçons :
    paramètre whitelisté de l'API) ; « qui est financé » passe en
    trajectoires ; l'angle pays confirmé en carte (le doute venait d'un
    vieux build local, pas du code).
-4. **Le dossier** (maquette, puis print stylesheet) — **priorité montée**
-   en recette lot 2 : KAILA en fait un bouton central de fiche
-   (« Organisation report »).
+4. **Le dossier** — **livré** (2026-08-02, maquette v2 validée puis
+   implémentée : collecte board + decks, compteur d'en-tête, page
+   éditoriale aux vues vivantes annotées, « Emporter » en une section
+   par page ; objet de session localStorage, durable avec les comptes
+   P6). En recette sur site.
 4 bis. **Fiche organisation complète** (recette lot 2 vs KAILA) : timeline
    financements/projets, split participé/coordonné, carte des
    collaborateurs.

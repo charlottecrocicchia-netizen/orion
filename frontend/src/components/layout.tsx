@@ -9,6 +9,7 @@ import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
+import { useDossier } from "@/lib/dossier";
 import { formatCompactEur } from "@/lib/format";
 
 function ScopeBadge() {
@@ -28,6 +29,23 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   isActive
     ? "text-foreground"
     : "text-muted-foreground transition-colors hover:text-foreground";
+
+/** The discreet session-dossier counter (lot 4): appears once something
+ *  is collected, one click opens the assembly. */
+function DossierBadge() {
+  const { t } = useTranslation();
+  const dossier = useDossier();
+  if (dossier.items.length === 0) return null;
+  return (
+    <Link
+      to="/dossier"
+      className="hidden items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] text-foreground transition-colors hover:border-accent hover:text-accent sm:inline-flex"
+    >
+      <span aria-hidden="true">▤</span>
+      {t("dossier.counter", { count: dossier.items.length })}
+    </Link>
+  );
+}
 
 /** The dense parchment footer (doctrine: "dense et assumé", Apple's) — the
  *  whole information architecture exposed, corpus figures in tabular nums. */
@@ -126,6 +144,7 @@ export function Layout() {
                 ⌘K
               </kbd>
             </button>
+            <DossierBadge />
             <ScopeBadge />
             <LanguageToggle />
             <ThemeToggle />

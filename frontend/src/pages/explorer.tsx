@@ -13,6 +13,7 @@ import { ExploreTable } from "@/components/explore-table";
 import { EuropeMap } from "@/components/europe-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+import { addToDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
@@ -166,6 +167,15 @@ export function ExplorerPage() {
   const openInComposer = (query: string) =>
     setParams(new URLSearchParams(query), { preventScrollReset: true });
   const [copied, setCopied] = useState(false);
+  const [collected, setCollected] = useState(false);
+
+  // "Add to dossier" collects the CURRENT view — the board's URL, or the
+  // active angle in a deck (lot 4: every collected block is a URL).
+  const collect = (query: string, title: string) => {
+    addToDossier(query, title);
+    setCollected(true);
+    window.setTimeout(() => setCollected(false), 2000);
+  };
 
   const patch = (changes: Partial<ExplorerState>) => {
     const next = { ...state, ...changes };
@@ -341,13 +351,24 @@ export function ExplorerPage() {
               {anglePhrase}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => activeSlide && openInComposer(activeSlide.params)}
-            className="rounded-full border px-4 py-2 text-[13px] transition-colors hover:border-accent hover:text-accent"
-          >
-            {t("explorer.angles.open")} →
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() =>
+                activeSlide && collect(activeSlide.params, t(activeSlide.titleKey))
+              }
+              className="rounded-full border px-4 py-2 text-[13px] transition-colors hover:border-accent hover:text-accent"
+            >
+              {collected ? t("dossier.added") : `+ ${t("dossier.add")}`}
+            </button>
+            <button
+              type="button"
+              onClick={() => activeSlide && openInComposer(activeSlide.params)}
+              className="rounded-full border px-4 py-2 text-[13px] transition-colors hover:border-accent hover:text-accent"
+            >
+              {t("explorer.angles.open")} →
+            </button>
+          </div>
         </div>
       ) : (
       /* The composition sentence — the interface itself */
@@ -614,6 +635,13 @@ export function ExplorerPage() {
             {state.by === "theme" ? ` · ${t("explorer.multiTheme")}` : ""}
           </span>
           <div className="ml-auto flex gap-2">
+            <button
+              type="button"
+              onClick={() => collect(params.toString(), boardTitle)}
+              className="rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
+            >
+              {collected ? t("dossier.added") : `+ ${t("dossier.add")}`}
+            </button>
             <button
               type="button"
               onClick={downloadCsv}

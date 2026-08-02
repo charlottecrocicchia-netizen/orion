@@ -203,3 +203,22 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The dossier's take-away: one section per printed page, chrome hidden. */
+@media print {
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  .dossier-section {
+    break-inside: avoid;
+    break-after: page;
+  }
+  .dossier-section:last-of-type {
+    break-after: auto;
+  }
+  .dossier-page details {
+    display: none;
+  }
+}

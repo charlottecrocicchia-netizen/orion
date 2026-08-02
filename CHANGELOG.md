@@ -98,6 +98,18 @@ All notable changes to Orion are documented here. The format follows
   for the composer chip) — the URL carries the drill, "‹ back" leads out,
   and a childless programme says so instead of drawing a one-slice ring.
 
+- Lot 4, the dossier (mockup v2 validated): collect → assemble → take
+  away. "+ Add to dossier" on the Explorer board and on every deck's
+  active angle; a discreet "▤ Dossier · N" counter appears in the header;
+  /dossier assembles the collected views as an EDITORIAL page — display
+  title with a smart default, every block a LIVING Explorer view over its
+  mono provenance line (request sentence, data date, licences, "open the
+  living view"), quiet per-block actions (reorder, rename, annotate as an
+  accent-edged margin voice, remove), ONE "Take away" CTA printing one
+  section per page. A session object by decision: localStorage, the same
+  view never collected twice, accounts (P6) will make it durable — the
+  page says so.
+
 ### Changed
 
 - No label is ever truncated (new recette rule): SVG direct labels wrap
