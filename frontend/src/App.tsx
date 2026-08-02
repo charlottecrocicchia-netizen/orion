@@ -6,6 +6,8 @@ import "./i18n";
 
 import { Layout } from "@/components/layout";
 import { AboutDataPage } from "@/pages/about-data";
+import { AnalysesPage } from "@/pages/analyses";
+import { CallsPage } from "@/pages/calls";
 import { CountryHubPage } from "@/pages/country-hub";
 import { ExploreCountriesPage } from "@/pages/explore-countries";
 import { ExploreProgrammesPage } from "@/pages/explore-programmes";
@@ -18,6 +20,7 @@ import { DossierPage } from "@/pages/dossier";
 import { ExplorerPage } from "@/pages/explorer";
 import { ProjectDetailPage } from "@/pages/project-detail";
 import { OrganisationsSearchPage, ProjectsSearchPage } from "@/pages/search";
+import { WorkspacePage } from "@/pages/workspace";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +49,9 @@ export function AppRoutes() {
           <Route path="/organisations/:id" element={<OrganisationHubPage />} />
           <Route path="/compare" element={<ComparePage />} />
           <Route path="/dossier" element={<DossierPage />} />
+          <Route path="/analyses" element={<AnalysesPage />} />
+          <Route path="/calls" element={<CallsPage />} />
+          <Route path="/workspace" element={<WorkspacePage />} />
           <Route path="/explore" element={<ExplorerPage />} />
           <Route path="/explore/countries" element={<ExploreCountriesPage />} />
           <Route path="/explore/countries/:code" element={<CountryHubPage />} />

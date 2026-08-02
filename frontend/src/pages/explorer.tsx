@@ -739,33 +739,24 @@ export function ExplorerPage() {
       </section>
       )}
 
-      {/* Prepared views */}
-      <section className="mt-14">
-        <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-          {t("explorer.storiesTitle")}
-        </h2>
-        <div className="mt-4 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-          {STORIES.map((story) => (
-            <Link
-              key={story.key}
-              to={story.deck ? `/explore?angles=${story.key}` : `/explore?${story.params}`}
-              className="lift rounded-2xl border p-5 hover:border-accent"
-            >
-              <h3 className="text-[16px] font-semibold leading-snug">
-                {t(`explorer.stories.${story.key}.title`)}
-              </h3>
-              <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
-                {t(`explorer.stories.${story.key}.desc`)}
-              </p>
-              {story.deck ? (
-                <span className="mt-2.5 inline-block rounded-full bg-surface px-2.5 py-1 text-[11px] text-muted-foreground">
-                  {t("explorer.angles.badge", { count: story.deck.length })}
-                </span>
-              ) : null}
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* The ready-made analyses moved to their own library (/analyses);
+          the short renvoi keeps the old habit alive. */}
+      <div className="mb-16 mt-14 border-t border-border-soft pt-5">
+        <Link
+          to="/analyses"
+          className="group flex items-baseline gap-4 text-[14.5px] font-medium"
+        >
+          <span className="transition-colors group-hover:text-accent">
+            {t("explorer.libraryLink")}
+          </span>
+          <span className="text-[12.5px] font-normal text-muted-foreground">
+            {t("explorer.libraryCount", { count: STORIES.length })}
+          </span>
+          <span aria-hidden="true" className="text-accent">
+            →
+          </span>
+        </Link>
+      </div>
     </div>
   );
 }

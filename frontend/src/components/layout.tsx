@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { CommandK } from "@/components/command-k";
+import { IntentNav } from "@/components/intent-nav";
 import { LanguageToggle } from "@/components/language-toggle";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -12,8 +13,15 @@ import { BRAND } from "@/lib/brand";
 import { useDossier } from "@/lib/dossier";
 import { formatCompactEur } from "@/lib/format";
 
+/** The geographic-scope selector. HIDDEN while a single zone exists
+ *  (fondatrice, 2026-08-02): a selector with one option says nothing.
+ *  The URL mechanics stay underneath — wave 1 brings the zones back and
+ *  P6 maps subscriptions onto them; the honest coverage note lives on
+ *  the countries page meanwhile. */
 function ScopeBadge() {
   const { t } = useTranslation();
+  const zones = 1;
+  if (zones <= 1) return null;
   return (
     <span
       className="hidden items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] text-muted-foreground lg:inline-flex"
@@ -24,11 +32,6 @@ function ScopeBadge() {
     </span>
   );
 }
-
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  isActive
-    ? "text-foreground"
-    : "text-muted-foreground transition-colors hover:text-foreground";
 
 /** The discreet session-dossier counter (lot 4): appears once something
  *  is collected, one click opens the assembly. */
@@ -70,6 +73,7 @@ function Footer() {
             <li><Link to="/organisations" className={link}>{t("footer.organisations")}</Link></li>
             <li><Link to="/explore" className={link}>{t("footer.explorer")}</Link></li>
             <li><Link to="/compare" className={link}>{t("footer.compareOrgs")}</Link></li>
+            <li><Link to="/dossier" className={link}>{t("footer.dossierLink")}</Link></li>
           </ul>
         </nav>
         <nav aria-label={t("footer.exploreCol")}>
@@ -77,7 +81,9 @@ function Footer() {
           <ul className="mt-3">
             <li><Link to="/explore/countries" className={link}>{t("footer.countries")}</Link></li>
             <li><Link to="/explore/programmes" className={link}>{t("footer.programmes")}</Link></li>
-            <li><Link to="/explore" className={link}>{t("footer.readyMade")}</Link></li>
+            <li><Link to="/analyses" className={link}>{t("footer.analysesLink")}</Link></li>
+            <li><Link to="/calls" className={link}>{t("footer.callsLink")}</Link></li>
+            <li><Link to="/workspace" className={link}>{t("footer.workspaceLink")}</Link></li>
             <li><Link to="/about-data" className={link}>{t("footer.data")}</Link></li>
           </ul>
         </nav>
@@ -122,16 +128,8 @@ export function Layout() {
           <Link to="/" aria-label={`${BRAND} — home`}>
             <Logo />
           </Link>
-          <div className="ml-2 flex items-center gap-5 text-sm">
-            <NavLink to="/projects" className={navLinkClass}>
-              {t("nav.projects")}
-            </NavLink>
-            <NavLink to="/organisations" className={navLinkClass}>
-              {t("nav.organisations")}
-            </NavLink>
-            <NavLink to="/explore" className={navLinkClass}>
-              {t("nav.explore")}
-            </NavLink>
+          <div className="ml-2">
+            <IntentNav />
           </div>
           <div className="ml-auto flex items-center gap-3">
             <button

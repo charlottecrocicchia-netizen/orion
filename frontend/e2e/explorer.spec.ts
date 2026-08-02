@@ -20,7 +20,8 @@ test("the default view draws the top-5 countries over time", async ({ page }) =>
 });
 
 test("a story opens as Angles, slides, and hands over to the composer", async ({ page }) => {
-  await page.goto("/explore");
+  // The library page (site architecture, lot B) is the decks' storefront.
+  await page.goto("/analyses");
   await page.getByRole("link", { name: /Where does hydrogen money go/ }).click();
   await expect(page).toHaveURL(/angles=hydrogen/);
   await expect(page.getByRole("region", { name: /angles/i })).toBeVisible();

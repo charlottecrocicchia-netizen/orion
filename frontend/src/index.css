@@ -181,6 +181,24 @@
   }
 }
 
+/* The phase placeholders' soft staggered entrance — each line rises a
+   touch after the previous (animation-delay set inline). Killed by the
+   reduced-motion block below. */
+@utility phase-reveal {
+  animation: phase-reveal 0.5s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
+}
+
+@keyframes phase-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Card hover: barely-there lift, the premium kind — wearing the product's
    single elevation shadow. */
 @utility lift {

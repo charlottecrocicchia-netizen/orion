@@ -68,6 +68,15 @@ pas de pavés) ; le sélecteur « Europe + France » discret ou masqué tant
 qu'une seule zone existe (la mécanique URL reste dessous, elle porte les
 abonnements par zone) ; « Construire » à valider à l'usage.
 
+État : **lots A-C livrés** (2026-08-02) — la barre aux quatre intentions
+(menus décrits, badges datés, Échap/clic dehors), la bibliothèque
+`/analyses` (renvoi court gardé dans l'Explorateur), les placeholders
+`/calls` et `/workspace` (grammaire raffinée validée en captures), le
+sélecteur de périmètre masqué. **Reste : lot D** (l'accueil aligné sur
+les intentions, contenu vivant façon KAILA) et l'**index des thèmes**
+`/explore/themes` (la 5ᵉ page, entrera au menu Découvrir à sa
+livraison — pas de porte morte d'ici là).
+
 ## Ensuite — extension des sources, vague 1
 
 Décision fondatrice (2026-08-02) : après le chantier design, ouvrir la

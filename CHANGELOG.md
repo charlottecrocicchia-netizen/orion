@@ -110,6 +110,20 @@ All notable changes to Orion are documented here. The format follows
   view never collected twice, accounts (P6) will make it durable — the
   page says so.
 
+- Site architecture, lots A-C (principle validated on the mockup): the
+  header navigates by INTENT — Discover, Analyse, Build, Workspace —
+  four short disclosure menus (APG pattern: Escape, outside click, route
+  change close) where every entry carries its one-line description and
+  future doors wear a dated mono badge. The ready-made analyses get
+  their own library page (/analyses, decks first as editorial rows, the
+  Explorer keeps a short renvoi); /calls and /workspace are ELEGANT
+  dated placeholders — display title with gradient accent words over a
+  faint ultramarine wash, hairline feature lines, staggered soft
+  reveals, the bridge to what already exists, one honest closing line,
+  no form. The header scope pill is hidden while a single zone exists
+  (the URL mechanics stay for wave 1 and the P6 zone subscriptions);
+  the footer sitemap gains the new pages.
+
 ### Changed
 
 - No label is ever truncated (new recette rule): SVG direct labels wrap

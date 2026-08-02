@@ -109,10 +109,12 @@ beforeEach(() => {
 test("home leads with the hero, acts follow below", async () => {
   renderAt("/");
 
-  // Header nav (the dense footer repeats the product links).
-  expect(
-    within(screen.getByRole("banner")).getByRole("link", { name: "Projects" }),
-  ).toBeInTheDocument();
+  // Header nav: the four intents (the dense footer repeats the product
+  // links; page links live inside the disclosure panels).
+  const banner = within(screen.getByRole("banner"));
+  for (const intent of ["Discover", "Analyse", "Build", "Workspace"]) {
+    expect(banner.getByRole("button", { name: intent })).toBeInTheDocument();
+  }
   // Act 1 — the hero seizes first (jsdom: reduced motion → final state).
   expect(await screen.findByText("€211B")).toBeInTheDocument();
   expect(await screen.findByText("119,172")).toBeInTheDocument();
@@ -138,7 +140,10 @@ test("the explorer composes a view and renders its chart and table", async () =>
   expect(await screen.findByText("participants' share")).toBeInTheDocument();
   const chart = await screen.findByRole("img", { name: /funding · country/ });
   expect(chart.tagName.toLowerCase()).toBe("svg");
-  expect(screen.getByText("Where does hydrogen money go?")).toBeInTheDocument();
+  // The ready-made analyses moved to their library; the renvoi stays.
+  expect(
+    screen.getByRole("link", { name: /Ready-made analyses — the library/ }),
+  ).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: "Table" }));
   expect(await screen.findByRole("columnheader", { name: "France" })).toBeInTheDocument();

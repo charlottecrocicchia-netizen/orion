@@ -1,0 +1,61 @@
+import { expect, test } from "@playwright/test";
+
+/** The intent navigation (site architecture, lot A) and the dated
+ *  placeholder pages: four verbs, described entries, honest doors. */
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("orion.lang", "en");
+    window.localStorage.setItem("orion.theme", "light");
+  });
+});
+
+test("the four intents open, describe their pages, and navigate", async ({ page }) => {
+  await page.goto("/");
+  const banner = page.getByRole("banner");
+
+  // Discover: the entries carry their one-line descriptions.
+  await banner.getByRole("button", { name: "Discover" }).click();
+  await expect(page.getByText("consolidated files, watch-post included")).toBeVisible();
+  // The dated P5 door is inside, badge visible (the footer sitemap
+  // repeats the date — scope to the banner).
+  await expect(banner.getByText("P5 · autumn 2026")).toBeVisible();
+  await banner.getByRole("link", { name: /Projects/ }).click();
+  await expect(page).toHaveURL(/\/projects/);
+
+  // Analyse → the library.
+  await banner.getByRole("button", { name: "Analyse" }).click();
+  await banner.getByRole("link", { name: /Ready-made analyses/ }).click();
+  await expect(page).toHaveURL(/\/analyses/);
+  await expect(
+    page.getByRole("heading", { name: "The ready-made analyses" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /Where does hydrogen money go/ })).toBeVisible();
+
+  // Escape closes a panel without navigating.
+  await banner.getByRole("button", { name: "Build" }).click();
+  await expect(page.getByText("collect views, assemble, take away")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("collect views, assemble, take away")).toHaveCount(0);
+});
+
+test("the placeholder pages say the date and bridge to what exists", async ({ page }) => {
+  await page.goto("/calls");
+  await expect(page.getByRole("heading", { name: /Calls arrive in/ })).toBeVisible();
+  await expect(page.getByText("never a single score: every criterion says its share")).toBeVisible();
+  await expect(page.getByText("No form, no waiting list — the date is enough.")).toBeVisible();
+  await page.getByRole("link", { name: /Theme trends/ }).click();
+  await expect(page).toHaveURL(/\/explore\?by=theme&split=1/);
+
+  await page.goto("/workspace");
+  await expect(page.getByRole("heading", { name: /Your watch will have a home/ })).toBeVisible();
+  await page.getByRole("link", { name: /The dossier assembles and travels/ }).click();
+  await expect(page).toHaveURL(/\/dossier/);
+});
+
+test("the scope pill stays hidden while a single zone exists", async ({ page }) => {
+  // The header selector is gone (one zone says nothing); the footer's
+  // honest coverage note is a different, legitimate mention.
+  await page.goto("/");
+  await expect(page.getByRole("banner").getByText("Europe + France")).toHaveCount(0);
+});
