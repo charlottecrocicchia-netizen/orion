@@ -24,9 +24,12 @@ const strip = (value: string) =>
 function useDebounced(value: string, delay = 180): string {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
+    // No timer when already in sync — mounting must not schedule state
+    // updates for later (they fire after teardown in tests).
+    if (value === debounced) return;
     const handle = window.setTimeout(() => setDebounced(value), delay);
     return () => window.clearTimeout(handle);
-  }, [value, delay]);
+  }, [value, delay, debounced]);
   return debounced;
 }
 

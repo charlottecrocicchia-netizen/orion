@@ -550,9 +550,7 @@ def suggest(session: Session, q: str) -> dict[str, Any]:
         return {"organisations": [], "projects": []}
 
     def build() -> dict[str, Any]:
-        session.execute(
-            text("SELECT set_config('pg_trgm.similarity_threshold', '0.25', true)")
-        )
+        session.execute(text("SELECT set_config('pg_trgm.similarity_threshold', '0.25', true)"))
         params: dict[str, Any] = {
             "qnorm": normalize_name(q) or q.lower(),
             "qraw": q,
@@ -583,12 +581,8 @@ def suggest(session: Session, q: str) -> dict[str, Any]:
             params,
         ).all()
         return {
-            "organisations": [
-                {"id": i, "name": n, "country": c} for i, n, c in organisations
-            ],
-            "projects": [
-                {"id": i, "acronym": a, "title": t} for i, a, t in projects
-            ],
+            "organisations": [{"id": i, "name": n, "country": c} for i, n, c in organisations],
+            "projects": [{"id": i, "acronym": a, "title": t} for i, a, t in projects],
         }
 
     key = f"suggest:{q.lower()}"

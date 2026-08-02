@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, expect, test, vi } from "vitest";
 
@@ -32,8 +32,13 @@ beforeEach(() => {
   );
 });
 
+/** gcTime 0 and a microtask flush after each scenario: the palette fires
+ *  queries on mount, and any state update landing after environment
+ *  teardown becomes an unhandled "window is not defined" in CI. */
 function renderPalette() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
   const onOpenChange = vi.fn();
   render(
     <QueryClientProvider client={client}>
@@ -44,6 +49,11 @@ function renderPalette() {
   );
   return onOpenChange;
 }
+
+const flush = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
 
 test("typing surfaces grouped suggestions with combobox semantics", async () => {
   renderPalette();
@@ -61,10 +71,13 @@ test("typing surfaces grouped suggestions with combobox semantics", async () => 
   // Arrow keys drive the active descendant.
   fireEvent.keyDown(input, { key: "ArrowDown" });
   expect(input.getAttribute("aria-activedescendant")).toMatch(/^ck-opt-/);
+  await flush();
 });
 
-test("escape closes the palette", () => {
+test("escape closes the palette", async () => {
   const onOpenChange = renderPalette();
+  await flush();
   fireEvent.keyDown(window, { key: "Escape" });
   expect(onOpenChange).toHaveBeenCalledWith(false);
+  await flush();
 });

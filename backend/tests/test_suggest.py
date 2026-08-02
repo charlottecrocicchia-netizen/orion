@@ -28,9 +28,7 @@ def db_session(test_database):
 @pytest.fixture
 def seeded(db_session):
     funder = db_session.scalar(select(Funder).where(Funder.code == "ec"))
-    org = Organisation(
-        name=f"{MARK} Fraunhofer Institut", country_code="DE", org_type="REC"
-    )
+    org = Organisation(name=f"{MARK} Fraunhofer Institut", country_code="DE", org_type="REC")
     db_session.add(org)
     project = Project(
         source=f"test-{MARK.lower()}",
@@ -47,9 +45,7 @@ def seeded(db_session):
 
 def test_suggest_matches_organisations_including_typos(db_session, seeded):
     by_prefix = suggest(db_session, f"{MARK} Fraun")
-    assert any(
-        o["id"] == seeded["org"] for o in by_prefix["organisations"]
-    ), by_prefix
+    assert any(o["id"] == seeded["org"] for o in by_prefix["organisations"]), by_prefix
 
     # Trigram tolerance: a misspelling must still surface the organisation.
     by_typo = suggest(db_session, f"{MARK} Fraunhoffer")
