@@ -26,7 +26,12 @@ les huit leçons :
    validée).
 2. **Hub « poste de veille »** — **livré** (2026-08-02, lot 2, en recette).
 3. **Les Angles** sur les Analyses prêtes de l'Explorateur (+ peek Apple).
-4. **Le dossier** (maquette, puis print stylesheet).
+4. **Le dossier** (maquette, puis print stylesheet) — **priorité montée**
+   en recette lot 2 : KAILA en fait un bouton central de fiche
+   (« Organisation report »).
+4 bis. **Fiche organisation complète** (recette lot 2 vs KAILA) : timeline
+   financements/projets, split participé/coordonné, carte des
+   collaborateurs.
 5. Formes B1-B6 au fil des lots ; **hygiène U2** (constante marque) en
    chemin.
 
@@ -73,7 +78,9 @@ d'éligibilité rapide + alertes deadlines — les standards du marché — PLUS
 nos twists uniques : **alertes sur le passé** (un concurrent gagne un
 projet sur mon thème), pont « qui a gagné les calls similaires », et
 découverte de partenaires data-driven. Prérequis : la couche groupes
-(on s'abonne à « Thales », pas à 12 entités légales).
+(on s'abonne à « Thales », pas à 12 entités légales) — **différenciateur
+frontal confirmé sur pièces** : KAILA fait regrouper 21 entités à la main
+(Merge/Cross) à chaque session ; notre couche automatique le rend caduc.
 
 **Hors périmètre assumé** (décision à confirmer) : rédaction IA de
 candidatures et gestion post-award (le métier de Granter/Streamlyne — 

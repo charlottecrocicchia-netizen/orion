@@ -257,3 +257,15 @@ la carte sont gelés et n'apparaissent pas ici.
 
 La **couche groupes** (U5) est un chantier données, pas un lot de ce
 chantier UI : cadrée à la [roadmap](roadmap.md) avec la vague 1.
+
+### Backlog ajouté en recette du lot 2 (comparaison KAILA, 2026-08-02)
+
+La fiche organisation devra encore gagner, dans un lot ultérieur :
+① la **timeline financements/projets** (montants ET nombre de projets dans
+le temps — la TrajectorySpark actuelle est volontairement sommaire) ;
+② le **split participé/coordonné** lisible d'un regard (barres, jamais un
+donut — doctrine) ; ③ la **carte des collaborateurs** ; ④ l'export
+**« rapport organisation »** — le dossier du BD **monte en priorité**
+(KAILA en fait un bouton central de fiche). Orion garde ses avantages
+(profil thématique en parts, signaux seuillés, consolidation) : on
+complète, on ne copie pas.

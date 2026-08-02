@@ -22,6 +22,33 @@ uniquement — pas de design ici. Croisé avec les
 | **Granter.ai** | L'agent IA de bout en bout : matching + éligibilité auto, **rédaction des candidatures par IA** évaluée contre les critères officiels, gestion post-approbation (jalons, reporting) ; sales-led | Le marché monte vers l'EXÉCUTION (écrire, soumettre, gérer). À décider explicitement : hors périmètre Orion (voir §4, R7) |
 | *Adjacents (étude orientation)* | Dimensions (graphe recherche), Crunchbase/Dealroom (données entreprises, signaux, listes suivies, alertes) | Les patterns de veille génériques : listes suivies + alertes + export — partout |
 
+### Observations d'usage KAILA (fondatrice, compte professionnel — 2026-08-02)
+
+Transmises en mots uniquement (pas de captures au repo — outil sous compte
+professionnel). Trois enseignements de première main :
+
+1. **La home montre avant qu'on demande** : « Highlights » accueille avec du
+   contenu immédiat — deadlines à compte à rebours (« Closes in 39 days »),
+   dernières recherches, projets récents, top innovators, tables des mieux
+   financés. Personne n'arrive « devant rien ». Et la barre de recherche
+   porte un **sélecteur de type** (Area / Funding Opportunities / Projects /
+   Innovators / Organisations) : l'utilisateur dit CE qu'il cherche.
+   → Cahier des charges du chantier « première visite », validé par le
+   concurrent frontal.
+2. **La preuve vivante de U5** : « Safran » → 40 organisations ; l'interface
+   affiche « Selected Organisations (21) » avec des boutons **Merge/Cross**
+   — KAILA fait porter à l'utilisateur le regroupement des 21 entités
+   TotalEnergies, à la main, à chaque session. Notre couche groupes
+   automatique n'est pas un détail technique : **c'est un argument de démo
+   frontal**.
+3. **Leur fiche organisation, la mesure du lot 2** : ils ont la timeline
+   financements/projets (avec brush), la carte des collaborateurs, le split
+   participé/coordonné, et un bouton central « Organisation report ». Ils
+   n'ont NI profil thématique en parts, NI signaux (rien de vivant, aucune
+   tendance), NI consolidation. Verdict fondatrice : « le poste de veille
+   d'Orion est plus intelligent, celui de KAILA est plus complet
+   visuellement. » Les manques d'Orion sont au backlog du chantier parcours.
+
 **Note de méthode** : la page produit d'Elsevier redirige vers son portail
 général ; le produit vit sur son domaine dédié (données « July 2024 » —
 vitalité commerciale à surveiller). Pricing détaillé rarement public
