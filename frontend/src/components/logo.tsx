@@ -1,3 +1,5 @@
+import { BRAND } from "@/lib/brand";
+
 export function Logo() {
   return (
     <div className="flex items-center gap-2.5">
@@ -14,7 +16,7 @@ export function Logo() {
         <circle cx="14.5" cy="13.5" r="1.6" fill="var(--color-foreground)" />
         <circle cx="19.5" cy="5" r="2" fill="var(--color-accent)" />
       </svg>
-      <span className="display-tight text-[17px] font-semibold">Orion</span>
+      <span className="display-tight text-[17px] font-semibold">{BRAND}</span>
     </div>
   );
 }

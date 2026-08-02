@@ -535,3 +535,61 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
             "org_types": [{"code": t, "count": n} for t, n in org_types],
         },
     }
+
+
+SUGGEST_CACHE_MAX = 512
+
+
+def suggest(session: Session, q: str) -> dict[str, Any]:
+    """Keystroke suggestions — lean by design (ids and names only, no
+    aggregates): organisations by the same fuzzy rank as the full search,
+    projects by acronym prefix. Themes and countries are closed
+    vocabularies matched client-side. Bounded cache per normalized query."""
+    q = q.strip()
+    if len(q) < 2:
+        return {"organisations": [], "projects": []}
+
+    def build() -> dict[str, Any]:
+        session.execute(
+            text("SELECT set_config('pg_trgm.similarity_threshold', '0.25', true)")
+        )
+        params: dict[str, Any] = {
+            "qnorm": normalize_name(q) or q.lower(),
+            "qraw": q,
+            "qprefix": f"{q}%",
+        }
+        organisations = session.execute(
+            text("""
+            SELECT o.id, o.name, o.country_code
+            FROM organisations o
+            WHERE o.name ILIKE :qprefix OR o.name_normalized % :qnorm OR o.name % :qraw
+            ORDER BY GREATEST(
+                similarity(coalesce(o.name_normalized, ''), :qnorm),
+                similarity(o.name, :qraw),
+                CASE WHEN o.name ILIKE :qprefix THEN 0.9 ELSE 0 END) DESC,
+              o.id
+            LIMIT 5
+            """),
+            params,
+        ).all()
+        projects = session.execute(
+            text("""
+            SELECT p.id, p.acronym, p.title
+            FROM projects p
+            WHERE p.acronym ILIKE :qprefix
+            ORDER BY p.funding_amount_eur DESC NULLS LAST, p.id
+            LIMIT 4
+            """),
+            params,
+        ).all()
+        return {
+            "organisations": [
+                {"id": i, "name": n, "country": c} for i, n, c in organisations
+            ],
+            "projects": [
+                {"id": i, "acronym": a, "title": t} for i, a, t in projects
+            ],
+        }
+
+    key = f"suggest:{q.lower()}"
+    return _cached_bounded(session, key, build, prefix="suggest:", cap=SUGGEST_CACHE_MAX)

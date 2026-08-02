@@ -1,6 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
+import { BRAND } from "@/lib/brand";
+
 const resources = {
   en: {
     translation: {
@@ -8,6 +10,15 @@ const resources = {
       scope: { label: "Scope", europeFr: "Europe + France" },
       searchPlaceholder: "Search projects, organisations…",
       searchShort: "Search…",
+      ck: {
+        fullSearch: "Search “{{q}}” in all projects",
+        groupProjects: "Projects",
+        groupOrganisations: "Organisations",
+        groupThemes: "Themes",
+        groupCountries: "Countries",
+        suggestCount_one: "{{count}} suggestion",
+        suggestCount_other: "{{count}} suggestions",
+      },
       hero: {
         eyebrow: "European R&D funding intelligence",
         sub: "of public R&D funding, mapped. {{from}} → {{to}}.",
@@ -41,8 +52,8 @@ const resources = {
         act3Lead:
           "38 countries covered today, the rest greyed honestly — hover a country for its collaborations, click to meet it.",
         globeFlowsHint: "top 5 collaborations",
-        panelRank_one: "Top funded country in Europe — in Orion's data",
-        panelRank_other: "No. {{count}} funded country in Europe — in Orion's data",
+        panelRank_one: "Top funded country in Europe — in {{brand}}'s data",
+        panelRank_other: "No. {{count}} funded country in Europe — in {{brand}}'s data",
         panelHook: "{{amount}} across {{projects}} projects since 2005.",
         panelFunding: "funding",
         panelProjects: "projects",
@@ -74,11 +85,11 @@ const resources = {
         mapLegend: "EU + FR funding",
         mapFlows: "on hover, the country's top collaborations",
         mapHint: "Click a country to open its hub",
-        globeLabel: "World globe — Orion's coverage in ultramarine",
+        globeLabel: "World globe — {{brand}}'s coverage in ultramarine",
         globeHint: "drag to rotate · click a covered country",
         viewGlobe: "Globe",
         viewMap: "Map",
-        coverageHave: "Orion data (EU + France)",
+        coverageHave: "{{brand}} data (EU + France)",
         coverageSoon: "coverage to come",
         coverageNote: "Current coverage: EU + France.",
         coverageDetail: "United States, United Kingdom, Japan — sources in preparation.",
@@ -265,7 +276,7 @@ const resources = {
       about: {
         title: "About the data",
         intro:
-          "Every figure in Orion is rebuilt from public sources. Provenance, licences and freshness below.",
+          "Every figure in {{brand}} is rebuilt from public sources. Provenance, licences and freshness below.",
         source: "Source",
         projects: "Projects",
         updated: "Updated",
@@ -308,6 +319,15 @@ const resources = {
       scope: { label: "Périmètre", europeFr: "Europe + France" },
       searchPlaceholder: "Rechercher projets, organisations…",
       searchShort: "Rechercher…",
+      ck: {
+        fullSearch: "Chercher « {{q}} » dans tous les projets",
+        groupProjects: "Projets",
+        groupOrganisations: "Organisations",
+        groupThemes: "Thèmes",
+        groupCountries: "Pays",
+        suggestCount_one: "{{count}} suggestion",
+        suggestCount_other: "{{count}} suggestions",
+      },
       hero: {
         eyebrow: "Intelligence des financements R&D en Europe",
         sub: "de financements R&D publics, cartographiés. {{from}} → {{to}}.",
@@ -341,8 +361,8 @@ const resources = {
         act3Lead:
           "38 pays couverts aujourd'hui, le reste grisé honnêtement — survolez un pays pour ses collaborations, cliquez pour le rencontrer.",
         globeFlowsHint: "5 premières collaborations",
-        panelRank_one: "Premier pays financé d'Europe — dans les données Orion",
-        panelRank_other: "{{count}}ᵉ pays financé d'Europe — dans les données Orion",
+        panelRank_one: "Premier pays financé d'Europe — dans les données {{brand}}",
+        panelRank_other: "{{count}}ᵉ pays financé d'Europe — dans les données {{brand}}",
         panelHook: "{{amount}} répartis sur {{projects}} projets depuis 2005.",
         panelFunding: "financements",
         panelProjects: "projets",
@@ -374,11 +394,11 @@ const resources = {
         mapLegend: "Financements UE + FR",
         mapFlows: "au survol, les principales collaborations du pays",
         mapHint: "Cliquez un pays pour ouvrir sa fiche",
-        globeLabel: "Globe mondial — la couverture d'Orion en outremer",
+        globeLabel: "Globe mondial — la couverture de {{brand}} en outremer",
         globeHint: "glisser pour tourner · cliquer un pays couvert",
         viewGlobe: "Globe",
         viewMap: "Carte",
-        coverageHave: "données Orion (UE + France)",
+        coverageHave: "données {{brand}} (UE + France)",
         coverageSoon: "couverture à venir",
         coverageNote: "Couverture actuelle : UE + France.",
         coverageDetail: "États-Unis, Royaume-Uni, Japon — sources en préparation.",
@@ -608,7 +628,7 @@ const resources = {
       about: {
         title: "À propos des données",
         intro:
-          "Chaque chiffre d'Orion est reconstruit depuis des sources publiques. Provenance, licences et fraîcheur ci-dessous.",
+          "Chaque chiffre de {{brand}} est reconstruit depuis des sources publiques. Provenance, licences et fraîcheur ci-dessous.",
         source: "Source",
         projects: "Projets",
         updated: "Mise à jour",
@@ -659,7 +679,8 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: storedLanguage() ?? "en",
   fallbackLng: "en",
-  interpolation: { escapeValue: false },
+  // {{brand}} resolves everywhere from the single BRAND constant (U2).
+  interpolation: { escapeValue: false, defaultVariables: { brand: BRAND } },
 });
 
 export default i18n;

@@ -9,6 +9,7 @@ from orion.search.service import (
     ProjectFilters,
     search_organisations,
     search_projects,
+    suggest,
 )
 
 router = APIRouter()
@@ -45,6 +46,16 @@ def search_projects_endpoint(
         lang=lang,
     )
     return search_projects(db, filters)
+
+
+@router.get("/search/suggest")
+def suggest_endpoint(
+    db: Annotated[Session, Depends(get_db)],
+    q: str = "",
+) -> dict[str, Any]:
+    """Keystroke suggestions for the command palette — organisations and
+    projects; themes and countries are matched client-side."""
+    return suggest(db, q)
 
 
 @router.get("/search/organisations")

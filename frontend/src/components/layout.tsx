@@ -8,6 +8,7 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/lib/api";
+import { BRAND } from "@/lib/brand";
 import { formatCompactEur } from "@/lib/format";
 
 function ScopeBadge() {
@@ -77,7 +78,7 @@ function Footer() {
       </div>
       <div className="border-t">
         <div className="mx-auto flex h-12 w-full max-w-[1240px] items-center justify-between px-6 text-xs text-muted-foreground">
-          <span>© 2026 Orion</span>
+          <span>© 2026 {BRAND}</span>
           <span className="font-mono text-[11px]">{t("footer.phase")}</span>
         </div>
       </div>
@@ -100,7 +101,7 @@ export function Layout() {
       </a>
       <header>
         <nav className="mx-auto flex h-16 w-full max-w-[1240px] items-center gap-6 px-6">
-          <Link to="/" aria-label="Orion — home">
+          <Link to="/" aria-label={`${BRAND} — home`}>
             <Logo />
           </Link>
           <div className="ml-2 flex items-center gap-5 text-sm">

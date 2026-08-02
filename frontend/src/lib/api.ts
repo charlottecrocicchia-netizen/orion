@@ -116,9 +116,15 @@ export interface CompareEntry {
   top_partners: OrganisationPartner[];
 }
 
+export interface SuggestResponse {
+  organisations: { id: number; name: string; country: string | null }[];
+  projects: { id: number; acronym: string | null; title: string }[];
+}
+
 export const api = {
   explore: (params: URLSearchParams) =>
     get<ExploreResponse>(`/api/explore/aggregate?${params}`),
+  suggest: (q: string) => get<SuggestResponse>(`/api/search/suggest?q=${encodeURIComponent(q)}`),
   organisationPartners: (id: string) =>
     get<OrganisationPartner[]>(`/api/organisations/${id}/partners`),
   countryFlows: () => get<CountryFlow[]>("/api/countries/flows?limit=200"),

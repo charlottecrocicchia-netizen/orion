@@ -47,6 +47,15 @@ All notable changes to Orion are documented here. The format follows
   horizontal bars in each column's series color, length as the
   perceptual encoding.
 
+- Lot 1 of the journeys chantier — the palette suggests as you type
+  (Vega lesson U7): a real APG combobox over ⌘K — projects by acronym,
+  organisations typo-tolerant (server trigram, bounded cache), themes and
+  countries matched locally (accent-insensitive, localized via i18n and
+  Intl.DisplayNames), grouped options, arrow-key active descendant, and
+  plain Enter keeping the old full-text reflex. Brand hygiene (U2): the
+  visible name now lives in one place (VITE_APP_BRAND → BRAND constant,
+  i18n {{brand}}, %VITE_APP_BRAND% in index.html).
+
 ### Changed
 
 - Display face: Instrument Sans retired; Inter (tightened, alternate glyphs)
