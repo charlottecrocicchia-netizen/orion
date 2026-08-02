@@ -59,7 +59,7 @@ test("the enriched demo journey holds end to end", async ({ page }) => {
   await expect(page.locator("article b").first()).toBeVisible();
 
   // 2 — refine with the FR country facet.
-  await page.getByRole("button", { name: /^FR · / }).click();
+  await page.getByRole("button", { name: /^France · / }).click();
   await expect(page).toHaveURL(/country=FR/);
   await expect
     .poll(async () => Number((await resultsHeading.innerText()).replace(/[^\d]/g, "")))

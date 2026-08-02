@@ -59,8 +59,14 @@ export function SearchComposer({
   });
   // Defensive: a misbehaving endpoint must degrade to "no suggestions",
   // never crash the page the bar lives on.
-  const countries = Array.isArray(countriesData) ? countriesData : [];
-  const programmes = Array.isArray(programmesData) ? programmesData : [];
+  const countries = useMemo(
+    () => (Array.isArray(countriesData) ? countriesData : []),
+    [countriesData],
+  );
+  const programmes = useMemo(
+    () => (Array.isArray(programmesData) ? programmesData : []),
+    [programmesData],
+  );
 
   const displayNames = useMemo(
     () => new Intl.DisplayNames([i18n.language || "en"], { type: "region" }),
@@ -146,20 +152,6 @@ export function SearchComposer({
       inputRef.current?.focus();
     };
 
-    // Free text first: plain Enter keeps the old reflex, like the palette.
-    out.push({
-      id: "sc-text",
-      label: t(
-        kind === "projects" ? "search.composer.freeText" : "search.composer.freeTextOrgs",
-        { q: draft.trim() },
-      ),
-      type: t("search.composer.typeText"),
-      apply: () => {
-        update({ q: draft.trim() });
-        done();
-      },
-    });
-
     // Years: "2021" or "2019-2024" / "2019 → 2024".
     const range = /^(\d{4})\s*(?:[-–—>]|->|→)\s*(\d{4})$/.exec(draft.trim());
     const single = /^(19|20)\d{2}$/.test(draft.trim());
@@ -235,6 +227,22 @@ export function SearchComposer({
         }
       }
     }
+
+    // Free text LAST (recette 2026-08-02): when the typing matches an
+    // ENTITY, plain Enter poses the tag — "Allemagne" means the country,
+    // not a word. Arrow keys still reach the text option.
+    out.push({
+      id: "sc-text",
+      label: t(
+        kind === "projects" ? "search.composer.freeText" : "search.composer.freeTextOrgs",
+        { q: draft.trim() },
+      ),
+      type: t("search.composer.typeText"),
+      apply: () => {
+        update({ q: draft.trim() });
+        done();
+      },
+    });
 
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps

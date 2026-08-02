@@ -80,7 +80,7 @@ export function WorldGlobe({
   flows = [],
   selected = null,
   zoom = 1,
-  speed = 2.2,
+  speed = 4.2,
 }: {
   countries: CountryIndexEntry[];
   onOpenCountry: (code: string) => void;
@@ -94,7 +94,7 @@ export function WorldGlobe({
   /** >1 crops the sphere and frames the covered region — the grey
    *  waiting-world stops dominating; rotation still reveals it. */
   zoom?: number;
-  /** Rotation pace, degrees per second (founder is comparing live). */
+  /** Rotation pace, degrees per second — "vive" pinned (recette 2026-08-02). */
   speed?: number;
 }) {
   const { t, i18n } = useTranslation();
@@ -104,6 +104,7 @@ export function WorldGlobe({
   const [hover, setHover] = useState<string | null>(null);
   const [morphT, setMorphT] = useState<number | null>(null);
   const drag = useRef<{ x: number; y: number; id: number; captured: boolean } | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const spin = useRef<number | null>(null);
   const covered = useMemo(
     () => new Set(countries.map((entry) => entry.code)),
@@ -141,16 +142,19 @@ export function WorldGlobe({
     };
   }, []);
 
-  // The rotation, reworked on founder feedback (2026-08-02): the globe
-  // turns on its axis VISIBLY and keeps turning — including after a
-  // country is selected. The loop never dies; it only PAUSES while the
-  // pointer hovers, a shape holds focus, or a drag is in flight (so
-  // aiming at a small country stays comfortable), and resumes the moment
-  // the pointer leaves. `speed` is degrees per second (the founder is
-  // comparing paces live). Framed (zoom > 1) the old ±16° pendulum
-  // remains for croppings that a full spin would carry away. None under
-  // reduced motion (the CSS kill-switch cannot reach a rAF loop).
+  // The rotation, PERMANENT by decision (recette 2026-08-02, pace "vive"
+  // pinned): the loop never dies and the globe turns whenever visible —
+  // it only pauses while a COUNTRY is hovered, a shape holds focus, or a
+  // drag is in flight (aiming at a small country stays comfortable), and
+  // resumes the moment that ends. The pause deliberately ignores the
+  // svg's own pointerenter: hover states go STALE during scroll (the
+  // globe slides under a motionless cursor, pointerleave never fires) —
+  // that was the "it stops when I scroll back up" bug; a passive scroll
+  // listener also clears any phantom hover-pause. Framed (zoom > 1) the
+  // old ±16° pendulum remains. None under reduced motion (the CSS
+  // kill-switch cannot reach a rAF loop).
   const paused = useRef(false);
+  const offscreen = useRef(false);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const lon0 = zoom > 1 ? 12 : null;
@@ -159,7 +163,7 @@ export function WorldGlobe({
     const step = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
-      if (!paused.current) {
+      if (!paused.current && !offscreen.current) {
         if (lon0 != null) {
           phase += 0.15 * dt * speed;
           setView((current) => ({ ...current, lonC: lon0 + 16 * Math.sin(phase) }));
@@ -170,13 +174,36 @@ export function WorldGlobe({
       spin.current = requestAnimationFrame(step);
     };
     spin.current = requestAnimationFrame(step);
+    const onScroll = () => {
+      // Scrolling is never aiming: clear a phantom hover-pause (drags and
+      // keyboard focus re-assert theirs through their own handlers).
+      if (!drag.current) paused.current = false;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       if (spin.current != null) cancelAnimationFrame(spin.current);
+      window.removeEventListener("scroll", onScroll);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom, speed]);
 
-  /** Pause (not kill) the rotation — hover, focus and drags call this;
-   *  releasing resumes through the always-running loop. */
+  // Perf only: no need to advance frames nobody can see. Visibility does
+  // not alter the interaction contract.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        offscreen.current = entries[0] ? !entries[0].isIntersecting : false;
+      },
+      { threshold: 0.05 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  /** Pause (not kill) the rotation — country hover, focus and drags call
+   *  this; releasing resumes through the always-running loop. */
   const stopSpin = () => {
     paused.current = true;
   };
@@ -239,13 +266,12 @@ export function WorldGlobe({
   const focusEntry = focus ? byCode.get(focus) : null;
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full touch-none select-none"
         role="img"
         aria-label={t("explore.globeLabel")}
-        onPointerEnter={stopSpin}
         onPointerLeave={resumeSpin}
         onPointerDown={(event) => {
           stopSpin();
@@ -276,6 +302,7 @@ export function WorldGlobe({
         }}
         onPointerUp={() => {
           drag.current = null;
+          resumeSpin();
         }}
       >
         {morphT == null || morphT < 1 ? (
@@ -318,7 +345,6 @@ export function WorldGlobe({
           const activate = () => {
             if (!interactive) return;
             if (mode === "select") {
-              stopSpin();
               onOpenCountry(country.code);
             } else {
               startMorph(country.code);
@@ -359,8 +385,14 @@ export function WorldGlobe({
                   ? "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                   : undefined
               }
-              onMouseEnter={() => setHover(country.code)}
-              onMouseLeave={() => setHover(null)}
+              onMouseEnter={() => {
+                stopSpin();
+                setHover(country.code);
+              }}
+              onMouseLeave={() => {
+                resumeSpin();
+                setHover(null);
+              }}
               onFocus={() => {
                 if (!interactive) return;
                 stopSpin();

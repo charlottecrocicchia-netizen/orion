@@ -8,31 +8,17 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
 import { CountryPanel } from "@/components/country-panel";
+import { NowTicker } from "@/components/now-ticker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatHero } from "@/components/stat-hero";
 import { WorldGlobe } from "@/components/world-globe";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
-import type { ExploreResponse } from "@/lib/api";
 import { useDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
-import { formatInt, formatOrgName, themeLabel } from "@/lib/format";
+import { formatOrgName } from "@/lib/format";
 import { useRevealProgress } from "@/hooks/use-reveal-progress";
-
-/** Rotation paces under recette (fondatrice compares live, then we pin
- *  the winner and drop the control). Degrees per second. */
-const SPIN_SPEEDS = { slow: 1.1, medium: 2.2, fast: 4.2 } as const;
-type SpinChoice = keyof typeof SPIN_SPEEDS;
-
-function storedSpin(): SpinChoice {
-  try {
-    const value = window.localStorage.getItem("orion.globespeed");
-    return value === "slow" || value === "fast" ? value : "medium";
-  } catch {
-    return "medium";
-  }
-}
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -125,31 +111,11 @@ function EditorialEntry({
   );
 }
 
-/* ——— Momentum: computed signals, each a reason to enter ——— */
-
-function growthOf(series: ExploreResponse["series"][number]): number | null {
-  const value = (year: number) =>
-    (series.points ?? []).find((p) => p.year === year)?.value ?? 0;
-  const recent = value(2022) + value(2023) + value(2024);
-  const before = value(2019) + value(2020) + value(2021);
-  if (before <= 0 || recent <= 0) return null;
-  return Math.round(((recent - before) / before) * 100);
-}
-
 export function HomePage() {
   const { t, i18n } = useTranslation();
   const go = useIntentNavigate();
   const navigate = useNavigate();
   const dossier = useDossier();
-  const [spin, setSpin] = useState<SpinChoice>(storedSpin);
-  const pickSpin = (choice: SpinChoice) => {
-    setSpin(choice);
-    try {
-      window.localStorage.setItem("orion.globespeed", choice);
-    } catch {
-      /* private mode */
-    }
-  };
   // The ink tile rises toward the reader as it enters (Apple entrance,
   // recette 2026-08-02); reduced motion lands it instantly.
   const tile = useRevealProgress(true, 850);
@@ -194,18 +160,6 @@ export function HomePage() {
       api.explore(new URLSearchParams({ metric: "funding", by: "organisation", limit: "1" })),
   });
   const topOrg = topOrgData?.series?.[0] ?? null;
-  const { data: themeTrend } = useQuery({
-    queryKey: ["signal-themes"],
-    queryFn: () =>
-      api.explore(new URLSearchParams({ metric: "funding", by: "theme", split: "true", limit: "8" })),
-  });
-  const { data: hydrogen } = useQuery({
-    queryKey: ["signal-hydrogen"],
-    queryFn: () =>
-      api.explore(
-        new URLSearchParams({ metric: "projects", by: "programme", q: "hydrogen", limit: "3" }),
-      ),
-  });
   const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: flows } = useQuery({ queryKey: ["country-flows"], queryFn: api.countryFlows });
 
@@ -229,14 +183,6 @@ export function HomePage() {
     go(String(new FormData(event.currentTarget).get("q") ?? ""));
   };
 
-  const themeSignal = (() => {
-    const ranked = (themeTrend?.series ?? [])
-      .map((serie) => ({ serie, growth: growthOf(serie) }))
-      .filter((entry) => entry.growth != null && entry.growth > 0)
-      .sort((a, b) => (b.growth ?? 0) - (a.growth ?? 0));
-    return ranked[0] ?? null;
-  })();
-  const hydrogenSignal = hydrogen?.series[0] ?? null;
   const examples = [t("home.example1"), t("home.example2"), t("home.example3")];
 
   const years = stats?.funding_by_year ?? [];
@@ -403,37 +349,13 @@ export function HomePage() {
                       ? navigate(`/explore/countries/${code}`)
                       : setPanelCode(code)
                   }
-                  // Whole sphere, visibly turning (recette 2026-08-02) —
-                  // the pace selector below is a live trial.
+                  // Whole sphere, permanently turning — pace "vive"
+                  // pinned (recette 2026-08-02).
                   zoom={1}
-                  speed={SPIN_SPEEDS[spin]}
                 />
               ) : (
                 <Skeleton className="h-[420px] w-full" />
               )}
-              {/* Rotation pace trial (recette): the founder compares live;
-                  the winner gets pinned and this control goes away. */}
-              <div className="mt-3 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
-                <span className="font-mono uppercase tracking-[0.1em]">
-                  {t("home.spinLabel")}
-                </span>
-                {(Object.keys(SPIN_SPEEDS) as SpinChoice[]).map((choice) => (
-                  <button
-                    key={choice}
-                    type="button"
-                    aria-pressed={spin === choice}
-                    onClick={() => pickSpin(choice)}
-                    className={cn(
-                      "rounded-full px-2.5 py-1 transition-colors",
-                      spin === choice
-                        ? "bg-surface text-foreground"
-                        : "hover:text-foreground",
-                    )}
-                  >
-                    {t(`home.spin.${choice}`)}
-                  </button>
-                ))}
-              </div>
             </motion.div>
             <AnimatePresence>
               {panelEntry ? (
@@ -458,49 +380,7 @@ export function HomePage() {
           </div>
         </MotionConfig>
 
-        <h2 className="mt-16 text-label uppercase text-muted-foreground">{t("home.now")}</h2>
-        <div className="mt-3.5 grid gap-3.5 lg:grid-cols-2">
-          {themeSignal ? (
-            <Link
-              to={`/explore?by=theme&split=1&compare=${encodeURIComponent(String(themeSignal.serie.key))}`}
-              className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-3 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
-            >
-              <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-3">
-                ↑ {themeSignal.growth} %
-              </span>
-              <span className="text-[13.5px] leading-snug">
-                {t("home.signalTheme", {
-                  theme: themeLabel(String(themeSignal.serie.key), themeSignal.serie.label, t),
-                })}
-                <small className="block text-[11.5px] text-muted-foreground">
-                  {t("home.signalThemeHint")}
-                </small>
-              </span>
-            </Link>
-          ) : (
-            <Skeleton className="h-[68px] w-full" />
-          )}
-          {hydrogenSignal ? (
-            <Link
-              to="/explore?by=programme&q=hydrogen&view=donut&limit=6"
-              className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-2 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
-            >
-              <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-2">
-                {formatInt(Number(hydrogenSignal.value ?? 0), i18n.language)}
-              </span>
-              <span className="text-[13.5px] leading-snug">
-                {t("home.signalHydrogen", {
-                  programme: hydrogenSignal.label ?? String(hydrogenSignal.key),
-                })}
-                <small className="block text-[11.5px] text-muted-foreground">
-                  {t("home.signalHydrogenHint")}
-                </small>
-              </span>
-            </Link>
-          ) : (
-            <Skeleton className="h-[68px] w-full" />
-          )}
-        </div>
+        <NowTicker />
       </section>
     </div>
   );

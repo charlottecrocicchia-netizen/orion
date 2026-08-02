@@ -98,15 +98,17 @@ function ComposerExamples({
   );
 }
 
+/** A refine chip (recette 2026-08-02: the loud filled chips were ugly and
+ *  dead) — quiet hairline outline, localized label, muted count. Clicking
+ *  poses the tag in the bar; ACTIVE facets never render here (they
+ *  already live as tags). */
 function FacetChip({
-  active,
   onClick,
   label,
   count,
   flag,
   locale,
 }: {
-  active: boolean;
   onClick: () => void;
   label: string;
   count: number;
@@ -117,36 +119,29 @@ function FacetChip({
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={active}
       aria-label={`${label} · ${formatInt(count, locale)}`}
-      className={cn(
-        "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] transition-colors",
-        active
-          ? "bg-accent text-background"
-          : "bg-surface text-foreground hover:bg-accent-soft hover:text-accent",
-      )}
+      className="flex items-center gap-1.5 rounded-full border border-border-soft px-3 py-1 text-[12.5px] text-foreground/85 transition-colors hover:border-accent hover:text-accent"
     >
       {flag ? <span aria-hidden="true">{flag}</span> : null}
-      {/* Country chips carry an ISO code — a technical label, set in mono. */}
-      <span className={flag ? "font-mono text-[12px]" : undefined}>{label}</span>
-      <span
-        aria-hidden="true"
-        className={cn("tnum text-[11.5px]", active ? "opacity-70" : "text-muted-foreground")}
-      >
+      <span className="leading-snug">{label}</span>
+      <span aria-hidden="true" className="tnum text-[11px] text-muted-foreground">
         {formatInt(count, locale)}
       </span>
-      {/* Polaris affordance: an active filter shows how it leaves. */}
-      {active ? (
-        <span aria-hidden="true" className="-mr-1 text-[11px] opacity-80">
-          ✕
-        </span>
-      ) : null}
     </button>
   );
 }
 
-function FacetDivider() {
-  return <span aria-hidden="true" className="mx-1 h-4 w-px self-center bg-border" />;
+/** Localized country name for facet chips — the raw ISO code was ugly. */
+function useCountryName() {
+  const { i18n } = useTranslation();
+  const names = new Intl.DisplayNames([i18n.language || "en"], { type: "region" });
+  return (code: string) => {
+    try {
+      return names.of(code) ?? code;
+    } catch {
+      return code;
+    }
+  };
 }
 
 interface HitGroup {
@@ -281,6 +276,7 @@ function Pager({
 
 export function ProjectsSearchPage() {
   const { t, i18n } = useTranslation();
+  const countryName = useCountryName();
   const { params, update, toggleMulti, replaceAll } = useSearchState();
   const q = params.get("q") ?? "";
   const page = Math.max(Number(params.get("page") ?? "1"), 1);
@@ -343,52 +339,60 @@ export function ProjectsSearchPage() {
         ) : null}
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        {data?.facets.funders.map((facet) => (
-          <FacetChip
-            key={facet.code}
-            active={activeFunders.includes(facet.code)}
-            onClick={() => toggleMulti("funder", facet.code)}
-            label={facet.label}
-            count={facet.count}
-            locale={i18n.language}
-          />
-        ))}
-        {(data?.facets.programmes.length ?? 0) > 0 ? <FacetDivider /> : null}
-        {data?.facets.programmes.slice(0, 5).map((facet) => (
-          <FacetChip
-            key={facet.id}
-            active={activeProgrammes.includes(String(facet.id))}
-            onClick={() => toggleMulti("programme", String(facet.id))}
-            label={facet.label}
-            count={facet.count}
-            locale={i18n.language}
-          />
-        ))}
-        {(data?.facets.countries.length ?? 0) > 0 ? <FacetDivider /> : null}
-        {data?.facets.countries.slice(0, 6).map((facet) => (
-          <FacetChip
-            key={facet.code}
-            active={activeCountries.includes(facet.code)}
-            onClick={() => toggleMulti("country", facet.code)}
-            label={facet.code}
-            count={facet.count}
-            flag={countryFlag(facet.code)}
-            locale={i18n.language}
-          />
-        ))}
-        {hasFilters ? (
-          <button
-            type="button"
-            onClick={() =>
-              update({ funder: null, programme: null, country: null, year_from: null, year_to: null })
-            }
-            className="ml-1 text-[13px] text-muted-foreground underline-offset-2 hover:underline"
-          >
-            {t("search.filters.clear")}
-          </button>
-        ) : null}
-      </div>
+      {composed ? (
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <span className="mr-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            {t("search.refine")}
+          </span>
+          {data?.facets.funders
+            .filter((facet) => !activeFunders.includes(facet.code))
+            .map((facet) => (
+              <FacetChip
+                key={facet.code}
+                onClick={() => toggleMulti("funder", facet.code)}
+                label={facet.label}
+                count={facet.count}
+                locale={i18n.language}
+              />
+            ))}
+          {data?.facets.programmes
+            .filter((facet) => !activeProgrammes.includes(String(facet.id)))
+            .slice(0, 4)
+            .map((facet) => (
+              <FacetChip
+                key={facet.id}
+                onClick={() => toggleMulti("programme", String(facet.id))}
+                label={facet.label}
+                count={facet.count}
+                locale={i18n.language}
+              />
+            ))}
+          {data?.facets.countries
+            .filter((facet) => !activeCountries.includes(facet.code))
+            .slice(0, 5)
+            .map((facet) => (
+              <FacetChip
+                key={facet.code}
+                onClick={() => toggleMulti("country", facet.code)}
+                label={countryName(facet.code)}
+                count={facet.count}
+                flag={countryFlag(facet.code)}
+                locale={i18n.language}
+              />
+            ))}
+          {hasFilters ? (
+            <button
+              type="button"
+              onClick={() =>
+                update({ funder: null, programme: null, country: null, year_from: null, year_to: null })
+              }
+              className="ml-1 text-[13px] text-muted-foreground underline-offset-2 hover:underline"
+            >
+              {t("search.filters.clear")}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-2">
         {!composed ? (
@@ -471,6 +475,7 @@ export function ProjectsSearchPage() {
 
 export function OrganisationsSearchPage() {
   const { t, i18n } = useTranslation();
+  const countryName = useCountryName();
   const { params, update, toggleMulti, replaceAll } = useSearchState();
   const q = params.get("q") ?? "";
   const page = Math.max(Number(params.get("page") ?? "1"), 1);
@@ -534,19 +539,26 @@ export function OrganisationsSearchPage() {
         ) : null}
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        {data?.facets.countries.slice(0, 8).map((facet) => (
-          <FacetChip
-            key={facet.code}
-            active={activeCountries.includes(facet.code)}
-            onClick={() => toggleMulti("country", facet.code)}
-            label={facet.code}
-            count={facet.count}
-            flag={countryFlag(facet.code)}
-            locale={i18n.language}
-          />
-        ))}
-      </div>
+      {composed ? (
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <span className="mr-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            {t("search.refine")}
+          </span>
+          {data?.facets.countries
+            .filter((facet) => !activeCountries.includes(facet.code))
+            .slice(0, 6)
+            .map((facet) => (
+              <FacetChip
+                key={facet.code}
+                onClick={() => toggleMulti("country", facet.code)}
+                label={countryName(facet.code)}
+                count={facet.count}
+                flag={countryFlag(facet.code)}
+                locale={i18n.language}
+              />
+            ))}
+        </div>
+      ) : null}
 
       <div className="mt-2">
         {isPending ? (
