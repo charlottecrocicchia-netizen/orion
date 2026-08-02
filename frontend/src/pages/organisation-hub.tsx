@@ -4,8 +4,9 @@ import { useTranslation } from "react-i18next";
 
 import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
-import { Kpi, KpiStatic } from "@/components/kpi";
 import { PartnerGraph } from "@/components/partner-graph";
+import { TrajectorySpark } from "@/components/trajectory-spark";
+import { TrendDelta } from "@/components/trend-delta";
 import { YearBars } from "@/components/year-bars";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -80,55 +81,32 @@ export function OrganisationHubPage() {
       <h1 className="display-tight mt-1.5 max-w-[26ch] text-[clamp(26px,3.6vw,38px)] font-semibold leading-tight">
         {displayName}
       </h1>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {data.identifiers.map((identifier) => (
-          <span
-            key={`${identifier.scheme}-${identifier.value}`}
-            className="rounded-lg border px-2.5 py-0.5 text-[11px] uppercase text-muted-foreground"
-          >
-            {identifier.scheme} ✓
-          </span>
-        ))}
-        {data.website ? (
-          <a
-            href={data.website.startsWith("http") ? data.website : `https://${data.website}`}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[12px] text-accent underline-offset-2 hover:underline"
-          >
-            {data.website.replace(/^https?:\/\//, "")}
-          </a>
-        ) : null}
-        <Link
-          to={`/compare?orgs=${data.id}`}
-          className="rounded-full border px-3 py-0.5 text-[12px] transition-colors hover:border-accent hover:text-accent"
-        >
-          {t("compare.cta")}
-        </Link>
+
+      {/* The record hero — the total as a display figure, its trajectory
+          drawing itself on entry (doctrine step 4, Attio record layout). */}
+      <div className="mt-9 max-w-[680px]">
+        <div className="font-display tnum text-[clamp(40px,5vw,58px)] font-[520] leading-none tracking-[-0.028em]">
+          {formatCompactEur(data.kpis.total_funding_eur, i18n.language)}
+        </div>
+        <div className="mt-1.5 text-[13px] text-muted-foreground">{t("org.totalFunding")}</div>
+        <div className="mt-6">
+          <TrajectorySpark data={years} />
+        </div>
       </div>
 
-      <div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
-        <Kpi value={data.kpis.total_funding_eur} label={t("org.totalFunding")} kind="eur" hero />
-        <Kpi value={data.kpis.projects_count} label={t("org.projects")} hero />
-        <Kpi value={data.kpis.coordinator_count} label={t("org.asCoordinator")} hero />
-        <KpiStatic
-          value={yearsRange(data.kpis.first_year, data.kpis.last_year)}
-          label={t("org.activePeriod")}
-        />
-      </div>
-
-      <div className="mt-14 grid gap-14 lg:grid-cols-[1.25fr_1fr]">
+      <div className="mt-14 grid gap-14 lg:grid-cols-[minmax(0,1fr)_264px]">
+        <div className="min-w-0 space-y-14">
         <section>
           <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
             {t("org.portfolio")}
           </h2>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-[11px] uppercase tracking-[.08em] text-muted-foreground">
-                <th className="py-2 pr-3 font-medium">{t("org.titleCol")}</th>
-                <th className="py-2 pr-3 font-medium">{t("org.role")}</th>
-                <th className="py-2 pr-3 font-medium">{t("org.year")}</th>
-                <th className="py-2 text-right font-medium">{t("org.amount")}</th>
+              <tr className="border-b text-left text-[11px] font-semibold uppercase tracking-[.08em]">
+                <th className="py-2 pr-3">{t("org.titleCol")}</th>
+                <th className="py-2 pr-3">{t("org.role")}</th>
+                <th className="py-2 pr-3">{t("org.year")}</th>
+                <th className="py-2 text-right">{t("org.amount")}</th>
               </tr>
             </thead>
             <tbody>
@@ -189,7 +167,7 @@ export function OrganisationHubPage() {
           ) : null}
         </section>
 
-        <div className="space-y-10">
+        <div className="grid gap-10 sm:grid-cols-2">
           <section>
             <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
               {t("org.fundingByYear")} · M€
@@ -217,10 +195,9 @@ export function OrganisationHubPage() {
             </section>
           ) : null}
         </div>
-      </div>
 
-      {partners && partners.length > 0 ? (
-        <section className="mt-16">
+        {partners && partners.length > 0 ? (
+        <section>
           <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
             {t("org.partners")}
           </h2>
@@ -248,7 +225,74 @@ export function OrganisationHubPage() {
             </div>
           </div>
         </section>
-      ) : null}
+        ) : null}
+        </div>
+
+        {/* The metadata sidebar — the record's quiet column (Attio). */}
+        <aside className="space-y-8 lg:pt-1">
+          <section>
+            <h2 className="text-label uppercase text-muted-foreground">{t("org.glance")}</h2>
+            <dl className="mt-3 space-y-2.5 text-[13.5px]">
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-muted-foreground">{t("org.projects")}</dt>
+                <dd className="tnum font-medium">
+                  {formatInt(data.kpis.projects_count, i18n.language)}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-muted-foreground">{t("org.asCoordinator")}</dt>
+                <dd className="tnum font-medium">
+                  {formatInt(data.kpis.coordinator_count, i18n.language)}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-muted-foreground">{t("org.activePeriod")}</dt>
+                <dd className="tnum font-medium">
+                  {yearsRange(data.kpis.first_year, data.kpis.last_year)}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-muted-foreground">{t("org.momentum")}</dt>
+                <dd>
+                  <TrendDelta series={data.funding_by_year} className="text-[13px]" />
+                </dd>
+              </div>
+            </dl>
+          </section>
+          {data.identifiers.length > 0 ? (
+            <section>
+              <h2 className="text-label uppercase text-muted-foreground">ID</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {data.identifiers.map((identifier) => (
+                  <span
+                    key={`${identifier.scheme}-${identifier.value}`}
+                    className="rounded-lg border px-2.5 py-0.5 font-mono text-[10.5px] uppercase text-muted-foreground"
+                    title={identifier.value}
+                  >
+                    {identifier.scheme} ✓
+                  </span>
+                ))}
+              </div>
+            </section>
+          ) : null}
+          {data.website ? (
+            <a
+              href={data.website.startsWith("http") ? data.website : `https://${data.website}`}
+              target="_blank"
+              rel="noreferrer"
+              className="block truncate text-[13px] text-accent underline-offset-2 hover:underline"
+            >
+              {data.website.replace(/^https?:\/\//, "")} ↗
+            </a>
+          ) : null}
+          <Link
+            to={`/compare?orgs=${data.id}`}
+            className="inline-flex rounded-full bg-accent px-4.5 py-2 text-[13.5px] font-medium text-background transition-transform hover:translate-x-0.5"
+          >
+            {t("compare.cta")} →
+          </Link>
+        </aside>
+      </div>
 
       <ExploreExits
         exits={[

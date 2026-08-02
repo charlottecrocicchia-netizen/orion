@@ -39,6 +39,14 @@ All notable changes to Orion are documented here. The format follows
   ES/IT/NL CC0; abstract duotone fallback elsewhere), plain-language
   figures, top themes, main partners, one full CTA to the country file.
 
+- Doctrine step 4, the record pages: organisation and country files lead
+  with a display-size hero figure and their trajectory drawing itself on
+  entry, body sections on the left, the quiet Attio metadata sidebar on
+  the right (at-a-glance figures, momentum delta, mono identifiers, the
+  page's single full CTA); the benchmark opens on "Totals, compared" —
+  horizontal bars in each column's series color, length as the
+  perceptual encoding.
+
 ### Changed
 
 - Display face: Instrument Sans retired; Inter (tightened, alternate glyphs)

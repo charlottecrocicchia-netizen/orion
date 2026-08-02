@@ -174,6 +174,41 @@ export function ComparePage() {
         <Skeleton className="mt-10 h-[420px] w-full" />
       ) : (
         <>
+          {/* Doctrine step 4 — the totals as horizontal bars (length is the
+              perceptual encoding); each bar wears its column's series color
+              so the whole screen speaks one language with the curves. */}
+          <section className="mt-9" aria-label={t("compare.totals")}>
+            <h2 className="text-label uppercase text-muted-foreground">{t("compare.totals")}</h2>
+            <div className="mt-3.5 space-y-2.5">
+              {(() => {
+                const maxTotal = Math.max(
+                  ...entries.map((entry) => entry.kpis.total_funding_eur ?? 0),
+                  1,
+                );
+                return entries.map((entry, index) => (
+                  <div
+                    key={entry.id}
+                    className="grid grid-cols-[minmax(120px,220px)_minmax(0,1fr)_92px] items-center gap-4"
+                  >
+                    <span className="truncate text-[13.5px]">{formatOrgName(entry.name)}</span>
+                    <span aria-hidden="true" className="block h-3">
+                      <span
+                        className="block h-full rounded-sm"
+                        style={{
+                          width: `${Math.max(((entry.kpis.total_funding_eur ?? 0) / maxTotal) * 100, 1)}%`,
+                          background: seriesColor(index),
+                        }}
+                      />
+                    </span>
+                    <span className="tnum text-right text-[14px] font-medium">
+                      {formatCompactEur(entry.kpis.total_funding_eur, i18n.language)}
+                    </span>
+                  </div>
+                ));
+              })()}
+            </div>
+          </section>
+
           <div className="mt-9 overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
