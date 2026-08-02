@@ -53,10 +53,15 @@ test("the placeholder pages say the date and bridge to what exists", async ({ pa
   await expect(page).toHaveURL(/\/dossier/);
 });
 
-test("programmes group by frame and filter instantly", async ({ page }) => {
-  // Dataset-agnostic: assert the MECHANISM (live filter, honest empty
-  // state, recovery) — never a programme name the seeded corpus may lack.
+test("programmes list the sources first; a source unfolds and filters", async ({ page }) => {
+  // Dataset-agnostic: the root shows AGENCY rows (scale rule); entering
+  // one unfolds its programmes with a live filter and an honest empty
+  // state — no programme name assumed.
   await page.goto("/explore/programmes");
+  const agencies = page.locator("main button", { hasText: /programmes ·/ });
+  await expect(agencies.first()).toBeVisible({ timeout: 15_000 });
+  await agencies.first().click();
+  await expect(page).toHaveURL(/funder=/);
   const rows = page.locator('a[href^="/explore/programmes/"]');
   await expect(rows.first()).toBeVisible({ timeout: 15_000 });
   const initial = await rows.count();
@@ -66,6 +71,9 @@ test("programmes group by frame and filter instantly", async ({ page }) => {
   await page.getByRole("searchbox").fill("");
   await expect(rows.first()).toBeVisible();
   expect(await rows.count()).toBe(initial);
+  // The way back out.
+  await page.getByRole("button", { name: /All sources/ }).click();
+  await expect(agencies.first()).toBeVisible();
 });
 
 test("the themes index ranks the disciplines and opens the Explorer", async ({ page }) => {
