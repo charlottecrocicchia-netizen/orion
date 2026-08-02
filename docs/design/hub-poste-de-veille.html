@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maquette — Le hub organisation « poste de veille »</title>
+<style>
+  :root {
+    --bg:#fff; --surface:#f5f5f7; --ink:#1d1d1f; --muted:#86868b;
+    --border:rgba(29,29,31,.1); --accent:#2d4fe3; --success:#1da463; --s2:#b45309;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:"Inter",-apple-system,system-ui,sans-serif;
+    font-feature-settings:"cv01","ss03";font-variant-numeric:lining-nums tabular-nums;
+    padding:44px clamp(16px,4vw,60px);font-size:14px}
+  .note{max-width:980px;margin:0 auto 18px;font-size:12.5px;color:var(--muted)}
+  .note b{color:var(--ink);font-weight:600}
+  .wrap{max-width:980px;margin:0 auto}
+  .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+  .eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;color:var(--muted)}
+  h1{font-size:clamp(26px,3.6vw,38px);font-weight:600;letter-spacing:-.022em;line-height:1.15;margin-top:6px}
+  .hero-fig{margin-top:34px;font-size:clamp(40px,5vw,58px);font-weight:520;letter-spacing:-.028em;line-height:1}
+  .hero-lbl{margin-top:6px;font-size:13px;color:var(--muted)}
+  .spark{margin-top:22px;max-width:640px}
+  .grid{margin-top:52px;display:grid;grid-template-columns:minmax(0,1fr) 264px;gap:52px}
+  section h2{margin-bottom:12px}
+  .theme-row{display:grid;grid-template-columns:180px minmax(0,1fr) 120px;gap:12px;
+    align-items:center;padding:9px 0;border-bottom:1px solid rgba(29,29,31,.06);font-size:13.5px}
+  .theme-row .bar{height:8px;border-radius:4px;background:linear-gradient(90deg,#3b5cff,#101d7d)}
+  .theme-row .val{text-align:right;color:var(--muted)}
+  .theme-row .val b{color:var(--ink);font-weight:600}
+  .signal{display:flex;gap:14px;align-items:baseline;border-left:3px solid var(--success);
+    background:var(--surface);border-radius:0 12px 12px 0;padding:12px 16px;margin-top:10px}
+  .signal.n2{border-color:var(--s2)}
+  .signal .k{font-size:17px;font-weight:600;white-space:nowrap}
+  .signal.n1 .k{color:var(--success)}.signal.n2 .k{color:var(--s2)}
+  .signal p{font-size:13px;line-height:1.45}
+  .signal small{display:block;color:var(--muted);font-size:11.5px}
+  aside section+section{margin-top:30px}
+  dl div{display:flex;justify-content:space-between;gap:12px;padding:5px 0}
+  dt{color:var(--muted)}dd{font-weight:500}
+  .pill{display:inline-block;border:1px solid var(--border);border-radius:8px;
+    padding:2px 8px;font-family:ui-monospace,"SF Mono",monospace;font-size:10.5px;
+    text-transform:uppercase;color:var(--muted);margin:0 6px 6px 0}
+  .consolide{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+  .consolide b{color:var(--ink)}
+  .cta{display:inline-flex;margin-top:26px;background:var(--accent);color:#fff;
+    border-radius:999px;padding:9px 18px;font-size:13.5px;font-weight:500;text-decoration:none}
+</style>
+</head>
+<body>
+  <p class="note"><b>Maquette — le hub « poste de veille »</b> (persona : le
+  veilleur technologique). La fiche record existante gagne les deux sections que
+  son parcours exige : <b>Profil thématique</b> (la donnée existe déjà côté API)
+  et <b>Signaux</b> (calculés, datés). La sidebar dit désormais quand une fiche
+  consolide plusieurs entités sources.</p>
+
+  <div class="wrap">
+    <p class="eyebrow">Organisme de recherche · Palaiseau · 🇫🇷 FR</p>
+    <h1>Thales Research &amp; Technology</h1>
+    <div class="hero-fig">€612M</div>
+    <div class="hero-lbl">Financement total UE + FR</div>
+    <svg class="spark" viewBox="0 0 640 80" aria-hidden="true">
+      <polyline fill="none" stroke="#2d4fe3" stroke-width="1.6" stroke-opacity=".75"
+        points="4,66 68,62 132,58 196,50 260,54 324,44 388,40 452,30 516,22 580,26 636,18"/>
+      <circle cx="516" cy="22" r="3" fill="#2d4fe3"/>
+      <text x="4" y="78" font-size="10.5" fill="#86868b">2005</text>
+      <text x="636" y="78" text-anchor="end" font-size="10.5" fill="#86868b">2027</text>
+    </svg>
+
+    <div class="grid">
+      <div>
+        <section>
+          <h2 class="lbl">Profil thématique — sur quoi travaille Thales</h2>
+          <div class="theme-row"><span>électronique, photonique</span><span class="bar" style="width:100%"></span><span class="val"><b>€148M</b> · 24 %</span></div>
+          <div class="theme-row"><span>intelligence artificielle</span><span class="bar" style="width:74%"></span><span class="val"><b>€110M</b> · 18 %</span></div>
+          <div class="theme-row"><span>aéronautique</span><span class="bar" style="width:58%"></span><span class="val"><b>€86M</b> · 14 %</span></div>
+          <div class="theme-row"><span>quantique</span><span class="bar" style="width:44%"></span><span class="val"><b>€65M</b> · 11 %</span></div>
+          <div class="theme-row"><span>cybersécurité</span><span class="bar" style="width:32%"></span><span class="val"><b>€47M</b> · 8 %</span></div>
+        </section>
+
+        <section style="margin-top:40px">
+          <h2 class="lbl">Signaux — ce qui change</h2>
+          <div class="signal n1">
+            <span class="k">↑ 64 %</span>
+            <p>le quantique accélère dans son portefeuille (2022-24 vs 2019-21)
+              <small>ouvrir la tendance dans l'Explorateur</small></p>
+          </div>
+          <div class="signal n2">
+            <span class="k">4 nouveaux</span>
+            <p>partenaires entrés dans ses consortiums depuis 24 mois — dont 2 PME quantiques
+              <small>voir les partenariats récents</small></p>
+          </div>
+        </section>
+
+        <section style="margin-top:40px">
+          <h2 class="lbl">Portefeuille · Évolution · Partenaires</h2>
+          <p style="color:var(--muted);font-size:13px">(sections existantes de la
+          fiche record, inchangées — tableau, barres annuelles, graphe.)</p>
+        </section>
+      </div>
+
+      <aside>
+        <section>
+          <h2 class="lbl">Repères</h2>
+          <dl>
+            <div><dt>Projets</dt><dd>428</dd></div>
+            <div><dt>En coordination</dt><dd>97</dd></div>
+            <div><dt>Période active</dt><dd>2005 – 2027</dd></div>
+            <div><dt>Dynamique</dt><dd style="color:var(--success)">↑ 22 % <span style="color:var(--muted);font-weight:400">2022-24</span></dd></div>
+          </dl>
+        </section>
+        <section>
+          <h2 class="lbl">ID</h2>
+          <span class="pill">PIC ✓</span><span class="pill">RNSR ✓</span>
+          <p class="consolide"><b>Fiche consolidée</b> — regroupe 3 entités
+          sources (Thales R&amp;T France, TRT UK, alias historique). Les
+          garde-fous d'identifiants séparent les homonymes à PIC distinct.</p>
+        </section>
+        <a class="cta" href="#">Comparer →</a>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>
