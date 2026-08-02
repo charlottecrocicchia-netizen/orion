@@ -53,6 +53,25 @@ test("the placeholder pages say the date and bridge to what exists", async ({ pa
   await expect(page).toHaveURL(/\/dossier/);
 });
 
+test("maps explore at the keyboard too: Enter selects, the panel CTA leaves", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("orion.geoview", "map");
+  });
+  await page.goto("/explore/countries");
+  const france = page.locator('path[data-code="FR"]');
+  await expect(france).toBeVisible({ timeout: 15_000 });
+  await france.focus();
+  await page.keyboard.press("Enter");
+  // First activation: the summary panel opens (and takes focus, as a
+  // panel should) — no navigation.
+  await expect(page.getByRole("heading", { name: "France" })).toBeVisible();
+  expect(page.url()).not.toContain("/countries/FR");
+  // The distinct gesture at the keyboard: the panel's CTA.
+  await page.getByRole("link", { name: /Open the France file/ }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/explore\/countries\/FR/);
+});
+
 test("the scope pill stays hidden while a single zone exists", async ({ page }) => {
   // The header selector is gone (one zone says nothing); the footer's
   // honest coverage note is a different, legitimate mention.

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { BarsChart, LinesChart } from "@/components/charts";
@@ -11,6 +12,7 @@ import { ExploreTable } from "@/components/explore-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
+import { countryFlag, formatValue, seriesLabel } from "@/lib/format";
 
 /** One self-contained Explorer view — an Angles slide's body. Same state
  *  grammar, same API cache keys and same chart components as the page
@@ -28,8 +30,11 @@ export function ExploreView({
   title: string;
   active: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [drill, setDrill] = useState<{ id: string; label: string } | null>(null);
+  // Map rule: first click selects (summary line below), second click on
+  // the selected shape zooms into the country file.
+  const [mapSelected, setMapSelected] = useState<string | null>(null);
   const state = readState(new URLSearchParams(query));
   if (drill) state.programme = drill.id;
   const { temporal, view } = resolveView(state);
@@ -94,19 +99,53 @@ export function ExploreView({
       ) : view === "bars" ? (
         <BarsChart series={data.series} unit={data.unit} ariaLabel={title} />
       ) : view === "map" ? (
-        <EuropeMap
-          countries={data.series
-            .filter((serie) => typeof serie.key === "string" && serie.value != null)
-            .map((serie) => ({
-              code: String(serie.key),
-              name: serie.label ?? String(serie.key),
-              eu_member: false,
-              projects_count: 0,
-              funding_eur: serie.value ?? 0,
-            }))}
-          flows={flows ?? []}
-          legendLabel={`${t(`explorer.metric.${state.metric}`)} · €`}
-        />
+        <>
+          <EuropeMap
+            countries={data.series
+              .filter((serie) => typeof serie.key === "string" && serie.value != null)
+              .map((serie) => ({
+                code: String(serie.key),
+                name: serie.label ?? String(serie.key),
+                eu_member: false,
+                projects_count: 0,
+                funding_eur: serie.value ?? 0,
+              }))}
+            flows={flows ?? []}
+            legendLabel={`${t(`explorer.metric.${state.metric}`)} · €`}
+            selected={mapSelected}
+            onSelect={setMapSelected}
+          />
+          {(() => {
+            const picked = mapSelected
+              ? data.series.find((serie) => String(serie.key) === mapSelected)
+              : null;
+            return picked ? (
+              <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-border-soft pt-3 text-[13px]">
+                <span>
+                  {countryFlag(mapSelected!)}{" "}
+                  <b className="font-semibold">{seriesLabel(picked, t)}</b>
+                  <span className="tnum ml-2 text-muted-foreground">
+                    {formatValue(picked.value, data.unit, i18n.language)}
+                  </span>
+                </span>
+                <Link
+                  to={`/explore/countries/${mapSelected}`}
+                  className="text-accent underline-offset-2 hover:underline"
+                >
+                  {t("explorer.mapOpenCountry")} →
+                </Link>
+                <button
+                  type="button"
+                  aria-label={t("explorer.mapDeselect")}
+                  onClick={() => setMapSelected(null)}
+                  className="ml-auto rounded-md px-2 text-muted-foreground hover:text-foreground"
+                >
+                  ×
+                </button>
+              </div>
+            ) : null;
+          })()}
+        </>
       ) : view === "donut" ? (
         <DonutChart
           series={donutSeries}

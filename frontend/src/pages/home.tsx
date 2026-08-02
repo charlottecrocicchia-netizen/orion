@@ -122,6 +122,7 @@ function growthOf(series: ExploreResponse["series"][number]): number | null {
 export function HomePage() {
   const { t, i18n } = useTranslation();
   const go = useIntentNavigate();
+  const navigate = useNavigate();
   const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
   const { data: themeTrend } = useQuery({
     queryKey: ["signal-themes"],
@@ -299,7 +300,14 @@ export function HomePage() {
                   flows={flows ?? []}
                   mode="select"
                   selected={panelCode}
-                  onOpenCountry={setPanelCode}
+                  // Map rule: first click selects and opens the panel; a
+                  // second click on the held country leaves for its file
+                  // (the panel's CTA is the other door).
+                  onOpenCountry={(code) =>
+                    code === panelCode
+                      ? navigate(`/explore/countries/${code}`)
+                      : setPanelCode(code)
+                  }
                   zoom={1.45}
                 />
               ) : (

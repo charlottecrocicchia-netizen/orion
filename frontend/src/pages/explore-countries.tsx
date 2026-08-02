@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 
+import { CountryPanel } from "@/components/country-panel";
 import { EuropeMap } from "@/components/europe-map";
 import { WorldGlobe } from "@/components/world-globe";
 import { api } from "@/lib/api";
@@ -21,16 +23,21 @@ function storedView(): GeoView {
   }
 }
 
+/** Countries & world. Map rule (fondatrice, 2026-08-02): the first click
+ *  SELECTS — highlight, pinned flows, the summary panel beside — and the
+ *  file opens on a distinct gesture only: the panel's CTA, or a second
+ *  activation of the already-selected country. Globe and flat map share
+ *  the selection; the ranked list below stays the canonical reading. */
 export function ExploreCountriesPage() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [view, setView] = useState<GeoView>(storedView);
-  const [autoOpen, setAutoOpen] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const { data, isPending } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: flows } = useQuery({ queryKey: ["country-flows"], queryFn: api.countryFlows });
 
   const switchView = (next: GeoView) => {
     setView(next);
-    setAutoOpen(null);
     try {
       window.localStorage.setItem("orion.geoview", next);
     } catch {
@@ -38,8 +45,18 @@ export function ExploreCountriesPage() {
     }
   };
 
+  // First activation selects; repeating it on the selected country goes
+  // to the file (the panel's CTA is the other door).
+  const activate = (code: string) => {
+    if (code === selected) navigate(`/explore/countries/${code}`);
+    else setSelected(code);
+  };
+
+  const panelIndex = selected ? (data?.findIndex((entry) => entry.code === selected) ?? -1) : -1;
+  const panelEntry = panelIndex >= 0 ? data![panelIndex] : null;
+
   return (
-    <div className="mx-auto w-full max-w-[880px] px-6 pt-12">
+    <div className="mx-auto w-full max-w-[1080px] px-6 pt-12">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-accent">{t("explore.title")}</p>
@@ -68,22 +85,60 @@ export function ExploreCountriesPage() {
       </div>
 
       {data ? (
-        <div className="mt-8">
-          {view === "globe" ? (
-            <WorldGlobe
-              countries={data}
-              onOpenCountry={(code) => {
-                setAutoOpen(code);
-                setView("map");
-              }}
-            />
-          ) : (
-            <EuropeMap countries={data} flows={flows ?? []} autoOpen={autoOpen} />
-          )}
-        </div>
+        <MotionConfig reducedMotion="user">
+          <div
+            className={cn(
+              "mt-8 lg:items-start lg:gap-8",
+              panelEntry ? "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]" : "",
+            )}
+          >
+            <motion.div
+              layout
+              transition={{ duration: 0.4, ease: [0.2, 0.6, 0.2, 1] }}
+              className={panelEntry ? undefined : "mx-auto max-w-[840px]"}
+            >
+              {view === "globe" ? (
+                <WorldGlobe
+                  countries={data}
+                  flows={flows ?? []}
+                  mode="select"
+                  selected={selected}
+                  onOpenCountry={activate}
+                />
+              ) : (
+                <EuropeMap
+                  countries={data}
+                  flows={flows ?? []}
+                  selected={selected}
+                  onSelect={setSelected}
+                />
+              )}
+            </motion.div>
+            <AnimatePresence>
+              {panelEntry ? (
+                <motion.div
+                  key={panelEntry.code}
+                  initial={{ opacity: 0, x: 64 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 64 }}
+                  transition={{ duration: 0.34, ease: [0.2, 0.6, 0.2, 1] }}
+                  className="fixed inset-x-3 bottom-3 top-20 z-30 overflow-y-auto lg:static lg:inset-auto lg:z-auto lg:overflow-visible"
+                >
+                  <CountryPanel
+                    code={panelEntry.code}
+                    entry={panelEntry}
+                    rank={panelIndex + 1}
+                    flows={flows ?? []}
+                    onClose={() => setSelected(null)}
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        </MotionConfig>
       ) : null}
 
-      <div className="mt-10">
+      <div className="mx-auto mt-10 max-w-[880px]">
         {isPending
           ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="mt-3 h-12 w-full" />)
           : data?.map((country, index) => (

@@ -13,12 +13,16 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("the phase-3 journey holds end to end", async ({ page }) => {
-  // 1 — the map is the geographic entry; France zooms into its hub.
+  // 1 — the map is the geographic entry. Map rule: the FIRST click
+  // selects France (summary panel opens beside); the file opens on the
+  // distinct gesture — the panel's CTA.
   await page.goto("/explore/countries");
   await page
     .getByRole("group", { name: /Map of Europe/ })
-    .getByRole("link", { name: /^France — €/ })
+    .getByRole("button", { name: /^France — €/ })
     .click();
+  await expect(page.getByRole("heading", { name: "France" })).toBeVisible();
+  await page.getByRole("link", { name: /Open the France file/ }).click();
   await expect(page).toHaveURL(/\/explore\/countries\/FR/, { timeout: 10_000 });
   await expect(page.getByText("Top organisations")).toBeVisible();
 

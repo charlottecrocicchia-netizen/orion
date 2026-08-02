@@ -126,6 +126,18 @@ All notable changes to Orion are documented here. The format follows
 
 ### Changed
 
+- On a map, the first click explores — it never teleports (founder rule):
+  everywhere a country shape is clickable (the countries page's globe AND
+  flat map, the home globe, every Explorer map view), the first
+  activation SELECTS — highlight, pinned flows, the summary beside (the
+  full country panel on the countries page and the home, a compact
+  summary bar with "Open the country file" in Explorer views) — and the
+  file opens only on a distinct gesture: the panel's CTA, or a second
+  activation of the already-selected country (which keeps the cinematic
+  zoom). Keyboard rides the same path: globe countries are now focusable
+  buttons (Enter/Space, focus stops the spin and lights the flows), map
+  shapes carry aria-pressed, and the legend hint says the rule.
+
 - No label is ever truncated (new recette rule): SVG direct labels wrap
   to two lines (bump ends, line ends, with the cascade reserving the
   extra height), treemap cells show their label in full or not at all

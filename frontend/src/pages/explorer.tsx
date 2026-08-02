@@ -18,7 +18,7 @@ import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
 import type { ExplorerState } from "@/lib/explore-state";
-import { countryFlag, seriesLabel } from "@/lib/format";
+import { countryFlag, formatValue, seriesLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const METRICS = ["funding", "projects", "organisations", "avg", "coordination"] as const;
@@ -168,6 +168,9 @@ export function ExplorerPage() {
     setParams(new URLSearchParams(query), { preventScrollReset: true });
   const [copied, setCopied] = useState(false);
   const [collected, setCollected] = useState(false);
+  // Map rule: the first click on a country SELECTS it (summary bar below);
+  // a second click on the selected shape zooms into its file.
+  const [mapSelected, setMapSelected] = useState<string | null>(null);
 
   // "Add to dossier" collects the CURRENT view — the board's URL, or the
   // active angle in a deck (lot 4: every collected block is a URL).
@@ -686,19 +689,53 @@ export function ExplorerPage() {
           ) : view === "bars" ? (
             <BarsChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "map" ? (
-            <EuropeMap
-              countries={data.series
-                .filter((serie) => typeof serie.key === "string" && serie.value != null)
-                .map((serie) => ({
-                  code: String(serie.key),
-                  name: serie.label ?? String(serie.key),
-                  eu_member: false,
-                  projects_count: 0,
-                  funding_eur: serie.value ?? 0,
-                }))}
-              flows={flows ?? []}
-              legendLabel={`${t(`explorer.metric.${state.metric}`)} · €`}
-            />
+            <>
+              <EuropeMap
+                countries={data.series
+                  .filter((serie) => typeof serie.key === "string" && serie.value != null)
+                  .map((serie) => ({
+                    code: String(serie.key),
+                    name: serie.label ?? String(serie.key),
+                    eu_member: false,
+                    projects_count: 0,
+                    funding_eur: serie.value ?? 0,
+                  }))}
+                flows={flows ?? []}
+                legendLabel={`${t(`explorer.metric.${state.metric}`)} · €`}
+                selected={mapSelected}
+                onSelect={setMapSelected}
+              />
+              {(() => {
+                const picked = mapSelected
+                  ? data.series.find((serie) => String(serie.key) === mapSelected)
+                  : null;
+                return picked ? (
+                  <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-border-soft pt-3 text-[13.5px]">
+                    <span>
+                      {countryFlag(mapSelected!)}{" "}
+                      <b className="font-semibold">{seriesLabel(picked, t)}</b>
+                      <span className="tnum ml-2 text-muted-foreground">
+                        {formatValue(picked.value, data.unit, i18n.language)}
+                      </span>
+                    </span>
+                    <Link
+                      to={`/explore/countries/${mapSelected}`}
+                      className="text-accent underline-offset-2 hover:underline"
+                    >
+                      {t("explorer.mapOpenCountry")} →
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label={t("explorer.mapDeselect")}
+                      onClick={() => setMapSelected(null)}
+                      className="ml-auto rounded-md px-2 text-muted-foreground hover:text-foreground"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : null;
+              })()}
+            </>
           ) : view === "donut" ? (
             <DonutChart
               series={donutSeries}

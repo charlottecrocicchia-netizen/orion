@@ -295,6 +295,20 @@ export function WorldGlobe({
             })
             .join("");
           if (!d) return null;
+          const entry = byCode.get(country.code);
+          const interactive = isCovered && morphT == null;
+          // Map rule (fondatrice, 2026-08-02): the first activation
+          // explores — the PARENT decides whether a repeat on the selected
+          // country leaves for its file. Keyboard rides the same path.
+          const activate = () => {
+            if (!interactive) return;
+            if (mode === "select") {
+              stopSpin();
+              onOpenCountry(country.code);
+            } else {
+              startMorph(country.code);
+            }
+          };
           return (
             <path
               key={country.code}
@@ -317,16 +331,32 @@ export function WorldGlobe({
               }
               strokeOpacity={isSelected ? 1 : isCovered ? 0.6 : 1}
               strokeWidth={isSelected ? 1.8 : 0.8}
-              className={isCovered && morphT == null ? "cursor-pointer" : undefined}
+              role={interactive ? "button" : undefined}
+              aria-pressed={interactive && mode === "select" ? isSelected : undefined}
+              aria-label={
+                entry
+                  ? `${entry.name} — ${formatCompactEur(entry.funding_eur, i18n.language)}`
+                  : undefined
+              }
+              tabIndex={interactive ? 0 : -1}
+              className={
+                interactive
+                  ? "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                  : undefined
+              }
               onMouseEnter={() => setHover(country.code)}
               onMouseLeave={() => setHover(null)}
-              onClick={() => {
-                if (!isCovered || morphT != null) return;
-                if (mode === "select") {
-                  stopSpin();
-                  onOpenCountry(country.code);
-                } else {
-                  startMorph(country.code);
+              onFocus={() => {
+                if (!interactive) return;
+                stopSpin();
+                setHover(country.code);
+              }}
+              onBlur={() => setHover(null)}
+              onClick={activate}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  activate();
                 }
               }}
             />

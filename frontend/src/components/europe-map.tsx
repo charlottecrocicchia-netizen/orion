@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
@@ -7,10 +7,14 @@ import type { CountryFlow, CountryIndexEntry } from "@/lib/api";
 import { formatCompactEur, formatInt } from "@/lib/format";
 
 /** The Europe choropleth — pre-projected SVG paths (zero runtime geometry),
- *  a sequential single-hue scale on funding, per-country flow arcs on hover,
- *  and a cinematic viewBox zoom before opening the country hub. The list
- *  below the map stays the canonical, accessible path; every country shape
- *  is still a focusable link. */
+ *  a sequential single-hue scale on funding, per-country flow arcs on hover
+ *  or selection. Interaction rule (fondatrice, 2026-08-02): ON A MAP, THE
+ *  FIRST CLICK EXPLORES, NEVER TELEPORTS — with `onSelect` the first
+ *  activation selects the country (highlight, persistent flows, the parent
+ *  shows its summary) and only a SECOND activation of the selected country
+ *  runs the cinematic zoom into its file. Keyboard follows the exact same
+ *  path (Enter/Space on the focusable shapes). The list below the map
+ *  stays the canonical, accessible reading. */
 
 interface MapCountry {
   code: string;
@@ -39,15 +43,20 @@ const ZOOM_MS = 450;
 export function EuropeMap({
   countries,
   flows,
-  autoOpen,
   legendLabel,
+  selected = null,
+  onSelect,
 }: {
   countries: CountryIndexEntry[];
   flows: CountryFlow[];
-  /** Open this country's hub on mount — the globe's morph hands over here. */
-  autoOpen?: string | null;
   /** Override the legend label (the Explorer maps its current euro metric). */
   legendLabel?: string;
+  /** The currently selected country (select-first interaction). */
+  selected?: string | null;
+  /** First activation selects; a second activation of the selected
+   *  country zooms into its file. Without it, activation navigates
+   *  directly (legacy — no consumer should need it anymore). */
+  onSelect?: (code: string) => void;
 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -68,16 +77,18 @@ export function EuropeMap({
   );
   const maxFunding = funded[funded.length - 1] ?? 0;
 
+  // Flows follow the hovered country, or stay pinned on the selection.
+  const arcSource = hover ?? (onSelect ? selected : null);
   const hoverArcs =
-    hover == null
+    arcSource == null
       ? []
       : flows
-          .filter((flow) => flow.a === hover || flow.b === hover)
+          .filter((flow) => flow.a === arcSource || flow.b === arcSource)
           .sort((x, y) => y.amount_eur - x.amount_eur)
           .slice(0, 5)
           .flatMap((flow) => {
-            const from = centroids.get(hover);
-            const to = centroids.get(flow.a === hover ? flow.b : flow.a);
+            const from = centroids.get(arcSource);
+            const to = centroids.get(flow.a === arcSource ? flow.b : flow.a);
             if (!from || !to) return [];
             const maxAmount = Math.max(...flows.map((f) => f.amount_eur), 1);
             return [
@@ -116,14 +127,16 @@ export function EuropeMap({
     requestAnimationFrame(frame);
   };
 
-  useEffect(() => {
-    if (!autoOpen) return;
-    const target = wrapRef.current?.querySelector<SVGPathElement>(
-      `path[data-code="${autoOpen}"]`,
-    );
-    if (target) openCountry(autoOpen, target);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoOpen]);
+  // First activation selects; the second — on the already-selected
+  // country — leaves for its file. Click and keyboard share this path.
+  const activate = (code: string, target: SVGPathElement) => {
+    if (onSelect && code !== selected) {
+      setTip(null);
+      onSelect(code);
+      return;
+    }
+    openCountry(code, target);
+  };
 
   const moveTip = (event: React.MouseEvent, entry: CountryIndexEntry | undefined, code: string) => {
     const rect = wrapRef.current?.getBoundingClientRect();
@@ -153,12 +166,14 @@ export function EuropeMap({
         {MAP.countries.map((country) => {
           const entry = byCode.get(country.code);
           const opacity = entry ? stepFor(entry.funding_eur, thresholds) : 0;
+          const isSelected = onSelect != null && selected === country.code;
           return (
             <path
               key={country.code}
               d={country.path}
               data-code={country.code}
-              role="link"
+              role={onSelect ? "button" : "link"}
+              aria-pressed={onSelect ? isSelected : undefined}
               tabIndex={zooming ? -1 : 0}
               aria-label={
                 entry
@@ -166,11 +181,13 @@ export function EuropeMap({
                   : country.code
               }
               fill={entry ? "var(--color-accent)" : "var(--color-surface)"}
-              fillOpacity={entry ? opacity : 1}
+              fillOpacity={entry ? (isSelected ? Math.min(opacity + 0.2, 0.95) : opacity) : 1}
               stroke={
-                hover === country.code ? "var(--color-accent)" : "var(--color-background)"
+                isSelected || hover === country.code
+                  ? "var(--color-accent)"
+                  : "var(--color-background)"
               }
-              strokeWidth={hover === country.code ? 1.6 : 0.75}
+              strokeWidth={isSelected ? 2 : hover === country.code ? 1.6 : 0.75}
               className="cursor-pointer transition-[fill-opacity] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
               onMouseEnter={(event) => {
                 setHover(country.code);
@@ -181,11 +198,11 @@ export function EuropeMap({
                 setHover(null);
                 setTip(null);
               }}
-              onClick={(event) => openCountry(country.code, event.currentTarget)}
+              onClick={(event) => activate(country.code, event.currentTarget)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
-                  openCountry(country.code, event.currentTarget);
+                  activate(country.code, event.currentTarget);
                 }
               }}
             />
