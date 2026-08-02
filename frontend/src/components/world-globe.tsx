@@ -300,26 +300,23 @@ export function WorldGlobe({
               key={country.code}
               d={d}
               data-code={country.code}
-              // The held-open country wears INK — outside every series hue,
-              // present and future (the founder's off-palette selection),
-              // ready for the wave-1 region colors.
-              fill={
-                isSelected
-                  ? "var(--color-foreground)"
-                  : isCovered
-                    ? "var(--color-accent)"
-                    : "var(--color-surface)"
+              // The held-open country LIGHTS UP: full ultramarine with a
+              // background-colored rim that detaches it from its neighbours
+              // (ink was tried and rejected — "c'est moche"). Under wave-1
+              // region hues, selection = the region's hue at full strength.
+              fill={isCovered ? "var(--color-accent)" : "var(--color-surface)"}
+              fillOpacity={
+                isSelected ? 0.92 : isCovered ? (hover === country.code ? 0.6 : 0.32) : 0.9
               }
-              fillOpacity={isSelected ? 0.82 : isCovered ? (hover === country.code ? 0.6 : 0.32) : 0.9}
               stroke={
                 isSelected
-                  ? "var(--color-foreground)"
+                  ? "var(--color-background)"
                   : isCovered
                     ? "var(--color-accent)"
                     : "var(--color-border)"
               }
               strokeOpacity={isSelected ? 1 : isCovered ? 0.6 : 1}
-              strokeWidth="0.8"
+              strokeWidth={isSelected ? 1.8 : 0.8}
               className={isCovered && morphT == null ? "cursor-pointer" : undefined}
               onMouseEnter={() => setHover(country.code)}
               onMouseLeave={() => setHover(null)}

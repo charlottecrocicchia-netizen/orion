@@ -56,7 +56,9 @@ export function CountryPanel({
   });
 
   useEffect(() => {
-    headingRef.current?.focus();
+    // preventScroll: plain focus() scrolls the page to the heading — the
+    // founder's "the page jumps on every click".
+    headingRef.current?.focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
@@ -78,31 +80,20 @@ export function CountryPanel({
     >
       {/* The photo layer — grayscale under an ultramarine tint (the duotone
           contract), or the abstract duotone when no vetted photo exists. */}
-      {/* Balance matters: the veil earns text legibility, but past ~50% it
-          swallows low-contrast photos whole (the founder saw "no photo" on
-          Tuscany and the tulip fields). Contrast is pushed on the image
-          instead, and the veil stays light enough for the subject to live. */}
+      {/* The photo speaks for itself (founder's call — the duotone tint is
+          gone): natural colors under a neutral ink scrim, just enough for
+          the parchment text and the CTA. If the growing curation ever turns
+          patchwork, a light uniform grade comes back — not the blue flood. */}
       <div aria-hidden="true" className="absolute inset-0 bg-[#1d1d1f]">
         {photo ? (
-          <img
-            src={photo.file}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover grayscale contrast-125 brightness-105"
-          />
+          <img src={photo.file} alt="" loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <div className="h-full w-full bg-gradient-to-b from-[#3b5cff] via-[#1c2f9e] to-[#101d5e]" />
         )}
       </div>
-      {photo ? (
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-b from-[#3b5cff] to-[#101d7d] mix-blend-color"
-        />
-      ) : null}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-b from-[rgba(29,29,31,.30)] via-[rgba(29,29,31,.46)] to-[rgba(16,29,125,.66)]"
+        className="absolute inset-0 bg-gradient-to-b from-[rgba(29,29,31,.34)] via-[rgba(29,29,31,.44)] to-[rgba(29,29,31,.78)]"
       />
 
       <div className="relative flex-1 p-8 pb-6">

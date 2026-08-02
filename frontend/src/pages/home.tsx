@@ -282,7 +282,9 @@ export function HomePage() {
         <MotionConfig reducedMotion="user">
           <div
             className={cn(
-              "mt-10 lg:items-start lg:gap-10",
+              // Stable height: without it the act shrinks when the globe
+              // narrows for the panel, and the page shifts under the click.
+              "mt-10 lg:min-h-[620px] lg:items-start lg:gap-10",
               panelEntry ? "lg:grid lg:grid-cols-[minmax(0,55fr)_minmax(0,34fr)]" : "",
             )}
           >
