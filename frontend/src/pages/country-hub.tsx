@@ -84,7 +84,7 @@ export function CountryHubPage() {
               to={`/organisations/${org.id}`}
               className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
             >
-              <span className="min-w-0 truncate transition-colors group-hover:text-accent">
+              <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
                 {formatOrgName(org.name)}
               </span>
               <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
@@ -106,7 +106,7 @@ export function CountryHubPage() {
               to={`/projects/${project.id}`}
               className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
             >
-              <span className="min-w-0 truncate">
+              <span className="min-w-0 leading-snug">
                 {project.acronym ? (
                   <b className="mr-1.5 font-medium group-hover:text-accent">{project.acronym}</b>
                 ) : null}

@@ -67,7 +67,7 @@ function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (id: nu
                 onAdd(hit.id);
                 setQ("");
               }}
-              className="block w-full truncate rounded-lg px-3 py-1.5 text-left text-[13.5px] transition-colors hover:bg-surface"
+              className="block w-full rounded-lg px-3 py-1.5 text-left text-[13.5px] leading-snug transition-colors hover:bg-surface"
             >
               {formatOrgName(hit.name)}
               {hit.country ? (
@@ -190,7 +190,7 @@ export function ComparePage() {
                     key={entry.id}
                     className="grid grid-cols-[minmax(120px,220px)_minmax(0,1fr)_92px] items-center gap-4"
                   >
-                    <span className="truncate text-[13.5px]">{formatOrgName(entry.name)}</span>
+                    <span className="text-[13.5px] leading-snug">{formatOrgName(entry.name)}</span>
                     <span aria-hidden="true" className="block h-3">
                       <span
                         className="block h-full rounded-sm"
@@ -291,7 +291,7 @@ export function ComparePage() {
                     key={theme.key}
                     className="flex items-baseline gap-3 border-b border-border-soft py-2 text-[13px]"
                   >
-                    <span className="min-w-0 truncate">{themeLabel(theme.key, theme.label, t)}</span>
+                    <span className="min-w-0 leading-snug">{themeLabel(theme.key, theme.label, t)}</span>
                     <span className="tnum ml-auto text-muted-foreground">
                       {formatInt(theme.projects, i18n.language)}
                     </span>
@@ -306,7 +306,7 @@ export function ComparePage() {
                     to={`/organisations/${partner.id}`}
                     className="group flex items-baseline gap-2 border-b border-border-soft py-2 text-[13px]"
                   >
-                    <span className="min-w-0 truncate transition-colors group-hover:text-accent">
+                    <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
                       {formatOrgName(partner.name)}
                     </span>
                     <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">

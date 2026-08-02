@@ -6,8 +6,17 @@ import { formatOrgName } from "@/lib/format";
  *  recurring partners around it, edge weight and star size following the
  *  shared-project count. Laid out in real pixels (text keeps a constant,
  *  readable size at every width). Decorative twin of the adjacent list,
- *  which carries the real links and the accessible reading — hence
- *  aria-hidden. */
+ *  which carries the real links, the accessible reading and the FULL
+ *  names — hence aria-hidden, and the radial labels are sanctioned short
+ *  display forms: cut at a word boundary with a visible ellipsis, never
+ *  mid-word. */
+
+const shortAt = (name: string, max: number) => {
+  if (name.length <= max) return name;
+  const cut = name.slice(0, max);
+  const boundary = cut.lastIndexOf(" ");
+  return `${(boundary > 6 ? cut.slice(0, boundary) : cut).trimEnd()}…`;
+};
 export function PartnerGraph({
   center,
   partners,
@@ -40,7 +49,7 @@ export function PartnerGraph({
             };
           });
           const short = (name: string) =>
-            formatOrgName(name).slice(0, Math.max(Math.floor((width / 2 - R) / 6.2), 10));
+            shortAt(formatOrgName(name), Math.max(Math.floor((width / 2 - R) / 6.2), 10));
           return (
             <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H}>
               {nodes.map(({ partner, x, y, weight }) => (
@@ -77,7 +86,7 @@ export function PartnerGraph({
                 fontWeight="600"
                 fill="var(--color-accent)"
               >
-                {formatOrgName(center).slice(0, 28)}
+                {shortAt(formatOrgName(center), 28)}
               </text>
             </svg>
           );

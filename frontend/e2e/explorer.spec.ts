@@ -26,27 +26,40 @@ test("a story opens as Angles, slides, and hands over to the composer", async ({
   await expect(page.getByRole("region", { name: /angles/i })).toBeVisible();
   await expect(page.getByRole("group", { name: /Angle 1 of 5/ })).toBeVisible();
 
+  // Deck-level presentation: the question as title, the active angle as a
+  // read-only sentence — no interactive composer in angles mode.
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Where does hydrogen money go/ }),
+  ).toBeVisible();
+  await expect(page.getByText(/« hydrogen »/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Show" })).toHaveCount(0);
+
   // The next arrow advances the deck and the URL deep-links the angle.
   await page.getByRole("button", { name: "Next angle" }).click();
   await expect(page).toHaveURL(/angle=1/);
 
-  // The composer mirrors the active angle and stays editable — the story
-  // is a starting point, not a cage.
-  await expect(page.getByRole("button", { name: /« hydrogen »/ })).toBeVisible();
-
-  // Handing over to the composer leaves angles mode with the slide's state.
-  await page
-    .getByRole("group", { name: /Angle 2 of 5/ })
-    .getByRole("button", { name: /Open in the composer/ })
-    .click();
+  // Handing over to the composer leaves angles mode with the ACTIVE
+  // angle's state.
+  await page.getByRole("button", { name: /Open in the composer/ }).click();
   await expect(page).toHaveURL(/q=hydrogen/);
   await expect(page).toHaveURL(/view=treemap/);
   expect(page.url()).not.toContain("angles=");
+  await expect(page.getByRole("button", { name: "Show" })).toBeVisible();
   const treemap = page.getByRole("img", { name: /funding · programme/ });
   await expect(treemap.locator("rect").first()).toBeVisible({ timeout: 15_000 });
 
   await page.getByRole("button", { name: "Table" }).click();
   await expect(page.getByRole("columnheader", { name: "Entry" })).toBeVisible();
+});
+
+test("the before/after view names its windows and says who moved", async ({ page }) => {
+  await page.goto("/explore?by=theme&split=1&limit=5&view=delta");
+  const chart = page.getByRole("img", { name: /funding · theme/ });
+  await expect(chart).toBeVisible({ timeout: 15_000 });
+  // Window totals legend derived from the data years — a single year when
+  // the corpus is short (CI seeds), a range on the full corpus.
+  await expect(chart.getByText(/\d{4}/).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Before / after" })).toBeVisible();
 });
 
 test("the ranks view races the series over time", async ({ page }) => {
@@ -57,15 +70,18 @@ test("the ranks view races the series over time", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Ranks" })).toBeVisible();
 });
 
-test("dimension switch re-renders as bars with values", async ({ page }) => {
+test("static bars are never the default — a ranked view leads as treemap", async ({ page }) => {
   await page.goto("/explore?by=funder&split=0");
-  const bars = page.getByRole("img", { name: /funding · funder/ });
-  await expect(bars).toBeVisible({ timeout: 15_000 });
-  await expect(bars.getByText(/European Commission/).first()).toBeVisible();
+  const chart = page.getByRole("img", { name: /funding · funder/ });
+  await expect(chart).toBeVisible({ timeout: 15_000 });
+  // A treemap draws cells; bars would render no SVG rects. Bars stay
+  // available as an explicit choice.
+  await expect(chart.locator("rect").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Bars" })).toBeVisible();
 });
 
 test("the theme dimension aggregates euroSciVoc level-2 themes", async ({ page }) => {
-  await page.goto("/explore?by=theme&split=0");
+  await page.goto("/explore?by=theme&split=0&view=bars");
   const bars = page.getByRole("img", { name: /funding · theme/ });
   await expect(bars).toBeVisible({ timeout: 15_000 });
   await expect(bars.getByText(/electrical engineering/).first()).toBeVisible();

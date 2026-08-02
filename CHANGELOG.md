@@ -77,8 +77,34 @@ All notable changes to Orion are documented here. The format follows
   view of every split temporal state; the Explorer's state grammar and
   twin table are extracted into shared modules on the way.
 
+- Lot 3 recette (validated, three retouches): the dumbbell joins the
+  library (B3) as the "Before / after" view of split temporal states —
+  two windows summed per series, sorted by who moved, windows derived
+  from MATURE years only (current year − 2, the watch-post convention)
+  so right-censored recent commitments never read as a fake collapse;
+  the theme-race deck trades its static standings for it, and the
+  hydrogen deck's country angle now leads with the map.
+
 ### Changed
 
+- No label is ever truncated (new recette rule): SVG direct labels wrap
+  to two lines (bump ends, line ends, with the cascade reserving the
+  extra height), treemap cells show their label in full or not at all
+  (never sliced mid-word), list rows and palette options wrap instead of
+  `truncate`, composer chips carry full programme and theme names. The
+  breadcrumb keeps a sanctioned short form (full name in the h1 below);
+  the partner constellation keeps short radial labels cut at word
+  boundaries with a visible ellipsis (the adjacent list carries full
+  names).
+- Static horizontal bars are never a default view anymore (founder
+  rule): geographic euro views lead with the map, summable metrics lead
+  with the treemap, and the treemap is no longer offered at all for
+  rates and averages (part-of-whole would lie); bars stay available as
+  an explicit choice and remain the default only for ranked rates.
+- In angles mode the interactive composer steps aside: the deck presents
+  itself — the question as title, the active angle as one read-only
+  sentence, and a single "Open in the composer" exit at deck level
+  (the per-slide links are gone).
 - Display face: Instrument Sans retired; Inter (tightened, alternate glyphs)
   is the single family, with the hero at clamp(80-120px)/500/−0.032em.
 - The hero gradient leaves violet for a deep-ultramarine ramp (doctrine trap

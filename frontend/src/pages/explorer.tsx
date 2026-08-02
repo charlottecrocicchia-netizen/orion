@@ -7,6 +7,7 @@ import type { FormEvent, ReactNode } from "react";
 import { AnglesDeck } from "@/components/angles-deck";
 import { BarsChart, LinesChart, TreemapChart } from "@/components/charts";
 import { BumpChart } from "@/components/bump-chart";
+import { DumbbellChart } from "@/components/dumbbell-chart";
 import { ExploreTable } from "@/components/explore-table";
 import { EuropeMap } from "@/components/europe-map";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -254,15 +255,29 @@ export function ExplorerPage() {
           .map((key) => {
             if (state.by === "orgtype") return t(`orgType.${key}`);
             if (state.by === "programme")
-              return programmes?.find((p) => String(p.id) === key)?.label.slice(0, 16) ?? key;
+              return programmes?.find((p) => String(p.id) === key)?.label ?? key;
             if (state.by === "theme")
-              return (
-                themes?.series.find((s) => s.key === key)?.label?.slice(0, 22) ?? key
-              );
+              return themes?.series.find((s) => s.key === key)?.label ?? key;
             return key;
           })
           .join(" · ")
       : t("explorer.top", { count: state.limit });
+
+  // The active angle, said in one quiet read-only sentence (the deck's
+  // header) — the full composer only reappears through "Open in the
+  // composer", which leaves angles mode cleanly.
+  const anglePhrase = [
+    `${t(`explorer.metric.${state.metric}`)} ${t("explorer.by")} ${t(`explorer.dim.${state.by}`)}`,
+    state.by !== "year" ? compareDisplay : null,
+    state.by !== "year" && state.split ? t("explorer.overTime") : null,
+    state.q ? `« ${state.q} »` : null,
+    state.country ? `${countryFlag(state.country)} ${state.country}` : null,
+    state.from != null || state.to != null
+      ? `${state.from ?? YEAR_MIN} → ${state.to ?? YEAR_MAX}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const boardTitle = `${t(`explorer.metric.${state.metric}`)} · ${t(`explorer.dim.${state.by}`)}`;
 
@@ -294,7 +309,29 @@ export function ExplorerPage() {
         </form>
       </div>
 
-      {/* The composition sentence — the interface itself */}
+      {/* In angles mode the interactive composer stays out of the way: the
+          deck presents itself — the question as title, the active angle as
+          one read-only sentence, ONE exit to the composer. */}
+      {anglesStory ? (
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <div className="min-w-0">
+            <h1 className="display-tight max-w-[30ch] text-[clamp(24px,3.2vw,34px)] font-semibold leading-[1.12]">
+              {t(`explorer.stories.${anglesStory.key}.title`)}
+            </h1>
+            <p className="mt-2.5 text-[13.5px] leading-snug text-muted-foreground">
+              {anglePhrase}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => activeSlide && openInComposer(activeSlide.params)}
+            className="rounded-full border px-4 py-2 text-[13px] transition-colors hover:border-accent hover:text-accent"
+          >
+            {t("explorer.angles.open")} →
+          </button>
+        </div>
+      ) : (
+      /* The composition sentence — the interface itself */
       <p className="display-tight mt-3 max-w-[34ch] text-[clamp(24px,3.2vw,34px)] font-semibold leading-[1.5]">
         {t("explorer.show")}{" "}
         <Segment menuLabel={t("explorer.show")} display={t(`explorer.metric.${state.metric}`)}>
@@ -521,6 +558,7 @@ export function ExplorerPage() {
           )}
         </Segment>
       </p>
+      )}
 
       {/* The view — or, for a story with a deck, its Angles */}
       {anglesStory ? (
@@ -531,7 +569,6 @@ export function ExplorerPage() {
           }))}
           active={angleIndex}
           onActive={setAngle}
-          onOpenInComposer={openInComposer}
         />
       ) : (
       <section className="mt-9 rounded-[20px] border p-7 pb-5">
@@ -568,6 +605,8 @@ export function ExplorerPage() {
             <LinesChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "bump" ? (
             <BumpChart series={data.series} ariaLabel={boardTitle} />
+          ) : view === "delta" ? (
+            <DumbbellChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "bars" ? (
             <BarsChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "map" ? (

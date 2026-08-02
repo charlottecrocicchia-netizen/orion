@@ -154,3 +154,29 @@ export function yearsRange(from: number | null, to: number | null): string {
   if (from != null && to != null) return from === to ? String(from) : `${from} – ${to}`;
   return String(from ?? to);
 }
+
+/** The six validated series hues, by fixed data order. */
+export function seriesColor(index: number): string {
+  return `var(--color-series-${(index % 6) + 1})`;
+}
+
+/** Break a label into at most two lines at the space nearest the middle —
+ *  SVG has no text wrapping, and a label must read IN FULL (recette rule,
+ *  2026-08-02): never sliced, wrapped instead. */
+export function wrapLabel(label: string, max = 24): string[] {
+  if (label.length <= max) return [label];
+  const words = label.split(" ");
+  if (words.length === 1) return [label];
+  let best = 1;
+  let bestDiff = Number.POSITIVE_INFINITY;
+  for (let i = 1; i < words.length; i++) {
+    const diff = Math.abs(
+      words.slice(0, i).join(" ").length - words.slice(i).join(" ").length,
+    );
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = i;
+    }
+  }
+  return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+}

@@ -64,7 +64,9 @@ export function OrganisationHubPage() {
           {t("nav.organisations")}
         </Link>{" "}
         ›{" "}
-        <span>
+        {/* The breadcrumb is the sanctioned "short display label" case: the
+            full name reads in the h1 right below. */}
+        <span title={displayName}>
           {displayName.slice(0, 40)}
           {displayName.length > 40 ? "…" : ""}
         </span>
@@ -112,7 +114,7 @@ export function OrganisationHubPage() {
                   key={theme.key}
                   className="grid grid-cols-[minmax(120px,190px)_minmax(0,1fr)_112px] items-center gap-3 border-b border-border-soft py-2.5 text-[13.5px]"
                 >
-                  <span className="truncate">{themeLabel(theme.key, theme.label, t)}</span>
+                  <span className="leading-snug">{themeLabel(theme.key, theme.label, t)}</span>
                   <span
                     aria-hidden="true"
                     className="block h-2 rounded-full bg-gradient-to-r from-accent to-gradient-to"
@@ -208,7 +210,7 @@ export function OrganisationHubPage() {
             <tbody>
               {portfolio?.results.map((row) => (
                 <tr key={`${row.id}-${row.role}-${row.amount_eur}`} className="border-b border-border-soft">
-                  <td className="max-w-[34ch] truncate py-2.5 pr-3">
+                  <td className="max-w-[34ch] py-2.5 pr-3 leading-snug">
                     <Link to={`/projects/${row.id}`} className="hover:underline underline-offset-2">
                       {row.acronym ? <b className="mr-1.5 font-medium">{row.acronym}</b> : null}
                       <span className="text-muted-foreground">{row.title}</span>
@@ -307,7 +309,7 @@ export function OrganisationHubPage() {
                   className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
                 >
                   {partner.country ? <CountryFlags codes={[partner.country]} /> : null}
-                  <span className="min-w-0 truncate transition-colors group-hover:text-accent">
+                  <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
                     {formatOrgName(partner.name)}
                   </span>
                   <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
@@ -381,7 +383,7 @@ export function OrganisationHubPage() {
               href={data.website.startsWith("http") ? data.website : `https://${data.website}`}
               target="_blank"
               rel="noreferrer"
-              className="block truncate text-[13px] text-accent underline-offset-2 hover:underline"
+              className="block break-all text-[13px] text-accent underline-offset-2 hover:underline"
             >
               {data.website.replace(/^https?:\/\//, "")} ↗
             </a>

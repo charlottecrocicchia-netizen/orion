@@ -24,8 +24,17 @@ les huit leçons :
 
 1. **Autocomplete de recherche** — **livré** (2026-08-02, lot 1, recette
    validée).
-2. **Hub « poste de veille »** — **livré** (2026-08-02, lot 2, en recette).
-3. **Les Angles** sur les Analyses prêtes de l'Explorateur (+ peek Apple).
+2. **Hub « poste de veille »** — **livré** (2026-08-02, lot 2, recette
+   validée).
+3. **Les Angles** (+ peek Apple) — **livré, recette validée** (2026-08-02)
+   avec trois retouches exécutées : labels lisibles en entier partout
+   (« aucun texte tronqué » entre en checklist de recette), l'angle cumul
+   remplacé par l'**avant/après** (dumbbell B3, fenêtres mûres alignées
+   sur les signaux du poste de veille), et la présentation au niveau du
+   deck (titre + phrase en lecture + une seule sortie vers le composeur).
+   Règle générale actée : **pas de barres horizontales statiques par
+   défaut** (carte pour le géographique, treemap pour ce qui s'additionne ;
+   les barres restent un choix, et le défaut des seuls taux classés).
 4. **Le dossier** (maquette, puis print stylesheet) — **priorité montée**
    en recette lot 2 : KAILA en fait un bouton central de fiche
    (« Organisation report »).

@@ -1,17 +1,18 @@
 import { useTranslation } from "react-i18next";
 
 import type { ExploreResponse } from "@/lib/api";
-import { seriesLabel } from "@/lib/format";
+import { seriesLabel, wrapLabel } from "@/lib/format";
 
 /** The bump chart (library form B1) — ranks over time: who climbs, who
  *  slips. Position IS the message; values live in the twin table. Fixed
  *  series colors by data order (never re-painted on filter), direct labels
- *  on both ends with a background halo, gaps where a series leaves the
- *  ranking. Quiet by doctrine: no grid, three year ticks. */
+ *  on both ends with a background halo — wrapped to two lines when long,
+ *  never truncated — gaps where a series leaves the ranking. Quiet by
+ *  doctrine: no grid, three year ticks. */
 
 const W = 900;
 const H = 380;
-const PAD_X = 150;
+const PAD_X = 172;
 const PAD_Y = 34;
 
 export function BumpChart({
@@ -68,6 +69,7 @@ export function BumpChart({
         }
         const firstYear = years.find((year) => own.has(year))!;
         const lastYear = [...years].reverse().find((year) => own.has(year))!;
+        const lines = wrapLabel(label);
         return (
           <g key={key}>
             {segments
@@ -90,9 +92,9 @@ export function BumpChart({
               ))}
             <text
               x={xs(firstYear) - 8}
-              y={ys(own.get(firstYear)!) + 4}
+              y={ys(own.get(firstYear)!) + (lines.length === 2 ? -2 : 4)}
               textAnchor="end"
-              fontSize="12"
+              fontSize="11.5"
               fontWeight="600"
               fill="var(--color-foreground)"
               stroke="var(--color-background)"
@@ -100,12 +102,16 @@ export function BumpChart({
               paintOrder="stroke"
               strokeLinejoin="round"
             >
-              {label.slice(0, 18)}
+              {lines.map((line, li) => (
+                <tspan key={li} x={xs(firstYear) - 8} dy={li === 0 ? 0 : 12}>
+                  {line}
+                </tspan>
+              ))}
             </text>
             <text
               x={xs(lastYear) + 8}
-              y={ys(own.get(lastYear)!) + 4}
-              fontSize="12"
+              y={ys(own.get(lastYear)!) + (lines.length === 2 ? -2 : 4)}
+              fontSize="11.5"
               fontWeight="600"
               fill="var(--color-foreground)"
               stroke="var(--color-background)"
@@ -113,7 +119,11 @@ export function BumpChart({
               paintOrder="stroke"
               strokeLinejoin="round"
             >
-              {label.slice(0, 18)}
+              {lines.map((line, li) => (
+                <tspan key={li} x={xs(lastYear) + 8} dy={li === 0 ? 0 : 12}>
+                  {line}
+                </tspan>
+              ))}
             </text>
           </g>
         );
@@ -139,7 +149,9 @@ export function BumpChart({
       >
         {years[years.length - 1]}
       </text>
-      <text x="8" y={PAD_Y + 4} fontSize="10.5" fill="var(--color-muted-foreground)">
+      {/* Corner rank cue sits above the label column — two-line direct
+          labels reach the left margin. */}
+      <text x="8" y="13" fontSize="10.5" fill="var(--color-muted-foreground)">
         {t("explorer.bumpTop")}
       </text>
     </svg>

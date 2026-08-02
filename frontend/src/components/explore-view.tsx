@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { BarsChart, LinesChart, TreemapChart } from "@/components/charts";
 import { BumpChart } from "@/components/bump-chart";
+import { DumbbellChart } from "@/components/dumbbell-chart";
 import { EuropeMap } from "@/components/europe-map";
 import { ExploreTable } from "@/components/explore-table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,6 +57,8 @@ export function ExploreView({
         <LinesChart series={data.series} unit={data.unit} ariaLabel={title} />
       ) : view === "bump" ? (
         <BumpChart series={data.series} ariaLabel={title} />
+      ) : view === "delta" ? (
+        <DumbbellChart series={data.series} unit={data.unit} ariaLabel={title} />
       ) : view === "bars" ? (
         <BarsChart series={data.series} unit={data.unit} ariaLabel={title} />
       ) : view === "map" ? (

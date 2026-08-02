@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { useMeasure } from "@/hooks/use-measure";
 import type { ExploreSeries } from "@/lib/api";
-import { formatValue, seriesLabel } from "@/lib/format";
+import { formatValue, seriesLabel, wrapLabel } from "@/lib/format";
 
 /* Categorical series palette — six distinct hues in a fixed order, anchored on
    the brand ultramarine, validated per theme (CVD separation + contrast) with
@@ -85,9 +85,7 @@ export function BarsChart({
             aria-label={`${label} — ${value}`}
             className="group flex items-center gap-4 rounded-md px-1 py-2 outline-offset-2 hover:bg-surface/60"
           >
-            <span className="w-[220px] shrink-0 truncate text-[13.5px]" title={label}>
-              {label}
-            </span>
+            <span className="w-[220px] shrink-0 text-[13.5px] leading-snug">{label}</span>
             <span className="relative h-[14px] min-w-0 flex-1 overflow-hidden rounded-[4px] bg-surface">
               <span
                 className="absolute inset-y-0 left-0 rounded-[4px] bg-gradient-to-r from-accent to-gradient-to transition-[width] duration-700"
@@ -149,17 +147,26 @@ export function LinesChart({
 
         // End-of-line labels anchor on each series' recent peak (the last data
         // year is usually a near-zero stub), then cascade apart and clamp.
+        // Long labels wrap to two lines — never truncated — and the cascade
+        // reserves the extra line's height.
         const anchor = (serie: ExploreSeries) => {
           const values = (serie.points ?? []).filter((p) => p.value != null).slice(-6);
           return Math.max(...values.map((p) => p.value ?? 0), 0);
         };
         const endLabels = series
-          .map((serie, index) => ({ serie, index, y: y(anchor(serie)) }))
+          .map((serie, index) => ({
+            serie,
+            index,
+            y: y(anchor(serie)),
+            lines: wrapLabel(seriesLabel(serie, t), 22),
+          }))
           .sort((a, b) => a.y - b.y);
         for (let i = 1; i < endLabels.length; i++) {
-          if (endLabels[i].y - endLabels[i - 1].y < 15) endLabels[i].y = endLabels[i - 1].y + 15;
+          const need = 15 + (endLabels[i - 1].lines.length - 1) * 12;
+          if (endLabels[i].y - endLabels[i - 1].y < need) endLabels[i].y = endLabels[i - 1].y + need;
         }
-        const overflow = (endLabels[endLabels.length - 1]?.y ?? 0) - (H - PAD.bottom - 6);
+        const last = endLabels[endLabels.length - 1];
+        const overflow = (last ? last.y + (last.lines.length - 1) * 12 : 0) - (H - PAD.bottom - 6);
         if (overflow > 0) for (const label of endLabels) label.y -= overflow;
 
         const tickLabel = (value: number) =>
@@ -233,7 +240,7 @@ export function LinesChart({
               })}
 
               {!single &&
-                endLabels.map(({ serie, index, y: labelY }) => (
+                endLabels.map(({ serie, index, y: labelY, lines }) => (
                   <text
                     key={String(serie.key)}
                     x={width - padRight + 10}
@@ -242,7 +249,11 @@ export function LinesChart({
                     fontWeight={index === 0 ? 600 : 400}
                     fill={SERIES_COLORS[index % SERIES_COLORS.length]}
                   >
-                    {seriesLabel(serie, t).slice(0, 18)}
+                    {lines.map((line, li) => (
+                      <tspan key={li} x={width - padRight + 10} dy={li === 0 ? 0 : 12}>
+                        {line}
+                      </tspan>
+                    ))}
                   </text>
                 ))}
 
@@ -409,6 +420,26 @@ export function TreemapChart({
                 const label = seriesLabel(serie, t);
                 const value = formatValue(serie.value, unit, i18n.language);
                 const opacity = Math.max(0.92 - rank * 0.11, 0.22);
+                // A cell shows its label IN FULL (word-wrapped) or not at
+                // all — never sliced mid-word. Small cells keep the value;
+                // the tooltip and the twin table carry their full reading.
+                const labelLines = (() => {
+                  const perLine = Math.floor((w - 28) / 7.2);
+                  if (perLine < 4) return null;
+                  const lines: string[] = [];
+                  let current = "";
+                  for (const word of label.split(" ")) {
+                    if (word.length > perLine) return null;
+                    const candidate = current ? `${current} ${word}` : word;
+                    if (candidate.length <= perLine) current = candidate;
+                    else {
+                      lines.push(current);
+                      current = word;
+                    }
+                  }
+                  lines.push(current);
+                  return 26 + lines.length * 15 + 6 <= h ? lines : null;
+                })();
                 return (
                   <g
                     key={String(serie.key)}
@@ -430,14 +461,31 @@ export function TreemapChart({
                       fillOpacity={opacity}
                     />
                     {w > 110 && h > 52 ? (
-                      <>
-                        <text x={x + 14} y={y + 26} fontSize="12.5" fontWeight="600" fill="#fff">
-                          {label.slice(0, Math.floor(w / 8))}
-                        </text>
-                        <text x={x + 14} y={y + 44} fontSize="12" fill="#fff" fillOpacity="0.85" className="tnum">
+                      labelLines ? (
+                        <>
+                          <text x={x + 14} y={y + 26} fontSize="12.5" fontWeight="600" fill="#fff">
+                            {labelLines.map((line, li) => (
+                              <tspan key={li} x={x + 14} dy={li === 0 ? 0 : 15}>
+                                {line}
+                              </tspan>
+                            ))}
+                          </text>
+                          <text
+                            x={x + 14}
+                            y={y + 26 + labelLines.length * 15 + 3}
+                            fontSize="12"
+                            fill="#fff"
+                            fillOpacity="0.85"
+                            className="tnum"
+                          >
+                            {value}
+                          </text>
+                        </>
+                      ) : (
+                        <text x={x + 14} y={y + 26} fontSize="12" fill="#fff" fillOpacity="0.85" className="tnum">
                           {value}
                         </text>
-                      </>
+                      )
                     ) : null}
                   </g>
                 );

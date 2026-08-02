@@ -273,9 +273,9 @@ export function CommandK({ open, onOpenChange }: CommandKProps) {
                     )}
                   >
                     {option.flag ? <span aria-hidden="true">{option.flag}</span> : null}
-                    <span className="min-w-0 truncate">{option.label}</span>
+                    <span className="min-w-0 leading-snug">{option.label}</span>
                     {option.sub ? (
-                      <span className="min-w-0 flex-1 truncate text-[12px] text-muted-foreground">
+                      <span className="min-w-0 flex-1 text-[12px] leading-snug text-muted-foreground">
                         {option.sub}
                       </span>
                     ) : null}

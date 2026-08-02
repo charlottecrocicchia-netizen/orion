@@ -19,12 +19,10 @@ export function AnglesDeck({
   slides,
   active,
   onActive,
-  onOpenInComposer,
 }: {
   slides: AngleSlideResolved[];
   active: number;
   onActive: (index: number) => void;
-  onOpenInComposer: (query: string) => void;
 }) {
   const { t } = useTranslation();
   const railRef = useRef<HTMLDivElement>(null);
@@ -171,16 +169,7 @@ export function AnglesDeck({
             // the question has more angles.
             className="w-[86%] flex-none snap-center rounded-[20px] border p-6 pb-4"
           >
-            <div className="flex items-baseline justify-between gap-4">
-              <h2 className="text-[16px] font-semibold">{slide.title}</h2>
-              <button
-                type="button"
-                onClick={() => onOpenInComposer(slide.query)}
-                className="whitespace-nowrap text-[12.5px] text-accent underline-offset-2 hover:underline"
-              >
-                {t("explorer.angles.open")} →
-              </button>
-            </div>
+            <h2 className="text-[16px] font-semibold">{slide.title}</h2>
             <div className="mt-4">
               <ExploreView
                 query={slide.query}

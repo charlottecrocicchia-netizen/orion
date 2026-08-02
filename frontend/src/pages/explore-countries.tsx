@@ -105,7 +105,7 @@ export function ExploreCountriesPage() {
                 </span>
                 <span className="min-w-0">
                   <span className="flex items-baseline gap-2.5">
-                    <span className="truncate text-[15.5px] font-semibold transition-colors group-hover:text-accent">
+                    <span className="text-[15.5px] font-semibold leading-snug transition-colors group-hover:text-accent">
                       {country.name}
                     </span>
                     {country.eu_member ? (

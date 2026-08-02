@@ -70,8 +70,11 @@ export const STORIES: Story[] = [
         params: "metric=funding&by=theme&split=1&limit=6&view=bump",
         titleKey: "explorer.stories.themeRace.a2",
       },
+      // Before/after replaces the static ranked bars (fondatrice,
+      // 2026-08-02): the dumbbell teaches who GAINED ground, not just who
+      // is big.
       {
-        params: "metric=funding&by=theme&split=0&limit=10",
+        params: "metric=funding&by=theme&split=1&limit=7&view=delta",
         titleKey: "explorer.stories.themeRace.a3",
       },
     ],

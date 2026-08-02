@@ -156,7 +156,7 @@ export function CountryPanel({
                 key={String(serie.key)}
                 className="grid grid-cols-[158px_minmax(0,1fr)_70px] items-center gap-2.5 text-[12.5px]"
               >
-                <span className="truncate">
+                <span className="leading-snug">
                   {themeLabel(String(serie.key), serie.label, t)}
                 </span>
                 <span
