@@ -68,11 +68,29 @@ Points d'attention connus :
 
 ## Puis — phase 5 : les appels (calls)
 
+Cahier des charges enrichi par l'[analyse fonctionnelle de la concurrence]
+(analyse-fonctionnelle-concurrence.md) (2026-08-02, à valider) : catalogue
+filtrable + matching par description libre avec % de correspondance + test
+d'éligibilité rapide + alertes deadlines — les standards du marché — PLUS
+nos twists uniques : **alertes sur le passé** (un concurrent gagne un
+projet sur mon thème), pont « qui a gagné les calls similaires », et
+découverte de partenaires data-driven. Prérequis : la couche groupes
+(on s'abonne à « Thales », pas à 12 entités légales).
+
+**Hors périmètre assumé** (décision à confirmer) : rédaction IA de
+candidatures et gestion post-award (le métier de Granter/Streamlyne — 
+l'exécution) ; Orion reste l'intelligence.
+
 Horizon Europe + ANR ouverts, reliés aux tendances (la promesse tenue par
 la note « Phase 5 · automne 2026 » sur l'accueil). Navigation passé/futur
 (vision §9 du [document d'architecture](architecture-information.md)).
 
 ## Horizon — phase 6
+
+Périmètre étendu par l'analyse concurrence (à valider) : + partage
+d'équipe (vues partagées, digest d'espace — l'acheteur redistribue),
++ API publique produit (l'OpenAPI interne, avec clés et quotas),
++ essai self-serve / tier gratuit borné (décision de modèle).
 
 Dashboard configurable par persona ; homepage vitrine (le globe d'accueil
 de 3 bis en est la première pierre). Voir [phase-6-notes.md](phase-6-notes.md).
