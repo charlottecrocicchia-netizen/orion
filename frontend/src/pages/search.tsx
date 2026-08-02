@@ -2,10 +2,10 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, NavLink, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import { AmountBar } from "@/components/amount-bar";
 import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
 import { Sparkline } from "@/components/sparkline";
+import { TrendDelta } from "@/components/trend-delta";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
@@ -134,7 +134,7 @@ function groupByFrame(data: ProjectSearchResponse): HitGroup[] {
   return groups;
 }
 
-function ProjectHitRow({ hit, maxFunding }: { hit: ProjectHit; maxFunding: number }) {
+function ProjectHitRow({ hit }: { hit: ProjectHit }) {
   const { t, i18n } = useTranslation();
   return (
     <article className="group -mx-4 rounded-xl border-b border-border-soft px-4 py-6 transition-colors last:border-b-0 hover:bg-surface/70">
@@ -145,11 +145,10 @@ function ProjectHitRow({ hit, maxFunding }: { hit: ProjectHit; maxFunding: numbe
             {hit.title}
           </Link>
         </h2>
-        <span className="ml-auto flex shrink-0 flex-col items-end">
+        <span className="ml-auto shrink-0">
           <span className="display-tight tnum whitespace-nowrap text-[17px] font-semibold">
             {formatCompactEur(hit.funding_amount_eur, i18n.language)}
           </span>
-          <AmountBar value={hit.funding_amount_eur} max={maxFunding} />
         </span>
       </div>
       {hit.snippet ? (
@@ -254,7 +253,6 @@ export function ProjectsSearchPage() {
     activeCountries.length > 0 ||
     params.get("year_from") != null ||
     params.get("year_to") != null;
-  const maxFunding = Math.max(...(data?.results.map((h) => h.funding_amount_eur ?? 0) ?? []), 0);
 
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
@@ -382,13 +380,13 @@ export function ProjectsSearchPage() {
                 ) : null}
               </header>
               {group.hits.map((hit) => (
-                <ProjectHitRow key={hit.id} hit={hit} maxFunding={maxFunding} />
+                <ProjectHitRow key={hit.id} hit={hit} />
               ))}
             </section>
           ))
         ) : (
           data?.results.map((hit) => (
-            <ProjectHitRow key={hit.id} hit={hit} maxFunding={maxFunding} />
+            <ProjectHitRow key={hit.id} hit={hit} />
           ))
         )}
       </div>
@@ -426,7 +424,6 @@ export function OrganisationsSearchPage() {
   });
 
   const activeCountries = params.getAll("country");
-  const maxFunding = Math.max(...(data?.results.map((h) => h.total_funding_eur ?? 0) ?? []), 0);
   const ranked = sort === "funding" || sort === "projects";
   const bestMatch =
     q && sort === "relevance" && page === 1 && (data?.results.length ?? 0) > 0
@@ -511,7 +508,7 @@ export function OrganisationsSearchPage() {
                     <span className="display-tight tnum text-[22px] font-semibold">
                       {formatCompactEur(bestMatch.total_funding_eur, i18n.language)}
                     </span>
-                    <AmountBar value={bestMatch.total_funding_eur} max={maxFunding} />
+                    <TrendDelta series={bestMatch.funding_by_year} className="mt-0.5" />
                   </div>
                 </div>
               </article>
@@ -570,7 +567,7 @@ export function OrganisationsSearchPage() {
                     <span className="display-tight tnum whitespace-nowrap text-[16px] font-semibold">
                       {formatCompactEur(hit.total_funding_eur, i18n.language)}
                     </span>
-                    <AmountBar value={hit.total_funding_eur} max={maxFunding} />
+                    <TrendDelta series={hit.funding_by_year} className="mt-0.5" />
                   </div>
                 </article>
               );

@@ -27,7 +27,6 @@ export function ExploreCountriesPage() {
   const [autoOpen, setAutoOpen] = useState<string | null>(null);
   const { data, isPending } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: flows } = useQuery({ queryKey: ["country-flows"], queryFn: api.countryFlows });
-  const maxFunding = Math.max(...(data?.map((c) => c.funding_eur) ?? []), 0);
 
   const switchView = (next: GeoView) => {
     setView(next);
@@ -96,7 +95,7 @@ export function ExploreCountriesPage() {
                 <span
                   className={cn(
                     "display-tight tnum text-right text-[26px] font-semibold",
-                    index === 0 ? "text-accent" : "text-border",
+                    index === 0 ? "text-accent" : "text-muted-foreground/45",
                   )}
                 >
                   {index + 1}
@@ -114,12 +113,6 @@ export function ExploreCountriesPage() {
                         {t("country.euMember")}
                       </span>
                     ) : null}
-                  </span>
-                  <span className="mt-1.5 block h-[5px] overflow-hidden rounded-full bg-surface">
-                    <span
-                      className="block h-full rounded-full bg-gradient-to-r from-accent to-gradient-to"
-                      style={{ width: `${Math.max((country.funding_eur / maxFunding) * 100, 1)}%` }}
-                    />
                   </span>
                 </span>
                 <span className="text-right">
