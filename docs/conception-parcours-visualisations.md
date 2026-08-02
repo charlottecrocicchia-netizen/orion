@@ -210,7 +210,23 @@ donnée que l'API compare sert déjà) et **Signaux** (nouveaux partenaires des
 gagne « fiche consolidée : N entités sources » quand c'est le cas.
 Persona : le veilleur d'abord, l'analyste ensuite.
 
-### 5.3 Le dossier — wireframe dans ce document (pas encore de maquette)
+### 5.3 Le dossier — spec enrichie (leçons de la spec externe, 2026-08-02)
+
+**Le principe adopté : le dossier est un assemblage de BLOCS CITÉS.**
+Chaque bloc porte : son titre éditorial, sa vue (le graphique ou la table),
+**sa requête** (l'URL Explorateur — reproductible en un clic), **la date
+des données** (le stamp d'ingestion) et **ses sources** (attributions de
+licence). Aucun chiffre orphelin : le lecteur du dossier peut remonter de
+chaque affirmation à sa vue vivante. Notre avantage structurel : chaque
+vue étant déjà une URL canonique, le « snapshot » ne coûte rien — il est
+l'architecture même du produit.
+
+Principe transverse consigné au passage : **deux régimes, guidé et
+expert, sur les mêmes objets** — texte libre, Analyses prêtes et Angles
+sont le régime guidé ; le composeur est le régime expert ; le dossier les
+réunit (on y verse depuis les deux).
+
+### 5.3 bis Le dossier — wireframe d'origine
 
 Le manque n°1 du BD. Proposition sobre : sur l'Explorateur et compare, un
 bouton « Ajouter au dossier » ; un panneau latéral accumule les vues (titre,

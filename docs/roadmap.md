@@ -45,6 +45,10 @@ multi-juridictions/multi-devises prévu dès la phase 1.
 
 Points d'attention connus :
 - normalisation des montants (devises, années fiscales US/UK) ;
+- **provenance par champ et conflits exposés** (jamais écrasés en
+  silence) — principe adopté de la spec externe, critique dès que les
+  sources se multiplient ; pointeurs d'API US/UK (Grants.gov, NIH, NSF,
+  SBIR, USAspending, UKRI) versés au dossier d'instruction ;
 - dédoublonnage inter-sources des organisations (les garde-fous
   identifiants existants s'appliquent) ;
 - couverture géographique du globe/carte à étendre au-delà de l'Europe
@@ -77,7 +81,11 @@ filtrable + matching par description libre avec % de correspondance + test
 d'éligibilité rapide + alertes deadlines — les standards du marché — PLUS
 nos twists uniques : **alertes sur le passé** (un concurrent gagne un
 projet sur mon thème), pont « qui a gagné les calls similaires », et
-découverte de partenaires data-driven. Prérequis : la couche groupes
+découverte de partenaires data-driven. Règles adoptées de la
+[spec externe](lecons-spec-externe.md) : le **score de correspondance
+toujours décomposé** (jamais un chiffre unique), un critère inconnu
+n'est jamais traité comme incompatible, l'exclusion dure se fait avant
+le classement. Prérequis : la couche groupes
 (on s'abonne à « Thales », pas à 12 entités légales) — **différenciateur
 frontal confirmé sur pièces** : KAILA fait regrouper 21 entités à la main
 (Merge/Cross) à chaque session ; notre couche automatique le rend caduc.
