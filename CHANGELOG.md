@@ -124,6 +124,30 @@ All notable changes to Orion are documented here. The format follows
   (the URL mechanics stay for wave 1 and the P6 zone subscriptions);
   the footer sitemap gains the new pages.
 
+- The composable search ships (principle validated on the mockup): on
+  /projects and /organisations one bar turns free typing into TYPED
+  TAGS — country, funder, programme, years — with the bilingual free
+  text for the rest; APG combobox on the palette's keyboard language,
+  Backspace pops the last tag, tags pop in with a micro-entrance, the
+  whole state lives in the URL so the existing facets pose tags for
+  free; the empty state teaches the gesture with three one-click
+  examples instead of showing the directory.
+- Home ambiance (grande recette): the ink tile rises toward the reader
+  on entry; the ask's placeholder TYPES the product's example questions
+  in a loop (static under reduced motion); the globe shows the WHOLE
+  sphere and visibly keeps turning — pausing on hover/focus/drag and
+  resuming after, selection included — with three trial rotation paces
+  under it (the founder compares live, the winner gets pinned).
+- Programmes reorganize by SOURCE: the root lists funding agencies as
+  editorial rows; a source's programmes only unfold inside
+  (?funder=code) with an instant filter — a new agency lands as one
+  more row, never a redesign.
+- Seven more curated country photos in one pass (CC0/public domain
+  strict, per-image API licence check, one-by-one visual review with
+  named rejections): BE, DK, SE, PL, GR, IE, FI — 13 countries covered;
+  uncurated countries now show their own SILHOUETTE as a light
+  watermark over the deep ultramarine ramp — an owned composition, not
+  a gap.
 - The Discover pages stop being directories (grande recette): the
   programmes page regroups by frame — the three EC framework programmes
   as editorial rows, the ANR's 450 national programmes as a dense list

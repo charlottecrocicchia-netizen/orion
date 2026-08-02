@@ -81,16 +81,18 @@ même jour : globe/cartes et donuts **validés, on ne touche plus** ;
 la page Programmes regroupée par cadre (cadres CE en rangées
 éditoriales, 450 ANR en liste dense filtrable — plus de cartouches).
 
-## Chantier suivant — la recherche composable (conception à itérer)
+## La recherche composable — livrée (V1 en recette)
 
-Commande fondatrice (grande recette 2026-08-02) : les pages Découvrir
-cessent d'être des annuaires. **Proposition livrée, à itérer avant toute
-implémentation** — [conception-recherche-composable.md](conception-recherche-composable.md)
-et sa [maquette](design/recherche-composable-maquette.html) : une barre
-où la frappe libre devient des tags typés (pays, bailleur, programme,
-années, texte bilingue — tout existe côté API ; le tag organisation est
-la seule extension backend proposée), résultats en direct, facettes
-poseuses de tags, état dans l'URL. Quatre lots y sont découpés.
+Principe validé sur maquette puis **implémentée le jour même** (la
+fondatrice juge sur site) : la barre à tags typés vit sur /projects et
+/organisations — pays, bailleur, programme, années, texte bilingue,
+état dans l'URL, facettes poseuses de tags, exemples enseignants à
+l'état vide. Reste de la [conception](conception-recherche-composable.md) :
+le tag organisation (extension backend `organisation=`) et le filtre
+thème exact, à la demande. Deuxième vague de la grande recette livrée
+aussi : ambiances de l'accueil (tuile montante, recherche vivante,
+globe entier aux trois vitesses de recette), programmes par source,
+sept photos pays curées + silhouette élégante en fallback.
 
 ## Ensuite — extension des sources, vague 1
 
