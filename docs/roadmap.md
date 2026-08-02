@@ -33,8 +33,15 @@ les huit leçons :
    sur les signaux du poste de veille), et la présentation au niveau du
    deck (titre + phrase en lecture + une seule sortie vers le composeur).
    Règle générale actée : **pas de barres horizontales statiques par
-   défaut** (carte pour le géographique, treemap pour ce qui s'additionne ;
-   les barres restent un choix, et le défaut des seuls taux classés).
+   défaut** (carte pour le géographique ; les barres restent un choix, et
+   le défaut des seuls taux classés et classements longs délibérés).
+   **Recette deck hydrogène (même jour)** : les **treemaps quittent le
+   produit** ; le **donut interactif** les remplace (amendement doctrine :
+   ≤ 7 parts, « autres » honnête sur le total serveur, centre vivant,
+   drill-down programme → sous-programmes via `?programme=`, nouveau
+   paramètre whitelisté de l'API) ; « qui est financé » passe en
+   trajectoires ; l'angle pays confirmé en carte (le doute venait d'un
+   vieux build local, pas du code).
 4. **Le dossier** (maquette, puis print stylesheet) — **priorité montée**
    en recette lot 2 : KAILA en fait un bouton central de fiche
    (« Organisation report »).
@@ -47,12 +54,17 @@ les huit leçons :
 ## Chantier « première visite » → refonte de l'architecture du site
 
 Réveillé et élargi par la fondatrice (2026-08-02, recette lot 3) :
-**proposition livrée, à itérer avant toute implémentation** —
-[architecture-site.md](architecture-site.md) (navigation par intentions
-Découvrir / Analyser / Construire / Espace de travail ; cinq pages
-nouvelles dont deux placeholders élégants datés P5/P6 ; mapping complet de
-l'existant) et sa [maquette de navigation](design/navigation-maquette.html).
-Les lots d'implémentation (A-D) y sont proposés, aucun n'est lancé.
+proposition livrée — [architecture-site.md](architecture-site.md)
+(navigation par intentions Découvrir / Analyser / Construire / Espace de
+travail ; cinq pages nouvelles dont deux placeholders élégants datés
+P5/P6 ; mapping complet de l'existant) et sa
+[maquette de navigation](design/navigation-maquette.html).
+**Principe validé sur maquette (même jour) → implémentation par lots
+testables en réel.** Exigences fondatrice : FR/EN partout, textes sans
+odeur d'IA ; placeholders raffinés (dégradés subtils, ombres douces —
+pas de pavés) ; le sélecteur « Europe + France » discret ou masqué tant
+qu'une seule zone existe (la mécanique URL reste dessous, elle porte les
+abonnements par zone) ; « Construire » à valider à l'usage.
 
 ## Ensuite — extension des sources, vague 1
 

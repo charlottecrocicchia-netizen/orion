@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import type { FormEvent, ReactNode } from "react";
 
 import { AnglesDeck } from "@/components/angles-deck";
-import { BarsChart, LinesChart, TreemapChart } from "@/components/charts";
+import { BarsChart, LinesChart } from "@/components/charts";
 import { BumpChart } from "@/components/bump-chart";
+import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
 import { ExploreTable } from "@/components/explore-table";
 import { EuropeMap } from "@/components/europe-map";
@@ -176,6 +177,7 @@ export function ExplorerPage() {
     if (next.from != null && next.to != null) out.set("time", `${next.from}..${next.to}`);
     if (next.q) out.set("q", next.q);
     if (next.country) out.set("country", next.country);
+    if (next.programme && next.by === "programme") out.set("programme", next.programme);
     if (next.limit !== 5) out.set("limit", String(next.limit));
     if (next.view !== "auto") out.set("view", next.view);
     setParams(out, { preventScrollReset: true });
@@ -279,6 +281,23 @@ export function ExplorerPage() {
     .filter(Boolean)
     .join(" · ");
 
+  // Programme drill context (board only — deck slides drill locally).
+  const drilledLabel = state.programme ? (data?.meta.programme_label ?? "…") : null;
+  const leafDrill =
+    state.programme != null &&
+    state.programme !== "" &&
+    data != null &&
+    data.series.length === 1 &&
+    String(data.series[0].key) === state.programme;
+  const donutSeries =
+    data && state.programme
+      ? data.series.map((serie) =>
+          String(serie.key) === state.programme
+            ? { ...serie, label: t("explorer.donutDirect") }
+            : serie,
+        )
+      : (data?.series ?? []);
+
   const boardTitle = `${t(`explorer.metric.${state.metric}`)} · ${t(`explorer.dim.${state.by}`)}`;
 
   const submitFreeText = (event: React.FormEvent<HTMLFormElement>) => {
@@ -358,7 +377,13 @@ export function ExplorerPage() {
                 key={by}
                 selected={by === state.by}
                 onClick={() => {
-                  patch({ by, compare: [], view: "auto", split: by === "year" ? false : state.split });
+                  patch({
+                    by,
+                    compare: [],
+                    programme: "",
+                    view: "auto",
+                    split: by === "year" ? false : state.split,
+                  });
                   close();
                 }}
               >
@@ -504,6 +529,16 @@ export function ExplorerPage() {
             {countryFlag(state.country)} {state.country} <span className="opacity-55">×</span>
           </button>
         ) : null}
+        {drilledLabel ? (
+          <button
+            type="button"
+            onClick={() => patch({ programme: "" })}
+            className="rounded-full bg-accent-soft px-3.5 py-1 align-middle text-[0.55em] font-medium text-accent"
+          >
+            {t("explorer.donutWithin", { label: drilledLabel })}{" "}
+            <span className="opacity-55">×</span>
+          </button>
+        ) : null}
         <Segment chip menuLabel={t("explorer.addFilter")} display={t("explorer.addFilter")}>
           {(close) => (
             <form
@@ -597,10 +632,23 @@ export function ExplorerPage() {
         </div>
 
         <div className="mt-5">
+          {state.programme && data ? (
+            <button
+              type="button"
+              onClick={() => patch({ programme: "" })}
+              className="mb-3 text-[13px] text-accent underline-offset-2 hover:underline"
+            >
+              ‹ {drilledLabel}
+            </button>
+          ) : null}
           {isPending ? (
             <Skeleton className="h-[380px] w-full" />
           ) : isError || !data || data.series.length === 0 ? (
             <p className="py-24 text-center text-muted-foreground">{t("explorer.emptyView")}</p>
+          ) : leafDrill ? (
+            <p className="py-24 text-center text-[14px] text-muted-foreground">
+              {t("explorer.donutNoChildren")}
+            </p>
           ) : view === "lines" ? (
             <LinesChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "bump" ? (
@@ -623,8 +671,18 @@ export function ExplorerPage() {
               flows={flows ?? []}
               legendLabel={`${t(`explorer.metric.${state.metric}`)} · €`}
             />
-          ) : view === "treemap" ? (
-            <TreemapChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
+          ) : view === "donut" ? (
+            <DonutChart
+              series={donutSeries}
+              unit={data.unit}
+              total={data.total}
+              ariaLabel={boardTitle}
+              onSlice={
+                state.by === "programme" && !state.programme
+                  ? (key) => patch({ programme: key })
+                  : undefined
+              }
+            />
           ) : (
             <ExploreTable data={data} temporal={temporal} />
           )}

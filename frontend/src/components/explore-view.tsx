@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BarsChart, LinesChart, TreemapChart } from "@/components/charts";
+import { BarsChart, LinesChart } from "@/components/charts";
 import { BumpChart } from "@/components/bump-chart";
+import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
 import { EuropeMap } from "@/components/europe-map";
 import { ExploreTable } from "@/components/explore-table";
@@ -13,7 +15,10 @@ import { readState, resolveView, toApiParams } from "@/lib/explore-state";
 /** One self-contained Explorer view — an Angles slide's body. Same state
  *  grammar, same API cache keys and same chart components as the page
  *  board; data only loads when the slide is active or adjacent (the deck
- *  preloads n±1). The accessible twin table folds under every chart. */
+ *  preloads n±1). Inside a deck, the donut's programme drill is LOCAL
+ *  state (the slide's URL stays the angle's); the composer hand-off keeps
+ *  the drill through the page URL instead. The accessible twin table
+ *  folds under every chart. */
 export function ExploreView({
   query,
   title,
@@ -24,7 +29,9 @@ export function ExploreView({
   active: boolean;
 }) {
   const { t } = useTranslation();
+  const [drill, setDrill] = useState<{ id: string; label: string } | null>(null);
   const state = readState(new URLSearchParams(query));
+  if (drill) state.programme = drill.id;
   const { temporal, view } = resolveView(state);
   const apiParams = toApiParams(state);
 
@@ -51,9 +58,34 @@ export function ExploreView({
     return <p className="py-24 text-center text-muted-foreground">{t("explorer.emptyView")}</p>;
   }
 
+  // A drill into a childless programme folds everything back onto itself:
+  // say so instead of drawing a one-slice ring.
+  const leafDrill =
+    drill != null && data.series.length === 1 && String(data.series[0].key) === drill.id;
+  const donutSeries = drill
+    ? data.series.map((serie) =>
+        String(serie.key) === drill.id
+          ? { ...serie, label: t("explorer.donutDirect") }
+          : serie,
+      )
+    : data.series;
+
   return (
     <div>
-      {view === "lines" ? (
+      {drill ? (
+        <button
+          type="button"
+          onClick={() => setDrill(null)}
+          className="mb-3 text-[13px] text-accent underline-offset-2 hover:underline"
+        >
+          ‹ {drill.label}
+        </button>
+      ) : null}
+      {leafDrill ? (
+        <p className="py-16 text-center text-[14px] text-muted-foreground">
+          {t("explorer.donutNoChildren")}
+        </p>
+      ) : view === "lines" ? (
         <LinesChart series={data.series} unit={data.unit} ariaLabel={title} />
       ) : view === "bump" ? (
         <BumpChart series={data.series} ariaLabel={title} />
@@ -75,12 +107,22 @@ export function ExploreView({
           flows={flows ?? []}
           legendLabel={`${t(`explorer.metric.${state.metric}`)} · €`}
         />
-      ) : view === "treemap" ? (
-        <TreemapChart series={data.series} unit={data.unit} ariaLabel={title} />
+      ) : view === "donut" ? (
+        <DonutChart
+          series={donutSeries}
+          unit={data.unit}
+          total={data.total}
+          ariaLabel={title}
+          onSlice={
+            state.by === "programme" && !drill
+              ? (id, label) => setDrill({ id, label })
+              : undefined
+          }
+        />
       ) : (
         <ExploreTable data={data} temporal={temporal} />
       )}
-      {view !== "table" ? (
+      {view !== "table" && !leafDrill ? (
         <details className="mt-3 border-t border-border-soft pt-2">
           <summary className="cursor-pointer text-[12px] text-muted-foreground hover:text-foreground">
             {t("explorer.views.table")}

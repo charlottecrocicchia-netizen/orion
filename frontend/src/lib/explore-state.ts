@@ -11,6 +11,8 @@ export interface ExplorerState {
   to: number | null;
   q: string;
   country: string;
+  /** Programme drill-down: inside this programme, by its direct children. */
+  programme: string;
   limit: number;
   view: string;
 }
@@ -26,6 +28,7 @@ export function readState(params: URLSearchParams): ExplorerState {
     to: time ? Number(time[2]) : null,
     q: params.get("q") ?? "",
     country: params.get("country") ?? "",
+    programme: params.get("programme") ?? "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
   };
@@ -43,11 +46,12 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   if (state.to != null) apiParams.set("year_to", String(state.to));
   if (state.q) apiParams.set("q", state.q);
   if (state.country) apiParams.set("country", state.country);
+  if (state.programme && state.by === "programme") apiParams.set("programme", state.programme);
   return apiParams;
 }
 
-/** Metrics whose values ADD UP — a treemap (part-of-whole) is only honest
- *  for these. Averages and rates get no treemap at all. */
+/** Metrics whose values ADD UP — part-of-whole (the donut) is only honest
+ *  for these. Averages and rates never get it. */
 const SUMMABLE = new Set(["funding", "projects", "organisations"]);
 
 export function resolveView(state: ExplorerState): {
@@ -57,27 +61,34 @@ export function resolveView(state: ExplorerState): {
   view: string;
 } {
   const temporal = state.by === "year" || state.split;
-  // The map view only speaks euros: other metrics keep treemap/bars/table.
+  // The map view only speaks euros: other metrics keep donut/bars/table.
   const mappable =
     !temporal && state.by === "country" && (state.metric === "funding" || state.metric === "avg");
   const summable = SUMMABLE.has(state.metric);
   // Bump (ranks) and delta (before/after windows) need several series over
   // time — a single-series "year" dimension has nothing to race.
-  // Default order rule (fondatrice, 2026-08-02): static horizontal bars are
-  // never the default — map first when the dimension is geographic, treemap
-  // first when values add up. Bars stay available as a choice, and remain
-  // the default only for ranked RATES (avg, coordination), where length is
-  // the honest encoding and part-of-whole would lie.
+  // Default order rules (fondatrice, 2026-08-02, amended at the deck
+  // recette): treemaps have left the product; the DESIGNED donut (≤ 7
+  // slices, honest "others", drill where a hierarchy exists) carries
+  // part-of-whole for summable metrics, and leads when the requested view
+  // fits it (limit ≤ 7). Deliberate long rankings (limit > 7) lead as
+  // bars — a ranked list is what was asked for. The map leads geographic
+  // euro views; rates never get part-of-whole at all.
+  const donutDefault = state.limit <= 7;
   const availableViews = temporal
     ? state.by === "year"
       ? ["lines", "table"]
       : ["lines", "bump", "delta", "table"]
     : mappable
       ? summable
-        ? ["map", "treemap", "bars", "table"]
+        ? donutDefault
+          ? ["map", "donut", "bars", "table"]
+          : ["map", "bars", "donut", "table"]
         : ["map", "bars", "table"]
       : summable
-        ? ["treemap", "bars", "table"]
+        ? donutDefault
+          ? ["donut", "bars", "table"]
+          : ["bars", "donut", "table"]
         : ["bars", "table"];
   const view = availableViews.includes(state.view) ? state.view : availableViews[0];
   return { temporal, mappable, availableViews, view };

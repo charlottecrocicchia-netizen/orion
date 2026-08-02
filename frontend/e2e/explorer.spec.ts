@@ -42,14 +42,27 @@ test("a story opens as Angles, slides, and hands over to the composer", async ({
   // angle's state.
   await page.getByRole("button", { name: /Open in the composer/ }).click();
   await expect(page).toHaveURL(/q=hydrogen/);
-  await expect(page).toHaveURL(/view=treemap/);
+  await expect(page).toHaveURL(/view=donut/);
   expect(page.url()).not.toContain("angles=");
   await expect(page.getByRole("button", { name: "Show" })).toBeVisible();
-  const treemap = page.getByRole("img", { name: /funding · programme/ });
-  await expect(treemap.locator("rect").first()).toBeVisible({ timeout: 15_000 });
+  const donut = page.getByRole("img", { name: /funding · programme/ });
+  await expect(donut.locator("path, circle").first()).toBeVisible({ timeout: 15_000 });
 
   await page.getByRole("button", { name: "Table" }).click();
   await expect(page.getByRole("columnheader", { name: "Entry" })).toBeVisible();
+});
+
+test("the donut drills into a programme and the URL carries the drill", async ({ page }) => {
+  await page.goto("/explore?by=programme&split=0&view=donut&limit=6");
+  const donut = page.getByRole("img", { name: /funding · programme/ });
+  await expect(donut).toBeVisible({ timeout: 15_000 });
+  // The legend rows are the accessible drill controls.
+  await page.getByRole("button", { name: /Zoom into/ }).first().click();
+  await expect(page).toHaveURL(/programme=\d+/);
+  // Either sub-programmes render, or the childless message — both honest;
+  // the back affordance always leads out.
+  await page.getByRole("button", { name: /^‹ / }).click();
+  expect(page.url()).not.toContain("programme=");
 });
 
 test("the before/after view names its windows and says who moved", async ({ page }) => {
@@ -70,13 +83,13 @@ test("the ranks view races the series over time", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Ranks" })).toBeVisible();
 });
 
-test("static bars are never the default — a ranked view leads as treemap", async ({ page }) => {
+test("static bars are never the default — the designed donut leads", async ({ page }) => {
   await page.goto("/explore?by=funder&split=0");
   const chart = page.getByRole("img", { name: /funding · funder/ });
   await expect(chart).toBeVisible({ timeout: 15_000 });
-  // A treemap draws cells; bars would render no SVG rects. Bars stay
-  // available as an explicit choice.
-  await expect(chart.locator("rect").first()).toBeVisible();
+  // The donut draws arcs; bars would render no SVG. Bars stay available
+  // as an explicit choice.
+  await expect(chart.locator("path, circle").first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Bars" })).toBeVisible();
 });
 

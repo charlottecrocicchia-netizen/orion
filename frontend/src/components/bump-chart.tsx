@@ -92,7 +92,7 @@ export function BumpChart({
               ))}
             <text
               x={xs(firstYear) - 8}
-              y={ys(own.get(firstYear)!) + (lines.length === 2 ? -2 : 4)}
+              y={ys(own.get(firstYear)!) + 4 - (lines.length - 1) * 6}
               textAnchor="end"
               fontSize="11.5"
               fontWeight="600"
@@ -110,7 +110,7 @@ export function BumpChart({
             </text>
             <text
               x={xs(lastYear) + 8}
-              y={ys(own.get(lastYear)!) + (lines.length === 2 ? -2 : 4)}
+              y={ys(own.get(lastYear)!) + 4 - (lines.length - 1) * 6}
               fontSize="11.5"
               fontWeight="600"
               fill="var(--color-foreground)"

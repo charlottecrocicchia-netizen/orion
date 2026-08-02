@@ -15,7 +15,12 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from orion.search.service import _cached_bounded, _materialize_match, _programme_roots
+from orion.search.service import (
+    _cached_bounded,
+    _materialize_match,
+    _programme_roots,
+    _programme_tree,
+)
 
 METRICS = ("funding", "projects", "organisations", "avg", "coordination")
 PARTICIPATION_DIMS = {"country", "organisation", "orgtype"}
@@ -181,6 +186,65 @@ def _filters(
     return clauses
 
 
+def _subtree(parent_id: int, parents: dict[int, int | None]) -> list[int]:
+    """The parent and every descendant (cycle-safe chain walk)."""
+    members = []
+    for pid in parents:
+        node, seen = pid, set()
+        while node is not None and node not in seen:
+            if node == parent_id:
+                members.append(pid)
+                break
+            seen.add(node)
+            node = parents.get(node)
+    return members
+
+
+def _fold_to_children(
+    rows: list[Any],
+    parent_id: int,
+    parents: dict[int, int | None],
+    info: dict[int, dict[str, Any]],
+    split: bool,
+) -> list[dict[str, Any]]:
+    """The drill-down fold: subtree rows roll up to the DIRECT children of
+    `parent_id`; projects attached to the parent itself keep the parent as
+    their bucket (the frontend labels that slice "directly on the
+    programme"). Additive metrics only, like the root fold."""
+
+    def child_of(pid: int) -> int | None:
+        prev, node, seen = pid, pid, set()
+        while node is not None and node != parent_id and node not in seen:
+            seen.add(node)
+            prev, node = node, parents.get(node)
+        return prev if node == parent_id else None
+
+    acc: dict[Any, dict[str, Any]] = {}
+    for row in rows:
+        bucket_id = child_of(row.key)
+        if bucket_id is None:
+            continue
+        bucket_key = (bucket_id, row.y) if split else bucket_id
+        bucket = acc.setdefault(
+            bucket_key,
+            {"funding": 0.0, "projects": 0, "y": getattr(row, "y", None), "key": bucket_id},
+        )
+        bucket["funding"] += float(row.funding or 0)
+        bucket["projects"] += row.projects
+    return [
+        {
+            "key": bucket["key"],
+            "label": info[bucket["key"]]["label"],
+            "y": bucket["y"],
+            "funding": bucket["funding"],
+            "projects": bucket["projects"],
+            "organisations": None,
+            "coordination": None,
+        }
+        for bucket in acc.values()
+    ]
+
+
 def _fold_programme(
     rows: list[Any], roots: dict[int, dict[str, Any]], to_root: dict[int, int], split: bool
 ) -> list[dict[str, Any]]:
@@ -242,15 +306,26 @@ def aggregate(
     q: str | None = None,
     country: str | None = None,
     limit: int = 8,
+    programme: int | None = None,
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
         return None
     if by == "country" and country:
         return None
+    # The drill-down: inside one programme, grouped by its direct children.
+    # Additive metrics only (same constraint as the root fold), and compare
+    # has no meaning inside a drill.
+    if programme is not None:
+        if by != "programme" or metric not in ("funding", "projects", "avg"):
+            return None
+        compare = None
     limit = min(max(limit, 1), LIMIT_MAX)
     compare = [c for c in (compare or []) if c][:6] or None
 
-    key = f"explore:{metric}:{by}:{split}:{compare}:{year_from}:{year_to}:{q}:{country}:{limit}"
+    key = (
+        f"explore:{metric}:{by}:{split}:{compare}:{year_from}:{year_to}:{q}:{country}:"
+        f"{limit}:{programme}"
+    )
 
     def build() -> dict[str, Any]:
         return _build(
@@ -264,6 +339,7 @@ def aggregate(
             q=q,
             country=country,
             limit=limit,
+            programme=programme,
         )
 
     if q:
@@ -283,11 +359,13 @@ def _build(
     q: str | None,
     country: str | None,
     limit: int,
+    programme: int | None = None,
 ) -> dict[str, Any]:
     participation = by in PARTICIPATION_DIMS or metric in ("organisations", "coordination")
     params: dict[str, Any] = {}
     dim = _dimension(by, participation, params)
     to_root, roots = _programme_roots(session)
+    parents, tree_info = _programme_tree(session) if programme is not None else ({}, {})
 
     if participation:
         base = "FROM participations pa JOIN projects p ON p.id = pa.project_id"
@@ -312,6 +390,9 @@ def _build(
     )
     if dim["clause"]:
         clauses.append(dim["clause"])
+    if programme is not None:
+        params["member_ids"] = _subtree(programme, parents) or [-1]
+        clauses.append("p.programme_id = ANY(:member_ids)")
     if split:
         clauses.append(
             "p.start_date IS NOT NULL AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035"
@@ -354,7 +435,9 @@ def _build(
         params,
     ).all()
 
-    if by == "programme":
+    if by == "programme" and programme is not None:
+        folded = _fold_to_children(rows, programme, parents, tree_info, split)
+    elif by == "programme":
         folded = _fold_programme(rows, roots, to_root, split)
     else:
         folded = [
@@ -417,5 +500,12 @@ def _build(
         "basis": "participants" if participation else "projects",
         "series": series,
         "total": kept_total,
-        "meta": {"limit": limit, "compare": compare, "q": q, "country": country},
+        "meta": {
+            "limit": limit,
+            "compare": compare,
+            "q": q,
+            "country": country,
+            "programme": programme,
+            "programme_label": (tree_info[programme]["label"] if programme in tree_info else None),
+        },
     }

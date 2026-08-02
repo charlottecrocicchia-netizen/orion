@@ -87,6 +87,20 @@ class ProjectFilters:
         )
 
 
+def _programme_tree(session: Session) -> tuple[dict[int, int | None], dict[int, dict[str, Any]]]:
+    """Every programme's parent and its code/label — the raw tree, for the
+    drill-down fold (roots are handled by `_programme_roots`). Cached."""
+
+    def build() -> tuple[dict[int, int | None], dict[int, dict[str, Any]]]:
+        rows = session.execute(text("SELECT id, parent_id, code, name FROM programmes")).all()
+        return (
+            {r.id: r.parent_id for r in rows},
+            {r.id: {"code": r.code, "label": r.name or r.code} for r in rows},
+        )
+
+    return _cached(session, "programme_tree", build)
+
+
 def _programme_roots(session: Session) -> tuple[dict[int, int], dict[int, dict[str, Any]]]:
     """Map every programme to its root, and each root to its code/label. Cached."""
 

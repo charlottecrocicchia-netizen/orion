@@ -31,6 +31,9 @@
   --series-4: #9d174d;
   --series-5: #7c3aed;
   --series-6: #4d7c0f;
+  /* The donut's "others" remainder — a NEUTRAL, deliberately outside the
+     categorical palette: it means "not a category". */
+  --donut-others: #d7dae1;
   color-scheme: light;
 }
 
@@ -55,6 +58,7 @@
   --series-4: #be185d;
   --series-5: #8b5cf6;
   --series-6: #65a30d;
+  --donut-others: #3a3f4b;
   color-scheme: dark;
 }
 
@@ -77,6 +81,7 @@
   --color-series-4: var(--series-4);
   --color-series-5: var(--series-5);
   --color-series-6: var(--series-6);
+  --color-donut-others: var(--donut-others);
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, "SF Mono", monospace;

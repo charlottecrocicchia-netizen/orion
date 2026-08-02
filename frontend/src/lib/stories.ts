@@ -19,19 +19,23 @@ export interface Story {
 export const STORIES: Story[] = [
   {
     key: "hydrogen",
-    params: "metric=funding&by=programme&q=hydrogen&view=treemap&limit=12",
+    params: "metric=funding&by=programme&q=hydrogen&view=donut&limit=6",
     deck: [
       { params: "metric=funding&by=year&q=hydrogen", titleKey: "explorer.stories.hydrogen.a1" },
+      // The interactive donut (doctrine amendment 2026-08-02): six slices,
+      // an honest "others", click drills into a framework's sub-programmes.
       {
-        params: "metric=funding&by=programme&q=hydrogen&view=treemap&limit=12",
+        params: "metric=funding&by=programme&q=hydrogen&view=donut&limit=6",
         titleKey: "explorer.stories.hydrogen.a2",
       },
       {
         params: "metric=funding&by=country&split=0&q=hydrogen&limit=8",
         titleKey: "explorer.stories.hydrogen.a3",
       },
+      // Who gets funded reads as trajectories, not a static ranking
+      // (recette 2026-08-02).
       {
-        params: "metric=funding&by=organisation&split=0&q=hydrogen&limit=8",
+        params: "metric=funding&by=organisation&split=1&q=hydrogen&limit=6",
         titleKey: "explorer.stories.hydrogen.a4",
       },
       {
@@ -53,7 +57,7 @@ export const STORIES: Story[] = [
         titleKey: "explorer.stories.brexit.a2",
       },
       {
-        params: "metric=funding&by=programme&split=0&country=GB&limit=8",
+        params: "metric=funding&by=programme&split=0&country=GB&view=donut&limit=6",
         titleKey: "explorer.stories.brexit.a3",
       },
     ],

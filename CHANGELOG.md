@@ -85,6 +85,19 @@ All notable changes to Orion are documented here. The format follows
   the theme-race deck trades its static standings for it, and the
   hydrogen deck's country angle now leads with the map.
 
+- The interactive donut (deck recette, doctrine amendment): part-of-whole
+  now reads as a DESIGNED donut — at most seven slices (top six plus an
+  honest "others" computed from the view's full server-side total), fixed
+  series colors with a neutral for the remainder, a living center (view
+  total at rest, the hovered slice otherwise), and the legend as the
+  accessible surface (full labels, real buttons). On the programme
+  dimension a click DRILLS into the slice: a new whitelisted `programme`
+  parameter groups a framework by its direct children (additive metrics
+  only, Python fold over the cached hierarchy, the parent's own projects
+  kept as a "directly on the programme" slice, `programme_label` returned
+  for the composer chip) — the URL carries the drill, "‹ back" leads out,
+  and a childless programme says so instead of drawing a one-slice ring.
+
 ### Changed
 
 - No label is ever truncated (new recette rule): SVG direct labels wrap
@@ -98,9 +111,15 @@ All notable changes to Orion are documented here. The format follows
   names).
 - Static horizontal bars are never a default view anymore (founder
   rule): geographic euro views lead with the map, summable metrics lead
-  with the treemap, and the treemap is no longer offered at all for
-  rates and averages (part-of-whole would lie); bars stay available as
-  an explicit choice and remain the default only for ranked rates.
+  with the designed donut when the view fits it (limit ≤ 7 — a
+  deliberate long ranking leads as bars), and part-of-whole is never
+  offered for rates and averages (it would lie); bars stay available as
+  an explicit choice.
+- Treemaps have left the product (founder decision at the deck recette):
+  the component is deleted, every treemap view and URL now renders the
+  donut — the hydrogen programme angle drills into the frameworks, the
+  Brexit programme angle follows, and "who gets funded" reads as
+  trajectories (split lines) instead of a static ranking.
 - In angles mode the interactive composer steps aside: the deck presents
   itself — the question as title, the active angle as one read-only
   sentence, and a single "Open in the composer" exit at deck level

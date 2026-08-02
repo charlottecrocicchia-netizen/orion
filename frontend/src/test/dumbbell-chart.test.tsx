@@ -50,23 +50,34 @@ test("static bars are never the default view (fondatrice rule)", () => {
   // Geographic euros → the map leads.
   const geo = resolveView(readState(new URLSearchParams("metric=funding&by=country&split=0")));
   expect(geo.view).toBe("map");
-  // Summable non-geographic → treemap leads, bars stay available.
+  // Summable non-geographic → the designed donut leads when the view fits
+  // it (limit ≤ 7); bars stay available.
   const orgs = resolveView(readState(new URLSearchParams("metric=funding&by=organisation&split=0")));
-  expect(orgs.view).toBe("treemap");
+  expect(orgs.view).toBe("donut");
   expect(orgs.availableViews).toContain("bars");
-  // Rates keep bars (honest ranked length) and never offer a treemap.
+  // A deliberate long ranking (limit > 7) leads as bars, donut still offered.
+  const long = resolveView(
+    readState(new URLSearchParams("metric=funding&by=organisation&split=0&limit=10")),
+  );
+  expect(long.view).toBe("bars");
+  expect(long.availableViews).toContain("donut");
+  // Rates keep bars (honest ranked length) and never get part-of-whole.
   const rate = resolveView(readState(new URLSearchParams("metric=coordination&by=country&split=0")));
   expect(rate.view).toBe("bars");
-  expect(rate.availableViews).not.toContain("treemap");
+  expect(rate.availableViews).not.toContain("donut");
   // Temporal split states gain the before/after view.
   const split = resolveView(readState(new URLSearchParams("metric=funding&by=theme&split=1")));
   expect(split.availableViews).toContain("delta");
 });
 
-test("wrapLabel breaks long labels at a word boundary, never mid-word", () => {
+test("wrapLabel breaks long labels at word boundaries, never mid-word", () => {
   expect(wrapLabel("computer and information sciences")).toEqual([
-    "computer and",
-    "information sciences",
+    "computer and information",
+    "sciences",
   ]);
+  // Very long names take as many lines as they need — never a cut.
+  expect(
+    wrapLabel("Commissariat a l energie atomique et aux energies alternatives", 22).join(" "),
+  ).toBe("Commissariat a l energie atomique et aux energies alternatives");
   expect(wrapLabel("France")).toEqual(["France"]);
 });

@@ -80,7 +80,14 @@ export interface ExploreResponse {
   basis: "participants" | "projects";
   series: ExploreSeries[];
   total: number | null;
-  meta: { limit: number; compare: string[] | null; q: string | null; country: string | null };
+  meta: {
+    limit: number;
+    compare: string[] | null;
+    q: string | null;
+    country: string | null;
+    programme?: number | null;
+    programme_label?: string | null;
+  };
 }
 
 export interface OrganisationPartner {

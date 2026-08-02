@@ -353,7 +353,7 @@ export function HomePage() {
           )}
           {hydrogenSignal ? (
             <Link
-              to="/explore?by=programme&q=hydrogen&view=treemap&limit=12"
+              to="/explore?by=programme&q=hydrogen&view=donut&limit=6"
               className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-2 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
             >
               <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-2">

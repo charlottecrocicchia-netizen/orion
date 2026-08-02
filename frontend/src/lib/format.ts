@@ -160,23 +160,22 @@ export function seriesColor(index: number): string {
   return `var(--color-series-${(index % 6) + 1})`;
 }
 
-/** Break a label into at most two lines at the space nearest the middle —
- *  SVG has no text wrapping, and a label must read IN FULL (recette rule,
- *  2026-08-02): never sliced, wrapped instead. */
+/** Word-wrap a label into as many lines as it needs — SVG has no text
+ *  wrapping, and a label must read IN FULL (recette rule, 2026-08-02):
+ *  never sliced, wrapped instead. A single word longer than `max` keeps
+ *  its own line rather than being cut. */
 export function wrapLabel(label: string, max = 24): string[] {
   if (label.length <= max) return [label];
-  const words = label.split(" ");
-  if (words.length === 1) return [label];
-  let best = 1;
-  let bestDiff = Number.POSITIVE_INFINITY;
-  for (let i = 1; i < words.length; i++) {
-    const diff = Math.abs(
-      words.slice(0, i).join(" ").length - words.slice(i).join(" ").length,
-    );
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      best = i;
+  const lines: string[] = [];
+  let current = "";
+  for (const word of label.split(" ")) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= max || !current) current = candidate;
+    else {
+      lines.push(current);
+      current = word;
     }
   }
-  return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+  lines.push(current);
+  return lines;
 }
