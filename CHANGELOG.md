@@ -56,6 +56,17 @@ All notable changes to Orion are documented here. The format follows
   visible name now lives in one place (VITE_APP_BRAND → BRAND constant,
   i18n {{brand}}, %VITE_APP_BRAND% in index.html).
 
+- Lot 2, the watch-post: organisation files gain their thematic profile
+  (top-5 level-2 themes over the organisation's own participation
+  amounts, share of portfolio, the multi-theme counting rule stated) and
+  thresholded Signals — an accelerating theme only speaks when both
+  windows carry ≥ €500k and ≥ 5 projects (2022-24 vs 2019-21), new
+  partners only when a first shared project is under 24 months old, and
+  the count says "50+" at the server cap instead of posing as a total;
+  below the floors, nothing shows. The sidebar states "consolidated
+  file — N source names merged" from the aliases (the group layer's UI
+  precursor).
+
 ### Changed
 
 - Display face: Instrument Sans retired; Inter (tightened, alternate glyphs)

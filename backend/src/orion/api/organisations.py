@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -72,6 +73,13 @@ def organisation_detail(
         {"oid": organisation_id},
     ).all()
 
+    # The watch-post block (lot 2): thematic profile, thresholded signals,
+    # consolidation count. "New partner" = first shared project started in
+    # the last 24 months — the clock stays here, not in SQL.
+    watchpost = aggregates.organisation_watchpost(
+        db, organisation_id, (date.today() - timedelta(days=730)).isoformat()
+    )
+
     return {
         "id": organisation.id,
         "name": organisation.name,
@@ -80,6 +88,9 @@ def organisation_detail(
         "org_type": organisation.org_type,
         "website": organisation.website,
         "identifiers": [{"scheme": i.scheme, "value": i.value} for i in identifiers],
+        "top_themes": watchpost["top_themes"],
+        "signals": watchpost["signals"],
+        "sources_count": watchpost["sources_count"],
         "kpis": {
             "projects_count": kpis.projects_count or 0,
             "total_funding_eur": float(kpis.total_funding)

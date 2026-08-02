@@ -450,3 +450,153 @@ def compare_organisations(session: Session, ids: list[int]) -> list[dict]:
 
     key = "compare:" + "~".join(str(i) for i in ids)
     return _cached_bounded(session, key, build, prefix="compare:", cap=64)
+
+
+# Honesty thresholds for the watch-post signals (founder's rule: no signal
+# is better than a fake-alive one). A theme only "accelerates" when both
+# windows carry real money AND enough projects to mean something; new
+# partners only exist when at least one first-shared project is recent.
+SIGNAL_MIN_WINDOW_EUR = 500_000
+SIGNAL_MIN_WINDOW_PROJECTS = 5
+SIGNAL_MIN_GROWTH = 0.25
+WATCHPOST_CACHE_MAX = 256
+
+_THEME_L2 = "'^(/[0-9]+/[0-9]+)'"
+
+
+def organisation_watchpost(
+    session: Session, organisation_id: int, new_partner_cutoff: str
+) -> dict[str, Any]:
+    """The organisation hub's watch-post block: thematic profile (top-5
+    euroSciVoc level-2 themes over the organisation's OWN participation
+    amounts, one count per project and theme), thresholded signals, and the
+    consolidation count from aliases. `new_partner_cutoff` is an ISO date —
+    passed in so tests and callers own the clock."""
+
+    def build() -> dict[str, Any]:
+        top_themes = session.execute(
+            text(f"""
+            WITH proj_theme AS (
+                SELECT DISTINCT pt.project_id,
+                       substring(t.code from {_THEME_L2}) AS tkey
+                FROM project_topics pt
+                JOIN topics t ON t.id = pt.topic_id
+                WHERE t.scheme = 'euroscivoc' AND t.code ~ '^/[0-9]+/[0-9]+'
+            )
+            SELECT j.tkey, coalesce(l2.label, j.tkey) AS label,
+                   sum(pa.amount_eur) AS amount,
+                   count(DISTINCT pa.project_id) AS projects
+            FROM participations pa
+            JOIN proj_theme j ON j.project_id = pa.project_id
+            LEFT JOIN topics l2
+              ON l2.scheme = 'euroscivoc' AND l2.code = j.tkey
+            WHERE pa.organisation_id = :oid
+            GROUP BY j.tkey, l2.label
+            ORDER BY amount DESC NULLS LAST
+            LIMIT 5
+            """),
+            {"oid": organisation_id},
+        ).all()
+
+        theme_windows = session.execute(
+            text(f"""
+            WITH proj_theme AS (
+                SELECT DISTINCT pt.project_id,
+                       substring(t.code from {_THEME_L2}) AS tkey
+                FROM project_topics pt
+                JOIN topics t ON t.id = pt.topic_id
+                WHERE t.scheme = 'euroscivoc' AND t.code ~ '^/[0-9]+/[0-9]+'
+            )
+            SELECT j.tkey, coalesce(l2.label, j.tkey) AS label,
+                   sum(pa.amount_eur) FILTER (
+                     WHERE extract(year FROM p.start_date) BETWEEN 2019 AND 2021
+                   ) AS before,
+                   sum(pa.amount_eur) FILTER (
+                     WHERE extract(year FROM p.start_date) BETWEEN 2022 AND 2024
+                   ) AS recent,
+                   count(DISTINCT pa.project_id) FILTER (
+                     WHERE extract(year FROM p.start_date) BETWEEN 2019 AND 2024
+                   ) AS window_projects
+            FROM participations pa
+            JOIN projects p ON p.id = pa.project_id
+            JOIN proj_theme j ON j.project_id = pa.project_id
+            LEFT JOIN topics l2
+              ON l2.scheme = 'euroscivoc' AND l2.code = j.tkey
+            WHERE pa.organisation_id = :oid
+            GROUP BY j.tkey, l2.label
+            """),
+            {"oid": organisation_id},
+        ).all()
+
+        accelerating = None
+        best_growth = SIGNAL_MIN_GROWTH
+        for tkey, label, before, recent, window_projects in theme_windows:
+            before = float(before or 0)
+            recent = float(recent or 0)
+            if before < SIGNAL_MIN_WINDOW_EUR or recent < SIGNAL_MIN_WINDOW_EUR:
+                continue
+            if (window_projects or 0) < SIGNAL_MIN_WINDOW_PROJECTS:
+                continue
+            growth = (recent - before) / before
+            if growth >= best_growth:
+                best_growth = growth
+                accelerating = {
+                    "key": tkey,
+                    "label": label,
+                    "growth_pct": round(growth * 100),
+                }
+
+        new_partners = session.execute(
+            text("""
+            WITH firsts AS (
+                SELECT pb.organisation_id AS partner_id,
+                       min(p.start_date) AS first_shared
+                FROM participations pa
+                JOIN participations pb
+                  ON pb.project_id = pa.project_id
+                 AND pb.organisation_id <> pa.organisation_id
+                JOIN projects p ON p.id = pa.project_id
+                WHERE pa.organisation_id = :oid AND p.start_date IS NOT NULL
+                GROUP BY pb.organisation_id
+            )
+            SELECT f.partner_id, o.name, f.first_shared
+            FROM firsts f JOIN organisations o ON o.id = f.partner_id
+            WHERE f.first_shared >= :cutoff
+            ORDER BY f.first_shared DESC
+            LIMIT 50
+            """),
+            {"oid": organisation_id, "cutoff": new_partner_cutoff},
+        ).all()
+
+        sources_count = session.execute(
+            text("""
+            SELECT count(DISTINCT name_raw) FROM organisation_aliases
+            WHERE organisation_id = :oid
+            """),
+            {"oid": organisation_id},
+        ).scalar()
+
+        return {
+            "top_themes": [
+                {
+                    "key": tkey,
+                    "label": label,
+                    "amount_eur": float(amount) if amount is not None else 0.0,
+                    "projects": projects or 0,
+                }
+                for tkey, label, amount, projects in top_themes
+            ],
+            "signals": {
+                "accelerating_theme": accelerating,
+                "new_partners": {
+                    "count": len(new_partners),
+                    "names": [name for _, name, _ in new_partners[:3]],
+                }
+                if new_partners
+                else None,
+            },
+            "sources_count": sources_count or 0,
+        }
+
+    key = f"orgmeta:{organisation_id}:{new_partner_cutoff}"
+    return _cached_bounded(session, key, build, prefix="orgmeta:", cap=WATCHPOST_CACHE_MAX)

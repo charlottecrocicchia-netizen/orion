@@ -192,6 +192,12 @@ export interface OrganisationDetail {
   };
   funding_by_year: { year: number; amount_eur: number }[];
   top_programmes: { code: string; label: string; amount_eur: number }[];
+  top_themes: { key: string; label: string; amount_eur: number; projects: number }[];
+  signals: {
+    accelerating_theme: { key: string; label: string; growth_pct: number } | null;
+    new_partners: { count: number; names: string[] } | null;
+  };
+  sources_count: number;
 }
 
 export interface PortfolioResponse {

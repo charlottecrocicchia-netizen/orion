@@ -17,6 +17,7 @@ import {
   formatInt,
   formatOrgName,
   orgTypeKey,
+  themeLabel,
   yearsRange,
 } from "@/lib/format";
 
@@ -96,6 +97,101 @@ export function OrganisationHubPage() {
 
       <div className="mt-14 grid gap-14 lg:grid-cols-[minmax(0,1fr)_264px]">
         <div className="min-w-0 space-y-14">
+        {/* The watch-post (lot 2): what this organisation works on, as
+            shares of its own portfolio. */}
+        {data.top_themes.length > 0 ? (
+          <section>
+            <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+              {t("org.themesProfile")}
+            </h2>
+            {(() => {
+              const maxTheme = Math.max(...data.top_themes.map((th) => th.amount_eur), 1);
+              const total = data.kpis.total_funding_eur || 1;
+              return data.top_themes.map((theme) => (
+                <div
+                  key={theme.key}
+                  className="grid grid-cols-[minmax(120px,190px)_minmax(0,1fr)_112px] items-center gap-3 border-b border-border-soft py-2.5 text-[13.5px]"
+                >
+                  <span className="truncate">{themeLabel(theme.key, theme.label, t)}</span>
+                  <span
+                    aria-hidden="true"
+                    className="block h-2 rounded-full bg-gradient-to-r from-accent to-gradient-to"
+                    style={{ width: `${Math.max((theme.amount_eur / maxTheme) * 100, 2)}%` }}
+                  />
+                  <span className="tnum text-right text-muted-foreground">
+                    <b className="font-semibold text-foreground">
+                      {formatCompactEur(theme.amount_eur, i18n.language)}
+                    </b>{" "}
+                    · {t("org.themesShare", { pct: Math.round((theme.amount_eur / total) * 100) })}
+                  </span>
+                </div>
+              ));
+            })()}
+            <p className="mt-2 text-[11.5px] text-muted-foreground">{t("org.themesNote")}</p>
+          </section>
+        ) : null}
+
+        {/* Signals — thresholded server-side: below the honesty floors,
+            nothing shows at all. */}
+        {data.signals.accelerating_theme || data.signals.new_partners ? (
+          <section>
+            <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+              {t("org.signalsTitle")}
+            </h2>
+            <div className="grid gap-3.5 lg:grid-cols-2">
+              {data.signals.accelerating_theme ? (
+                <Link
+                  to={`/explore?by=theme&split=1&compare=${encodeURIComponent(data.signals.accelerating_theme.key)}`}
+                  className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-3 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
+                >
+                  <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-3">
+                    ↑ {data.signals.accelerating_theme.growth_pct} %
+                  </span>
+                  <span className="text-[13.5px] leading-snug">
+                    {t("org.signalTheme", {
+                      theme: themeLabel(
+                        data.signals.accelerating_theme.key,
+                        data.signals.accelerating_theme.label,
+                        t,
+                      ),
+                    })}{" "}
+                    <span className="tnum text-[11.5px] text-muted-foreground">
+                      ({t("org.signalThemeWindow")})
+                    </span>
+                    <small className="block text-[11.5px] text-muted-foreground">
+                      {t("org.signalThemeHint")}
+                    </small>
+                  </span>
+                </Link>
+              ) : null}
+              {data.signals.new_partners ? (
+                <a
+                  href="#partners"
+                  className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-2 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
+                >
+                  <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-2">
+                    {/* 50 is the server cap — an "at least", never a total. */}
+                    {formatInt(data.signals.new_partners.count, i18n.language)}
+                    {data.signals.new_partners.count >= 50 ? "+" : ""}
+                  </span>
+                  <span className="text-[13.5px] leading-snug">
+                    {t("org.signalPartners", { count: data.signals.new_partners.count })}
+                    {data.signals.new_partners.names.length > 0 ? (
+                      <>
+                        {" — "}
+                        {data.signals.new_partners.names.map(formatOrgName).join(", ")}
+                      </>
+                    ) : null}
+                    <small className="block text-[11.5px] text-muted-foreground">
+                      {t("org.signalPartnersHint")}
+                    </small>
+                  </span>
+                </a>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
+
         <section>
           <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
             {t("org.portfolio")}
@@ -197,7 +293,7 @@ export function OrganisationHubPage() {
         </div>
 
         {partners && partners.length > 0 ? (
-        <section>
+        <section id="partners" className="scroll-mt-24">
           <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
             {t("org.partners")}
           </h2>
@@ -274,6 +370,11 @@ export function OrganisationHubPage() {
                 ))}
               </div>
             </section>
+          ) : null}
+          {data.sources_count > 1 ? (
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
+              {t("org.consolidated", { count: data.sources_count })}
+            </p>
           ) : null}
           {data.website ? (
             <a
