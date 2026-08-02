@@ -1,6 +1,6 @@
 {
   "_readme": "Registre des photos pays du panneau d'accueil (V1 validée 2026-08-02). Une entrée par pays réellement curé : fichier local optimisé (1200px, JPEG), page source Wikimedia Commons, auteur, licence VÉRIFIÉE via l'API imageinfo/extmetadata à la date d'audit. Règle de curation : CC0 / domaine public / CC BY uniquement (pas de ShareAlike — le duotone d'affichage flirte avec l'adaptation) ; les CC BY exigent l'attribution affichée, que le composant rend depuis ce registre (elle est affichée pour toutes par élégance). Les pays absents utilisent le fallback duotone abstrait. Ne JAMAIS ajouter une image sans vérifier sa page de licence.",
-  "_audit": "2026-08-02 — FR/ES/IT/NL puis DE/GB vérifiées (6 pays). Règle resserrée sur décision fondatrice : CC0 / domaine public UNIQUEMENT (plus de CC BY ni ShareAlike). Curation des ~32 restants au fil de l'eau.",
+  "_audit": "2026-08-02 — 13 pays vérifiés (FR/ES/IT/NL/DE/GB puis BE/DK/SE/PL/GR/IE/FI, extmetadata API à la date d'audit, CC0/domaine public UNIQUEMENT). CH/AT/PT : silhouette élégante en attendant une prise digne. Curation continue au fil de l'eau.",
   "photos": {
     "DE": {
       "file": "/countries/de.jpg",
@@ -37,6 +37,48 @@
       "author": "Orangée",
       "licence": "CC0",
       "source": "https://commons.wikimedia.org/wiki/File:Keukenhof_tulipes_roses_et_vertes.JPG"
+    },
+    "BE": {
+      "file": "/countries/be.jpg",
+      "author": "Julian Lupyan",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File%3AGrand_Place_1-7%2C_Brussels%2C_Belgium.jpg"
+    },
+    "DK": {
+      "file": "/countries/dk.jpg",
+      "author": "Ramblersen2",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File%3ANyhavn_9_%28Copenhagen%29_02.jpg"
+    },
+    "SE": {
+      "file": "/countries/se.jpg",
+      "author": "nextvoyage",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File%3AStockholm_Sunset.jpg"
+    },
+    "PL": {
+      "file": "/countries/pl.jpg",
+      "author": "Silar",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File%3A02024_0143_Main_Market_Square_in_Krak%C3%B3w.jpg"
+    },
+    "GR": {
+      "file": "/countries/gr.jpg",
+      "author": "Jebulon",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File%3AErechtheum_Acropolis_Athens_evening_moon.jpg"
+    },
+    "IE": {
+      "file": "/countries/ie.jpg",
+      "author": "Malte Baumann",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File%3ACliffs_of_Moher_-_Unsplash.jpeg"
+    },
+    "FI": {
+      "file": "/countries/fi.jpg",
+      "author": "InsectIntelligence",
+      "licence": "Domaine public",
+      "source": "https://commons.wikimedia.org/wiki/File%3ALakeshore_in_southern_Finland_in_the_summer_2008%2C_forest_and_rocks%2C_some_sky_reflected_in_the_water.jpg"
     }
   }
 }

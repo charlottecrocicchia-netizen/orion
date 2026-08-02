@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import mapData from "@/lib/europe-map.json";
 import photoRegistry from "@/lib/country-photos.json";
 import { api } from "@/lib/api";
 import type { CountryFlow, CountryIndexEntry } from "@/lib/api";
@@ -29,6 +30,11 @@ interface CountryPhoto {
 }
 
 const PHOTOS = (photoRegistry as { photos: Record<string, CountryPhoto> }).photos;
+const MAP = mapData as {
+  width: number;
+  height: number;
+  countries: { code: string; path: string; cx: number; cy: number }[];
+};
 
 export function CountryPanel({
   code,
@@ -47,6 +53,7 @@ export function CountryPanel({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const photo: CountryPhoto | undefined = PHOTOS[code];
   const [photoFailed, setPhotoFailed] = useState(false);
+  const silhouette = MAP.countries.find((country) => country.code === code);
 
   const { data: themes } = useQuery({
     queryKey: ["panel-themes", code],
@@ -100,7 +107,32 @@ export function CountryPanel({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-b from-[#3b5cff] via-[#1c2f9e] to-[#101d5e]" />
+          // No curated photo yet: an OWNED composition, not a gap — the
+          // country's own silhouette as a light watermark over the deep
+          // ultramarine ramp (recette 2026-08-02: the fallback must read
+          // as an elegant choice).
+          <div className="h-full w-full bg-gradient-to-b from-[#3b5cff] via-[#1c2f9e] to-[#101d5e]">
+            {silhouette ? (
+              <svg
+                viewBox={`0 0 ${MAP.width} ${MAP.height}`}
+                preserveAspectRatio="xMidYMid slice"
+                className="h-full w-full"
+              >
+                <g
+                  transform={`translate(${MAP.width / 2}, ${MAP.height / 2}) scale(3) translate(${-silhouette.cx}, ${-silhouette.cy})`}
+                >
+                  <path
+                    d={silhouette.path}
+                    fill="#fff"
+                    fillOpacity="0.08"
+                    stroke="#fff"
+                    strokeOpacity="0.3"
+                    strokeWidth="0.7"
+                  />
+                </g>
+              </svg>
+            ) : null}
+          </div>
         )}
       </div>
       <div
