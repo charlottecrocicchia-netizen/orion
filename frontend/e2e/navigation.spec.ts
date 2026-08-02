@@ -54,12 +54,18 @@ test("the placeholder pages say the date and bridge to what exists", async ({ pa
 });
 
 test("programmes group by frame and filter instantly", async ({ page }) => {
+  // Dataset-agnostic: assert the MECHANISM (live filter, honest empty
+  // state, recovery) — never a programme name the seeded corpus may lack.
   await page.goto("/explore/programmes");
-  await expect(page.getByText("Framework programmes")).toBeVisible({ timeout: 15_000 });
-  // Filtering narrows both sections live.
-  await page.getByRole("searchbox").fill("horizon");
-  await expect(page.getByRole("link", { name: /Horizon 2020/ })).toBeVisible();
-  await expect(page.getByText(/National programmes/)).toHaveCount(0);
+  const rows = page.locator('a[href^="/explore/programmes/"]');
+  await expect(rows.first()).toBeVisible({ timeout: 15_000 });
+  const initial = await rows.count();
+  await page.getByRole("searchbox").fill("zzz-aucun-programme");
+  await expect(page.getByText(/No programme matches/)).toBeVisible();
+  await expect(rows).toHaveCount(0);
+  await page.getByRole("searchbox").fill("");
+  await expect(rows.first()).toBeVisible();
+  expect(await rows.count()).toBe(initial);
 });
 
 test("the themes index ranks the disciplines and opens the Explorer", async ({ page }) => {
