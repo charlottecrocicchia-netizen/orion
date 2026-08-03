@@ -313,7 +313,7 @@ const resources = {
         next: "Next",
       },
       project: {
-        funding: "EU / national funding",
+        funding: "Public funding",
         converted: "converted from {{amount}} · ECB rate {{year}}",
         totalCost: "Total cost",
         duration: "Duration",
@@ -867,7 +867,7 @@ const resources = {
         next: "Suivant",
       },
       project: {
-        funding: "Financement UE / national",
+        funding: "Financement public",
         converted: "converti de {{amount}} · taux BCE {{year}}",
         totalCost: "Coût total",
         duration: "Durée",

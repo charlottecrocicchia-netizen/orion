@@ -140,6 +140,7 @@ Mesures avant → après réglage (`shared_buffers=1GB`,
 | « cancer » (75 k correspondances) | 9,4 s | 1,9 s |
 | « quantum » | 1,7 s | 0,22 s |
 | pays = FR (sans texte) | 4,7 s | 3,2 s |
+| index des pays (la carte) | — | 4,6 s |
 
 **Piège découvert dans la foulée** : Docker plafonne `/dev/shm` à 64 Mo,
 et les workers parallèles de PostgreSQL, avec le `work_mem` élargi, le
@@ -147,8 +148,10 @@ débordaient — les partenaires d'une grosse organisation renvoyaient une
 **erreur 500** (« No space left on device »). `shm_size: 1gb` ajouté aux
 deux compose. Corrigé et vérifié.
 
-**Reste ouvert (chantier à proposer)** : « cancer » à 1,9 s et le filtre
-pays seul à 3,2 s dépassent encore le budget de 300 ms. Le goulot n'est
+**Reste ouvert (chantier à proposer)** : « cancer » à 1,9 s, le filtre
+pays seul à 3,2 s et **l'index des pays qui alimente la carte à 4,6 s**
+(assez lent pour faire expirer un parcours e2e) dépassent le budget de
+300 ms. Le goulot n'est
 plus l'infrastructure mais le **calcul des facettes sur des ensembles de
 correspondances énormes**. À instruire comme un chantier propre — pas à
 bricoler en fin de chargement.

@@ -12,6 +12,10 @@ router = APIRouter()
 ATTRIBUTIONS = {
     "cordis": "Contains European Union public data (CORDIS), © European Union, CC BY 4.0.",
     "anr": "Contient des données de l'Agence nationale de la recherche (data.gouv.fr), ODbL 1.0.",
+    "nih": (
+        "Contains data from NIH RePORTER (U.S. Department of Health and Human "
+        "Services), public domain. Euro figures converted at ECB annual average rates."
+    ),
 }
 
 

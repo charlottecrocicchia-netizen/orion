@@ -9,9 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { countryFlag, formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 
-/** CORDIS for every EU framework flavour, ANR for the French corpus. */
+/** The badge names the site the link actually opens — CORDIS for the EU
+ *  frameworks, ANR for the French corpus, RePORTER for NIH. A badge that
+ *  lies about its source is worse than no badge (recette 2026-08-03: a
+ *  NIH project wore CORDIS colours). */
 function sourceSite(source: string): string {
-  return source.startsWith("anr") ? "ANR" : "CORDIS";
+  if (source.startsWith("anr")) return "ANR";
+  if (source.startsWith("nih")) return "RePORTER";
+  return "CORDIS";
 }
 
 export function ProjectDetailPage() {
