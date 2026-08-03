@@ -13,6 +13,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from orion.core.db import engine
+from orion.ingest.dedup.normalize import normalize_name
 from orion.ingest.nih import load, parse
 from orion.ingest.nih.config import PERSONAL_DATA_COLUMNS, current_fy, fiscal_years
 from orion.ingest.reference import seed_reference
@@ -183,4 +184,41 @@ def test_convention_folds_years_and_converts_at_the_start_year_rate(db_session, 
         text("SELECT count(*) FROM participations WHERE source = 'nih'")
     ).scalar_one()
     assert participations == 1
+    db_session.execute(text("DROP TABLE IF EXISTS nih_awards"))
+
+
+def test_one_participation_even_when_two_organisations_share_a_key(db_session, tmp_path):
+    """The dedup legitimately keeps entities apart when their identifiers
+    differ, so (name_normalized, country) can match several canonical
+    organisations. One award must still produce exactly ONE participation
+    — the real-run cardinality violation, closed."""
+    funder = db_session.execute(text("SELECT id FROM funders WHERE code = 'nih'")).scalar_one()
+    for _ in range(2):
+        db_session.execute(
+            text("""
+            INSERT INTO organisations (name, name_normalized, country_code)
+            VALUES ('ZZNIH TWIN CENTER', :key, 'US')
+            """),
+            {"key": normalize_name("ZZNIH TWIN CENTER")},
+        )
+    path = _zip_csv(
+        tmp_path / "twin.zip",
+        PROJECT_COLUMNS,
+        [_award("21", "R01CA888001", "2023", "400000", ORG_NAME="ZZNIH TWIN CENTER")],
+    )
+    stats = RunStats()
+    db_session.execute(text("DROP TABLE IF EXISTS nih_awards"))
+    db_session.execute(text(load.STAGING_DDL))
+    load.stage_year(db_session, path, stats)
+    load._seed_programmes(db_session, funder, stats)
+    load._fold_projects(db_session, funder, stats)
+    load._fold_organisations(db_session, stats)
+
+    count = db_session.execute(
+        text(
+            "SELECT count(*) FROM participations "
+            "WHERE source = 'nih' AND source_uid = 'R01CA888001'"
+        )
+    ).scalar_one()
+    assert count == 1
     db_session.execute(text("DROP TABLE IF EXISTS nih_awards"))

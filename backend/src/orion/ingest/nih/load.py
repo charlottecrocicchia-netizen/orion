@@ -249,7 +249,13 @@ def _fold_organisations(session: Session, stats: RunStats) -> None:
             project_id, organisation_id, role, country_code,
             amount, currency, amount_eur, order_index, source, source_uid
         )
-        SELECT pr.id, o.id, 'coordinator', o.country_code,
+        -- DISTINCT ON the award: (name_normalized, country) can legitimately
+        -- match SEVERAL canonical organisations — the dedup keeps entities
+        -- apart when their identifiers differ (615 such groups at the last
+        -- run). Without this, one award would insert twice under the same
+        -- source_uid and Postgres would refuse the whole statement.
+        SELECT DISTINCT ON (l.core_num)
+               pr.id, o.id, 'coordinator', o.country_code,
                pr.funding_amount, pr.funding_currency, pr.funding_amount_eur, 0,
                :source, l.core_num
         FROM latest l
@@ -258,6 +264,7 @@ def _fold_organisations(session: Session, stats: RunStats) -> None:
         JOIN organisations o
           ON o.name_normalized = l.org_name_normalized
          AND o.country_code IS NOT DISTINCT FROM c.code
+        ORDER BY l.core_num, o.id
         ON CONFLICT (source, source_uid) DO UPDATE SET
             organisation_id = excluded.organisation_id,
             amount = excluded.amount,
