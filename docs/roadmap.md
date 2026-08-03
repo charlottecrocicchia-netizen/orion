@@ -150,19 +150,22 @@ Points d'attention connus :
 - **flux longue distance sur le globe** : passer les lignes de la
   constellation en géodésiques projetées (les cordes d'écran actuelles ne
   tiennent pas visuellement au transatlantique) ;
-- **la couche groupes** (leçon U5 de Vega, décision fondatrice 2026-08-02) :
-  hiérarchie **groupe → entités légales** — l'industriel veut voir Thales
-  entier, CORDIS donne les filiales. Vue consolidée ET détail par entité ;
-  le garde-fou anti-fusion actuel reste (les entités restent vraies), la
-  couche groupe s'y superpose. Rejoint les homonymes CNRS et le
-  rattachement RNSR. Chantier données majeur, à cadrer avec la vague 1.
-  **Vision fondatrice de la fiche groupe (2026-08-03)** : ouvrir
-  « Safran » en globalité montre la **vue consolidée + une carte monde de
-  toutes ses entités légales** ; cliquer une entité **ou un continent
-  entier** filtre les chiffres sur cette sélection ; et une **mini-map
-  monde en vignette à droite, qui tourne**, sert de navigation permanente
-  dans la fiche (l'esprit du globe de l'accueil, réduit en instrument de
-  bord). La fiche groupe = consolidation + cette carte des entités ;
+- **la couche groupes** (leçon U5 de Vega ; cadrée le 2026-08-03 par les
+  conclusions de la grande recherche) : cahier des charges complet dans
+  [groupes-couche.md](groupes-couche.md) — canonical layering (tables
+  `groups` + `entity_group_map`, JV pondérées marquées, jamais de
+  fusion), sources retenues (GLEIF Golden Copy L1/L2/exceptions avec la
+  lucidité des ~4 %, Wikidata, ponts SIREN↔LEI↔PIC ; vague B : EDGAR
+  Exhibit 21, Companies House PSC, Splink), **registre des sources
+  interdites** (OpenCorporates, D&B/Orbis/Capital IQ, PermID
+  hiérarchies, Crunchbase), curation manuelle assistée des 100-200 plus
+  gros groupes, trois vagues A/B/C, et la vision fondatrice de la fiche
+  groupe (vue consolidée + carte monde des entités cliquable par entité
+  ou continent + mini-map monde tournante en instrument de bord).
+  **Conséquence sur le séquencement : la vague 1 s'ouvre par le socle
+  identité** (tables groupes + GLEIF + ponts) avant les chargeurs US/UK ;
+  EDGAR/PSC attendent leurs sources ; la curation court en continu dès le
+  socle ; la fiche groupe jalonne la fin de vague A ;
 - **grandes régions « manager »** (décision fondatrice 2026-08-02) : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension
