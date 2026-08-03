@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .ruff_cache/
+# Source downloads: 3+ GB of cached zips (NIH alone brings 2 GB). They
+# are rebuilt on demand by the loaders and must NEVER enter an image —
+# the prod build ran out of disk on them (2026-08-03).
+data/
