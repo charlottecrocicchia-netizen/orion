@@ -1,8 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-/** The news strip auto-advances for real (recette 2026-08-02: "it doesn't
+/** The news band auto-advances for real (recette 2026-08-02: "it doesn't
  *  auto-advance") — including with a cursor PARKED over it by scrolling,
- *  the phantom-hover scenario that froze it. */
+ *  the phantom-hover scenario that froze it. Since the band became a
+ *  scroll-snap rail every slide stays mounted, so progress is read from
+ *  the selected dot, not the visible text. And the rail must answer the
+ *  Angles decks' gesture: a horizontal swipe changes the slide. */
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -11,30 +14,51 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+const selectedDot = (page: import("@playwright/test").Page) => () =>
+  page
+    .locator("section[aria-label='Actualités'] [role='tab'][aria-selected='true']")
+    .getAttribute("aria-label")
+    .catch(() => null);
+
 test("le fil avance tout seul, même sous un curseur parqué par le scroll", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
-  const strip = page.getByRole("region", { name: "Actualités" }).or(
-    page.locator("section[aria-label='Actualités']"),
-  );
-  await strip.first().scrollIntoViewIfNeeded().catch(() => {});
+  const band = page.locator("section[aria-label='Actualités']");
+  await band.scrollIntoViewIfNeeded().catch(() => {});
   await page.evaluate(() =>
     document.querySelector("section[aria-label='Actualités']")?.scrollIntoView({ block: "center" }),
   );
-  // Park the cursor where the strip now sits WITHOUT moving over it
-  // afterwards (the phantom scenario): move first, then scroll the strip
+  // Park the cursor where the band now sits WITHOUT moving over it
+  // afterwards (the phantom scenario): move first, then scroll the band
   // under the fixed point.
   await page.mouse.move(400, 300);
   await page.evaluate(() => window.scrollBy(0, 40));
-  const kindOf = () =>
-    page
-      .locator("section[aria-label='Actualités'] p.font-mono")
-      .first()
-      .innerText()
-      .catch(() => "");
-  const first = await kindOf();
-  if (!first) test.skip(true, "seeded corpus produced no stories — nothing to rotate");
+  const dotCount = await band.locator("[role='tab']").count();
+  if (dotCount < 2) test.skip(true, "seeded corpus produced fewer than two stories — nothing to rotate");
+  const first = await selectedDot(page)();
   await expect
-    .poll(kindOf, { timeout: 20_000, intervals: [1000] })
+    .poll(selectedDot(page), { timeout: 20_000, intervals: [1000] })
+    .not.toBe(first);
+});
+
+test("le geste des decks marche sur le fil : un glissement horizontal change d'actualité", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  const band = page.locator("section[aria-label='Actualités']");
+  await page.evaluate(() =>
+    document.querySelector("section[aria-label='Actualités']")?.scrollIntoView({ block: "center" }),
+  );
+  const dotCount = await band.locator("[role='tab']").count();
+  if (dotCount < 2) test.skip(true, "seeded corpus produced fewer than two stories — nothing to swipe");
+  const first = await selectedDot(page)();
+  // The gesture itself: scroll the snap rail horizontally, as a trackpad
+  // swipe does — the rail must land on the next slide and sync the state.
+  await band
+    .locator("div[class*='snap-x']")
+    .evaluate((rail) => rail.scrollTo({ left: rail.clientWidth, behavior: "smooth" }));
+  await expect
+    .poll(selectedDot(page), { timeout: 10_000, intervals: [500] })
     .not.toBe(first);
 });

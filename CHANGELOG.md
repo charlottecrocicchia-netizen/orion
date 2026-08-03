@@ -193,6 +193,21 @@ All notable changes to Orion are documented here. The format follows
   progress bar that freezes with the reader's real hold; the snapping
   rise-and-fade transition stays static under reduced motion.
 
+- ACTUALITÉS v2, the newspaper front (recette: the big rounded slab was
+  ugly; studied live on Apple Newsroom and Linear's Now): a full-width
+  BAND between two hairlines — mono kicker, huge ink title and one exit
+  on the page ground to the left, the visual matter filling the right
+  pane behind a vertical rule. Imageless stories now carry GENERATIVE
+  drawings from our own data (Linear's lesson): the duel draws its two
+  compared bars, the breakthrough its rising line, the big grant its
+  giant figure, the movement its real twenty-year spark, and imageless
+  official news a constellation seeded by the title. The band is a
+  scroll-snap RAIL — the Angles decks' exact gesture (swipe, trackpad,
+  arrows, arrow keys, dots) with their skipSync/arrival grammar — at a
+  true carousel cadence (3.8 s), the bottom hairline doubling as the
+  progress fill, and the whole section revealing itself on scroll
+  (rise-and-settle, reduced-motion safe).
+
 ### Changed
 
 - On a map, the first click explores — it never teleports (founder rule):

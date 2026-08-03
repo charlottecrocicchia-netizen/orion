@@ -99,7 +99,17 @@ fil d'actus au défilement réellement automatique (pause à l'intention,
 plus au survol fantôme), et les actualités officielles dans le fil via
 le relais /api/news (flux Commission DG R&I ; CORDIS sans RSS public,
 ANR configuré mais vide — repli élégant, cache 30 min,
-stale-on-error, lien à la source sur chaque news).
+stale-on-error, lien à la source sur chaque news). Recette v5 (même
+jour) : la une Actualités passe en **bande pleine largeur entre deux
+hairlines** (étude en direct d'Apple Newsroom et du Now de Linear —
+plus de pavé arrondi) : texte encre sur fond de page à gauche, matière
+visuelle à droite ; les histoires sans image portent des **dessins
+génératifs tirés de nos données** (duel en barres dessinées, percée en
+trait qui monte, gros contrat en chiffre géant, mouvement en étincelle
+réelle, constellation seedée pour les news sans visuel) ; la bande est
+un **rail scroll-snap au geste exact des decks d'Angles** (swipe,
+flèches, points, clavier), cadence de vrai carrousel (3,8 s), le filet
+bas devient la barre de progression, et la section se révèle au scroll.
 
 ## Ensuite — extension des sources, vague 1
 
