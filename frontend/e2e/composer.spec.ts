@@ -24,6 +24,21 @@ test("« Allemagne » + Entrée pose le tag pays, pas une recherche texte", asyn
   await expect(page.getByText("pays", { exact: true })).toBeVisible();
 });
 
+test("interface ANGLAISE + « Allemagne » pose aussi le tag pays (le geste réel)", async ({ page }) => {
+  // The founder's exact gesture: English interface, country typed in
+  // French — multi-locale matching must still pose the tag.
+  await page.addInitScript(() => {
+    window.localStorage.setItem("orion.lang", "en");
+  });
+  await page.goto("/projects");
+  const input = page.getByRole("combobox", { name: /Compose/ });
+  await input.fill("Allemagne");
+  await expect(page.getByRole("option", { name: /Germany/ })).toBeVisible();
+  await input.press("Enter");
+  await expect(page).toHaveURL(/country=DE/);
+  expect(page.url()).not.toContain("q=Allemagne");
+});
+
 test("un mot qui n'est pas une entité reste du texte libre", async ({ page }) => {
   await page.goto("/projects");
   const input = page.getByRole("combobox", { name: /Composez/ });

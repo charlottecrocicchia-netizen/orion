@@ -99,6 +99,14 @@ export interface OrganisationPartner {
   partner_amount_eur: number | null;
 }
 
+export interface NewsItem {
+  title: string;
+  url: string;
+  source: string;
+  source_code: string;
+  published: string | null;
+}
+
 export interface CountryFlow {
   a: string;
   b: string;
@@ -138,6 +146,7 @@ export const api = {
   compareOrganisations: (ids: string[]) =>
     get<CompareEntry[]>(`/api/compare/organisations?ids=${ids.join("~")}`),
   stats: () => get<Stats>("/api/stats"),
+  news: () => get<NewsItem[]>("/api/news"),
   searchProjects: (params: URLSearchParams) =>
     get<ProjectSearchResponse>(`/api/search/projects?${params}`),
   searchOrganisations: (params: URLSearchParams) =>

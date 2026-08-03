@@ -92,7 +92,14 @@ le tag organisation (extension backend `organisation=`) et le filtre
 thème exact, à la demande. Deuxième vague de la grande recette livrée
 aussi : ambiances de l'accueil (tuile montante, recherche vivante,
 globe entier aux trois vitesses de recette), programmes par source,
-sept photos pays curées + silhouette élégante en fallback.
+sept photos pays curées + silhouette élégante en fallback. Recette v4
+(même jour) : correspondance pays MULTI-LOCALE (« Allemagne » sous
+interface anglaise pose le tag pays — barre et palette, extensible),
+fil d'actus au défilement réellement automatique (pause à l'intention,
+plus au survol fantôme), et les actualités officielles dans le fil via
+le relais /api/news (flux Commission DG R&I ; CORDIS sans RSS public,
+ANR configuré mais vide — repli élégant, cache 30 min,
+stale-on-error, lien à la source sur chaque news).
 
 ## Ensuite — extension des sources, vague 1
 

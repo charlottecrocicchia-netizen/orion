@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
@@ -27,6 +27,8 @@ interface Story {
   phrase: React.ReactNode;
   cta: string;
   to: string;
+  /** Official news open at the SOURCE, in a new tab. */
+  external?: boolean;
 }
 
 function matureWindows(years: number[], now: number): { a: number[]; b: number[] } | null {
@@ -64,6 +66,14 @@ export function NowTicker() {
       ),
   });
   const lastMature = String(now - 2);
+  // Official news relayed by the backend (CORS + cache + stale-on-error
+  // live there); refetchInterval keeps the strip fresh on its own.
+  const { data: newsItems } = useQuery({
+    queryKey: ["now-news"],
+    queryFn: api.news,
+    staleTime: 15 * 60 * 1000,
+    refetchInterval: 30 * 60 * 1000,
+  });
   const { data: bigProject } = useQuery({
     queryKey: ["now-big-project", lastMature, i18n.language],
     queryFn: () =>
@@ -189,32 +199,68 @@ export function NowTicker() {
         });
       }
     }
-    return out;
+    // Official news, newest first, each opening at its SOURCE — mixed in
+    // by interleaving so the strip alternates our signature stories and
+    // the real "moment" (recette 2026-08-02).
+    const newsStories: Story[] = (Array.isArray(newsItems) ? newsItems : [])
+      .slice(0, 3)
+      .map((item) => {
+        const date = item.published
+          ? new Date(item.published).toLocaleDateString(i18n.language, {
+              day: "numeric",
+              month: "short",
+            })
+          : null;
+        return {
+          kind: `${t("home.nowKindNews")} · ${item.source}${date ? ` · ${date}` : ""}`,
+          phrase: <>{item.title}</>,
+          cta: t("home.nowNewsCta"),
+          to: item.url,
+          external: true,
+        };
+      });
+    const mixed: Story[] = [];
+    const longest = Math.max(out.length, newsStories.length);
+    for (let i = 0; i < longest; i++) {
+      if (out[i]) mixed.push(out[i]);
+      if (newsStories[i]) mixed.push(newsStories[i]);
+    }
+    return mixed;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgSplit, themeSplit, bigProject, i18n.language, t]);
+  }, [orgSplit, themeSplit, bigProject, newsItems, i18n.language, t]);
 
   const [index, setIndex] = useState(0);
-  const [held, setHeld] = useState(false);
+  const rootRef = useRef<HTMLElement>(null);
+  const lastPointerMove = useRef(0);
   useEffect(() => {
-    if (stories.length < 2 || held) return;
+    if (stories.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = window.setInterval(
-      () => setIndex((current) => (current + 1) % stories.length),
-      ROTATE_MS,
-    );
+    const timer = window.setInterval(() => {
+      // The hold is judged at TICK TIME on real INTENT — a pointer that
+      // MOVED over the strip recently, or real focus within. Hover state
+      // (events or :hover alike) goes stale when the strip slides under a
+      // motionless cursor during scroll — the phantom-hover family that
+      // froze the globe and then this strip ("it doesn't auto-advance",
+      // recette 2026-08-02). A parked cursor never blocks the feed; a
+      // reader hovering keeps it held ~10 s past their last movement.
+      const reading = Date.now() - lastPointerMove.current < 10_000;
+      const focusedWithin = rootRef.current?.contains(document.activeElement) ?? false;
+      if (reading || focusedWithin) return;
+      setIndex((current) => (current + 1) % stories.length);
+    }, ROTATE_MS);
     return () => window.clearInterval(timer);
-  }, [stories.length, held]);
+  }, [stories.length]);
 
   if (stories.length === 0) return null;
   const story = stories[Math.min(index, stories.length - 1)];
 
   return (
     <section
+      ref={rootRef}
       aria-label={t("home.now")}
-      onMouseEnter={() => setHeld(true)}
-      onMouseLeave={() => setHeld(false)}
-      onFocus={() => setHeld(true)}
-      onBlur={() => setHeld(false)}
+      onPointerMove={() => {
+        lastPointerMove.current = Date.now();
+      }}
       className="mt-16"
     >
       <h2 className="text-label uppercase text-muted-foreground">{t("home.now")}</h2>
@@ -232,20 +278,36 @@ export function NowTicker() {
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 {story.kind}
               </p>
-              <Link to={story.to} className="group mt-2 block">
-                <span className="display-tight block max-w-[52ch] text-[clamp(19px,2.3vw,26px)] font-[540] leading-[1.25] tracking-[-0.015em]">
-                  {story.phrase}
-                  <span className="ml-3 whitespace-nowrap text-[15px] font-medium text-accent">
-                    {story.cta}
-                    <span
-                      aria-hidden="true"
-                      className="ml-1 inline-block transition-transform duration-200 ease-out group-hover:translate-x-1"
-                    >
-                      →
+              {(() => {
+                const body = (
+                  <span className="display-tight block max-w-[52ch] text-[clamp(19px,2.3vw,26px)] font-[540] leading-[1.25] tracking-[-0.015em]">
+                    {story.phrase}
+                    <span className="ml-3 whitespace-nowrap text-[15px] font-medium text-accent">
+                      {story.cta}
+                      <span
+                        aria-hidden="true"
+                        className="ml-1 inline-block transition-transform duration-200 ease-out group-hover:translate-x-1"
+                      >
+                        {story.external ? "↗" : "→"}
+                      </span>
                     </span>
                   </span>
-                </span>
-              </Link>
+                );
+                return story.external ? (
+                  <a
+                    href={story.to}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group mt-2 block"
+                  >
+                    {body}
+                  </a>
+                ) : (
+                  <Link to={story.to} className="group mt-2 block">
+                    {body}
+                  </Link>
+                );
+              })()}
             </motion.div>
           </AnimatePresence>
         </div>

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@/lib/api";
+import { buildCountryNames, countryMatches, stripAccents } from "@/lib/country-match";
 import { countryFlag } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -30,9 +31,6 @@ interface Suggestion {
   flag?: string;
   apply: () => void;
 }
-
-const strip = (value: string) =>
-  value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export function SearchComposer({
   kind,
@@ -72,6 +70,9 @@ export function SearchComposer({
     () => new Intl.DisplayNames([i18n.language || "en"], { type: "region" }),
     [i18n.language],
   );
+  // Names in EVERY match locale (fr, en, extensible) — "Allemagne" under
+  // an English interface still poses the country tag (recette bug).
+  const matchNames = useMemo(() => buildCountryNames(countries), [countries]);
   const countryName = (code: string) => {
     try {
       return displayNames.of(code) ?? code;
@@ -143,7 +144,7 @@ export function SearchComposer({
 
   /* ——— suggestions for the current draft ——— */
   const suggestions: Suggestion[] = useMemo(() => {
-    const needle = strip(draft.trim());
+    const needle = stripAccents(draft.trim());
     if (needle.length === 0) return [];
     const out: Suggestion[] = [];
     const done = () => {
@@ -174,7 +175,7 @@ export function SearchComposer({
       if (out.length >= 8) break;
       if (already.has(entry.code)) continue;
       const localized = countryName(entry.code);
-      if (strip(localized).includes(needle) || strip(entry.name).includes(needle)) {
+      if (countryMatches(matchNames.get(entry.code), needle)) {
         out.push({
           id: `sc-c-${entry.code}`,
           label: localized,
@@ -193,7 +194,7 @@ export function SearchComposer({
       for (const funder of funders) {
         if (out.length >= 8) break;
         if (activeFunders.has(funder.code)) continue;
-        if (strip(funder.name).includes(needle) || strip(funder.code).includes(needle)) {
+        if (stripAccents(funder.name).includes(needle) || stripAccents(funder.code).includes(needle)) {
           out.push({
             id: `sc-f-${funder.code}`,
             label: funder.name,
@@ -211,8 +212,8 @@ export function SearchComposer({
         if (out.length >= 8 || shown >= 3) break;
         if (activeProgrammes.has(String(programme.id))) continue;
         if (
-          strip(programme.label).includes(needle) ||
-          strip(programme.code ?? "").includes(needle)
+          stripAccents(programme.label).includes(needle) ||
+          stripAccents(programme.code ?? "").includes(needle)
         ) {
           shown += 1;
           out.push({
@@ -246,7 +247,7 @@ export function SearchComposer({
 
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, countries, programmes, funders, params, kind, i18n.language, t]);
+  }, [draft, countries, programmes, funders, matchNames, params, kind, i18n.language, t]);
 
   const open = focused && suggestions.length > 0;
 

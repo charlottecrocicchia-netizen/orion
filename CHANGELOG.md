@@ -162,6 +162,27 @@ All notable changes to Orion are documented here. The format follows
   your actual session dossier — and the future verb stays visible,
   dated, unlinked.
 
+- Official news join the home strip: a backend relay (/api/news)
+  aggregates the institutional RSS feeds server-side — the European
+  Commission's DG R&I news feed (the one rich official source; CORDIS
+  retired its public news RSS and the ANR's feed is currently an empty
+  shell, kept configured so items appear the day it fills) — short
+  per-feed timeout, 30-minute cache, STALE-ON-ERROR (a dead feed serves
+  the last good read, an empty roster yields an honest empty list).
+  The strip interleaves them with Orion's computed stories, each news
+  opening AT ITS SOURCE in a new tab, dated, refreshed automatically.
+- Country matching goes MULTI-LOCALE (recette: "Allemagne" under an
+  English interface returned 404 text hits): a shared matcher carries
+  every country's names in all match locales (fr, en — extensible)
+  plus the corpus name, wired into the composable bar AND the ⌘K
+  palette; the displayed label stays the interface language. Locked by
+  an e2e test in the founder's exact gesture (EN interface, FR typing).
+- The news strip auto-advances for real: the hold is judged at tick
+  time on actual pointer INTENT (a recent move over the strip, or real
+  focus) — hover state, whether events or :hover, goes stale when the
+  strip slides under a motionless cursor during scroll, the same
+  phantom-hover family that froze the globe.
+
 ### Changed
 
 - On a map, the first click explores — it never teleports (founder rule):

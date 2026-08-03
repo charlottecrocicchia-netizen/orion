@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@/lib/api";
+import { buildCountryNames, countryMatches } from "@/lib/country-match";
 import { cn } from "@/lib/utils";
 import { countryFlag, formatOrgName, themeLabel } from "@/lib/format";
 
@@ -127,18 +128,21 @@ export function CommandK({ open, onOpenChange }: CommandKProps) {
       });
     }
     const displayNames = new Intl.DisplayNames([i18n.language || "en"], { type: "region" });
-    const countryMatches = (countryIndex ?? [])
+    // Multi-locale matching (recette 2026-08-02): "Allemagne" under an
+    // English interface still finds Germany — display stays localized.
+    const names = buildCountryNames(countryIndex ?? []);
+    const matchedCountries = (countryIndex ?? [])
       .map((entry) => ({
         code: entry.code,
         label: displayNames.of(entry.code) ?? entry.name,
       }))
-      .filter((entry) => strip(entry.label).includes(qn))
+      .filter((entry) => countryMatches(names.get(entry.code), qn))
       .sort(
         (a, b) =>
           Number(strip(b.label).startsWith(qn)) - Number(strip(a.label).startsWith(qn)),
       )
       .slice(0, 3);
-    for (const country of countryMatches) {
+    for (const country of matchedCountries) {
       out.push({
         id: `ck-opt-c-${country.code}`,
         group: "countries",
