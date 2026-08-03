@@ -44,9 +44,16 @@ def organisation_detail(
         {"oid": organisation_id},
     ).one()
 
+    # Per-year timeline WITH the role split (lot 4 bis): coordinated
+    # means role='coordinator'; everything else is participation. The
+    # project count feeds the funding/projects double reading.
     by_year = db.execute(
         text("""
-        SELECT extract(year FROM p.start_date)::int AS y, sum(pa.amount_eur) AS amount
+        SELECT extract(year FROM p.start_date)::int AS y,
+               sum(pa.amount_eur) AS amount,
+               coalesce(sum(pa.amount_eur) FILTER (WHERE pa.role = 'coordinator'), 0)
+                   AS coordinated,
+               count(DISTINCT pa.project_id) AS projects
         FROM participations pa JOIN projects p ON p.id = pa.project_id
         WHERE pa.organisation_id = :oid AND p.start_date IS NOT NULL
         GROUP BY y ORDER BY y
@@ -101,7 +108,13 @@ def organisation_detail(
             "last_year": kpis.last_year,
         },
         "funding_by_year": [
-            {"year": y, "amount_eur": float(a) if a is not None else 0.0} for y, a in by_year
+            {
+                "year": y,
+                "amount_eur": float(a) if a is not None else 0.0,
+                "coordinated_eur": float(c),
+                "projects": int(n),
+            }
+            for y, a, c, n in by_year
         ],
         "top_programmes": [
             {"code": code, "label": label, "amount_eur": float(a) if a is not None else 0.0}
@@ -166,3 +179,38 @@ def organisation_partners(
     if db.get(Organisation, organisation_id) is None:
         raise HTTPException(status_code=404, detail="Organisation not found")
     return aggregates.organisation_partners(db, organisation_id, limit=min(max(limit, 1), 25))
+
+
+@router.get("/organisations/{organisation_id}/partner-countries")
+def organisation_partner_countries(
+    organisation_id: int, db: Annotated[Session, Depends(get_db)]
+) -> list[dict[str, Any]]:
+    """Where this organisation's collaborators live (lot 4 bis): every
+    partner country with its distinct partners and shared projects —
+    feeds the collaborators map on the organisation file."""
+    if db.get(Organisation, organisation_id) is None:
+        raise HTTPException(status_code=404, detail="Organisation not found")
+    rows = db.execute(
+        text("""
+        SELECT o.country_code AS country,
+               count(DISTINCT pb.organisation_id) AS partners,
+               count(DISTINCT pb.project_id) AS shared_projects
+        FROM participations pa
+        JOIN participations pb
+          ON pb.project_id = pa.project_id
+         AND pb.organisation_id <> pa.organisation_id
+        JOIN organisations o ON o.id = pb.organisation_id
+        WHERE pa.organisation_id = :oid AND o.country_code IS NOT NULL
+        GROUP BY o.country_code
+        ORDER BY shared_projects DESC, partners DESC
+        """),
+        {"oid": organisation_id},
+    ).all()
+    return [
+        {
+            "country": r.country,
+            "partners": int(r.partners),
+            "shared_projects": int(r.shared_projects),
+        }
+        for r in rows
+    ]

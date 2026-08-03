@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export function formatCompactEur(value: number | null | undefined, locale: string): string {
   if (value == null) return "—";
   const abs = Math.abs(value);
@@ -178,4 +180,20 @@ export function wrapLabel(label: string, max = 24): string[] {
   }
   lines.push(current);
   return lines;
+}
+
+/** Localized country name from an ISO code — shared by every surface
+ *  that says a country to the reader (search facets, the collaborators
+ *  map…). Display follows the interface language; matching is the
+ *  country-match lib's business, not this one's. */
+export function useCountryName(): (code: string) => string {
+  const { i18n } = useTranslation();
+  const names = new Intl.DisplayNames([i18n.language || "en"], { type: "region" });
+  return (code: string) => {
+    try {
+      return names.of(code) ?? code;
+    } catch {
+      return code;
+    }
+  };
 }

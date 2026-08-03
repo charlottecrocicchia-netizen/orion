@@ -211,6 +211,29 @@ All notable changes to Orion are documented here. The format follows
   with an honest default title, through one shared CollectButton wearing
   the Explorer's own pill and acknowledgement.
 
+- The organisation file becomes THE demo page (lot 4 bis, enlarged by
+  the founder: "beautiful and rich, not merely complete"): the record
+  hero now opens onto numbered ACTS in the decks' grammar — 01 · the
+  yearly timeline with the ROLE SPLIT (coordinated stacked under
+  participated, series colors, one readout line spelling the hovered
+  year role by role; the API's funding_by_year now carries
+  coordinated_eur and project counts) with three stat tiles; 02 · the
+  COLLABORATORS MAP (new /partner-countries endpoint — every partner
+  country, distinct partners and shared projects; Europe choropleth in
+  sequential accent steps, select-first rule and keyboard intact,
+  beyond-the-map countries listed honestly) beside the recurring
+  partners list. The abstract partner graph gives its slot to the map.
+
+- The news carousel explains itself (the founder's freeze survives our
+  fixes, so the component becomes debuggable in her real conditions):
+  localStorage `orion.debug.ticker=1` turns on a throttled console
+  diagnostic — driver started/inactive (reduced-motion, story count),
+  WHY the feed is held (pointer intent with event counters and last
+  delta, keyboard focus with the focused element, rail in motion) and
+  every advance. Hardening: pointer intent now requires a REAL move
+  (> 1.5 px per event) — an idle mouse's sub-pixel drift and Chrome's
+  synthetic post-scroll pointermoves no longer count.
+
 - ACTUALITÉS v2, the newspaper front (recette: the big rounded slab was
   ugly; studied live on Apple Newsroom and Linear's Now): a full-width
   BAND between two hairlines — mono kicker, huge ink title and one exit

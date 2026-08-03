@@ -143,6 +143,8 @@ export const api = {
   suggest: (q: string) => get<SuggestResponse>(`/api/search/suggest?q=${encodeURIComponent(q)}`),
   organisationPartners: (id: string) =>
     get<OrganisationPartner[]>(`/api/organisations/${id}/partners`),
+  organisationPartnerCountries: (id: string) =>
+    get<PartnerCountry[]>(`/api/organisations/${id}/partner-countries`),
   countryFlows: () => get<CountryFlow[]>("/api/countries/flows?limit=200"),
   compareOrganisations: (ids: string[]) =>
     get<CompareEntry[]>(`/api/compare/organisations?ids=${ids.join("~")}`),
@@ -207,7 +209,7 @@ export interface OrganisationDetail {
     first_year: number | null;
     last_year: number | null;
   };
-  funding_by_year: { year: number; amount_eur: number }[];
+  funding_by_year: { year: number; amount_eur: number; coordinated_eur: number; projects: number }[];
   top_programmes: { code: string; label: string; amount_eur: number }[];
   top_themes: { key: string; label: string; amount_eur: number; projects: number }[];
   signals: {
@@ -215,6 +217,12 @@ export interface OrganisationDetail {
     new_partners: { count: number; names: string[] } | null;
   };
   sources_count: number;
+}
+
+export interface PartnerCountry {
+  country: string;
+  partners: number;
+  shared_projects: number;
 }
 
 export interface PortfolioResponse {

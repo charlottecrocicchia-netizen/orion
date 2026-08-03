@@ -47,9 +47,17 @@ les huit leçons :
    éditoriale aux vues vivantes annotées, « Emporter » en une section
    par page ; objet de session localStorage, durable avec les comptes
    P6). En recette sur site.
-4 bis. **Fiche organisation complète** (recette lot 2 vs KAILA) : timeline
-   financements/projets, split participé/coordonné, carte des
-   collaborateurs.
+4 bis. **Fiche organisation complète** (recette lot 2 vs KAILA), élargie
+   par la fondatrice (2026-08-03 : « belle et riche, pas seulement
+   complète — LA page de démo ») : **première tranche livrée le jour
+   même** — la fiche s'ouvre en actes numérotés à la grammaire des decks
+   (01 · la timeline années par rôle, coordonné/participé empilés aux
+   couleurs de séries, trois tuiles de stats, ligne de lecture au
+   survol ; 02 · la carte des collaborateurs — nouvel endpoint
+   pays-partenaires, choroplèthe séquentielle, règle du premier clic,
+   hors-carte honnête — à côté de la liste des partenaires récurrents).
+   Le graphe abstrait des partenaires a cédé sa place à la carte. En
+   recette sur site.
 5. Formes B1-B6 au fil des lots (B1 bump et B3 avant/après livrées) ;
    **hygiène U2** (constante marque) en chemin.
 
@@ -147,7 +155,14 @@ Points d'attention connus :
   entier, CORDIS donne les filiales. Vue consolidée ET détail par entité ;
   le garde-fou anti-fusion actuel reste (les entités restent vraies), la
   couche groupe s'y superpose. Rejoint les homonymes CNRS et le
-  rattachement RNSR. Chantier données majeur, à cadrer avec la vague 1 ;
+  rattachement RNSR. Chantier données majeur, à cadrer avec la vague 1.
+  **Vision fondatrice de la fiche groupe (2026-08-03)** : ouvrir
+  « Safran » en globalité montre la **vue consolidée + une carte monde de
+  toutes ses entités légales** ; cliquer une entité **ou un continent
+  entier** filtre les chiffres sur cette sélection ; et une **mini-map
+  monde en vignette à droite, qui tourne**, sert de navigation permanente
+  dans la fiche (l'esprit du globe de l'accueil, réduit en instrument de
+  bord). La fiche groupe = consolidation + cette carte des entités ;
 - **grandes régions « manager »** (décision fondatrice 2026-08-02) : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension

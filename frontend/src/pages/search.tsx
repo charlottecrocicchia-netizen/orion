@@ -18,6 +18,7 @@ import {
   formatInt,
   formatOrgName,
   orgTypeKey,
+  useCountryName,
   yearsRange,
 } from "@/lib/format";
 
@@ -132,18 +133,6 @@ function FacetChip({
 }
 
 /** Localized country name for facet chips — the raw ISO code was ugly. */
-function useCountryName() {
-  const { i18n } = useTranslation();
-  const names = new Intl.DisplayNames([i18n.language || "en"], { type: "region" });
-  return (code: string) => {
-    try {
-      return names.of(code) ?? code;
-    } catch {
-      return code;
-    }
-  };
-}
-
 interface HitGroup {
   key: string;
   label: string;

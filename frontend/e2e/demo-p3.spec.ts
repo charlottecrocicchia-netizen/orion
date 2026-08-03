@@ -34,7 +34,7 @@ test("the phase-3 journey holds end to end", async ({ page }) => {
     .first()
     .click();
   await expect(page).toHaveURL(/\/organisations\/\d+/);
-  await expect(page.getByText("Recurring partners")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole("heading", { name: "Where its partners live" })).toBeVisible({ timeout: 10_000 });
 
   // 3 — benchmark it against its first recurring partner.
   await page.getByRole("link", { name: "Compare" }).click();

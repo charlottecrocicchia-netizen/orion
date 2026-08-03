@@ -2,13 +2,13 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { CollaboratorsMap } from "@/components/collaborators-map";
 import { CollectButton } from "@/components/collect-button";
 import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
-import { PartnerGraph } from "@/components/partner-graph";
+import { RoleTimeline } from "@/components/role-timeline";
 import { TrajectorySpark } from "@/components/trajectory-spark";
 import { TrendDelta } from "@/components/trend-delta";
-import { YearBars } from "@/components/year-bars";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
@@ -21,6 +21,23 @@ import {
   themeLabel,
   yearsRange,
 } from "@/lib/format";
+
+/** A deck-style act header — the demo page (lot 4 bis) reads the
+ *  organisation through NUMBERED VIEWS, like an Angles deck reads a
+ *  question: mono kicker, display title, one reading phrase. */
+function ActHeader({ index, title, phrase }: { index: string; title: string; phrase: string }) {
+  return (
+    <div className="mb-7">
+      <p className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted-foreground">
+        {index}
+      </p>
+      <h2 className="font-display mt-1.5 text-[clamp(21px,2.5vw,28px)] font-[560] tracking-[-0.02em]">
+        {title}
+      </h2>
+      <p className="mt-1 max-w-[62ch] text-[14px] leading-relaxed text-muted-foreground">{phrase}</p>
+    </div>
+  );
+}
 
 export function OrganisationHubPage() {
   const { id = "" } = useParams();
@@ -41,6 +58,10 @@ export function OrganisationHubPage() {
   const { data: partners } = useQuery({
     queryKey: ["organisation-partners", id],
     queryFn: () => api.organisationPartners(id),
+  });
+  const { data: partnerCountries } = useQuery({
+    queryKey: ["organisation-partner-countries", id],
+    queryFn: () => api.organisationPartnerCountries(id),
   });
 
   if (isPending) {
@@ -107,6 +128,98 @@ export function OrganisationHubPage() {
           <TrajectorySpark data={years} />
         </div>
       </div>
+
+      {/* Act 01 — the yearly timeline with the role split (lot 4 bis). */}
+      <section className="mt-16 border-t pt-10">
+        <ActHeader
+          index={`01 · ${t("org.actTrajectoryKicker")}`}
+          title={t("org.actTrajectory")}
+          phrase={t("org.actTrajectoryPhrase")}
+        />
+        {(() => {
+          const coordinated = years.reduce((sum, row) => sum + row.coordinated_eur, 0);
+          const participated = Math.max(data.kpis.total_funding_eur - coordinated, 0);
+          const share = (part: number) =>
+            data.kpis.total_funding_eur > 0
+              ? Math.round((part / data.kpis.total_funding_eur) * 100)
+              : 0;
+          return (
+            <div className="mb-8 grid gap-x-10 gap-y-5 sm:grid-cols-3">
+              <div>
+                <div className="flex items-baseline gap-2.5">
+                  <span aria-hidden="true" className="h-3 w-3 shrink-0 self-center rounded-[3px] bg-series-1" />
+                  <span className="tnum font-display text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
+                    {formatCompactEur(coordinated, i18n.language)}
+                  </span>
+                </div>
+                <p className="mt-1 text-[13px] text-muted-foreground">
+                  {t("org.statCoordinated", { pct: share(coordinated) })}
+                </p>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2.5">
+                  <span aria-hidden="true" className="h-3 w-3 shrink-0 self-center rounded-[3px] bg-series-2" />
+                  <span className="tnum font-display text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
+                    {formatCompactEur(participated, i18n.language)}
+                  </span>
+                </div>
+                <p className="mt-1 text-[13px] text-muted-foreground">
+                  {t("org.statParticipated", { pct: share(participated) })}
+                </p>
+              </div>
+              <div>
+                <span className="tnum font-display text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
+                  {formatInt(data.kpis.projects_count, i18n.language)}
+                </span>
+                <p className="mt-1 text-[13px] text-muted-foreground">
+                  {t("org.statProjects", {
+                    period: yearsRange(data.kpis.first_year, data.kpis.last_year),
+                  })}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+        <RoleTimeline data={years} />
+      </section>
+
+      {/* Act 02 — where the collaborators live, and who returns. */}
+      {(partners && partners.length > 0) || (partnerCountries && partnerCountries.length > 0) ? (
+        <section id="partners" className="mt-16 scroll-mt-24 border-t pt-10">
+          <ActHeader
+            index={`02 · ${t("org.actPartnersKicker")}`}
+            title={t("org.actPartners")}
+            phrase={t("org.actPartnersPhrase")}
+          />
+          <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+            {partnerCountries && partnerCountries.length > 0 ? (
+              <CollaboratorsMap data={partnerCountries} />
+            ) : null}
+            {partners && partners.length > 0 ? (
+              <div>
+                {partners.map((partner) => (
+                  <Link
+                    key={partner.id}
+                    to={`/organisations/${partner.id}`}
+                    className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
+                  >
+                    {partner.country ? <CountryFlags codes={[partner.country]} /> : null}
+                    <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
+                      {formatOrgName(partner.name)}
+                    </span>
+                    <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
+                      {t("org.sharedProjects", { count: partner.shared_projects })}
+                    </span>
+                    <span className="tnum w-20 whitespace-nowrap text-right font-medium">
+                      {formatCompactEur(partner.partner_amount_eur, i18n.language)}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <div className="mt-14 grid gap-14 lg:grid-cols-[minmax(0,1fr)_264px]">
         <div className="min-w-0 space-y-14">
@@ -276,64 +389,23 @@ export function OrganisationHubPage() {
           ) : null}
         </section>
 
-        <div className="grid gap-10 sm:grid-cols-2">
+        {data.top_programmes.length > 0 ? (
           <section>
             <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-              {t("org.fundingByYear")} · M€
+              {t("org.topProgrammes")}
             </h2>
-            <YearBars
-              data={years.map((d) => ({ year: d.year, amount_eur: d.amount_eur / 1e6 }))}
-            />
+            {data.top_programmes.map((programme) => (
+              <div
+                key={programme.code}
+                className="flex items-baseline justify-between border-b border-border-soft py-2 text-sm"
+              >
+                <span>{programme.label}</span>
+                <span className="tnum font-medium">
+                  {formatCompactEur(programme.amount_eur, i18n.language)}
+                </span>
+              </div>
+            ))}
           </section>
-          {data.top_programmes.length > 0 ? (
-            <section>
-              <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-                {t("org.topProgrammes")}
-              </h2>
-              {data.top_programmes.map((programme) => (
-                <div
-                  key={programme.code}
-                  className="flex items-baseline justify-between border-b border-border-soft py-2 text-sm"
-                >
-                  <span>{programme.label}</span>
-                  <span className="tnum font-medium">
-                    {formatCompactEur(programme.amount_eur, i18n.language)}
-                  </span>
-                </div>
-              ))}
-            </section>
-          ) : null}
-        </div>
-
-        {partners && partners.length > 0 ? (
-        <section id="partners" className="scroll-mt-24">
-          <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-            {t("org.partners")}
-          </h2>
-          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-            <PartnerGraph center={data.name} partners={partners} />
-            <div>
-              {partners.map((partner) => (
-                <Link
-                  key={partner.id}
-                  to={`/organisations/${partner.id}`}
-                  className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
-                >
-                  {partner.country ? <CountryFlags codes={[partner.country]} /> : null}
-                  <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
-                    {formatOrgName(partner.name)}
-                  </span>
-                  <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
-                    {t("org.sharedProjects", { count: partner.shared_projects })}
-                  </span>
-                  <span className="tnum w-20 whitespace-nowrap text-right font-medium">
-                    {formatCompactEur(partner.partner_amount_eur, i18n.language)}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
         ) : null}
         </div>
 

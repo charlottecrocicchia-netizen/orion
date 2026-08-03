@@ -37,12 +37,12 @@ test("the organisation hub lists recurring partners and rebounds to one", async 
   // Structural assertions — dataset-agnostic: the section renders, every
   // partner row carries its shared-project count, and clicking one lands on
   // that partner's own hub with its own partners section. No dead ends.
-  await expect(page.getByText("Recurring partners")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole("heading", { name: "Where its partners live" })).toBeVisible({ timeout: 10_000 });
   const partner = page.getByRole("link", { name: /shared projects?/ }).first();
   await expect(partner).toBeVisible();
 
   await partner.click();
   await expect(page).toHaveURL(/\/organisations\/\d+/);
   expect(page.url()).not.toBe(hubUrl);
-  await expect(page.getByText("Recurring partners")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole("heading", { name: "Where its partners live" })).toBeVisible({ timeout: 10_000 });
 });

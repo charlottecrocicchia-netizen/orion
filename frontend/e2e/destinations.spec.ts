@@ -45,6 +45,37 @@ test("la demande de l'accueil propose les destinations aussi", async ({ page }) 
   await expect(page).toHaveURL(/\/organisations\/\d+/);
 });
 
+test("la fiche organisation dit ses actes : trajectoire par rôle et carte des collaborateurs", async ({
+  page,
+}) => {
+  // Reach any real organisation file through the destination path
+  // (dataset-agnostic), then demand the two acts of lot 4 bis.
+  await page.goto("/projects");
+  const bar = page.getByRole("combobox", { name: /Composez/ });
+  await bar.click();
+  await bar.fill("centre");
+  const orgOption = page.locator("#sc-listbox [id^='sc-go-o-']").first();
+  await expect(orgOption).toBeVisible({ timeout: 10_000 });
+  await orgOption.click();
+  await expect(page).toHaveURL(/\/organisations\/\d+/);
+  await expect(page.getByRole("heading", { name: "Les années, rôle par rôle" })).toBeVisible();
+  await expect(page.getByText("Coordonné", { exact: true })).toBeVisible();
+  await expect(page.getByText("Participé", { exact: true })).toBeVisible();
+  // The collaborators act shows when the corpus gives this organisation
+  // partners; when present, its map obeys the select-first rule.
+  const act2 = page.getByRole("heading", { name: "Où vivent ses partenaires" });
+  if (await act2.isVisible().catch(() => false)) {
+    const map = page.getByRole("group", { name: "Carte des pays collaborateurs" });
+    const shapes = map.getByRole("button");
+    if ((await shapes.count()) > 0) {
+      const first = shapes.first();
+      await first.click();
+      await expect(page).toHaveURL(/\/organisations\/\d+/); // no teleport
+      await expect(first).toHaveAttribute("aria-pressed", "true");
+    }
+  }
+});
+
 test("la fiche organisation et la fiche pays se collectent au dossier", async ({ page }) => {
   // Reach a real organisation file through the new destination path.
   await page.goto("/projects");
