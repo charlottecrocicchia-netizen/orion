@@ -9,15 +9,19 @@ import type { ExplorePoint } from "@/lib/api";
 import { formatCompactEur, formatOrgName, themeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-/** "En ce moment" — a LIVING news strip (recette 2026-08-02: two static
- *  boxes were dead; the founder wants an elegant feed). One story shows
- *  at a time and the strip rotates softly between them (rise-in/out,
- *  ~7 s each, paused on hover or focus, dots to jump, static under
- *  reduced motion). Every story is COMPUTED from the corpus with the
- *  usual honesty floors — a story that doesn't clear its floor simply
- *  doesn't run. Windows follow the mature-years convention. */
+/** ACTUALITÉS — the front-page moment (recette 2026-08-02: the thin
+ *  strip was too small, too quiet; the founder wants a magazine cover).
+ *  One story at a time fills a tall stage: the official picture under an
+ *  ink scrim when the feed carries one, strong display typography on the
+ *  deep brand ramps otherwise (computed stories on ink, imageless news
+ *  on ultramarine). A brisk 5 s cadence with a progress bar that
+ *  freezes while the reader is actually there (pointer intent or focus
+ *  — never the phantom hover), arrows and dots to drive, a snapping
+ *  rise-and-fade transition, static under reduced motion. Content
+ *  unchanged: official news (dated, opening at the source) interleaved
+ *  with Orion's computed stories under their honesty floors. */
 
-const ROTATE_MS = 7000;
+const ROTATE_MS = 5000;
 const MIN_WINDOW_EUR = 500_000;
 const DUEL_MAX_GAP = 0.2;
 const MOVE_MIN_DELTA = 20;
@@ -29,6 +33,8 @@ interface Story {
   to: string;
   /** Official news open at the SOURCE, in a new tab. */
   external?: boolean;
+  /** Official picture when the feed carries one. */
+  image?: string | null;
 }
 
 function matureWindows(years: number[], now: number): { a: number[]; b: number[] } | null {
@@ -217,6 +223,7 @@ export function NowTicker() {
           cta: t("home.nowNewsCta"),
           to: item.url,
           external: true,
+          image: item.image,
         };
       });
     const mixed: Story[] = [];
@@ -231,99 +238,179 @@ export function NowTicker() {
 
   const [index, setIndex] = useState(0);
   const rootRef = useRef<HTMLElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
   const lastPointerMove = useRef(0);
+  const elapsed = useRef(0);
   useEffect(() => {
     if (stories.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = window.setInterval(() => {
-      // The hold is judged at TICK TIME on real INTENT — a pointer that
-      // MOVED over the strip recently, or real focus within. Hover state
-      // (events or :hover alike) goes stale when the strip slides under a
-      // motionless cursor during scroll — the phantom-hover family that
-      // froze the globe and then this strip ("it doesn't auto-advance",
-      // recette 2026-08-02). A parked cursor never blocks the feed; a
-      // reader hovering keeps it held ~10 s past their last movement.
-      const reading = Date.now() - lastPointerMove.current < 10_000;
+    let raf = 0;
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = Math.min(now - last, 100);
+      last = now;
+      // Hold judged on real INTENT — a pointer that MOVED over the stage
+      // recently, or real focus within. Hover state (events or :hover)
+      // goes stale under a motionless scrolled-under cursor (the
+      // phantom-hover family that froze the globe, then the strip). The
+      // progress bar freezes WITH the hold, so the pause is visible.
+      const reading = Date.now() - lastPointerMove.current < 8_000;
       const focusedWithin = rootRef.current?.contains(document.activeElement) ?? false;
-      if (reading || focusedWithin) return;
-      setIndex((current) => (current + 1) % stories.length);
-    }, ROTATE_MS);
-    return () => window.clearInterval(timer);
+      if (!reading && !focusedWithin) elapsed.current += dt;
+      if (elapsed.current >= ROTATE_MS) {
+        elapsed.current = 0;
+        setIndex((current) => (current + 1) % stories.length);
+      }
+      if (barRef.current) {
+        barRef.current.style.width = `${((elapsed.current / ROTATE_MS) * 100).toFixed(2)}%`;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
   }, [stories.length]);
+  const goTo = (target: number) => {
+    elapsed.current = 0;
+    setIndex((target + stories.length) % stories.length);
+  };
 
   if (stories.length === 0) return null;
   const story = stories[Math.min(index, stories.length - 1)];
+  const surface = story.image ? "photo" : story.external ? "ultramarine" : "ink";
 
   return (
     <section
       ref={rootRef}
-      aria-label={t("home.now")}
+      aria-label={t("home.newsTitle")}
       onPointerMove={() => {
         lastPointerMove.current = Date.now();
       }}
-      className="mt-16"
+      className="mt-20"
     >
-      <h2 className="text-label uppercase text-muted-foreground">{t("home.now")}</h2>
+      <div className="flex items-end justify-between gap-6">
+        <h2 className="font-display text-title">{t("home.newsTitle")}</h2>
+        {stories.length > 1 ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              aria-label={t("home.newsPrev")}
+              onClick={() => goTo(index - 1)}
+              className="grid h-10 w-10 place-items-center rounded-full border text-[16px] transition-colors hover:border-accent hover:text-accent"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              aria-label={t("home.newsNext")}
+              onClick={() => goTo(index + 1)}
+              className="grid h-10 w-10 place-items-center rounded-full border text-[16px] transition-colors hover:border-accent hover:text-accent"
+            >
+              ›
+            </button>
+          </div>
+        ) : null}
+      </div>
+
       <MotionConfig reducedMotion="user">
-        <div className="relative mt-3 min-h-[132px] border-t sm:min-h-[112px]">
+        <div className="dark relative mt-5 min-h-[380px] overflow-hidden rounded-3xl border lg:min-h-[440px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={`${story.to}-${index}`}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.45, ease: [0.2, 0.6, 0.2, 1] }}
-              className="pt-5"
+              initial={{ opacity: 0, scale: 1.015 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.995 }}
+              transition={{ duration: 0.5, ease: [0.2, 0.6, 0.2, 1] }}
+              className="absolute inset-0"
             >
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                {story.kind}
-              </p>
-              {(() => {
-                const body = (
-                  <span className="display-tight block max-w-[52ch] text-[clamp(19px,2.3vw,26px)] font-[540] leading-[1.25] tracking-[-0.015em]">
-                    {story.phrase}
-                    <span className="ml-3 whitespace-nowrap text-[15px] font-medium text-accent">
-                      {story.cta}
-                      <span
-                        aria-hidden="true"
-                        className="ml-1 inline-block transition-transform duration-200 ease-out group-hover:translate-x-1"
-                      >
-                        {story.external ? "↗" : "→"}
-                      </span>
-                    </span>
-                  </span>
-                );
-                return story.external ? (
-                  <a
-                    href={story.to}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group mt-2 block"
-                  >
-                    {body}
-                  </a>
+              {/* The backdrop: the official picture under the ink scrim, or
+                  the deep brand ramps — ink for computed stories,
+                  ultramarine for imageless news. */}
+              <div aria-hidden="true" className="absolute inset-0">
+                {surface === "photo" ? (
+                  <>
+                    <img
+                      src={story.image!}
+                      alt=""
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[rgba(20,22,28,.28)] via-[rgba(20,22,28,.42)] to-[rgba(20,22,28,.82)]" />
+                  </>
+                ) : surface === "ultramarine" ? (
+                  <div className="h-full w-full bg-gradient-to-br from-[#3b5cff] via-[#1c2f9e] to-[#101d5e]" />
                 ) : (
-                  <Link to={story.to} className="group mt-2 block">
-                    {body}
-                  </Link>
-                );
-              })()}
+                  <div className="h-full w-full bg-gradient-to-br from-[#14161c] via-[#151a2e] to-[#101d3f]" />
+                )}
+              </div>
+
+              <div className="relative flex h-full min-h-[380px] flex-col justify-end p-8 lg:min-h-[440px] lg:p-12">
+                <motion.p
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.08, ease: [0.2, 0.6, 0.2, 1] }}
+                  className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-white/70"
+                >
+                  {story.kind}
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, y: 22 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.14, ease: [0.2, 0.6, 0.2, 1] }}
+                >
+                  {(() => {
+                    const body = (
+                      <>
+                        <span className="display-tight block max-w-[24ch] text-[clamp(26px,3.6vw,46px)] font-[540] leading-[1.08] tracking-[-0.022em] text-white">
+                          {story.phrase}
+                        </span>
+                        <span className="mt-4 inline-flex items-center gap-1.5 text-[15px] font-medium text-[#aab7ff] transition-colors group-hover:text-white">
+                          {story.cta}
+                          <span
+                            aria-hidden="true"
+                            className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-1"
+                          >
+                            {story.external ? "↗" : "→"}
+                          </span>
+                        </span>
+                      </>
+                    );
+                    return story.external ? (
+                      <a href={story.to} target="_blank" rel="noreferrer" className="group mt-3 block">
+                        {body}
+                      </a>
+                    ) : (
+                      <Link to={story.to} className="group mt-3 block">
+                        {body}
+                      </Link>
+                    );
+                  })()}
+                </motion.div>
+              </div>
             </motion.div>
           </AnimatePresence>
+
+          {/* The cadence, visible: a hairline progress bar that freezes
+              with the reader's hold. */}
+          {stories.length > 1 ? (
+            <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[3px] bg-white/12">
+              <div ref={barRef} className="h-full bg-[#8b9aff]" style={{ width: "0%" }} />
+            </div>
+          ) : null}
         </div>
       </MotionConfig>
+
       {stories.length > 1 ? (
-        <div className="mt-4 flex gap-2" role="tablist" aria-label={t("home.now")}>
+        <div className="mt-4 flex gap-2" role="tablist" aria-label={t("home.newsTitle")}>
           {stories.map((entry, dotIndex) => (
             <button
               key={entry.to}
               type="button"
               role="tab"
               aria-selected={dotIndex === index}
-              aria-label={`${t("home.now")} ${dotIndex + 1}/${stories.length}`}
-              onClick={() => setIndex(dotIndex)}
+              aria-label={`${t("home.newsTitle")} ${dotIndex + 1}/${stories.length}`}
+              onClick={() => goTo(dotIndex)}
               className={cn(
-                "h-1.5 w-6 rounded-full transition-colors",
+                "h-1.5 w-7 rounded-full transition-colors",
                 dotIndex === index ? "bg-accent" : "bg-border hover:bg-muted-foreground/40",
               )}
             />

@@ -183,6 +183,16 @@ All notable changes to Orion are documented here. The format follows
   strip slides under a motionless cursor during scroll, the same
   phantom-hover family that froze the globe.
 
+- The news strip becomes ACTUALITÉS, a front-page stage (recette: the
+  thin band was too small, too quiet): one story at a time fills a tall
+  frame — the official picture under the ink scrim when the feed
+  carries one (the relay now extracts image enclosures), strong display
+  typography on the deep brand ramps otherwise (ink for computed
+  stories, ultramarine for imageless news) — with a clear "Actualités"
+  section title, arrows, dots, a brisk 5-second cadence and a hairline
+  progress bar that freezes with the reader's real hold; the snapping
+  rise-and-fade transition stays static under reduced motion.
+
 ### Changed
 
 - On a map, the first click explores — it never teleports (founder rule):

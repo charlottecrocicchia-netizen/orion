@@ -68,6 +68,12 @@ def _parse_feed(raw: bytes, source: str, code: str) -> list[dict[str, Any]]:
                 published = parsedate_to_datetime(pub_date).isoformat()
             except (TypeError, ValueError):
                 published = None
+        # Some items carry a picture as an image enclosure (the EC feed
+        # does, irregularly) — the stage designs for both cases.
+        image = None
+        enclosure = item.find("enclosure")
+        if enclosure is not None and (enclosure.get("type") or "").startswith("image"):
+            image = enclosure.get("url")
         items.append(
             {
                 "title": title,
@@ -75,6 +81,7 @@ def _parse_feed(raw: bytes, source: str, code: str) -> list[dict[str, Any]]:
                 "source": source,
                 "source_code": code,
                 "published": published,
+                "image": image,
             }
         )
     return items

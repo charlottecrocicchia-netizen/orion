@@ -14,12 +14,12 @@ test.beforeEach(async ({ page }) => {
 test("le fil avance tout seul, même sous un curseur parqué par le scroll", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
-  const strip = page.getByRole("region", { name: "En ce moment" }).or(
-    page.locator("section[aria-label='En ce moment']"),
+  const strip = page.getByRole("region", { name: "Actualités" }).or(
+    page.locator("section[aria-label='Actualités']"),
   );
   await strip.first().scrollIntoViewIfNeeded().catch(() => {});
   await page.evaluate(() =>
-    document.querySelector("section[aria-label='En ce moment']")?.scrollIntoView({ block: "center" }),
+    document.querySelector("section[aria-label='Actualités']")?.scrollIntoView({ block: "center" }),
   );
   // Park the cursor where the strip now sits WITHOUT moving over it
   // afterwards (the phantom scenario): move first, then scroll the strip
@@ -28,7 +28,7 @@ test("le fil avance tout seul, même sous un curseur parqué par le scroll", asy
   await page.evaluate(() => window.scrollBy(0, 40));
   const kindOf = () =>
     page
-      .locator("section[aria-label='En ce moment'] p.font-mono")
+      .locator("section[aria-label='Actualités'] p.font-mono")
       .first()
       .innerText()
       .catch(() => "");

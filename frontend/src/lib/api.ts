@@ -105,6 +105,7 @@ export interface NewsItem {
   source: string;
   source_code: string;
   published: string | null;
+  image: string | null;
 }
 
 export interface CountryFlow {

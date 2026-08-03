@@ -7,6 +7,7 @@ from orion.api import news as news_module
 RSS = b"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel><title>Feed</title>
 <item><title>Newer story</title><link>https://example.eu/a</link>
+<enclosure url="https://example.eu/a.jpg" type="image/jpeg"/>
 <pubDate>Tue, 28 Jul 2026 15:02:15 +0200</pubDate></item>
 <item><title>Older story</title><link>https://example.eu/b</link>
 <pubDate>Mon, 20 Jul 2026 12:40:13 +0200</pubDate></item>
@@ -28,6 +29,10 @@ def test_parses_sorts_and_drops_broken_items(monkeypatch):
     assert "No link, dropped" not in titles
     assert items[0]["source"] in {feed["source"] for feed in news_module.FEEDS}
     assert items[0]["published"].startswith("2026-07-28")
+    # Image enclosures surface; items without one carry None.
+    assert items[0]["image"] == "https://example.eu/a.jpg"
+    older = next(item for item in items if item["title"] == "Older story")
+    assert older["image"] is None
 
 
 def test_stale_on_error_keeps_last_good_read(monkeypatch):
