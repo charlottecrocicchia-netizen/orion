@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T18:31:22+00:00",
+  "base": "http://localhost:8000",
+  "passes": 5,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 1805.9,
+      "worst_ms": 2707.2,
+      "samples": 5
+    },
+    "search_warm_term": {
+      "median_ms": 113.6,
+      "worst_ms": 165.9,
+      "samples": 5
+    },
+    "filter_country": {
+      "median_ms": 905.8,
+      "worst_ms": 1049.0,
+      "samples": 5
+    },
+    "countries_index": {
+      "median_ms": 5.4,
+      "worst_ms": 23.9,
+      "samples": 5
+    },
+    "organisation_detail": {
+      "median_ms": 13.2,
+      "worst_ms": 1017.5,
+      "samples": 5
+    },
+    "organisation_partners": {
+      "median_ms": 5.9,
+      "worst_ms": 16.1,
+      "samples": 5
+    }
+  },
+  "label": "O3a retir\u00e9 \u00b7 \u00e9tat de r\u00e9f\u00e9rence du chantier"
+}

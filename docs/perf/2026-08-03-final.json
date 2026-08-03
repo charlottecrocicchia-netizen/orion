@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T18:32:43+00:00",
+  "base": "http://localhost:8000",
+  "passes": 5,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 201.9,
+      "worst_ms": 204.5,
+      "samples": 5
+    },
+    "search_warm_term": {
+      "median_ms": 90.9,
+      "worst_ms": 102.8,
+      "samples": 5
+    },
+    "filter_country": {
+      "median_ms": 338.3,
+      "worst_ms": 870.5,
+      "samples": 5
+    },
+    "countries_index": {
+      "median_ms": 4.6,
+      "worst_ms": 18.6,
+      "samples": 5
+    },
+    "organisation_detail": {
+      "median_ms": 10.4,
+      "worst_ms": 847.7,
+      "samples": 5
+    },
+    "organisation_partners": {
+      "median_ms": 5.1,
+      "worst_ms": 10.4,
+      "samples": 5
+    }
+  },
+  "label": "\u00e9tat final \u00b7 O1+O2, caches stabilis\u00e9s"
+}

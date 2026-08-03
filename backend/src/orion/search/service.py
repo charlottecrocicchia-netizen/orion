@@ -123,6 +123,11 @@ def _programme_roots(session: Session) -> tuple[dict[int, int], dict[int, dict[s
     return _cached(session, "programme_roots", build)
 
 
+# The match reads the full texts. A condensed matching view was built,
+# measured and withdrawn (migration 0016): ×6 faster in isolation, but
+# it adds 1,3 GB competing for the same cache instead of replacing
+# anything — the system measured slower with it, and the budget was
+# already met without.
 _MATCH_SQL = """
 WITH qs AS (
     SELECT websearch_to_tsquery('orion_en', :q) AS qen,

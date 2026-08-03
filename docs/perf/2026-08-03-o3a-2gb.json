@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T18:29:55+00:00",
+  "base": "http://localhost:8000",
+  "passes": 5,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 1695.5,
+      "worst_ms": 2866.6,
+      "samples": 5
+    },
+    "search_warm_term": {
+      "median_ms": 123.2,
+      "worst_ms": 187.7,
+      "samples": 5
+    },
+    "filter_country": {
+      "median_ms": 778.2,
+      "worst_ms": 1175.6,
+      "samples": 5
+    },
+    "countries_index": {
+      "median_ms": 4.7,
+      "worst_ms": 21.8,
+      "samples": 5
+    },
+    "organisation_detail": {
+      "median_ms": 15.1,
+      "worst_ms": 1197.7,
+      "samples": 5
+    },
+    "organisation_partners": {
+      "median_ms": 6.9,
+      "worst_ms": 22.3,
+      "samples": 5
+    }
+  },
+  "label": "O3a + shared_buffers 2 Go"
+}

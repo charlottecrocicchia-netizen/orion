@@ -288,7 +288,11 @@ def measure(session: Session, stats: RunStats) -> None:
 # together, at the end of the ingestion chain, so a loader can never
 # forget one: adding a view here is the whole wiring (chantier
 # performance, O2 — an aggregate that lies is worse than a slow one).
-MATERIALIZED_VIEWS = ("organisation_stats", "country_stats", "country_pair_stats")
+MATERIALIZED_VIEWS = (
+    "organisation_stats",
+    "country_stats",
+    "country_pair_stats",
+)
 
 
 def refresh_organisation_stats() -> None:
