@@ -352,11 +352,17 @@ export function NowTicker() {
   const railRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const lastPointerMove = useRef(0);
-  const lastPointerPosition = useRef("");
+  const lastPointerPosition = useRef<{ x: number; y: number } | null>(null);
+  // Diagnostic counters (recette 2026-08-03: the founder's carousel still
+  // freezes and we cannot reproduce it — so the component explains
+  // itself). Enable with localStorage.setItem("orion.debug.ticker","1").
+  const pointerStats = useRef({ seen: 0, stamped: 0, lastDelta: 0 });
+  const indexRef = useRef(0);
   const elapsed = useRef(0);
   const skipSync = useRef(false);
   const settling = useRef<number | null>(null);
   const reveal = useRevealProgress(true, 900);
+  indexRef.current = index;
 
   // Programmed alignment (autoplay, arrows, dots): full-width slides make
   // the target trivial — index × rail width. skipSync guards the
@@ -401,10 +407,25 @@ export function NowTicker() {
   // froze the bar mid-flight (recette 2026-08-03, third of the phantom
   // family). Keyboard focus is :focus-visible; that one is real intent.
   useEffect(() => {
-    if (stories.length < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let debug = false;
+    try {
+      debug = window.localStorage.getItem("orion.debug.ticker") === "1";
+    } catch {
+      debug = false;
+    }
+    if (stories.length < 2) {
+      if (debug) console.info(`[ticker] driver INACTIF — ${stories.length} histoire(s), rien à faire tourner`);
+      return;
+    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (debug) console.info("[ticker] driver INACTIF — prefers-reduced-motion est actif sur cette machine");
+      return;
+    }
+    if (debug) console.info(`[ticker] driver démarré — ${stories.length} histoires, cadence ${ROTATE_MS} ms`);
     let raf = 0;
     let last = performance.now();
+    let lastLogAt = 0;
+    let wasHolding = false;
     const keyboardFocusWithin = () => {
       const active = document.activeElement;
       if (!rootRef.current || !(active instanceof HTMLElement)) return false;
@@ -419,9 +440,45 @@ export function NowTicker() {
       const dt = Math.min(nowTs - last, 100);
       last = nowTs;
       const reading = Date.now() - lastPointerMove.current < 8_000;
-      if (!reading && !keyboardFocusWithin() && !skipSync.current) elapsed.current += dt;
+      const kbFocus = keyboardFocusWithin();
+      const holding = reading || kbFocus || skipSync.current;
+      if (!holding) elapsed.current += dt;
+      if (debug) {
+        if (holding && nowTs - lastLogAt > 2000) {
+          lastLogAt = nowTs;
+          const causes: string[] = [];
+          if (reading) {
+            const age = ((Date.now() - lastPointerMove.current) / 1000).toFixed(1);
+            const stats = pointerStats.current;
+            causes.push(
+              `pointeur (dernier mouvement retenu il y a ${age} s · événements reçus ${stats.seen}, retenus ${stats.stamped}, dernier delta ${stats.lastDelta.toFixed(2)} px)`,
+            );
+          }
+          if (kbFocus) {
+            const active = document.activeElement;
+            const label =
+              active?.getAttribute("aria-label") ?? active?.textContent?.trim().slice(0, 24) ?? "";
+            causes.push(`focus clavier (<${active?.tagName.toLowerCase()}> « ${label} »)`);
+          }
+          if (skipSync.current) {
+            const rail = railRef.current;
+            causes.push(
+              `rail en mouvement (scrollLeft ${rail?.scrollLeft.toFixed(0)} → cible ${((rail?.clientWidth ?? 0) * indexRef.current).toFixed(0)})`,
+            );
+          }
+          console.info(
+            `[ticker] retenu à ${((elapsed.current / ROTATE_MS) * 100).toFixed(0)} % — ${causes.join(" + ") || "AUCUNE CAUSE (bug interne, dis-le-moi)"}`,
+          );
+        } else if (!holding && wasHolding) {
+          console.info("[ticker] reprise du défilement");
+        }
+        wasHolding = holding;
+      }
       if (elapsed.current >= ROTATE_MS) {
         elapsed.current = 0;
+        if (debug) {
+          console.info(`[ticker] avance → ${((indexRef.current + 1) % stories.length) + 1}/${stories.length}`);
+        }
         setIndex((current) => (current + 1) % stories.length);
       }
       if (barRef.current) {
@@ -445,13 +502,22 @@ export function NowTicker() {
       ref={rootRef}
       aria-label={t("home.newsTitle")}
       onPointerMove={(event) => {
-        // Only a real hand counts: after a page scroll Chrome re-emits
-        // synthetic pointermoves at the SAME viewport coordinates to
-        // refresh hover — those must not stamp reading intent.
-        const position = `${event.clientX},${event.clientY}`;
-        if (position !== lastPointerPosition.current) {
-          lastPointerPosition.current = position;
+        // Only a real hand counts: Chrome re-emits synthetic pointermoves
+        // after a page scroll at the cursor's unchanged position, and an
+        // idle optical mouse can drift by sub-pixel steps — neither is
+        // reading intent. A human move produces per-event deltas well
+        // above 1.5 px.
+        const stats = pointerStats.current;
+        stats.seen += 1;
+        const previous = lastPointerPosition.current;
+        lastPointerPosition.current = { x: event.clientX, y: event.clientY };
+        const delta = previous
+          ? Math.hypot(event.clientX - previous.x, event.clientY - previous.y)
+          : 0;
+        stats.lastDelta = delta;
+        if (delta > 1.5) {
           lastPointerMove.current = Date.now();
+          stats.stamped += 1;
         }
       }}
       className="mt-20"
