@@ -439,7 +439,10 @@ export function NowTicker() {
     const step = (nowTs: number) => {
       const dt = Math.min(nowTs - last, 100);
       last = nowTs;
-      const reading = Date.now() - lastPointerMove.current < 8_000;
+      // 4 s of hold after a real move — enough to protect an actual
+      // reader, short enough for a carousel (recette 2026-08-03: 8 s
+      // froze the rhythm for two full cycles).
+      const reading = Date.now() - lastPointerMove.current < 4_000;
       const kbFocus = keyboardFocusWithin();
       const holding = reading || kbFocus || skipSync.current;
       if (!holding) elapsed.current += dt;
@@ -502,17 +505,20 @@ export function NowTicker() {
       ref={rootRef}
       aria-label={t("home.newsTitle")}
       onPointerMove={(event) => {
-        // Only a real hand counts: Chrome re-emits synthetic pointermoves
-        // after a page scroll at the cursor's unchanged position, and an
-        // idle optical mouse can drift by sub-pixel steps — neither is
-        // reading intent. A human move produces per-event deltas well
-        // above 1.5 px.
+        // Only a real hand counts — measured in SCREEN coordinates, the
+        // one frame scrolling can never move (founder's Firefox logs,
+        // 2026-08-03: 37–51 px "moves" with an untouched mouse — Firefox
+        // re-emits pointermoves on scroll with page-relative offsets, so
+        // any viewport/page-based delta fabricates a gesture per wheel
+        // notch). A motionless cursor keeps screenX/Y strictly constant
+        // through scroll in every engine; sub-pixel mouse drift stays
+        // under the 1.5 px floor.
         const stats = pointerStats.current;
         stats.seen += 1;
         const previous = lastPointerPosition.current;
-        lastPointerPosition.current = { x: event.clientX, y: event.clientY };
+        lastPointerPosition.current = { x: event.screenX, y: event.screenY };
         const delta = previous
-          ? Math.hypot(event.clientX - previous.x, event.clientY - previous.y)
+          ? Math.hypot(event.screenX - previous.x, event.screenY - previous.y)
           : 0;
         stats.lastDelta = delta;
         if (delta > 1.5) {

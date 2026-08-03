@@ -224,6 +224,17 @@ All notable changes to Orion are documented here. The format follows
   beyond-the-map countries listed honestly) beside the recurring
   partners list. The abstract partner graph gives its slot to the map.
 
+- The freeze had a name: FIREFOX (caught by the joint console
+  diagnostic — 37–51 px "moves" from an untouched mouse are Firefox
+  re-emitting pointermoves on scroll with page-relative offsets).
+  Pointer intent is now measured in SCREEN coordinates, the one frame
+  scrolling can never move; the hold window drops from 8 s to 4 s (a
+  carousel's courtesy, not a parking brake); and the ticker e2e suite
+  runs on BOTH engines (a firefox Playwright project, installed in CI).
+  Honest limit: synthetic wheel events cannot reproduce Firefox's
+  re-emission, so the founder's console remains the final judge — the
+  diagnostic mode stays available.
+
 - The news carousel explains itself (the founder's freeze survives our
   fixes, so the component becomes debuggable in her real conditions):
   localStorage `orion.debug.ticker=1` turns on a throttled console

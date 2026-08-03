@@ -105,7 +105,7 @@ jobs:
         working-directory: frontend
       - run: pnpm build
         working-directory: frontend
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium firefox
         working-directory: frontend
       - run: pnpm exec vite preview --port 4173 &
         working-directory: frontend

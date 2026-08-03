@@ -30,9 +30,15 @@ test("le fil avance tout seul, même sous un curseur parqué par le scroll", asy
   );
   // Park the cursor where the band now sits WITHOUT moving over it
   // afterwards (the phantom scenario): move first, then scroll the band
-  // under the fixed point.
+  // under the fixed point — several wheel notches, the founder's real
+  // reading gesture. Firefox re-emits pointermoves on each notch with
+  // page-relative offsets (her logs: 37–51 px "moves" from an untouched
+  // mouse); measured in screen coordinates they are zero.
   await page.mouse.move(400, 300);
-  await page.evaluate(() => window.scrollBy(0, 40));
+  for (let notch = 0; notch < 6; notch++) {
+    await page.mouse.wheel(0, notch % 2 === 0 ? 30 : -30);
+    await page.waitForTimeout(150);
+  }
   const dotCount = await band.locator("[role='tab']").count();
   if (dotCount < 2) test.skip(true, "seeded corpus produced fewer than two stories — nothing to rotate");
   const first = await selectedDot(page)();
