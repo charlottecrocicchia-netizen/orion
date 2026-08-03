@@ -31,6 +31,7 @@ def test_lei_records_keep_identity_and_registration_authority(tmp_path):
         [
             ["969500UIC89GT3UL7L24", "SAFRAN", "FR", "562082909", "ACTIVE"],
             ["", "Ghost without LEI", "FR", "", "ACTIVE"],
+            ["NOT-A-LEI", "Malformed id corp", "FR", "", "ACTIVE"],
             ["LEI0000000000000XX99", "No country corp", "", "", "ACTIVE"],
         ],
     )
@@ -99,7 +100,7 @@ def test_relationships_keep_active_consolidation_only(tmp_path):
 def test_exceptions_filter_to_bridged_leis(tmp_path):
     path = _zip_csv(
         tmp_path / "repex.zip",
-        ["LEI", "ExceptionCategory", "ExceptionReason"],
+        ["LEI", "Exception.Category", "Exception.Reason.1"],
         [
             ["BRIDGED0000000000001", "DIRECT_ACCOUNTING_CONSOLIDATION_PARENT", "NON_CONSOLIDATING"],
             ["OTHER000000000000001", "DIRECT_ACCOUNTING_CONSOLIDATION_PARENT", "NON_PUBLIC"],

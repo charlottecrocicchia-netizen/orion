@@ -89,7 +89,8 @@ class LeiRecord(Base):
     # of the name+country bridge must speak one key.
     name_normalized: Mapped[str | None] = mapped_column(Text)
     country_code: Mapped[str | None] = mapped_column(String(2))
-    ra_id: Mapped[str | None] = mapped_column(String(60))
+    # Verbatim registry value — free text in some jurisdictions.
+    ra_id: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str | None] = mapped_column(String(30))
 
 

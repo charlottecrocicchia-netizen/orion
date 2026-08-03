@@ -43,6 +43,10 @@ def bridge_organisations(session: Session, stats: RunStats) -> None:
     unique on the LEI side (one ACTIVE record for the key) AND unique on
     ours (one organisation for the key), skipping already-bridged
     organisations."""
+    # Bridges are DERIVED data — rebuilt whole each run so a bridge
+    # posed on a partial mirror never outlives the ambiguity a fuller
+    # mirror reveals (real-run lesson, 2026-08-03).
+    session.execute(text("DELETE FROM organisation_identifiers WHERE scheme = 'lei'"))
     inserted = session.execute(
         text("""
         WITH unique_lei AS (

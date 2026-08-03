@@ -13,6 +13,7 @@ from sqlalchemy import text
 
 from orion.core.db import SessionLocal
 from orion.ingest.download import cache_dir
+from orion.ingest.gleif.parse import LEI_SHAPE
 from orion.ingest.runlog import record_run
 from orion.ingest.upsert import upsert
 from orion.models import LeiRelationship
@@ -44,9 +45,11 @@ def fetch_pairs() -> list[dict[str, str]]:
     (cache_dir() / f"{SOURCE}-parents.json").write_text(response.text)
     out: list[dict[str, str]] = []
     for binding in payload["results"]["bindings"]:
-        child = binding["childLei"]["value"].strip()
-        parent = binding["parentLei"]["value"].strip()
-        if child and parent and child != parent:
+        child = binding["childLei"]["value"].strip().upper()
+        parent = binding["parentLei"]["value"].strip().upper()
+        # Wikidata is declarative: only well-formed LEIs pass (a P1278
+        # slot sometimes carries something else — real-run finding).
+        if LEI_SHAPE.match(child) and LEI_SHAPE.match(parent) and child != parent:
             out.append({"child_lei": child, "parent_lei": parent})
     return out
 

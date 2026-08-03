@@ -6,10 +6,16 @@ file carries 3.4 M records and never fits in memory as a list."""
 
 import csv
 import io
+import re
 import zipfile
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
+
+# An LEI is exactly 20 alphanumerics (ISO 17442) — anything else in a
+# LEI slot is dirty data and never enters the mirror (real-run finding,
+# 2026-08-03: Wikidata carries a few malformed P1278 values).
+LEI_SHAPE = re.compile(r"^[A-Z0-9]{20}$")
 
 # Only accounting consolidation makes a group (docs/groupes-couche.md);
 # fund management, sub-funds and branches are other stories.
@@ -28,9 +34,9 @@ def parse_lei_records(path: Path) -> Iterator[dict[str, Any]]:
     """Level 1: one legal entity per row — identity plus the
     registration-authority id (the SIREN for French records)."""
     for row in _rows(path):
-        lei = (row.get("LEI") or "").strip()
+        lei = (row.get("LEI") or "").strip().upper()
         name = (row.get("Entity.LegalName") or "").strip()
-        if not lei or not name:
+        if not LEI_SHAPE.match(lei) or not name:
             continue
         country = (row.get("Entity.LegalAddress.Country") or "").strip().upper() or None
         ra_id = (
@@ -54,9 +60,9 @@ def parse_relationships(path: Path) -> Iterator[dict[str, Any]]:
             continue
         if (row.get("Relationship.RelationshipStatus") or "").strip() != "ACTIVE":
             continue
-        child = (row.get("Relationship.StartNode.NodeID") or "").strip()
-        parent = (row.get("Relationship.EndNode.NodeID") or "").strip()
-        if not child or not parent or child == parent:
+        child = (row.get("Relationship.StartNode.NodeID") or "").strip().upper()
+        parent = (row.get("Relationship.EndNode.NodeID") or "").strip().upper()
+        if not LEI_SHAPE.match(child) or not LEI_SHAPE.match(parent) or child == parent:
             continue
         yield {
             "child_lei": child,
@@ -74,11 +80,11 @@ def parse_exceptions(path: Path, keep: frozenset[str]) -> Iterator[dict[str, Any
         lei = (row.get("LEI") or "").strip()
         if lei not in keep:
             continue
-        category = (row.get("ExceptionCategory") or "").strip()
+        category = (row.get("Exception.Category") or "").strip()
         if not category:
             continue
         yield {
             "lei": lei,
             "exception_type": category,
-            "reason": (row.get("ExceptionReason") or "").strip() or None,
+            "reason": (row.get("Exception.Reason.1") or "").strip() or None,
         }
