@@ -91,7 +91,7 @@ PROJECTS = [
         "e2e-hystock",
         "HYSTOCK",
         2023,
-        "anr-root",
+        "he-child",
         [("cea", 0.5)],
         {
             "fr": (
@@ -133,7 +133,7 @@ PROJECTS = [
         "e2e-agrisol",
         "AGRISOL",
         2021,
-        "anr-root",
+        "nih-root",
         [("cea", 0.4)],
         {
             "fr": (
@@ -180,16 +180,18 @@ def main() -> None:
         session.flush()
 
         ec = session.scalar(select(Funder).where(Funder.code == "ec"))
-        anr = session.scalar(select(Funder).where(Funder.code == "anr"))
+        # The second funder is NIH since the ANR left the product
+        # (2026-08-03): the seed must mirror the sources that exist.
+        nih = session.scalar(select(Funder).where(Funder.code == "nih"))
 
         he_root = Programme(funder_id=ec.id, code="HORIZON", name="Horizon Europe (2021-2027)")
-        anr_root = Programme(funder_id=anr.id, code="AAPG", name="Appel à projets générique")
-        session.add_all([he_root, anr_root])
+        nih_root = Programme(funder_id=nih.id, code="CA", name="National Cancer Institute")
+        session.add_all([he_root, nih_root])
         session.flush()
         he_child = Programme(funder_id=ec.id, parent_id=he_root.id, code="HORIZON-CL5")
         session.add(he_child)
         session.flush()
-        programmes = {"he-child": he_child, "anr-root": anr_root}
+        programmes = {"he-child": he_child, "nih-root": nih_root}
 
         organisations = {}
         for key, (name, country, org_type) in ORGS.items():
@@ -200,8 +202,8 @@ def main() -> None:
 
         for source_id, acronym, year, programme_key, shares, texts in PROJECTS:
             programme = programmes[programme_key]
-            funder_id = ec.id if programme_key.startswith("he") else anr.id
-            source = "cordis-horizon" if funder_id == ec.id else "anr"
+            funder_id = ec.id if programme_key.startswith("he") else nih.id
+            source = "cordis-horizon" if funder_id == ec.id else "nih"
             total = round(sum(amount for _, amount in shares) * 1e6, 2)
             main_lang = next(iter(texts))
             project = Project(

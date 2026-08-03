@@ -81,6 +81,22 @@ Options soumises à la fondatrice : (a) ne pas ingérer l'ADEME et viser plutôt
 
 La base publique des projets LIFE existe (`https://webgate.ec.europa.eu/life/publicWebsite/search`) mais est un moteur de recherche web : aucun export CSV/Excel ni API documentée n'a été trouvé le 2026-07-31. **Décision : reporté, ne bloque pas la v0.1.0 ; piste privilégiée pour plus tard : récupération via OpenAIRE** (qui agrège les projets LIFE), sinon l'API interne du moteur de recherche si ses conditions l'autorisent.
 
+## ⚠️ Conséquence du retrait : plus aucun texte en français dans le corpus
+
+Constat au run du 2026-08-03, à dire plutôt qu'à laisser découvrir :
+**les 32 759 textes français venaient tous de l'ANR**. Le corpus compte
+désormais **443 363 textes, tous en anglais**.
+
+- **L'interface reste bilingue** (FR/EN partout) — c'est une promesse
+  distincte, et elle tient.
+- **La recherche en français fonctionne toujours** par le pont des
+  cognats (« hydrogène » trouve « hydrogen » : unaccent + stemming
+  croisé, machinerie inchangée et testée), mais **aucun extrait ne
+  s'affichera en français** puisque aucun texte source ne l'est.
+- **La configuration `orion_fr` reste testée** (fixtures du seed e2e) :
+  le jour où une source francophone au filtre licence entre — France
+  2030 est la candidate déjà notée — la machinerie est prête.
+
 ## ⚙️ CONVENTION TRANSVERSE — montants pluriannuels et devises
 
 **Décision fondatrice du 2026-08-03, applicable à TOUTE source qui
