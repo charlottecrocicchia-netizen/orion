@@ -114,6 +114,26 @@ class LeiRelationship(Base):
     corroboration: Mapped[str | None] = mapped_column(String(40))
 
 
+class UeiLink(Base):
+    """Who consolidates whom, by UEI — the American bridge.
+
+    NSF publishes each awardee's UEI and its parent UEI. Captured raw the
+    day the data passes through (the ANR lesson) and left unused until
+    the groups wave wires it into memberships. Not an identifier: a
+    parent UEI is shared by all its children by definition."""
+
+    __tablename__ = "uei_links"
+    __table_args__ = (
+        UniqueConstraint("child_uei", "parent_uei", name="uq_uei_links_child_parent"),
+        Index("ix_uei_links_parent", "parent_uei"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    child_uei: Mapped[str] = mapped_column(String(12))
+    parent_uei: Mapped[str] = mapped_column(String(12))
+    source: Mapped[str] = mapped_column(String(50))
+
+
 class LeiException(Base):
     """GLEIF Reporting Exceptions — WHY a LEI declares no parent.
 

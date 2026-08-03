@@ -202,6 +202,15 @@ FUNDERS = [
         "country_code": "US",
         "default_currency": "USD",
     },
+    {
+        # Wave 1, step 2. The awarding division is the programme, so the
+        # reader sees which part of the NSF paid.
+        "code": "nsf",
+        "name": "National Science Foundation",
+        "jurisdiction": "US",
+        "country_code": "US",
+        "default_currency": "USD",
+    },
 ]
 
 _KNOWN_CODES: set[str] | None = None
@@ -254,6 +263,27 @@ FRENCH_EXONYMS = {
     "saint kitts et nevis": "KN",
 }
 
+# Everyday English names no ISO listing carries. NSF publishes country
+# NAMES, not codes, and writes them the way people speak: "Russia", not
+# "Russian Federation" (measured on three real fiscal years, 2026-08-03).
+# Every one below was verified to fail resolution before being added —
+# an unresolved country is journalled by each loader, never swallowed.
+ENGLISH_EXONYMS = {
+    "russia": "RU",
+    "turkey": "TR",
+    "ivory coast": "CI",
+    "cape verde": "CV",
+    "east timor": "TL",
+    "burma": "MM",
+    "brunei": "BN",
+    "democratic republic of the congo": "CD",
+    "republic of korea": "KR",
+    "swaziland": "SZ",
+    "macedonia": "MK",
+    "vatican city": "VA",
+    "st kitts and nevis": "KN",
+}
+
 
 def _key(name: str) -> str:
     """Fold case, accents and punctuation so 'Corée (République de)' meets 'Coree'."""
@@ -294,6 +324,7 @@ def _name_index() -> dict[str, str]:
     for code, name in EXTRA_COUNTRIES:
         add(name, code)
     index.update(FRENCH_EXONYMS)
+    index.update(ENGLISH_EXONYMS)
 
     _NAME_INDEX = index
     return index
@@ -311,6 +342,11 @@ def resolve_country(raw: str | None) -> str | None:
     candidates = [value]
     if "(" in value:  # "Corée (République de)" → also try "Corée"
         candidates.append(value.split("(")[0])
+    if "," in value:
+        # "Germany, Berlin" → "Germany" (NSF qualifies a few names with
+        # a city). Tried only AFTER the full string, so ISO forms like
+        # "Korea, Republic of" still resolve on their own name.
+        candidates.append(value.split(",")[0])
     for candidate in candidates:
         code = index.get(_key(candidate))
         if code:

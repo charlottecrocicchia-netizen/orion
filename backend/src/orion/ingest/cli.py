@@ -9,6 +9,7 @@ from orion.ingest.cordis.config import FRAMEWORKS
 from orion.ingest.gleif import load as gleif_load
 from orion.ingest.groups import build as groups_build
 from orion.ingest.nih import load as nih_load
+from orion.ingest.nsf import load as nsf_load
 from orion.ingest.rates import run as rates_run
 from orion.ingest.wikidata import load as wikidata_load
 
@@ -19,6 +20,7 @@ REGISTRY = {
     # through them), then the sources themselves.
     "rates": rates_run,
     "nih": nih_load.run,
+    "nsf": nsf_load.run,
     "dedup": dedup.merge.run,
     # The identity layer (vague 1, socle): GLEIF mirror, Wikidata parent
     # links, then bridges + groups built over the deduplicated corpus.
@@ -34,6 +36,7 @@ ALL = [
     "rates",
     *FRAMEWORKS.keys(),
     "nih",
+    "nsf",
     "dedup",
     "gleif",
     "wikidata",

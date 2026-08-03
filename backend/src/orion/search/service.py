@@ -30,7 +30,7 @@ _CACHE: dict[str, tuple[str, Any]] = {}
 # rates run weekly and touch none of it — before this list, their run
 # invalidated every cached facet and the first visitor of the morning
 # paid for a refresh that changed nothing (chantier performance, O4).
-CORPUS_SOURCES = ("cordis-horizon", "cordis-h2020", "cordis-fp7", "nih", "dedup")
+CORPUS_SOURCES = ("cordis-horizon", "cordis-h2020", "cordis-fp7", "nih", "nsf", "dedup")
 
 
 def _data_stamp(session: Session) -> str:
