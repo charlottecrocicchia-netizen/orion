@@ -3,7 +3,16 @@
 > Fil de pilotage tenu à jour à chaque validation de la fondatrice.
 > Règle inchangée : chaque chantier est proposé, validé, puis exécuté.
 
-## En cours — le chantier design (doctrine, étapes validées une à une)
+## ✅ CHANTIER UI — CLOS (v0.4.0, 2026-08-03)
+
+**État final : toutes les recettes fondatrice de la vague sont validées
+— navigation par intentions, doctrine appliquée partout, recherche
+composable aux destinations partagées, dossier remplissable, une
+Actualités au geste des decks (gel Firefox clos sur sa console), fiche
+organisation en actes. Reste ouvert hors UI : la revue ODbL (blocante au
+go-live) et les chantiers datés P5/P6.**
+
+## Clos avec v0.4.0 — le chantier design (doctrine, étapes validées une à une)
 
 Référence : [design-doctrine.md](design-doctrine.md).
 
@@ -129,13 +138,16 @@ validé inchangé) et la demande de l'accueil ; « + Ajouter au dossier »
 posé sur les fiches organisation, pays et le benchmark (chaque fiche
 verse sa vue signature comme bloc vivant de l'Explorateur).
 
-## Ensuite — extension des sources, vague 1
+## EN COURS — extension des sources, vague 1 (instruction ouverte)
 
-Décision fondatrice (2026-08-02) : après le chantier design, ouvrir la
-**vague 1 du rapport sources** — NIH, NSF, SBIR, UKRI, etc. Le rapport
-détaillé (périmètre exact, ordre, volumétries) sera versé au repo au
-lancement du chantier. Fondations déjà en place : le modèle `funders`
-multi-juridictions/multi-devises prévu dès la phase 1.
+Le chantier UI clos (v0.4.0), la vague 1 s'ouvre par son **rapport
+d'instruction** : [vague-1-instruction.md](vague-1-instruction.md) —
+socle identité d'abord (tables groupes + GLEIF + ponts d'identifiants,
+comme acté), puis l'ordre des dix chargeurs (NIH, NSF, SBIR, Grants.gov,
+USAspending, UKRI, SNSF, NWO, Vinnova, OpenAIRE) avec plan, pièges
+licence/technique et estimation par source. **Validation fondatrice
+requise avant tout chargement.** Fondations déjà en place : le modèle
+`funders` multi-juridictions/multi-devises prévu dès la phase 1.
 
 Points d'attention connus :
 - normalisation des montants (devises, années fiscales US/UK) ;

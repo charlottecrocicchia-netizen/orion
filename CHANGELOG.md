@@ -4,7 +4,16 @@ All notable changes to Orion are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.0] - 2026-08-03
+
+The UI chantier, closed. Orion carries its design doctrine end to end:
+the intent navigation and the home in acts, the Explorer's designed
+forms (interactive donut, before/after, maps that select first), the
+composable search with shared destination intelligence, the session
+dossier fillable from every rich page, the ACTUALITÉS front page on the
+decks' gesture, and the organisation file as the demo page. Every
+founder recette of the wave is validated — including the Firefox
+carousel freeze, closed for good on her console.
 
 ### Added
 
