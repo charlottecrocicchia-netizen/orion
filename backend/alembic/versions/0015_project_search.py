@@ -42,6 +42,13 @@ ABSTRACT_CHARS = 2800
 
 
 def upgrade() -> None:
+    # NEUTRALISED. 0016 drops this view immediately after; leaving the
+    # creation live made every fresh database (and the VPS on day one)
+    # spend ~2,6 minutes building 1,3 GB only to delete it. The SQL below
+    # is kept, unexecuted, as the record of what was measured — the
+    # numbers in this docstring are the point, not the object.
+    return
+
     op.execute(f"""
         CREATE MATERIALIZED VIEW project_search AS
         SELECT t.project_id,
