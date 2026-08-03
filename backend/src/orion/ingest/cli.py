@@ -3,7 +3,7 @@ import sys
 import time
 from functools import partial
 
-from orion.ingest import anr, cordis, dedup
+from orion.ingest import cordis, dedup
 from orion.ingest import reference as reference_module
 from orion.ingest.cordis.config import FRAMEWORKS
 from orion.ingest.gleif import load as gleif_load
@@ -15,7 +15,6 @@ from orion.ingest.wikidata import load as wikidata_load
 REGISTRY = {
     "reference": reference_module.run,
     **{key: partial(cordis.load.run, key) for key in FRAMEWORKS},
-    "anr": anr.load.run,
     # Wave 1: yearly ECB rates first (every non-EUR source converts
     # through them), then the sources themselves.
     "rates": rates_run,
@@ -34,7 +33,6 @@ ALL = [
     "reference",
     "rates",
     *FRAMEWORKS.keys(),
-    "anr",
     "nih",
     "dedup",
     "gleif",

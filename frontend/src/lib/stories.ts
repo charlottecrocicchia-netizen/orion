@@ -83,7 +83,9 @@ export const STORIES: Story[] = [
       },
     ],
   },
-  { key: "topFrance", params: "metric=funding&by=organisation&country=FR&limit=10" },
+  // The French corpus left the product with the ANR (2026-08-03); the
+  // slot now carries the question the international market asks first.
+  { key: "topFrance", params: "metric=funding&by=country&split=1&compare=US~FR~DE" },
   { key: "recentThemes", params: "metric=funding&by=theme&time=2021..2027&limit=10" },
   { key: "frameworks", params: "metric=funding&by=programme&split=1&limit=4" },
   { key: "quantum", params: "metric=funding&by=year&q=quantum" },

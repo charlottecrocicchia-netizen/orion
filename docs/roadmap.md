@@ -9,8 +9,9 @@
 — navigation par intentions, doctrine appliquée partout, recherche
 composable aux destinations partagées, dossier remplissable, une
 Actualités au geste des decks (gel Firefox clos sur sa console), fiche
-organisation en actes. Reste ouvert hors UI : la revue ODbL (blocante au
-go-live) et les chantiers datés P5/P6.**
+organisation en actes. Reste ouvert hors UI : les chantiers datés
+P5/P6 (le prérequis juridique ODbL a disparu avec le retrait de
+l'ANR, 2026-08-03).**
 
 ## Clos avec v0.4.0 — le chantier design (doctrine, étapes validées une à une)
 
@@ -20,7 +21,7 @@ Référence : [design-doctrine.md](design-doctrine.md).
 | --- | --- | --- |
 | 1 — Fondations | Tokens typographiques, tabular figures globales, encre/hairlines/une ombre, Geist Mono, StatHero | **Validée** (2026-08-02) |
 | 2 — Hero signature | Accueil en actes, hero piné GSAP (scrub), trois entrées éditoriales, footer parchemin | **Validée** (2026-08-02) |
-| 3 — Explorateur & listes | Grilles type Attio/Linear, filtres Polaris, sparklines, hover réels ; lien source CORDIS/ANR sur chaque fiche projet | **Validée** (2026-08-02) |
+| 3 — Explorateur & listes | Grilles type Attio/Linear, filtres Polaris, sparklines, hover réels ; lien vers la source d'origine sur chaque fiche projet | **Validée** (2026-08-02) |
 | 3 bis — Globe en acte 3 | Globe V1 photo, constellation de flux, panneau pays, sélection lumineuse (9 retours fondatrice intégrés) | **Livrée** (2026-08-02) — gelée, on y reviendra |
 | 4 — Fiches & benchmark | Layout record Attio, barres horizontales, TrajectorySpark | **Validée** (2026-08-02) |
 | 5 — Passe anti-« IA » | Audit continu, checklist des 10 pièges à chaque écran | Continue |
@@ -96,7 +97,7 @@ montant/progression, chaque rangée ouvre l'Explorateur pré-composé —
 entrée au menu Découvrir et au footer). Grande recette fondatrice du
 même jour : globe/cartes et donuts **validés, on ne touche plus** ;
 la page Programmes regroupée par cadre (cadres CE en rangées
-éditoriales, 450 ANR en liste dense filtrable — plus de cartouches).
+éditoriales, instituts en liste dense filtrable — plus de cartouches).
 
 ## La recherche composable — livrée (V1 en recette)
 
@@ -114,8 +115,8 @@ sept photos pays curées + silhouette élégante en fallback. Recette v4
 interface anglaise pose le tag pays — barre et palette, extensible),
 fil d'actus au défilement réellement automatique (pause à l'intention,
 plus au survol fantôme), et les actualités officielles dans le fil via
-le relais /api/news (flux Commission DG R&I ; CORDIS sans RSS public,
-ANR configuré mais vide — repli élégant, cache 30 min,
+le relais /api/news (flux Commission DG R&I ; CORDIS sans RSS public
+— repli élégant, cache 30 min,
 stale-on-error, lien à la source sur chaque news). Recette v5 (même
 jour) : la une Actualités passe en **bande pleine largeur entre deux
 hairlines** (étude en direct d'Apple Newsroom et du Now de Linear —
@@ -209,7 +210,7 @@ frontal confirmé sur pièces** : KAILA fait regrouper 21 entités à la main
 candidatures et gestion post-award (le métier de Granter/Streamlyne — 
 l'exécution) ; Orion reste l'intelligence.
 
-Horizon Europe + ANR ouverts, reliés aux tendances (la promesse tenue par
+Horizon Europe et les appels internationaux ouverts, reliés aux tendances (la promesse tenue par
 la note « Phase 5 · automne 2026 » sur l'accueil). Navigation passé/futur
 (vision §9 du [document d'architecture](architecture-information.md)).
 
@@ -223,7 +224,13 @@ d'équipe (vues partagées, digest d'espace — l'acheteur redistribue),
 Dashboard configurable par persona ; homepage vitrine (le globe d'accueil
 de 3 bis en est la première pierre). Voir [phase-6-notes.md](phase-6-notes.md).
 
-## Prérequis go-live (rappel bloquant)
+## Prérequis go-live
 
-La revue juridique ODbL (ANR) reste un prérequis de mise en production
-commerciale — voir [data-sources.md](data-sources.md).
+**Réglé le 2026-08-03 par suppression** : la revue juridique ODbL n'a
+plus d'objet — **l'ANR est sortie d'Orion définitivement** (décision
+fondatrice : marché cible international, aucune source ne vaut un risque
+juridique). La **règle de licence** qui en découle est gravée au
+[registre](data-sources.md) : n'entrent que domaine public, CC0, CC-BY,
+Licence Ouverte, OGL ou équivalent limpide ; tout partage à l'identique
+et toute zone grise sont un critère d'exclusion définitif. Aucun
+prérequis juridique ne bloque plus la mise en production.

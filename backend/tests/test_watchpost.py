@@ -117,9 +117,9 @@ def seeded(db_session):
             ),
             OrganisationAlias(
                 organisation_id=org.id,
-                source="anr",
-                name_raw=f"{MARK} Watch Labs France",
-                country_raw="France",
+                source="nih",
+                name_raw=f"{MARK} WATCH LABS INC",
+                country_raw="UNITED STATES",
             ),
         ]
     )

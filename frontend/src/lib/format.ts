@@ -197,3 +197,10 @@ export function useCountryName(): (code: string) => string {
     }
   };
 }
+
+/** The site a project's source link actually opens. One place, so a badge
+ *  can never lie about its origin (recette 2026-08-03). */
+export function sourceLabel(source: string): string {
+  if (source.startsWith("nih")) return "RePORTER";
+  return "CORDIS";
+}

@@ -5,7 +5,7 @@ from orion.models.base import Base
 
 
 class Funder(Base):
-    """Funding body (European Commission, ANR, ADEME… later NSF, UKRI, JSPS)."""
+    """Funding body (European Commission, NIH… later NSF, UKRI, SNSF)."""
 
     __tablename__ = "funders"
 

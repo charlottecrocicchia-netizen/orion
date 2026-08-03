@@ -78,7 +78,7 @@ test("the enriched demo journey holds end to end", async ({ page }) => {
   await page.locator("tbody a").first().click();
   await expect(page).toHaveURL(/\/organisations\/\d+/);
   await expect(page.getByText("Total public R&D funding")).toBeVisible();
-  await expect(page.getByText("Portfolio")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Portfolio" })).toBeVisible();
   await expect(page.locator("tbody tr").first()).toBeVisible();
 
   // 5 — rebound to the organisation's country hub (no dead ends).

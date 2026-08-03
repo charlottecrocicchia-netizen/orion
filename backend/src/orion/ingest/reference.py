@@ -186,13 +186,6 @@ FUNDERS = [
         "default_currency": "EUR",
     },
     {
-        "code": "anr",
-        "name": "Agence nationale de la recherche",
-        "jurisdiction": "FR",
-        "country_code": "FR",
-        "default_currency": "EUR",
-    },
-    {
         "code": "ademe",
         "name": "ADEME",
         "jurisdiction": "FR",
@@ -255,7 +248,7 @@ FRENCH_EXONYMS = {
     "tchequie": "CZ",
     "macedoine": "MK",
     "coree": "KR",
-    # Inverted forms and older French names used by ANR.
+    # Inverted and older French forms seen in French-language sources.
     "cook iles": "CK",
     "norfolk ile": "NF",
     "saint kitts et nevis": "KN",

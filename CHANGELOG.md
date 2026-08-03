@@ -6,6 +6,30 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Removed
+
+- **The ANR corpus leaves Orion, permanently** (founder decision,
+  2026-08-03): its ODbL 1.0 share-alike clause is a legal risk a
+  commercial SaaS does not take, and the target market is international.
+  Migration `0010_remove_anr` deletes 34 720 projects, 117 859
+  participations, 59 957 texts, 450 programmes and the organisations
+  left orphaned; the loader, its tests, its fixtures and its download
+  cache leave the repository in the same commit — keeping a loader for a
+  banned source would be a trap. The ODbL isolation study is cancelled,
+  and the go-live blocker it carried disappears with it. Corpus after
+  removal: 464 727 projects, 96 670 organisations, 842 493
+  participations, €615.7B.
+
+- The LICENCE RULE is engraved in the registry, opposable to every
+  future source: only public domain, CC0, CC-BY, Licence Ouverte, OGL or
+  an equally limpid licence enters Orion; any share-alike clause, any
+  legal grey zone, any non-commercial or negotiated-redistribution
+  licence is a permanent exclusion — verified at the source on loading
+  day, every time. The wave-1 sources were re-screened: NIH, NSF, SBIR,
+  USAspending, UKRI, Grants.gov and OpenAIRE pass; SNSF, NWO and Vinnova
+  are marked conditional — a grey zone will mean exclusion, not
+  arbitration.
+
 ### Added
 
 - Vague 1, étape 1 — NIH RePORTER is loaded (380 275 projects, 379 346

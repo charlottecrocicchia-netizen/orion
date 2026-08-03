@@ -7,7 +7,6 @@ Registre vivant : chaque source publique ingérée par Orion, avec sa juridictio
 | CORDIS Horizon Europe (`cordis-horizon`) | UE | EUR | CC BY 4.0 — décision 2011/833/EU, réutilisation commerciale autorisée avec attribution (vérifiée le 2026-07-31 sur la politique de réutilisation de la Commission) | ~mensuelle (dernier rafraîchissement source : 2026-07-21) | 23 278 projets, 144 117 participations (2026-07-31) |
 | CORDIS H2020 (`cordis-h2020`) | UE | EUR | idem CC BY 4.0 | figée (programme clos) + corrections | 35 389 projets, 178 967 participations (2026-07-31) |
 | CORDIS FP7 (`cordis-fp7`) | UE | EUR | idem CC BY 4.0 | figée (programme clos) | 25 785 projets, 140 063 participations (2026-07-31) |
-| ANR (`anr`) | FR | EUR | **ODbL 1.0** (Open Database License) — vérifiée le 2026-07-31 sur data.gouv.fr, champ `license: odc-odbl`. ⚠️ **Pas** la Licence Ouverte : clause de partage à l'identique, voir l'alerte ci-dessous | ~mensuelle (dernière publication : 2026-07-02) | 34 720 projets, 117 859 participations (2026-07-31) |
 | ADEME (`ademe`) | FR | EUR | Licence Ouverte 2.0 (vérifiée le 2026-07-31) | — | **Décision fondatrice du 2026-07-31 : non ingérée** (source hors sujet, voir ci-dessous) ; **France 2030** sera visé plus tard comme source française de R&D industrielle |
 | LIFE (`life`) | UE | EUR | à confirmer sur l'export retenu | — | **Décision fondatrice du 2026-07-31 : reporté**, ne bloque pas la v0.1.0 ; piste de récupération future via **OpenAIRE** |
 | NIH RePORTER (`nih`) | US | USD → EUR (taux BCE datés) | **Domaine public** (données fédérales US) — vérifiée le 2026-08-03 sur reporter.nih.gov | annuelle par exercice (bulk par FY ; **FY2026 pas encore publié** — fenêtre réelle FY2005-2025) | **380 275 projets**, 379 346 participations, 358 911 résumés indexés, 77 instituts en programmes, 1 722 398 tranches annuelles repliées (2026-08-03) — voir les deux réserves ci-dessous |
@@ -15,17 +14,53 @@ Registre vivant : chaque source publique ingérée par Orion, avec sa juridictio
 | GLEIF Golden Copy (`gleif`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 sur gleif.org (« even for commercial purposes ») | quotidienne (publishes/latest, rejouée par le scheduler hebdo) | 3 391 838 LEI en miroir, 258 260 liens de consolidation ACTIVE (fonds exclus), exceptions filtrées aux LEI pontés : 17 208 (2026-08-03) |
 | Wikidata parents (`wikidata`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 | mensuelle visée (rejouée par le scheduler hebdo) | 3 098 paires parent P749 entre porteurs de LEI bien formés (garde ISO 17442 : quelques P1278 sales rejetés) |
 
-## ⚠️ PRÉREQUIS BLOQUANT DE LA MISE EN LIGNE — ANR sous ODbL
+## 🔒 RÈGLE DE LICENCE — critère d'exclusion définitif
 
-**Décision fondatrice du 2026-07-31 : l'ingestion ANR continue telle quelle en local ; la question ODbL sera tranchée avec un juriste avant toute mise en ligne publique.** Ce point est un **prérequis bloquant du go-live** : il doit figurer dans la checklist de la phase 6 (produit vendable) et ne peut pas être découvert au dernier moment.
+**Décision fondatrice du 2026-08-03, non négociable et opposable à toute
+proposition de source.** Le marché cible d'Orion est international ;
+aucune source ne vaut un risque juridique.
 
-### Contexte de l'alerte
+**N'entrent dans Orion QUE les licences limpides :**
+domaine public · CC0 · CC-BY · Licence Ouverte (Etalab) · OGL (UK) ·
+ou équivalent explicitement compatible avec un usage commercial et une
+redistribution en base dérivée.
 
-Les données ANR sont publiées sous **ODbL 1.0**, et non sous la Licence Ouverte attendue. L'ODbL impose, en plus de l'attribution, une clause de **partage à l'identique** : quiconque publie une « base dérivée » doit la mettre à disposition sous ODbL. Ce que le produit affiche (résultats de recherche, analyses) relève des « œuvres produites » et reste libre de licence, mais la question de savoir si la base d'Orion constitue une base dérivée publiquement diffusée se pose dès que le service est en ligne.
+**Sont exclues définitivement :**
 
-- **Aujourd'hui : aucun problème.** L'ingestion et l'usage sont locaux, non publics — l'ODbL n'encadre pas l'usage privé. Rien n'est bloqué côté développement.
-- **Avant la mise en ligne : arbitrage nécessaire** (options possibles : cloisonner les données ANR de la base diffusée, publier l'extrait dérivé sous ODbL, se limiter à des « œuvres produites » avec attribution, ou faire valider la lecture par un juriste). À trancher par la fondatrice, si besoin avec un avis juridique.
-- Les mêmes vérifications sont à faire pour l'ADEME et LIFE avant leur ingestion.
+- **toute clause de partage à l'identique** — ODbL, CC-BY-SA, et
+  assimilées : publier une base dérivée obligerait Orion à se publier
+  sous la même licence ;
+- **toute zone grise juridique** — licence absente, ambiguë, ou dont la
+  portée commerciale demande une interprétation ;
+- **toute licence non commerciale** — CC-BY-NC et assimilées ;
+- **toute source propriétaire** dont la redistribution exige une licence
+  négociée (voir le registre noir du chantier groupes :
+  [groupes-couche.md](groupes-couche.md)).
+
+**Procédure, à chaque source, sans exception** : la licence est
+**vérifiée à la source le jour du chargement** (pas au dossier
+d'instruction — les conditions changent), sa mention exacte est portée
+au tableau ci-dessus, et une licence qui bascule vers l'exclusion
+déclenche le retrait de la source. C'est ce qui est arrivé à l'ANR.
+
+### Précédent : l'ANR, retirée le 2026-08-03
+
+Les données ANR étaient publiées sous **ODbL 1.0** (clause de partage à
+l'identique). Un arbitrage juridique était initialement prévu avant la
+mise en production ; **la fondatrice a tranché autrement : l'ANR sort du
+produit, définitivement.** Le différenciateur français ne justifiait pas
+le risque sur un marché cible international. **L'étude d'isolation ODbL
+est sans objet et annulée.**
+
+Retrait exécuté (migration `0010_remove_anr`, dev et prod) : 34 720
+projets, 117 859 participations, 59 957 textes, 450 programmes et les
+organisations devenues orphelines. Le chargeur, ses tests, ses fixtures
+et son cache ont quitté le dépôt dans le même commit — garder un
+chargeur pour une source bannie serait un piège.
+
+**Corpus après retrait : 464 727 projets, 96 670 organisations,
+842 493 participations, 615,7 Md€** (contre 499 447 / 119 952 /
+960 352 / 650,4 Md€ avant).
 
 ## ⚠️ ADEME : la source ouverte ne correspond pas au produit (décision requise)
 

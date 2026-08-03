@@ -192,9 +192,9 @@ def test_merge_keeps_the_richest_location(db_session):
     assert db_session.get(Organisation, keeper_id).city == "Lyon"
 
 
-def test_merge_prefers_cordis_activity_codes_over_anr_labels(db_session):
-    """The ANR files label e.g. the CEA as « Université »; the CORDIS activity
-    code carried by the duplicate must win at merge time."""
+def test_merge_prefers_coded_activity_over_free_text_labels(db_session):
+    """A coded activity type (CORDIS «REC») beats a free-text one carried by
+    another source: the duplicate's code must win at merge time."""
     keeper_id = _org(db_session, f"{MARK} Institut Gamma", org_type="Université").id
     victim_id = _org(db_session, f"{MARK} INSTITUT GAMMA", org_type="REC").id
     db_session.flush()

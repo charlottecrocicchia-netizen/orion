@@ -18,6 +18,7 @@ import {
   formatInt,
   formatOrgName,
   orgTypeKey,
+  sourceLabel,
   useCountryName,
   yearsRange,
 } from "@/lib/format";
@@ -75,7 +76,7 @@ function ComposerExamples({
           },
           {
             label: t("search.composer.ex3"),
-            entries: { country: "FR", funder: "anr", q: t("search.composer.ex3Q") },
+            entries: { country: "US", q: t("search.composer.ex3Q") },
           },
         ]
       : [
@@ -141,24 +142,21 @@ interface HitGroup {
 }
 
 /** Relevance pages read better with a spine: hits grouped under the funding
- *  frame they belong to (EU framework roots, ANR as one), page-local order
- *  preserved inside each group, global counts from the facets. */
+ *  frame they belong to (EU framework roots, NIH institutes…), page-local
+ *  order preserved inside each group, global counts from the facets. */
 function groupByFrame(data: ProjectSearchResponse): HitGroup[] {
   const groups: HitGroup[] = [];
   const byKey = new Map<string, HitGroup>();
   for (const hit of data.results) {
-    const anr = hit.source === "anr";
-    const key = anr ? "anr" : (hit.programme_root ?? hit.source);
+    const key = hit.programme_root ?? hit.source;
     let group = byKey.get(key);
     if (!group) {
-      const label = anr
-        ? (data.facets.funders.find((f) => f.code === "anr")?.label ?? "ANR")
-        : (data.facets.programmes.find((p) => p.id === hit.programme_root_id)?.label ??
-          hit.programme_root ??
-          hit.source);
-      const total = anr
-        ? (data.facets.funders.find((f) => f.code === "anr")?.count ?? null)
-        : (data.facets.programmes.find((p) => p.id === hit.programme_root_id)?.count ?? null);
+      const label =
+        data.facets.programmes.find((p) => p.id === hit.programme_root_id)?.label ??
+        hit.programme_root ??
+        sourceLabel(hit.source);
+      const total =
+        data.facets.programmes.find((p) => p.id === hit.programme_root_id)?.count ?? null;
       group = { key, label, total, hits: [] };
       byKey.set(key, group);
       groups.push(group);
@@ -193,7 +191,7 @@ function ProjectHitRow({ hit }: { hit: ProjectHit }) {
       ) : null}
       <p className="mt-2.5 flex flex-wrap items-center gap-x-2 text-[11px] uppercase tracking-[.06em] text-muted-foreground">
         <span className="rounded border px-1.5 py-px font-mono text-[10px] normal-case">
-          {hit.source.startsWith("anr") ? "ANR" : "CORDIS"}
+          {sourceLabel(hit.source)}
         </span>
         {yearsRange(hit.start_year, hit.end_year)} ·{" "}
         {t("search.organisationsCount", { count: hit.participations_count })}

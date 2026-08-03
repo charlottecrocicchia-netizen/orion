@@ -7,17 +7,13 @@ import { ExploreExits } from "@/components/explore-exits";
 import { KpiStatic } from "@/components/kpi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { countryFlag, formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
-
-/** The badge names the site the link actually opens — CORDIS for the EU
- *  frameworks, ANR for the French corpus, RePORTER for NIH. A badge that
- *  lies about its source is worse than no badge (recette 2026-08-03: a
- *  NIH project wore CORDIS colours). */
-function sourceSite(source: string): string {
-  if (source.startsWith("anr")) return "ANR";
-  if (source.startsWith("nih")) return "RePORTER";
-  return "CORDIS";
-}
+import {
+  countryFlag,
+  formatCompactEur,
+  formatInt,
+  formatOrgName,
+  sourceLabel,
+} from "@/lib/format";
 
 export function ProjectDetailPage() {
   const { id = "" } = useParams();
@@ -73,10 +69,10 @@ export function ProjectDetailPage() {
             href={data.url}
             target="_blank"
             rel="noreferrer"
-            aria-label={t("project.viewSource", { site: sourceSite(data.source) })}
+            aria-label={t("project.viewSource", { site: sourceLabel(data.source) })}
             className="ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11.5px] transition-colors hover:border-accent hover:text-accent"
           >
-            {sourceSite(data.source)} · {data.source_id}
+            {sourceLabel(data.source)} · {data.source_id}
             <span aria-hidden="true">↗</span>
           </a>
         ) : null}

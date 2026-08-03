@@ -152,6 +152,35 @@ l'instruction initiale ; le tableau récapitulatif porte l'ordre validé.
   volumétrie énorme → ingestion CIBLÉE (le complément, jamais le tout).
 - **Estimation : ~2 semaines** (dont l'essentiel en dédup et périmètre).
 
+## 🔒 Filtre licence — les sources restantes passées au crible (2026-08-03)
+
+Après le retrait de l'ANR, **chaque source restante de la vague 1 est
+repassée à la règle durcie** ([registre](data-sources.md)). Verdict
+d'instruction — chaque licence sera **re-vérifiée à la source le jour du
+chargement**, c'est la procédure :
+
+| Source | Licence attendue | Verdict |
+| --- | --- | --- |
+| **NIH RePORTER** (chargé) | Domaine public — données fédérales US | ✅ **passe** (vérifiée le 2026-08-03) |
+| **NSF** | Domaine public — données fédérales US | ✅ passe |
+| **SBIR/STTR** | Domaine public — données fédérales US | ✅ passe |
+| **USAspending** | Domaine public — données fédérales US | ✅ passe |
+| **UKRI Gateway to Research** | **OGL v3.0** (Open Government Licence) — commerciale explicite | ✅ passe |
+| **Grants.gov** | Domaine public — données fédérales US | ✅ passe |
+| **SNSF** | Portail data SNSF — **à confirmer sur pièce** (CC-BY attendu) | ⚠️ **sous condition** : si la licence n'est pas limpide, la source est écartée, pas négociée |
+| **NWO** | Open data NWO — **à confirmer sur pièce** | ⚠️ **sous condition**, même règle |
+| **Vinnova** | Open data Vinnova — **à confirmer sur pièce** (CC0 attendu) | ⚠️ **sous condition**, même règle |
+| **OpenAIRE** | **CC-BY 4.0** — commerciale avec attribution | ✅ passe |
+
+**Confirmation écrite** : les sept sources principales de la vague 1
+(NIH, NSF, SBIR, USAspending, UKRI, Grants.gov, OpenAIRE) franchissent
+le filtre — domaine public, OGL ou CC-BY, toutes compatibles d'un usage
+commercial et d'une base dérivée. **Aucune source à partage à
+l'identique ne subsiste dans le plan.** Les trois européennes
+continentales (SNSF, NWO, Vinnova) sont marquées **sous condition** :
+leur instruction commencera par la licence, et une zone grise vaudra
+exclusion — sans arbitrage, sans étude, sans exception.
+
 ## Les transverses (s'écrivent avec les premiers chargeurs)
 
 - **Devises et années fiscales** : table de conversion datée

@@ -9,7 +9,10 @@ const SOURCE_LABELS: Record<string, string> = {
   "cordis-horizon": "CORDIS · Horizon Europe",
   "cordis-h2020": "CORDIS · Horizon 2020",
   "cordis-fp7": "CORDIS · FP7",
-  anr: "ANR · Projets financés",
+  nih: "NIH RePORTER · États-Unis",
+  gleif: "GLEIF · identité des entités",
+  wikidata: "Wikidata · rattachements de groupes",
+  ecb: "BCE · taux de change annuels",
 };
 
 export function AboutDataPage() {
@@ -75,14 +78,26 @@ export function AboutDataPage() {
             </a>
           </li>
           <li>
-            ANR — données publiques,{" "}
+            NIH RePORTER — données fédérales américaines,{" "}
             <a
-              href="https://opendatacommons.org/licenses/odbl/1-0/"
+              href="https://reporter.nih.gov/faq"
               target="_blank"
               rel="noreferrer"
               className="underline underline-offset-2 hover:text-foreground"
             >
-              ODbL 1.0
+              domaine public
+            </a>{" "}
+            · montants convertis aux taux annuels BCE
+          </li>
+          <li>
+            GLEIF (identité des entités) et Wikidata (rattachements de groupes) —{" "}
+            <a
+              href="https://creativecommons.org/publicdomain/zero/1.0/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              CC0
             </a>
           </li>
         </ul>
