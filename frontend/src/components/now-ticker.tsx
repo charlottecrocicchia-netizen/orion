@@ -352,6 +352,7 @@ export function NowTicker() {
   const railRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const lastPointerMove = useRef(0);
+  const lastPointerPosition = useRef("");
   const elapsed = useRef(0);
   const skipSync = useRef(false);
   const settling = useRef<number | null>(null);
@@ -394,18 +395,31 @@ export function NowTicker() {
 
   // The carousel driver: one rAF for the switch AND the progress fill —
   // frozen together by real reader intent (recent pointer movement over
-  // the stage, or focus within), never by phantom hover.
+  // the stage, or KEYBOARD focus within), never by phantom hover. Click
+  // focus does not count: in Chrome a click on an arrow, a dot or the
+  // rail itself (tabIndex) parks focus in the section forever — that
+  // froze the bar mid-flight (recette 2026-08-03, third of the phantom
+  // family). Keyboard focus is :focus-visible; that one is real intent.
   useEffect(() => {
     if (stories.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let raf = 0;
     let last = performance.now();
+    const keyboardFocusWithin = () => {
+      const active = document.activeElement;
+      if (!rootRef.current || !(active instanceof HTMLElement)) return false;
+      if (!rootRef.current.contains(active)) return false;
+      try {
+        return active.matches(":focus-visible");
+      } catch {
+        return true;
+      }
+    };
     const step = (nowTs: number) => {
       const dt = Math.min(nowTs - last, 100);
       last = nowTs;
       const reading = Date.now() - lastPointerMove.current < 8_000;
-      const focusedWithin = rootRef.current?.contains(document.activeElement) ?? false;
-      if (!reading && !focusedWithin && !skipSync.current) elapsed.current += dt;
+      if (!reading && !keyboardFocusWithin() && !skipSync.current) elapsed.current += dt;
       if (elapsed.current >= ROTATE_MS) {
         elapsed.current = 0;
         setIndex((current) => (current + 1) % stories.length);
@@ -430,8 +444,15 @@ export function NowTicker() {
     <section
       ref={rootRef}
       aria-label={t("home.newsTitle")}
-      onPointerMove={() => {
-        lastPointerMove.current = Date.now();
+      onPointerMove={(event) => {
+        // Only a real hand counts: after a page scroll Chrome re-emits
+        // synthetic pointermoves at the SAME viewport coordinates to
+        // refresh hover — those must not stamp reading intent.
+        const position = `${event.clientX},${event.clientY}`;
+        if (position !== lastPointerPosition.current) {
+          lastPointerPosition.current = position;
+          lastPointerMove.current = Date.now();
+        }
       }}
       className="mt-20"
     >

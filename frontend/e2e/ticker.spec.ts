@@ -41,6 +41,33 @@ test("le fil avance tout seul, même sous un curseur parqué par le scroll", asy
     .not.toBe(first);
 });
 
+test("après un clic sur la flèche, le fil repart et défile indéfiniment", async ({ page }) => {
+  // The real usage that froze the bar (recette 2026-08-03): click an
+  // arrow — in Chrome the button keeps focus — then leave the page
+  // alone. Click focus must NOT hold the carousel; only keyboard focus
+  // is reading intent. Two consecutive auto-advances prove it rolls.
+  test.setTimeout(90_000);
+  await page.goto("/");
+  const band = page.locator("section[aria-label='Actualités']");
+  await page.evaluate(() =>
+    document.querySelector("section[aria-label='Actualités']")?.scrollIntoView({ block: "center" }),
+  );
+  const dotCount = await band.locator("[role='tab']").count();
+  if (dotCount < 2) test.skip(true, "seeded corpus produced fewer than two stories — nothing to rotate");
+  await band.getByRole("button", { name: "Actualité suivante" }).click();
+  const afterClick = await selectedDot(page)();
+  // First auto-advance: the click's real pointer move holds ~8 s, then
+  // the 3.8 s cadence runs — and the arrow button still holds focus.
+  await expect
+    .poll(selectedDot(page), { timeout: 25_000, intervals: [1000] })
+    .not.toBe(afterClick);
+  const afterFirst = await selectedDot(page)();
+  // Second auto-advance, cursor and keyboard untouched: still rolling.
+  await expect
+    .poll(selectedDot(page), { timeout: 15_000, intervals: [1000] })
+    .not.toBe(afterFirst);
+});
+
 test("le geste des decks marche sur le fil : un glissement horizontal change d'actualité", async ({
   page,
 }) => {
