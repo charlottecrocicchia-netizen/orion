@@ -178,6 +178,10 @@ export interface ProjectDetail {
   end_date: string | null;
   total_cost_eur: number | null;
   funding_amount_eur: number | null;
+  /** Native amount when the source did not pay in euros (convention ④). */
+  funding_amount_native: number | null;
+  funding_currency: string | null;
+  conversion: { rate: number; year: number; source: string } | null;
   url: string | null;
   funder: { code: string; name: string } | null;
   programme_chain: { id: number; code: string; label: string | null }[];

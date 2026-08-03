@@ -222,3 +222,38 @@ def test_one_participation_even_when_two_organisations_share_a_key(db_session, t
     ).scalar_one()
     assert count == 1
     db_session.execute(text("DROP TABLE IF EXISTS nih_awards"))
+
+
+def test_project_detail_never_shows_a_mute_converted_euro(db_session, tmp_path):
+    """Convention ④: a euro converted from another currency travels with
+    its native amount and the dated ECB rate — the API must carry them."""
+    from orion.api.projects import project_detail
+
+    funder = db_session.execute(text("SELECT id FROM funders WHERE code = 'nih'")).scalar_one()
+    db_session.execute(
+        text("""
+        INSERT INTO exchange_rates (currency, year, rate_to_eur, source)
+        VALUES ('USD', 2019, 1.25, 'ecb') ON CONFLICT DO NOTHING
+        """)
+    )
+    path = _zip_csv(
+        tmp_path / "one.zip",
+        PROJECT_COLUMNS,
+        [_award("31", "R01CA777001", "2021", "1000000")],
+    )
+    stats = RunStats()
+    db_session.execute(text("DROP TABLE IF EXISTS nih_awards"))
+    db_session.execute(text(load.STAGING_DDL))
+    load.stage_year(db_session, path, stats)
+    load._seed_programmes(db_session, funder, stats)
+    load._fold_projects(db_session, funder, stats)
+    project_id = db_session.execute(
+        text("SELECT id FROM projects WHERE source = 'nih' AND source_id = 'R01CA777001'")
+    ).scalar_one()
+
+    payload = project_detail(project_id, db_session)
+    assert payload["funding_amount_eur"] == pytest.approx(800_000)
+    assert payload["funding_amount_native"] == pytest.approx(1_000_000)
+    assert payload["funding_currency"] == "USD"
+    assert payload["conversion"] == {"rate": 1.25, "year": 2019, "source": "ecb"}
+    db_session.execute(text("DROP TABLE IF EXISTS nih_awards"))

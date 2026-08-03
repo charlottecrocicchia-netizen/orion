@@ -84,6 +84,21 @@ export function ProjectDetailPage() {
         <KpiStatic
           value={formatCompactEur(data.funding_amount_eur, i18n.language)}
           label={t("project.funding")}
+          // Convention ④ (sources registry): a converted euro never
+          // travels mute — the native award and its dated rate show.
+          note={
+            data.funding_amount_native != null && data.funding_currency && data.conversion
+              ? t("project.converted", {
+                  amount: new Intl.NumberFormat(i18n.language, {
+                    style: "currency",
+                    currency: data.funding_currency,
+                    maximumFractionDigits: 0,
+                    notation: "compact",
+                  }).format(data.funding_amount_native),
+                  year: data.conversion.year,
+                })
+              : undefined
+          }
         />
         <KpiStatic
           value={formatCompactEur(data.total_cost_eur, i18n.language)}

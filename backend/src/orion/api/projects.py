@@ -78,6 +78,23 @@ def project_detail(project_id: int, db: Annotated[Session, Depends(get_db)]) -> 
         "funding_amount_eur": float(project.funding_amount_eur)
         if project.funding_amount_eur is not None
         else None,
+        # Convention ④ of the sources registry: a converted euro NEVER
+        # travels mute. When the source paid in another currency, the
+        # native amount and the dated ECB rate ride along so the reader
+        # sees what was actually awarded and how we turned it into euros.
+        "funding_amount_native": float(project.funding_amount)
+        if project.funding_amount is not None and project.funding_currency not in (None, "EUR")
+        else None,
+        "funding_currency": project.funding_currency
+        if project.funding_currency not in (None, "EUR")
+        else None,
+        "conversion": {
+            "rate": float(raw["eur_rate"]),
+            "year": int(raw["eur_rate_year"]),
+            "source": "ecb",
+        }
+        if (raw := project.raw or {}).get("eur_rate") and raw.get("eur_rate_year")
+        else None,
         "url": project.url,
         "funder": {"code": funder.code, "name": funder.name} if funder else None,
         "programme_chain": programme_chain,

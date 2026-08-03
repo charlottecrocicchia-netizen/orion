@@ -38,11 +38,21 @@ export function Kpi({ value, label, kind = "int", hero = false, progress }: KpiP
   );
 }
 
-export function KpiStatic({ value, label }: { value: string; label: string }) {
+export function KpiStatic({
+  value,
+  label,
+  note,
+}: {
+  value: string;
+  label: string;
+  /** One quiet line under the label — a conversion, a caveat. */
+  note?: string;
+}) {
   return (
     <div>
       <div className="display-tight tnum text-[28px] font-semibold">{value}</div>
       <div className="mt-0.5 text-[13px] text-muted-foreground">{label}</div>
+      {note ? <div className="tnum mt-0.5 text-[11.5px] text-muted-foreground">{note}</div> : null}
     </div>
   );
 }
