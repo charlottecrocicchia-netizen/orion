@@ -44,6 +44,41 @@ Options soumises à la fondatrice : (a) ne pas ingérer l'ADEME et viser plutôt
 
 La base publique des projets LIFE existe (`https://webgate.ec.europa.eu/life/publicWebsite/search`) mais est un moteur de recherche web : aucun export CSV/Excel ni API documentée n'a été trouvé le 2026-07-31. **Décision : reporté, ne bloque pas la v0.1.0 ; piste privilégiée pour plus tard : récupération via OpenAIRE** (qui agrège les projets LIFE), sinon l'API interne du moteur de recherche si ses conditions l'autorisent.
 
+## ⚙️ CONVENTION TRANSVERSE — montants pluriannuels et devises
+
+**Décision fondatrice du 2026-08-03, applicable à TOUTE source qui
+publie l'argent par tranche annuelle** (NIH d'abord, puis NSF, UKRI,
+SNSF, NWO, Vinnova… — la règle s'écrit une fois et ne se rediscute
+plus à chaque chargeur).
+
+**① Une tranche annuelle n'est pas un projet.** Une source qui verse
+l'argent par année fiscale (un même financement reconduit chaque année)
+donne **un seul projet Orion**, identifié par son **numéro de cœur**
+(NIH : `CORE_PROJECT_NUM` ; les autres sources déclareront leur clé
+équivalente au moment de leur instruction). Les tranches sont agrégées,
+jamais listées comme des projets distincts.
+
+**② Le montant du projet est la somme de ses tranches.**
+`funding_amount = Σ (montants annuels du cœur)`. Les **sous-projets sont
+repliés sur leur cœur** — jamais comptés deux fois.
+
+**③ L'axe du temps reste la date calendaire.** Le produit range les
+projets par leur **date de début réelle** (`start_date`), jamais par
+année fiscale : une année fiscale US (oct→sept) ou britannique
+(avr→mars) ne se compare pas à une année civile européenne. Le détail
+par année fiscale est conservé dans `raw` (JSONB) pour l'audit et les
+vues futures.
+
+**④ La devise d'origine est conservée, la conversion est datée.**
+`funding_amount`/`funding_currency` gardent la valeur native ;
+`funding_amount_eur` est calculé au **taux moyen annuel BCE de l'année
+de début du projet** (table `exchange_rates`, source `ecb`, chargeur
+`orion-ingest rates`). Le produit dit toujours qu'il s'agit d'une
+conversion et à quel taux — jamais un euro muet.
+
+**⑤ Le périmètre annoncé est le périmètre chargé.** Chaque source dit
+sa fenêtre (NIH : FY2005+) et la volumétrie constatée ci-dessous.
+
 ## Couche identité — métriques du premier run réel (2026-08-03)
 
 Socle de la vague 1 ([instruction](vague-1-instruction.md), cahier des

@@ -199,6 +199,16 @@ FUNDERS = [
         "country_code": "FR",
         "default_currency": "EUR",
     },
+    {
+        # Wave 1, step 1. RePORTER also carries the other HHS agencies and
+        # the VA — the funder stays "NIH RePORTER" and the awarding
+        # institute is the programme, so the reader always sees who paid.
+        "code": "nih",
+        "name": "National Institutes of Health (RePORTER)",
+        "jurisdiction": "US",
+        "country_code": "US",
+        "default_currency": "USD",
+    },
 ]
 
 _KNOWN_CODES: set[str] | None = None
