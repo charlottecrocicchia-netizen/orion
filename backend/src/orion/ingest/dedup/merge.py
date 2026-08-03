@@ -284,16 +284,24 @@ def measure(session: Session, stats: RunStats) -> None:
     stats.add("projects_with_repeated_organisation", doubled or 0)
 
 
+# Every materialised aggregate the product reads. They are refreshed
+# together, at the end of the ingestion chain, so a loader can never
+# forget one: adding a view here is the whole wiring (chantier
+# performance, O2 — an aggregate that lies is worse than a slow one).
+MATERIALIZED_VIEWS = ("organisation_stats", "country_stats", "country_pair_stats")
+
+
 def refresh_organisation_stats() -> None:
-    """Rebuild the materialized organisation aggregates.
+    """Rebuild the materialized aggregates.
 
     CONCURRENTLY cannot run inside a transaction, hence the autocommit
-    connection; it keeps reads unblocked while the view rebuilds.
+    connection; it keeps reads unblocked while the views rebuild.
     """
     from orion.core.db import engine
 
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
-        conn.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY organisation_stats"))
+        for view in MATERIALIZED_VIEWS:
+            conn.execute(text(f"REFRESH MATERIALIZED VIEW CONCURRENTLY {view}"))
 
 
 def run(force: bool = False) -> dict[str, int]:

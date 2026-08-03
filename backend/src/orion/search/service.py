@@ -303,7 +303,13 @@ def search_projects(session: Session, f: ProjectFilters) -> dict[str, Any]:
 
     if scoped:
         total = session.execute(text("SELECT count(*) FROM _orion_scope")).scalar_one()
-        facets = _project_facets(session, params, to_root, roots)
+        # A filter on ONE country and nothing else is a shape the corpus
+        # already knows by heart (country_pair_stats) — the facet is read,
+        # not recomputed over every participation of the scope.
+        lone_country = (
+            f.countries[0] if len(f.countries) == 1 and not f.q and not _other_filters(f) else None
+        )
+        facets = _project_facets(session, params, to_root, roots, lone_country=lone_country)
     else:
         total = _cached(
             session,
@@ -392,11 +398,24 @@ def _default_facets(
     return _project_facets(session, {}, to_root, roots)
 
 
+def _other_filters(f: ProjectFilters) -> bool:
+    """Any filter besides the country list."""
+    return bool(
+        f.funders
+        or f.programmes
+        or f.year_from is not None
+        or f.year_to is not None
+        or f.amount_min is not None
+        or f.amount_max is not None
+    )
+
+
 def _project_facets(
     session: Session,
     params: dict[str, Any],
     to_root: dict[int, int],
     roots: dict[int, dict[str, Any]],
+    lone_country: str | None = None,
 ) -> dict[str, Any]:
     """Funders, programmes and years in ONE pass over the scope.
 
@@ -448,17 +467,29 @@ def _project_facets(
 
     # The country facet is the one that still needs participations — it
     # joins the scope directly instead of re-deriving it from projects.
-    countries = session.execute(
-        text("""
-        SELECT country_code, count(*) AS n
-        FROM (
-            SELECT DISTINCT pa.country_code, pa.project_id
-            FROM participations pa JOIN _orion_scope s ON s.project_id = pa.project_id
-            WHERE pa.country_code IS NOT NULL
-        ) distinct_pairs
-        GROUP BY country_code ORDER BY n DESC LIMIT 12
-        """)
-    ).all()
+    if lone_country is not None:
+        countries = session.execute(
+            text("""
+            SELECT b AS country_code, projects AS n FROM country_pair_stats
+            WHERE a = :code
+            UNION ALL
+            SELECT :code, projects_count FROM country_stats WHERE code = :code
+            ORDER BY n DESC LIMIT 12
+            """),
+            {"code": lone_country},
+        ).all()
+    else:
+        countries = session.execute(
+            text("""
+            SELECT country_code, count(*) AS n
+            FROM (
+                SELECT DISTINCT pa.country_code, pa.project_id
+                FROM participations pa JOIN _orion_scope s ON s.project_id = pa.project_id
+                WHERE pa.country_code IS NOT NULL
+            ) distinct_pairs
+            GROUP BY country_code ORDER BY n DESC LIMIT 12
+            """)
+        ).all()
 
     return {
         "funders": [{"code": c, "label": n, "count": cnt} for c, n, cnt in funders],

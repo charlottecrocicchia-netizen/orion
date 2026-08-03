@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T18:16:33+00:00",
+  "base": "http://localhost:8000",
+  "passes": 5,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 203.3,
+      "worst_ms": 223.8,
+      "samples": 5
+    },
+    "search_warm_term": {
+      "median_ms": 88.8,
+      "worst_ms": 98.5,
+      "samples": 5
+    },
+    "filter_country": {
+      "median_ms": 277.9,
+      "worst_ms": 858.6,
+      "samples": 5
+    },
+    "countries_index": {
+      "median_ms": 3.6,
+      "worst_ms": 19.9,
+      "samples": 5
+    },
+    "organisation_detail": {
+      "median_ms": 9.4,
+      "worst_ms": 802.0,
+      "samples": 5
+    },
+    "organisation_partners": {
+      "median_ms": 4.3,
+      "worst_ms": 9.5,
+      "samples": 5
+    }
+  },
+  "label": "O2 complet \u00b7 pays mat\u00e9rialis\u00e9s"
+}

@@ -51,14 +51,15 @@ def global_stats(session: Session) -> dict[str, Any]:
 
 def countries_index(session: Session) -> list[dict[str, Any]]:
     def build() -> list[dict[str, Any]]:
+        # Read from the materialised view (O2): the aggregate over 842 k
+        # participations is computed by the ingestion chain, not by the
+        # visitor who happens to open the map first.
         rows = session.execute(
             text("""
-            SELECT pa.country_code AS code, c.name_en, c.eu_member,
-                   count(DISTINCT pa.project_id) AS projects,
-                   sum(pa.amount_eur) AS funding
-            FROM participations pa JOIN countries c ON c.code = pa.country_code
-            GROUP BY pa.country_code, c.name_en, c.eu_member
-            ORDER BY funding DESC NULLS LAST
+            SELECT code, name_en, eu_member, projects_count AS projects,
+                   funding_eur AS funding
+            FROM country_stats
+            ORDER BY funding_eur DESC NULLS LAST
             """)
         ).all()
         return [

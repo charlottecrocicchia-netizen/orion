@@ -1,5 +1,5 @@
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from orion.core.db import engine
@@ -112,6 +112,11 @@ def seeded(db_session):
         ]
     )
     db_session.flush()
+    # The country facet of a lone-country filter reads the materialised
+    # pairs (chantier performance, O2): a fixture that inserts data must
+    # refresh them, exactly as the ingestion chain does in production.
+    db_session.execute(text("REFRESH MATERIALIZED VIEW country_stats"))
+    db_session.execute(text("REFRESH MATERIALIZED VIEW country_pair_stats"))
     return {"hydro": hydro.id, "wind": wind.id, "org_fr": org_fr.id}
 
 

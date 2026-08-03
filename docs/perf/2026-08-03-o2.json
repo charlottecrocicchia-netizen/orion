@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T18:12:35+00:00",
+  "base": "http://localhost:8000",
+  "passes": 5,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 200.7,
+      "worst_ms": 227.5,
+      "samples": 5
+    },
+    "search_warm_term": {
+      "median_ms": 83.7,
+      "worst_ms": 93.9,
+      "samples": 5
+    },
+    "filter_country": {
+      "median_ms": 486.2,
+      "worst_ms": 1176.8,
+      "samples": 5
+    },
+    "countries_index": {
+      "median_ms": 3.9,
+      "worst_ms": 19.8,
+      "samples": 5
+    },
+    "organisation_detail": {
+      "median_ms": 9.7,
+      "worst_ms": 789.2,
+      "samples": 5
+    },
+    "organisation_partners": {
+      "median_ms": 4.5,
+      "worst_ms": 9.4,
+      "samples": 5
+    }
+  },
+  "label": "O2 \u00b7 country_stats mat\u00e9rialis\u00e9"
+}
