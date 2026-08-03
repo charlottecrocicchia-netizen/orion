@@ -10,6 +10,7 @@ Registre vivant : chaque source publique ingérée par Orion, avec sa juridictio
 | ADEME (`ademe`) | FR | EUR | Licence Ouverte 2.0 (vérifiée le 2026-07-31) | — | **Décision fondatrice du 2026-07-31 : non ingérée** (source hors sujet, voir ci-dessous) ; **France 2030** sera visé plus tard comme source française de R&D industrielle |
 | LIFE (`life`) | UE | EUR | à confirmer sur l'export retenu | — | **Décision fondatrice du 2026-07-31 : reporté**, ne bloque pas la v0.1.0 ; piste de récupération future via **OpenAIRE** |
 | NIH RePORTER (`nih`) | US | USD → EUR (taux BCE datés) | **Domaine public** (données fédérales US) — vérifiée le 2026-08-03 sur reporter.nih.gov | annuelle par exercice (bulk par FY ; **FY2026 pas encore publié** — fenêtre réelle FY2005-2025) | **380 275 projets**, 379 346 participations, 358 911 résumés indexés, 77 instituts en programmes, 1 722 398 tranches annuelles repliées (2026-08-03) — voir les deux réserves ci-dessous |
+| NSF (`nsf`) | US | USD → EUR (taux BCE datés) | **Domaine public** (données fédérales US) — vérifiée le 2026-08-03 sur nsf.gov/policies/digital ; le PAPPG fait du résumé, avec son titre, **un document de la NSF**. Mention affichée : « Courtesy: U.S. National Science Foundation » | annuelle par exercice (catalogue `list-files`, FY2005-2026) | **235 071 projets**, 259 788 financements lus, 259 788 participations, 232 929 résumés indexés, 72 divisions en programmes, **118,8 Md€** (2026-08-03) — dont **17 523 projets reconstitués** par l'extension fratries |
 | Taux de change BCE (`ecb`) | — | — | Réutilisation libre avec attribution — vérifiée le 2026-08-03 | annuelle | 198 taux moyens annuels, 9 devises (USD/GBP/CHF/SEK/NOK/DKK/CAD/JPY/AUD) |
 | GLEIF Golden Copy (`gleif`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 sur gleif.org (« even for commercial purposes ») | quotidienne (publishes/latest, rejouée par le scheduler hebdo) | 3 391 838 LEI en miroir, 258 260 liens de consolidation ACTIVE (fonds exclus), exceptions filtrées aux LEI pontés : 17 208 (2026-08-03) |
 | Wikidata parents (`wikidata`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 | mensuelle visée (rejouée par le scheduler hebdo) | 3 098 paires parent P749 entre porteurs de LEI bien formés (garde ISO 17442 : quelques P1278 sales rejetés) |
@@ -61,6 +62,10 @@ chargeur pour une source bannie serait un piège.
 **Corpus après retrait : 464 727 projets, 96 670 organisations,
 842 493 participations, 615,7 Md€** (contre 499 447 / 119 952 /
 960 352 / 650,4 Md€ avant).
+
+**Corpus après l'arrivée de la NSF (2026-08-03) : 699 798 projets,
+110 117 organisations, 1 102 259 participations, 676 016 textes,
+734,5 Md€.**
 
 ## ⚠️ ADEME : la source ouverte ne correspond pas au produit (décision requise)
 
@@ -131,6 +136,53 @@ conversion et à quel taux — jamais un euro muet.
 
 **⑤ Le périmètre annoncé est le périmètre chargé.** Chaque source dit
 sa fenêtre (NIH : FY2005+) et la volumétrie constatée ci-dessous.
+
+### Extension nommée — « fratries NSF » (validée le 2026-08-03)
+
+La convention ci-dessus replie **les années**. Cette extension replie
+**les partenaires**, et elle ne vaut que pour les sources qui découpent
+un même projet en plusieurs financements, un par établissement. Elle
+s'ajoute à la convention, elle ne la modifie pas.
+
+**Le fait.** La NSF ne finance qu'un établissement par financement. Un
+projet mené par six universités donne **six financements distincts**,
+tous intitulés `Collaborative Research: <même titre>`. Laissés tels
+quels : six projets, aucune collaboration visible — le défaut déjà
+constaté sur NIH, en pire.
+
+**La règle.** Les financements d'une même fratrie deviennent **un seul
+projet portant une participation par établissement**, si et seulement si
+**les quatre gardes** tiennent :
+
+1. le **préfixe explicite** publié par la source (`Collaborative
+   Research:` ou `Collaborative Proposal:`) — sans lui, des titres
+   identiques sont des parapluies de bourses, et 152 financements
+   partagent le titre « NSF East Asia Summer Institutes » ;
+2. la **même année fiscale** — un même titre revient d'une génération à
+   l'autre (« Astronomy with CARMA » existe en 2009 et en 2012 : deux
+   projets, jamais un) ;
+3. le **titre normalisé identique** une fois le préfixe retiré ;
+4. des **établissements tous distincts et tous nommés** — mesurés sur la
+   clé exacte qui sert à rattacher la participation, sinon un même
+   établissement compterait deux fois dans un seul projet.
+
+Un cinquième filet écarte les fratries dont les dates de début
+s'écartent de plus d'un an (maximum constaté : 319 jours). **Tout ce que
+les gardes refusent reste un projet à part, et le nombre de refus est
+journalisé** — jamais masqué.
+
+**Ce qui n'est pas inventé.** La NSF ne publie pas quel membre pilote :
+tous les membres d'une fratrie sont donc marqués **`partenaire`**, aucun
+`coordinateur`. Un financement seul, lui, a un bénéficiaire unique et
+reste `coordinateur`. Les identifiants de tous les membres sont
+conservés dans `raw`, et le projet porte un marqueur `collaborative`.
+
+**Résultat constaté au chargement réel (2026-08-03)** : sur 259 788
+financements, **42 240 se replient en 17 523 projets** (−24 717), et
+**42 fratries sont refusées** par les gardes. Les 42 240 participations
+qui en résultent sont les **premières participations « partenaire »
+américaines d'Orion** — jusque-là, les États-Unis n'avaient que des
+bénéficiaires isolés.
 
 ## ⚠️ NIH — deux réserves d'honnêteté (constatées au run du 2026-08-03)
 
@@ -207,6 +259,83 @@ plus l'infrastructure mais le **calcul des facettes sur des ensembles de
 correspondances énormes**. À instruire comme un chantier propre — pas à
 bricoler en fin de chargement.
 
+## ⚠️ NSF — les réserves d'honnêteté (constatées au run du 2026-08-03)
+
+Comme pour NIH, ce sont des **propriétés de la source**, dites plutôt
+que masquées.
+
+**① La route documentée par la NSF est morte.** Sa page de
+téléchargement et son ancien point d'entrée redirigent vers la nouvelle
+application de recherche, et **l'inventaire de données publiques de la
+NSF pointe encore vers cette URL morte**. Orion passe par le catalogue
+de l'application (`api.nsf.gov/services/v2/s3/list-files`) et **résout
+les liens signés à chaque run**. Conséquence à surveiller : cette route
+n'est pas contractuelle ; si elle bouge, le chargeur échoue bruyamment
+(chaque année manquante est comptée, et **le nettoyage des projets
+disparus est alors désactivé** — une année absente ne doit jamais
+effacer sa moisson).
+
+**② Aucun projet sans date** (0 sur 235 071 — la NSF publie toujours la
+date d'effet), mais **4 412 projets sans montant en euros** (1,9 %) :
+ceux qui démarrent en 2026, dont le taux BCE annuel n'existe pas encore,
+et ceux dont le versé est nul. Aucun euro inventé.
+
+**③ Une seule organisation par financement, comme NIH.** Hors fratries,
+un financement NSF n'a qu'un bénéficiaire : les 42 240 participations
+« partenaire » de l'extension sont donc **toute** la collaboration
+américaine visible. Les 217 548 autres restent des bénéficiaires isolés.
+
+**④ Trois UEI malformés refusés** et **un seul libellé de pays non
+résolu** : « Australasia », qui est une région, pas un pays — il reste
+sans code plutôt que d'être deviné. (« Germany, Berlin » l'était aussi
+au premier run ; le référentiel lit désormais le nom avant la virgule.)
+Une douzaine d'organisations NSF restent sans pays.
+
+### 📉 NSF — la ligne de perfs constatées (règle du 2026-08-03)
+
+Mesuré sur la prod locale (8 Go de VM, 4 Go de cache PostgreSQL), même
+protocole des deux côtés : **chauffe avec un jeu de termes → API
+redémarrée (vide le cache applicatif) → mesure avec les mêmes termes**.
+Corpus 464 727 → **699 798 projets (+51 %)**, base 4,4 → **5,7 Go**.
+
+| Parcours | Avant NSF | Après NSF | Budget |
+| --- | --- | --- | --- |
+| Recherche terme neuf | 400 ms | **3 412 ms** | 1 500 ❌ |
+| Recherche cache chaud | 449 ms | **2 319 ms** | 300 ❌ |
+| Filtre pays | 234 ms | **1 341 ms** | 300 ❌ |
+| Index des pays (la carte) | 4,6 ms | **19 ms** | 300 ✅ |
+| Fiche organisation | 7,9 ms | **50 ms** | 300 ✅ |
+| Partenaires d'une organisation | 5,1 ms | **12,7 ms** | 300 ✅ |
+
+**Le verdict, sans habillage : le budget de 300 ms est rompu sur la
+recherche et le filtre pays.** +51 % de corpus a multiplié la recherche
+par 8,5 et le filtre pays par 5,7 — une pente bien pire que
+proportionnelle, exactement ce que la preuve d'échelle du chantier
+performance annonçait : **c'est la mémoire qui gouverne**, pas
+l'algorithmique. Le premier visiteur après un chargement paie encore plus
+cher : 22 secondes en médiane, 60 au pire, cache entièrement froid.
+
+**Ce qui tient, et ce que ça prouve** : les agrégats matérialisés
+encaissent le +51 % sans broncher (carte 4,6 → 19 ms, soit 6 % de son
+budget). O2 est validé une seconde fois. Ce qui décroche est exactement
+ce qui doit lire la matière chaude : le texte intégral et ses index.
+
+**La conséquence est budgétaire, pas logicielle.** La règle de
+dimensionnement écrite à la clôture du chantier performance — 8 Go
+aujourd'hui, 16 Go au doublement, 24-32 Go pour le corpus de fin de
+vague 1 — **n'est plus une prévision : elle est atteinte**. À 700 000
+projets pour 5,7 Go de base, 4 Go de cache ne suffisent plus. Aucune
+réécriture de requête ne remplacera cette RAM ; le chantier performance
+l'a mesuré des deux côtés, et NSF vient de le confirmer en vraie
+grandeur.
+
+**⑤ La NSF entre directement dans « les plus gros projets ».** Sa
+« Leadership Class Computing Facility » (347 M€, 2024) devient le
+deuxième plus gros projet récent du corpus, derrière un pilote européen
+et devant les partenariats européens. Ce ne sont **pas** des parapluies
+au sens NIH : ce sont de vraies infrastructures. La une change, et c'est
+juste.
+
 ## Couche identité — métriques du premier run réel (2026-08-03)
 
 Socle de la vague 1 ([instruction](vague-1-instruction.md), cahier des
@@ -221,6 +350,14 @@ charges [groupes-couche.md](groupes-couche.md)) :
   BASF 13, ABB 13 — et **Safran** avec Goodrich Actuation et Crompton
   Technology, des acquisitions que le nom seul n'aurait jamais
   rattachées ;
+- **pont américain ouvert par la NSF (2026-08-03)** : 7 495
+  organisations reçoivent leur **UEI**, et **804 liens filiale → maison
+  mère** (`uei_links`) entrent en base — une consolidation que GLEIF ne
+  voit pas sur l'académique américain. Captés le jour où la donnée
+  passe, **non encore câblés** aux appartenances : c'est le travail de
+  la vague groupes suivante. Garde de forme comme pour les LEI : un UEI
+  fait douze caractères alphanumériques, **3 valeurs malformées ont été
+  refusées et comptées** plutôt qu'élargies dans la colonne ;
 - découverte d'instruction : **l'ANR ne publie pas de SIREN** (seulement
   RNSR) — le pont SIREN↔LEI est capté côté GLEIF (`ra_id` verbatim),
   prêt à s'allumer avec une source française qui en portera ;
@@ -264,7 +401,12 @@ Les fichiers « partenaires » de l'ANR contiennent des **données personnelles*
 
 > Contains European Union public data: CORDIS — EU research projects (Horizon Europe, H2020, FP7), © European Union, reused under CC BY 4.0.
 
-(Les mentions ANR/ADEME/LIFE seront ajoutées avec leur ingestion.)
+> Contains data from NIH RePORTER (U.S. Department of Health and Human Services), public domain.
+
+> Courtesy: U.S. National Science Foundation — award data, public domain.
+
+Les montants en euros portent toujours la mention de leur conversion
+(taux moyens annuels BCE de l'année de début).
 
 ## Notes de qualité constatées (2026-07-31)
 

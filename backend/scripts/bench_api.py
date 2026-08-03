@@ -6,11 +6,24 @@ gesture), the same term again (application cache warm), and a filter
 path with no term at all. Output is JSON, dated, meant to be committed
 under docs/perf/ so every before/after is on the record.
 
-PROTOCOL — read before comparing two runs. The application cache lives
-in the API process and survives between bench runs: a "fresh term" is
-only fresh the FIRST time it is asked. Restart the API before every
-reference measurement, or the fresh-term figure silently becomes a
-warm-cache figure (learned the hard way, 2026-08-03).
+PROTOCOL — read before comparing two runs. TWO caches lie in wait.
+
+1. The APPLICATION cache lives in the API process and survives between
+   bench runs: a "fresh term" is only fresh the FIRST time it is asked.
+   Restart the API before every reference measurement, or the
+   fresh-term figure silently becomes a warm-cache figure (learned the
+   hard way, 2026-08-03).
+
+2. The DATABASE cache is not yours to control and it dominates. The
+   same corpus measured on a machine whose page cache has just been
+   flushed gives a fresh-term WORST of 75 seconds against 3 seconds on
+   a warm one (measured 2026-08-04, before/after NSF). A before/after
+   pair is only comparable if both sides are warmed the same way.
+
+   The pair protocol, used for every source's registry line since NSF:
+       warm:    bench --seed S             (discard)
+       restart: docker compose restart api (clears the app cache only)
+       measure: bench --seed S --json …    (same terms, DB warm)
 
 Usage:
     uv run python scripts/bench_api.py                  # human table

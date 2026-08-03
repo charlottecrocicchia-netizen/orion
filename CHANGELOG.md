@@ -58,6 +58,50 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- Vague 1, étape 2 — **NSF is loaded** (235 071 projects, 259 788
+  participations, 232 929 abstracts indexed, 72 divisions as
+  programmes, €118.8B; FY2005-2026). Instruction on the source rather
+  than on documentation, and it paid: NSF's own published download page
+  is DEAD — it redirects to the search application, and NSF's public
+  data inventory still points at that dead URL. The live road is the
+  application's catalogue, with presigned links resolved at every run;
+  the format left XML for JSON in January 2025. The amount is the
+  OBLIGATED figure, not the intention: the intention is missing on 40 %
+  of FY2005 awards and inverts against the obligated one between
+  generations.
+- **The sibling fold — Orion's first visible American collaboration.**
+  NSF splits one project across N institutions into N awards titled
+  `Collaborative Research: <same title>`. Under four measured guards
+  (the explicit prefix, the same fiscal year, an identical normalised
+  title, institutions all distinct and named — plus a spread net at one
+  year), **42 240 awards fold into 17 523 projects** and become 42 240
+  `partner` participations. 42 groups are refused and journalled. No
+  lead is invented: NSF does not publish one, so no sibling is a
+  coordinator. Written to the registry as a NAMED extension of the
+  transverse convention — it folds partners where the convention folds
+  years.
+- **The American identity bridge**: 7 495 organisations gain their UEI
+  and 804 parent-UEI links land in a new `uei_links` table — a
+  consolidation GLEIF cannot see for US academia. Captured the day the
+  data passes through (the ANR lesson), wired into memberships by the
+  next groups wave. Shape-guarded like the LEIs: 3 malformed values
+  refused and counted rather than widened into the column.
+- Real-run findings folded back in: a window function was dragging every
+  abstract through its sort (five minutes), and the abstract was written
+  three times instead of once — both fixed, and the loader now says how
+  many countries it could not resolve, how many fold groups it refused,
+  and skips pruning entirely after an incomplete download.
+- **NSF's measured latency line, and it is not good** (the registry rule
+  since this wave). Corpus 464 727 → 699 798 projects (+51 %), same
+  before/after protocol: search on a fresh term 400 → 3 412 ms, warm
+  search 449 → 2 319 ms, country filter 234 → 1 341 ms — the 300 ms
+  budget is BROKEN on both search paths. The materialised aggregates
+  hold the growth without flinching (map 4.6 → 19 ms), which validates
+  O2 a second time. The cause is the one the scale proof named: memory
+  governs. The sizing rule written at the chantier's close is no longer
+  a forecast — 700 000 projects and a 5.7 GB database do not fit in 4 GB
+  of cache. No query rewrite replaces that RAM.
+
 - Vague 1, étape 1 — NIH RePORTER is loaded (380 275 projects, 379 346
   participations, 358 911 abstracts indexed, 77 institutes as
   programmes, 1 722 398 yearly slices folded; FY2005-2025, FY2026 not

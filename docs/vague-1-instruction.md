@@ -68,14 +68,37 @@ l'instruction initiale ; le tableau récapitulatif porte l'ordre validé.
 - **Estimation : ~1 semaine.** Volumétrie attendue : centaines de
   milliers de projets (à constater).
 
-### 2. NSF — États-Unis, science
+### 2. NSF — États-Unis, science — **CHARGÉE le 2026-08-03**
 
-- **Plan** : téléchargements XML par année + API awards ; montants
-  « intended total » ; USD.
-- **Pièges** : XML par année (chargeur par lots) ; montants intentions
-  vs versés (choisir et DIRE lequel) ; identité org moins outillée
-  (noms + UEI récents seulement).
-- **Estimation : ~1 semaine.**
+Instruction validée intégralement par la fondatrice (six choix + les
+ponts UEI). Ce que l'instruction sur pièces a corrigé du plan initial :
+
+- **La route documentée est morte.** `nsf.gov/awardsearch/download.jsp`
+  et l'ancien `download?DownloadFileName=YYYY` redirigent vers la
+  nouvelle application de recherche, et **l'inventaire de données
+  publiques de la NSF pointe encore vers cette URL morte**. La route
+  vivante est le catalogue de l'application :
+  `api.nsf.gov/services/v2/s3/list-files`, un zip par année fiscale avec
+  lien S3 signé — **résolu à chaque run, jamais en dur**. L'API de
+  recherche classique plafonne à 3 000 résultats : secours, pas route.
+- **Le format n'est plus XML mais JSON** (bascule NSF de janvier 2025),
+  un fichier par financement dans le zip de l'année.
+- **Le montant est le VERSÉ (`awd_amount`), pas l'intention.** L'intention
+  est absente sur 40 % des financements de FY2005 et s'inverse contre le
+  versé d'une génération à l'autre (FY2024 : 8,01 vs 6,99 Md$ ; FY2005 :
+  2,70 vs 5,04 Md$). Le versé égale la somme des tranches annuelles sur
+  95 % des cas.
+- **Piège non anticipé, devenu le gain principal** : un projet mené par
+  N établissements donne N financements séparés (25,8 % des
+  financements FY2024). D'où l'**extension nommée « fratries NSF »** au
+  [registre](data-sources.md) — quatre gardes mesurées, et **la première
+  collaboration américaine visible dans Orion**.
+- **Piège confirmé** : `perf_ctry_code` n'est pas ISO (DA = Danemark,
+  SP = Espagne, JA = Japon, UK au lieu de GB) — le pays vient du **nom**
+  d'établissement, jamais du code.
+- **Gain d'identité** : la NSF publie l'UEI **et l'UEI parent** (24 % des
+  financements FY2024 portent un parent différent) — capté en table
+  `uei_links`, câblé à la vague groupes.
 
 ### 3. SBIR/STTR — États-Unis, petites entreprises innovantes
 
@@ -162,7 +185,7 @@ chargement**, c'est la procédure :
 | Source | Licence attendue | Verdict |
 | --- | --- | --- |
 | **NIH RePORTER** (chargé) | Domaine public — données fédérales US | ✅ **passe** (vérifiée le 2026-08-03) |
-| **NSF** | Domaine public — données fédérales US | ✅ passe |
+| **NSF** (chargée) | Domaine public — données fédérales US | ✅ **passe** (vérifiée le 2026-08-03 sur nsf.gov/policies/digital : textes non soumis au droit d'auteur, copie libre, crédit « Courtesy: U.S. National Science Foundation » ; le PAPPG fait du résumé de financement **un document de la NSF**, pas une œuvre du chercheur. Réserve sans effet pour nous : les **images** NSF exigent une autorisation — Orion n'en prend aucune) |
 | **SBIR/STTR** | Domaine public — données fédérales US | ✅ passe |
 | **USAspending** | Domaine public — données fédérales US | ✅ passe |
 | **UKRI Gateway to Research** | **OGL v3.0** (Open Government Licence) — commerciale explicite | ✅ passe |
@@ -201,7 +224,7 @@ exclusion — sans arbitrage, sans étude, sans exception.
 | Étape | Contenu | Estimation |
 | --- | --- | --- |
 | 0 | Socle identité (groupes + GLEIF + Wikidata + ponts) — **livré le 2026-08-03** (métriques réelles au [registre](data-sources.md) ; reste de l'étape : la curation top groupes, en continu) | ~2 sem |
-| 1-2 | NIH puis NSF (+ transverse devises/fiscal) | ~2,5 sem |
+| 1-2 | NIH puis NSF (+ transverse devises/fiscal) — **livrés le 2026-08-03** (métriques réelles au [registre](data-sources.md)) | ~2,5 sem |
 | 3 | UKRI | ~1 sem |
 | 4-6 | SNSF, NWO, Vinnova | ~1,5-2 sem |
 | 7 | SBIR | ~0,5-1 sem |

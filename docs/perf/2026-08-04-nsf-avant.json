@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T22:10:34+00:00",
+  "base": "http://localhost:8080",
+  "passes": 5,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 400.1,
+      "worst_ms": 3337.3,
+      "samples": 5
+    },
+    "search_warm_term": {
+      "median_ms": 449.2,
+      "worst_ms": 1240.8,
+      "samples": 5
+    },
+    "filter_country": {
+      "median_ms": 233.7,
+      "worst_ms": 266.7,
+      "samples": 5
+    },
+    "countries_index": {
+      "median_ms": 4.6,
+      "worst_ms": 24.7,
+      "samples": 5
+    },
+    "organisation_detail": {
+      "median_ms": 7.9,
+      "worst_ms": 917.9,
+      "samples": 5
+    },
+    "organisation_partners": {
+      "median_ms": 5.1,
+      "worst_ms": 10.1,
+      "samples": 5
+    }
+  },
+  "label": "avant NSF \u2014 464 727 projets ; protocole: chauffe seed 41, API redemarree, mesure seed 41"
+}

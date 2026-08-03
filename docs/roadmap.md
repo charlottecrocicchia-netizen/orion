@@ -165,10 +165,34 @@ critère, a été retiré : il tenait en isolation et dégradait le système.
 **Plan validé le 2026-08-03** avec un amendement d'ordre fondatrice
 (les premiers clients sont européens) :
 [vague-1-instruction.md](vague-1-instruction.md) — socle identité
-d'abord (**en cours**), puis NIH → NSF → **UKRI → SNSF → NWO →
-Vinnova** → SBIR → USAspending (glisse en fin de vague s'il pèse) →
-Grants.gov → OpenAIRE. Fondations déjà en place : le modèle `funders`
+(**livré**), puis NIH (**livré**) → NSF (**livré**) → **UKRI → SNSF →
+NWO → Vinnova** → SBIR → USAspending (glisse en fin de vague s'il pèse)
+→ Grants.gov → OpenAIRE. Fondations déjà en place : le modèle `funders`
 multi-juridictions/multi-devises prévu dès la phase 1.
+
+**Acquis de l'étape 2 (NSF, 2026-08-03)** : 235 071 projets, 118,8 Md€,
+et surtout **la première collaboration américaine visible** — l'extension
+nommée « fratries NSF » du [registre](data-sources.md) reconstitue
+17 523 projets multi-établissements à partir de 42 240 financements
+séparés, sous quatre gardes mesurées. Pont d'identité américain ouvert
+au passage (7 495 UEI, 804 liens filiale→mère) pour la vague groupes.
+**⚠️ Ce que NSF a rendu urgent, et qui passe avant UKRI :** la ligne de
+perfs constatées ([registre](data-sources.md)) montre que **le budget de
+300 ms est rompu** sur la recherche et le filtre pays à 699 798 projets.
+La cause est celle qu'annonçait la preuve d'échelle — la mémoire, pas
+l'algorithmique — et la règle de dimensionnement écrite à la clôture du
+chantier performance **est atteinte, pas anticipée**. Décision de
+dimensionnement à prendre (RAM de la VM locale et du futur VPS) avant
+d'ajouter une source de plus.
+
+**Puis : UKRI** — première source non américaine et non euro (GBP, année
+fiscale avril→mars), licence OGL à re-vérifier le jour du chargement.
+
+**Écart constaté au passage (2026-08-03)** : la **couche identité n'a
+jamais été chargée en prod** — `lei_records` y est vide, les métriques
+groupes de l'étape 0 sont celles du dev. À corriger par un run
+`gleif wikidata groups` en prod, dont le coût disque est à vérifier
+d'abord (le miroir GLEIF pèse plusieurs Go).
 
 Points d'attention connus :
 - normalisation des montants (devises, années fiscales US/UK) ;
