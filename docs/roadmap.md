@@ -139,7 +139,7 @@ validé inchangé) et la demande de l'accueil ; « + Ajouter au dossier »
 posé sur les fiches organisation, pays et le benchmark (chaque fiche
 verse sa vue signature comme bloc vivant de l'Explorateur).
 
-## PROPOSÉ — le chantier performance (intercalé avant NSF)
+## ✅ CLOS — le chantier performance (2026-08-03)
 
 Décision fondatrice du 2026-08-03 : le goulot des facettes s'instruit
 proprement avant toute nouvelle source. **Instruction livrée :**
@@ -149,8 +149,16 @@ ts_rank ; stats absentes sur la table de correspondances ; cinq re-scans
 par requête ; tri de page 100× trop cher ; EXISTS pays 10× la jointure ;
 invalidation de cache trop brutale), quatre options comparées au prix
 honnête, cible 300 ms avec preuve au corpus ×3, banc + garde-fou CI +
-relevé par chargeur, ~1 semaine. **En attente de validation fondatrice**
-(dont deux décisions : profondeur du vecteur condensé, règle RAM).
+relevé par chargeur. **Exécuté le jour même, résultats en fin de
+document.** Les six parcours clés tiennent leur budget au corpus actuel
+(recherche 2 221 → 303 ms, filtre pays 7 995 → 245 ms, carte 3 847 → 19
+ms au pire). **Mais la preuve d'échelle dément la promesse de tenue au
+triplement** : au corpus doublé les temps explosent (recherche 10 120
+ms), parce que le facteur dominant n'est pas l'algorithmique mais la
+MÉMOIRE. D'où une décision produit chiffrée à porter au budget
+d'hébergement : 8 Go aujourd'hui, 16 Go au doublement, **24 à 32 Go pour
+le corpus attendu en fin de vague 1**. Le spike condensé, validé sur
+critère, a été retiré : il tenait en isolation et dégradait le système.
 
 ## EN COURS — extension des sources, vague 1 (exécution ouverte)
 

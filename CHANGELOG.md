@@ -6,6 +6,32 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Performance
+
+- The performance chantier, instructed then executed (2026-08-03): the
+  six key journeys now hold their 300 ms budget on the current corpus —
+  search on a fresh term 2 221 → 303 ms, country filter 7 995 → 245 ms,
+  the map's country index 3 847 → 19 ms at worst, an organisation file
+  27 → 9 ms. Delivered: one materialised candidate scope replacing five
+  re-scans per query, facets folded into a single GROUPING SETS pass, a
+  page that picks its twenty ids before reading rows, a country
+  semi-join on a new composite index, `country_stats` and the 15 176
+  country pairs materialised, and cache invalidation that follows the
+  sources which actually write the corpus.
+- The guarantees that came with them: every materialised view refreshed
+  from ONE list read by the chain, the test fixtures and the CI seed
+  alike; an equality test comparing each aggregate to the live query,
+  country by country; a latency budget guard in CI; a scripted bench
+  whose measurements are committed under docs/perf/.
+- Two findings worth more than the milliseconds. The condensed search
+  matter passed its adoption criterion in isolation (×6 median) and was
+  WITHDRAWN because the system measured slower with it — it adds to the
+  cache instead of replacing anything. And the scale proof contradicted
+  the instruction's own promise: doubling the corpus multiplies latency
+  by up to ×33, because memory, not complexity, governs. The sizing rule
+  is now a costed product decision: 8 GB today, 16 GB at double, 24–32
+  GB for the corpus wave 1 will bring.
+
 ### Removed
 
 - **The ANR corpus leaves Orion, permanently** (founder decision,
