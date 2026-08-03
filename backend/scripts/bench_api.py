@@ -84,9 +84,7 @@ def run_bench(base: str, passes: int, seed: int | None = None) -> dict[str, Any]
                 _time(client, f"/api/search/projects?q={term}&lang=en")
             )
             # 3. a filter path with no term at all
-            measurements["filter_country"].append(
-                _time(client, "/api/search/projects?country=FR")
-            )
+            measurements["filter_country"].append(_time(client, "/api/search/projects?country=FR"))
             # 4. the map's data
             measurements["countries_index"].append(_time(client, "/api/countries"))
             if organisation_id is not None:
