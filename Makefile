@@ -50,6 +50,9 @@ down: ## Stop the production stack
 ingest: migrate ## Rebuild the database from public sources
 	cd backend && uv run orion-ingest all
 
+identity: migrate ## Rebuild the identity layer only (GLEIF, Wikidata, bridges, groups)
+	cd backend && uv run orion-ingest gleif wikidata groups
+
 deploy: ## Deploy to the configured VPS (see infra/README.md)
 	./infra/deploy.sh
 
@@ -57,4 +60,4 @@ deploy: ## Deploy to the configured VPS (see infra/README.md)
 	@sed "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$(openssl rand -hex 16)/" .env.example > .env
 	@echo "Generated .env with a random database password"
 
-.PHONY: help bootstrap db-up db-down migrate dev test lint format build up down ingest deploy
+.PHONY: help bootstrap db-up db-down migrate dev test lint format build up down ingest identity deploy

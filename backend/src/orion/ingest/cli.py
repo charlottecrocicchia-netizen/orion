@@ -6,16 +6,25 @@ from functools import partial
 from orion.ingest import anr, cordis, dedup
 from orion.ingest import reference as reference_module
 from orion.ingest.cordis.config import FRAMEWORKS
+from orion.ingest.gleif import load as gleif_load
+from orion.ingest.groups import build as groups_build
+from orion.ingest.wikidata import load as wikidata_load
 
 REGISTRY = {
     "reference": reference_module.run,
     **{key: partial(cordis.load.run, key) for key in FRAMEWORKS},
     "anr": anr.load.run,
     "dedup": dedup.merge.run,
+    # The identity layer (vague 1, socle): GLEIF mirror, Wikidata parent
+    # links, then bridges + groups built over the deduplicated corpus.
+    "gleif": gleif_load.run,
+    "wikidata": wikidata_load.run,
+    "groups": groups_build.run,
 }
 
-# `all` rebuilds everything: reference data first, deduplication last.
-ALL = ["reference", *FRAMEWORKS.keys(), "anr", "dedup"]
+# `all` rebuilds everything: reference data first, deduplication before
+# the identity layer (bridges need canonical organisations).
+ALL = ["reference", *FRAMEWORKS.keys(), "anr", "dedup", "gleif", "wikidata", "groups"]
 
 
 def main() -> int:

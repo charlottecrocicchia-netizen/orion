@@ -138,16 +138,15 @@ validé inchangé) et la demande de l'accueil ; « + Ajouter au dossier »
 posé sur les fiches organisation, pays et le benchmark (chaque fiche
 verse sa vue signature comme bloc vivant de l'Explorateur).
 
-## EN COURS — extension des sources, vague 1 (instruction ouverte)
+## EN COURS — extension des sources, vague 1 (exécution ouverte)
 
-Le chantier UI clos (v0.4.0), la vague 1 s'ouvre par son **rapport
-d'instruction** : [vague-1-instruction.md](vague-1-instruction.md) —
-socle identité d'abord (tables groupes + GLEIF + ponts d'identifiants,
-comme acté), puis l'ordre des dix chargeurs (NIH, NSF, SBIR, Grants.gov,
-USAspending, UKRI, SNSF, NWO, Vinnova, OpenAIRE) avec plan, pièges
-licence/technique et estimation par source. **Validation fondatrice
-requise avant tout chargement.** Fondations déjà en place : le modèle
-`funders` multi-juridictions/multi-devises prévu dès la phase 1.
+**Plan validé le 2026-08-03** avec un amendement d'ordre fondatrice
+(les premiers clients sont européens) :
+[vague-1-instruction.md](vague-1-instruction.md) — socle identité
+d'abord (**en cours**), puis NIH → NSF → **UKRI → SNSF → NWO →
+Vinnova** → SBIR → USAspending (glisse en fin de vague s'il pèse) →
+Grants.gov → OpenAIRE. Fondations déjà en place : le modèle `funders`
+multi-juridictions/multi-devises prévu dès la phase 1.
 
 Points d'attention connus :
 - normalisation des montants (devises, années fiscales US/UK) ;

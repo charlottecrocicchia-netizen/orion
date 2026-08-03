@@ -1,7 +1,11 @@
 # Vague 1 — rapport d'instruction (extension des sources)
 
-> **Statut : PROPOSÉ — validation fondatrice requise avant tout
-> chargement** (règle du projet : proposé → validé → exécuté).
+> **Statut : VALIDÉ le 2026-08-03, avec un amendement d'ordre
+> fondatrice** — les premiers clients sont européens : après NSF,
+> l'Europe élargie passe d'abord (UKRI, SNSF, NWO, Vinnova), puis SBIR
+> et USAspending. **Règle de glissement : si USAspending s'avère plus
+> lourd que prévu, il glisse en fin de vague plutôt que de bloquer.**
+> L'exécution démarre par le socle identité (étape 0).
 > Ce rapport reprend le registre [data-sources.md](data-sources.md), les
 > principes actés dans la [roadmap](roadmap.md) et les pointeurs de la
 > [spec externe triée](lecons-spec-externe.md). Le rapport de
@@ -41,13 +45,16 @@ confiance obligatoire).
 
 **Estimation : ~2 semaines** (migration + 2 chargeurs + ponts + tests).
 
-## L'ordre des chargeurs — proposition
+## L'ordre des chargeurs — validé (amendement fondatrice)
 
-Principe d'ordre : **les API propres et à forte valeur d'abord** (NIH,
-NSF), **les recouvrantes ensuite** (SBIR, USAspending — leur valeur
-dépend d'une dédup déjà solide), **le Royaume-Uni puis les voisins
-européens**, **les agrégateurs en dernier** (OpenAIRE n'apporte
-qu'adossé à un corpus déjà dédoublonné, sinon il pollue).
+Ordre exécutoire : **NIH → NSF → UKRI → SNSF → NWO → Vinnova → SBIR →
+USAspending → Grants.gov → OpenAIRE.** Les principes restent (API
+propres d'abord, recouvrantes quand la dédup a des références,
+agrégateurs en dernier) avec la priorité client : **l'Europe élargie
+visible au plus tôt** — UKRI et les voisins passent avant les
+recouvrantes US. USAspending glisse en fin de vague s'il pèse plus que
+prévu. Les numéros des sections ci-dessous gardent l'ordre de
+l'instruction initiale ; le tableau récapitulatif porte l'ordre validé.
 
 ### 1. NIH (RePORTER) — États-Unis, santé
 
@@ -164,11 +171,12 @@ qu'adossé à un corpus déjà dédoublonné, sinon il pollue).
 
 | Étape | Contenu | Estimation |
 | --- | --- | --- |
-| 0 | Socle identité (groupes + GLEIF + Wikidata + ponts) | ~2 sem |
+| 0 | Socle identité (groupes + GLEIF + Wikidata + ponts) — **en cours** | ~2 sem |
 | 1-2 | NIH puis NSF (+ transverse devises/fiscal) | ~2,5 sem |
-| 3-4 | SBIR puis USAspending | ~2,5-3 sem |
-| 5 | UKRI | ~1 sem |
-| 6-8 | SNSF, NWO, Vinnova | ~1,5-2 sem |
+| 3 | UKRI | ~1 sem |
+| 4-6 | SNSF, NWO, Vinnova | ~1,5-2 sem |
+| 7 | SBIR | ~0,5-1 sem |
+| 8 | USAspending (**glisse en fin de vague si plus lourd que prévu**) | ~2 sem |
 | 9 | Grants.gov (opportunités, exposé en P5) | ~1 sem |
 | 10 | OpenAIRE (complément ciblé) | ~2 sem |
 | | **Total indicatif** | **~12-14 semaines** |
@@ -178,5 +186,6 @@ jour J, volumétrie constatée, métriques de dédup, entrée au
 [data-sources.md](data-sources.md), CI verte, recette fondatrice sur
 site avant la source suivante. Les jalons produit visibles : après
 l'étape 2 (les États-Unis apparaissent — le globe et les régions
-« manager » commencent à compter), après l'étape 5 (l'Europe élargie),
-après l'étape 10 (couverture annoncée de la vague 1).
+« manager » commencent à compter), après l'étape 6 (**l'Europe élargie
+— la priorité client**), après l'étape 10 (couverture annoncée de la
+vague 1).
