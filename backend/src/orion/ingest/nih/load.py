@@ -205,7 +205,10 @@ def _fold_organisations(session: Session, stats: RunStats) -> None:
     unresolved = [entry["raw"] for entry in mapping if entry["code"] is None]
     if unresolved:
         stats.add("country_unresolved", len(unresolved))
-    session.execute(text("CREATE TEMP TABLE nih_countries (raw text, code text) ON COMMIT DROP"))
+    # A staging table, NOT a TEMP one: the statements below commit, and
+    # ON COMMIT DROP would take the map with them (real-run finding).
+    session.execute(text("DROP TABLE IF EXISTS nih_countries"))
+    session.execute(text("CREATE UNLOGGED TABLE nih_countries (raw text, code text)"))
     if mapping:
         session.execute(
             text("INSERT INTO nih_countries (raw, code) VALUES (:raw, :code)"),
@@ -312,8 +315,9 @@ def load_abstracts(session: Session, stats: RunStats, force: bool) -> None:
             path, _ = cached_download(
                 ABSTRACTS_URL.format(fy=fy), f"{SOURCE}-abstracts-{fy}.zip", force=force
             )
-        except Exception:  # noqa: BLE001 — a missing year must not sink the load
+        except Exception as error:  # noqa: BLE001 — must not sink the load
             stats.add("abstracts_year_missing")
+            print(f"    abstracts FY{fy}: {type(error).__name__}: {error}", flush=True)
             continue
         buffer: list[dict[str, str]] = []
         for application_id, abstract in parse.parse_abstracts(path):
@@ -362,8 +366,9 @@ def run(force: bool = False) -> dict[str, int]:
                     path, changed = cached_download(
                         PROJECTS_URL.format(fy=fy), f"{SOURCE}-projects-{fy}.zip", force=force
                     )
-                except Exception:  # noqa: BLE001 — a year that fails is reported, not fatal
+                except Exception as error:  # noqa: BLE001 — reported, not fatal
                     stats.add("year_missing")
+                    print(f"    FY{fy}: {type(error).__name__}: {error}", flush=True)
                     continue
                 stats.add("download_changed" if changed else "download_cached")
                 stage_year(session, path, stats)
@@ -376,6 +381,10 @@ def run(force: bool = False) -> dict[str, int]:
             _fold_organisations(session, stats)
             load_abstracts(session, stats, force)
         finally:
+            # Roll back first: a failed statement poisons the transaction,
+            # and a cleanup running inside it would mask the real error.
+            session.rollback()
+            session.execute(text("DROP TABLE IF EXISTS nih_countries"))
             session.execute(text("DROP TABLE IF EXISTS nih_awards"))
             session.commit()
             session.close()
