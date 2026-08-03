@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T18:05:20+00:00",
+  "base": "http://localhost:8000",
+  "passes": 5,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 227.3,
+      "worst_ms": 1572.9,
+      "samples": 5
+    },
+    "search_warm_term": {
+      "median_ms": 85.7,
+      "worst_ms": 92.5,
+      "samples": 5
+    },
+    "filter_country": {
+      "median_ms": 524.3,
+      "worst_ms": 1077.0,
+      "samples": 5
+    },
+    "countries_index": {
+      "median_ms": 3.9,
+      "worst_ms": 3160.6,
+      "samples": 5
+    },
+    "organisation_detail": {
+      "median_ms": 9.7,
+      "worst_ms": 781.7,
+      "samples": 5
+    },
+    "organisation_partners": {
+      "median_ms": 4.9,
+      "worst_ms": 9.3,
+      "samples": 5
+    }
+  },
+  "label": "O1 complet \u00b7 seed 1, 5 passes"
+}

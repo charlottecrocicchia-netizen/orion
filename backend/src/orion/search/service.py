@@ -165,6 +165,10 @@ def _materialize_match(session: Session, q: str) -> int:
         {"ids": ids, "ranks": ranks},
     )
     session.execute(text("CREATE INDEX ON _orion_match (project_id)"))
+    # Without statistics the planner estimates this table at random and
+    # flips to catastrophic plans — the funders facet measured 8 903 ms
+    # without ANALYZE, 1 076 ms with (chantier performance, 2026-08-03).
+    session.execute(text("ANALYZE _orion_match"))
     return len(ids)
 
 
@@ -178,9 +182,12 @@ def _project_where(f: ProjectFilters, params: dict[str, Any]) -> str:
     if f.programmes:
         clauses.append("p.programme_id = ANY(:programme_ids)")
     if f.countries:
+        # A semi-join on the composite index, not a correlated EXISTS:
+        # measured 31 ms against 90 ms on the country scope, and the gap
+        # widens with the corpus (chantier performance, 2026-08-03).
         clauses.append(
-            "EXISTS (SELECT 1 FROM participations pa "
-            "WHERE pa.project_id = p.id AND pa.country_code = ANY(:countries))"
+            "p.id IN (SELECT pa.project_id FROM participations pa "
+            "WHERE pa.country_code = ANY(:countries))"
         )
         params["countries"] = f.countries
     if f.year_from is not None:
@@ -199,10 +206,37 @@ def _project_where(f: ProjectFilters, params: dict[str, Any]) -> str:
 
 
 _SORTS = {
-    "relevance": "m.rank DESC NULLS LAST, p.funding_amount_eur DESC NULLS LAST",
-    "amount": "p.funding_amount_eur DESC NULLS LAST",
-    "date": "p.start_date DESC NULLS LAST",
+    "relevance": "s.rank DESC NULLS LAST, s.funding_amount_eur DESC NULLS LAST",
+    "amount": "s.funding_amount_eur DESC NULLS LAST",
+    "date": "s.start_date DESC NULLS LAST",
 }
+
+
+def _materialize_scope(session: Session, f: ProjectFilters, params: dict[str, Any]) -> None:
+    """Materialise the candidate set ONCE, with the columns every piece
+    needs (chantier performance, découverte ③).
+
+    Before: the total, the four facets and the page each re-scanned the
+    465 k projects against the filters — five times the same work, and
+    the page sorted 100 k rows to keep 20. Now one pass builds the scope
+    (ids + the facet dimensions + the sort keys), gets an index and its
+    statistics, and everything downstream reads that."""
+    where = _project_where(f, params)
+    rank = "m.rank" if f.q else "NULL::double precision"
+    join = "JOIN _orion_match m ON m.project_id = p.id" if f.q else ""
+    session.execute(text("DROP TABLE IF EXISTS _orion_scope"))
+    session.execute(
+        text(f"""
+        CREATE TEMPORARY TABLE _orion_scope ON COMMIT DROP AS
+        SELECT p.id AS project_id, p.funder_id, p.programme_id,
+               extract(year FROM p.start_date)::int AS start_year,
+               p.funding_amount_eur, p.start_date, {rank} AS rank
+        FROM projects p {join} {where}
+        """),
+        params,
+    )
+    session.execute(text("CREATE INDEX ON _orion_scope (project_id)"))
+    session.execute(text("ANALYZE _orion_scope"))
 
 
 def search_projects(session: Session, f: ProjectFilters) -> dict[str, Any]:
@@ -217,21 +251,36 @@ def search_projects(session: Session, f: ProjectFilters) -> dict[str, Any]:
             -1
         ]
 
+    scoped = bool(f.q or f.has_filters)
     if f.q:
         _materialize_match(session, f.q)
+    if scoped:
+        _materialize_scope(session, f, params)
 
-    where = _project_where(f, params)
+    order = (
+        _SORTS.get(f.sort, _SORTS["relevance"])
+        if f.q
+        else (_SORTS["date"] if f.sort == "relevance" else _SORTS.get(f.sort, _SORTS["date"]))
+    )
 
-    if f.q:
-        join_match = "JOIN _orion_match m ON m.project_id = p.id"
-        order = _SORTS.get(f.sort, _SORTS["relevance"])
-    else:
-        join_match = ""
-        order = _SORTS["date"] if f.sort == "relevance" else _SORTS.get(f.sort, _SORTS["date"])
-
+    # The page picks its 20 rows from the scope FIRST (indexed, tiny) and
+    # only then reads the project rows by primary key: sorting 100 k rows
+    # to keep 20 cost 1 871 ms, this costs a handful of milliseconds.
+    page_source = (
+        "_orion_scope s"
+        if scoped
+        else "(SELECT p.id AS project_id, p.funding_amount_eur, p.start_date,"
+        " NULL::double precision AS rank FROM projects p) s"
+    )
     rows = (
         session.execute(
             text(f"""
+            WITH page AS (
+                SELECT s.project_id, row_number() OVER (ORDER BY {order}) AS pos
+                FROM {page_source}
+                ORDER BY {order}
+                LIMIT :size OFFSET :offset
+            )
             SELECT p.id, p.acronym, p.source, p.funder_id, p.programme_id,
                    p.funding_amount_eur,
                    extract(year FROM p.start_date)::int AS start_year,
@@ -243,10 +292,8 @@ def search_projects(session: Session, f: ProjectFilters) -> dict[str, Any]:
                    (SELECT array_agg(DISTINCT pa.country_code)
                     FROM participations pa
                     WHERE pa.project_id = p.id AND pa.country_code IS NOT NULL) AS countries
-            FROM projects p {join_match}
-            {where}
-            ORDER BY {order}
-            LIMIT :size OFFSET :offset
+            FROM page JOIN projects p ON p.id = page.project_id
+            ORDER BY page.pos
             """),
             params,
         )
@@ -254,11 +301,9 @@ def search_projects(session: Session, f: ProjectFilters) -> dict[str, Any]:
         .all()
     )
 
-    if f.q or f.has_filters:
-        total = session.execute(
-            text(f"SELECT count(*) FROM projects p {where}"), params
-        ).scalar_one()
-        facets = _project_facets(session, params, where, to_root, roots)
+    if scoped:
+        total = session.execute(text("SELECT count(*) FROM _orion_scope")).scalar_one()
+        facets = _project_facets(session, params, to_root, roots)
     else:
         total = _cached(
             session,
@@ -268,7 +313,7 @@ def search_projects(session: Session, f: ProjectFilters) -> dict[str, Any]:
         facets = _cached(
             session,
             "projects_facets_default",
-            lambda: _project_facets(session, {}, "", to_root, roots),
+            lambda: _default_facets(session, to_root, roots),
         )
 
     snippets = _snippets(session, f, [r["id"] for r in rows]) if f.q else {}
@@ -324,27 +369,70 @@ def _snippets(session: Session, f: ProjectFilters, ids: list[int]) -> dict[int, 
     return {r.project_id: r.snippet for r in rows}
 
 
-def _project_facets(
+def _default_facets(
     session: Session,
-    params: dict[str, Any],
-    where: str,
     to_root: dict[int, int],
     roots: dict[int, dict[str, Any]],
 ) -> dict[str, Any]:
-    funders = session.execute(
-        text(f"""
-        SELECT fu.code, fu.name, count(*) AS n
-        FROM projects p JOIN funders fu ON fu.id = p.funder_id
-        {where}
-        GROUP BY fu.code, fu.name ORDER BY n DESC
-        """),
-        params,
+    """The unfiltered page's facets: the scope IS the whole corpus, so it
+    is materialised once here and the shared path does the rest (cached
+    until the next ingestion touches projects)."""
+    session.execute(text("DROP TABLE IF EXISTS _orion_scope"))
+    session.execute(
+        text("""
+        CREATE TEMPORARY TABLE _orion_scope ON COMMIT DROP AS
+        SELECT p.id AS project_id, p.funder_id, p.programme_id,
+               extract(year FROM p.start_date)::int AS start_year,
+               p.funding_amount_eur, p.start_date, NULL::double precision AS rank
+        FROM projects p
+        """)
+    )
+    session.execute(text("CREATE INDEX ON _orion_scope (project_id)"))
+    session.execute(text("ANALYZE _orion_scope"))
+    return _project_facets(session, {}, to_root, roots)
+
+
+def _project_facets(
+    session: Session,
+    params: dict[str, Any],
+    to_root: dict[int, int],
+    roots: dict[int, dict[str, Any]],
+) -> dict[str, Any]:
+    """Funders, programmes and years in ONE pass over the scope.
+
+    Three GROUP BYs over the same rows cost three scans; GROUPING SETS
+    reads once and labels each row's group — measured 629 ms where the
+    three separate facets cost ~9,9 s (chantier performance, 2026-08-03).
+    The scope already carries funder_id, programme_id and start_year, so
+    the projects table is never touched again."""
+    grouped = session.execute(
+        text("""
+        SELECT s.funder_id, s.programme_id, s.start_year, count(*) AS n
+        FROM _orion_scope s
+        GROUP BY GROUPING SETS ((s.funder_id), (s.programme_id), (s.start_year))
+        """)
     ).all()
 
-    by_programme = session.execute(
-        text(f"SELECT p.programme_id, count(*) AS n FROM projects p {where} GROUP BY 1"),
-        params,
+    funder_counts: dict[int, int] = {}
+    by_programme: list[tuple[int | None, int]] = []
+    year_counts: list[tuple[int, int]] = []
+    for funder_id, programme_id, start_year, n in grouped:
+        if funder_id is not None:
+            funder_counts[funder_id] = n
+        elif programme_id is not None:
+            by_programme.append((programme_id, n))
+        elif start_year is not None:
+            year_counts.append((start_year, n))
+
+    funder_rows = session.execute(
+        text("SELECT id, code, name FROM funders WHERE id = ANY(:ids)"),
+        {"ids": list(funder_counts) or [-1]},
     ).all()
+    funders = sorted(
+        ((code, name, funder_counts[fid]) for fid, code, name in funder_rows),
+        key=lambda row: -row[2],
+    )
+
     root_counts: dict[int, int] = {}
     for pid, n in by_programme:
         root = to_root.get(pid)
@@ -358,32 +446,25 @@ def _project_facets(
         key=lambda item: -item["count"],
     )
 
+    # The country facet is the one that still needs participations — it
+    # joins the scope directly instead of re-deriving it from projects.
     countries = session.execute(
-        text(f"""
-        SELECT pa.country_code, count(DISTINCT pa.project_id) AS n
-        FROM participations pa
-        WHERE pa.country_code IS NOT NULL
-          AND pa.project_id IN (SELECT p.id FROM projects p {where})
-        GROUP BY pa.country_code ORDER BY n DESC LIMIT 12
-        """),
-        params,
-    ).all()
-
-    years = session.execute(
-        text(f"""
-        SELECT extract(year FROM p.start_date)::int AS y, count(*) AS n
-        FROM projects p
-        {where}
-        GROUP BY y ORDER BY y
-        """),
-        params,
+        text("""
+        SELECT country_code, count(*) AS n
+        FROM (
+            SELECT DISTINCT pa.country_code, pa.project_id
+            FROM participations pa JOIN _orion_scope s ON s.project_id = pa.project_id
+            WHERE pa.country_code IS NOT NULL
+        ) distinct_pairs
+        GROUP BY country_code ORDER BY n DESC LIMIT 12
+        """)
     ).all()
 
     return {
         "funders": [{"code": c, "label": n, "count": cnt} for c, n, cnt in funders],
         "programmes": programmes,
         "countries": [{"code": c, "count": n} for c, n in countries],
-        "years": [{"year": y, "count": n} for y, n in years if y is not None],
+        "years": [{"year": y, "count": n} for y, n in sorted(year_counts)],
     }
 
 

@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T18:01:39+00:00",
+  "base": "http://localhost:8000",
+  "passes": 3,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 270.5,
+      "worst_ms": 2228.3,
+      "samples": 3
+    },
+    "search_warm_term": {
+      "median_ms": 181.1,
+      "worst_ms": 259.8,
+      "samples": 3
+    },
+    "filter_country": {
+      "median_ms": 753.6,
+      "worst_ms": 1137.9,
+      "samples": 3
+    },
+    "countries_index": {
+      "median_ms": 5.1,
+      "worst_ms": 3232.7,
+      "samples": 3
+    },
+    "organisation_detail": {
+      "median_ms": 12.6,
+      "worst_ms": 810.1,
+      "samples": 3
+    },
+    "organisation_partners": {
+      "median_ms": 5.5,
+      "worst_ms": 12.3,
+      "samples": 3
+    }
+  },
+  "label": "O1 complet \u00b7 scope mat\u00e9rialis\u00e9 + GROUPING SETS + page top-N"
+}

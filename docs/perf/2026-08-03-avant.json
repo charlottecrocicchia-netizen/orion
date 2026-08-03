@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T17:54:13+00:00",
+  "base": "http://localhost:8000",
+  "passes": 3,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 2220.6,
+      "worst_ms": 2567.3,
+      "samples": 3
+    },
+    "search_warm_term": {
+      "median_ms": 173.3,
+      "worst_ms": 222.5,
+      "samples": 3
+    },
+    "filter_country": {
+      "median_ms": 7994.8,
+      "worst_ms": 8632.0,
+      "samples": 3
+    },
+    "countries_index": {
+      "median_ms": 13.1,
+      "worst_ms": 3847.0,
+      "samples": 3
+    },
+    "organisation_detail": {
+      "median_ms": 27.4,
+      "worst_ms": 981.6,
+      "samples": 3
+    },
+    "organisation_partners": {
+      "median_ms": 6.0,
+      "worst_ms": 16.1,
+      "samples": 3
+    }
+  },
+  "label": "avant chantier \u00b7 Colima 2,8 Go"
+}

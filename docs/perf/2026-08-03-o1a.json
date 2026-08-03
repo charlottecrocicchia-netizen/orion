@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T17:58:05+00:00",
+  "base": "http://localhost:8000",
+  "passes": 3,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 326.4,
+      "worst_ms": 358.0,
+      "samples": 3
+    },
+    "search_warm_term": {
+      "median_ms": 171.6,
+      "worst_ms": 201.6,
+      "samples": 3
+    },
+    "filter_country": {
+      "median_ms": 1601.7,
+      "worst_ms": 3260.7,
+      "samples": 3
+    },
+    "countries_index": {
+      "median_ms": 4.9,
+      "worst_ms": 3448.8,
+      "samples": 3
+    },
+    "organisation_detail": {
+      "median_ms": 11.3,
+      "worst_ms": 905.5,
+      "samples": 3
+    },
+    "organisation_partners": {
+      "median_ms": 5.5,
+      "worst_ms": 12.5,
+      "samples": 3
+    }
+  },
+  "label": "O1a \u00b7 ANALYZE + index, protocole corrig\u00e9"
+}

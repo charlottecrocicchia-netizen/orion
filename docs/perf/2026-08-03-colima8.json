@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T17:55:46+00:00",
+  "base": "http://localhost:8000",
+  "passes": 3,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 291.5,
+      "worst_ms": 1306.9,
+      "samples": 3
+    },
+    "search_warm_term": {
+      "median_ms": 145.9,
+      "worst_ms": 173.4,
+      "samples": 3
+    },
+    "filter_country": {
+      "median_ms": 1485.4,
+      "worst_ms": 3162.9,
+      "samples": 3
+    },
+    "countries_index": {
+      "median_ms": 3.9,
+      "worst_ms": 6.2,
+      "samples": 3
+    },
+    "organisation_detail": {
+      "median_ms": 10.4,
+      "worst_ms": 19.6,
+      "samples": 3
+    },
+    "organisation_partners": {
+      "median_ms": 4.7,
+      "worst_ms": 6.0,
+      "samples": 3
+    }
+  },
+  "label": "apr\u00e8s Colima 8 Go, avant O1"
+}
