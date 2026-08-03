@@ -48,8 +48,13 @@ def sources(db: Annotated[Session, Depends(get_db)]) -> SourcesResponse:
         ).all()
     )
 
-    # reference and dedup are maintenance passes, not data sources.
-    codes = sorted((set(projects_by_source) | set(last_success)) - {"reference", "dedup"})
+    # reference and dedup are maintenance passes, not data sources. `anr`
+    # is a WITHDRAWN source: its runs stay in the journal — deleting
+    # history would be worse — but a source banned by the licence rule
+    # must never appear on the page that says where the data comes from
+    # (founder rule: a displayed promise stays true the day the data
+    # changes; caught in recette after NSF, 2026-08-03).
+    codes = sorted((set(projects_by_source) | set(last_success)) - {"reference", "dedup", "anr"})
     return SourcesResponse(
         totals=totals,
         sources=[

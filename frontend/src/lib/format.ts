@@ -202,5 +202,6 @@ export function useCountryName(): (code: string) => string {
  *  can never lie about its origin (recette 2026-08-03). */
 export function sourceLabel(source: string): string {
   if (source.startsWith("nih")) return "RePORTER";
+  if (source.startsWith("nsf")) return "NSF";
   return "CORDIS";
 }

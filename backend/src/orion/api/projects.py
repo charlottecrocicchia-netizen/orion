@@ -15,6 +15,10 @@ ATTRIBUTIONS = {
         "Contains data from NIH RePORTER (U.S. Department of Health and Human "
         "Services), public domain. Euro figures converted at ECB annual average rates."
     ),
+    "nsf": (
+        "Courtesy: U.S. National Science Foundation — award data, public domain. "
+        "Euro figures converted at ECB annual average rates."
+    ),
 }
 
 

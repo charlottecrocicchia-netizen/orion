@@ -10,6 +10,7 @@ const SOURCE_LABELS: Record<string, string> = {
   "cordis-h2020": "CORDIS · Horizon 2020",
   "cordis-fp7": "CORDIS · FP7",
   nih: "NIH RePORTER · États-Unis",
+  nsf: "NSF · États-Unis",
   gleif: "GLEIF · identité des entités",
   wikidata: "Wikidata · rattachements de groupes",
   ecb: "BCE · taux de change annuels",
@@ -88,6 +89,19 @@ export function AboutDataPage() {
               domaine public
             </a>{" "}
             · montants convertis aux taux annuels BCE
+          </li>
+          <li>
+            NSF — données fédérales américaines,{" "}
+            <a
+              href="https://www.nsf.gov/policies/digital"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              domaine public
+            </a>{" "}
+            · « Courtesy: U.S. National Science Foundation » · montants convertis aux taux
+            annuels BCE
           </li>
           <li>
             GLEIF (identité des entités) et Wikidata (rattachements de groupes) —{" "}

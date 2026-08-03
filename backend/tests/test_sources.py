@@ -6,5 +6,7 @@ def test_sources_reports_totals_and_per_source_freshness(client):
     assert set(body["totals"]) == {"projects", "organisations", "participations"}
     assert all(isinstance(v, int) for v in body["totals"].values())
     for source in body["sources"]:
-        assert source["source"] not in {"reference", "dedup"}
+        # Maintenance passes are not sources; and a source WITHDRAWN by the
+        # licence rule must never resurface here through its old run journal.
+        assert source["source"] not in {"reference", "dedup", "anr"}
         assert isinstance(source["projects"], int)

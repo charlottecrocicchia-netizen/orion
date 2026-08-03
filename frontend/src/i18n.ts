@@ -207,7 +207,7 @@ const resources = {
           "Open a view in the Explorer — every chart there is a shareable URL — and add it to the dossier.",
         emptyCta: "Open the Explorer",
         footer:
-          "Sources: © European Union, CORDIS (CC BY 4.0) · NIH RePORTER (public domain). A session dossier — accounts (P6) will make it durable.",
+          "Sources: © European Union, CORDIS (CC BY 4.0) · NIH RePORTER and NSF (public domain). A session dossier — accounts (P6) will make it durable.",
       },
       explore: {
         title: "Explore",
@@ -499,7 +499,7 @@ const resources = {
         emptyView: "No data for this view — loosen the filters.",
         tableKey: "Entry",
         tableValue: "Value",
-        sources: "© European Union, CORDIS (CC BY 4.0) · NIH RePORTER (public domain)",
+        sources: "© European Union, CORDIS (CC BY 4.0) · NIH RePORTER and NSF (public domain)",
       },
       compare: {
         eyebrow: "Benchmark",
@@ -761,7 +761,7 @@ const resources = {
           "Ouvrez une vue de l'Explorateur — chaque graphique y est une URL partageable — et ajoutez-la au dossier.",
         emptyCta: "Ouvrir l'Explorateur",
         footer:
-          "Sources : © Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER (domaine public). Dossier de session — les comptes (P6) le rendront durable.",
+          "Sources : © Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER et NSF (domaine public). Dossier de session — les comptes (P6) le rendront durable.",
       },
       explore: {
         title: "Explorer",
@@ -1053,7 +1053,7 @@ const resources = {
         emptyView: "Aucune donnée pour cette vue — élargissez les filtres.",
         tableKey: "Entrée",
         tableValue: "Valeur",
-        sources: "© Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER (domaine public)",
+        sources: "© Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER et NSF (domaine public)",
       },
       themes: {
         "/21/33": "sciences de la santé",
