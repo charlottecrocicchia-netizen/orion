@@ -3,6 +3,24 @@ name: orion-dev
 services:
   postgres:
     image: pgvector/pgvector:pg16
+    # Docker caps /dev/shm at 64 MB; parallel workers sharing the
+    # larger work_mem above overflow it and the query dies with
+    # "No space left on device" (real-run finding, 2026-08-03).
+    shm_size: 1gb
+    # The corpus outgrew the PostgreSQL defaults with NIH (4 GB of data,
+    # 128 MB of cache): searches matching many rows fell to seconds
+    # (real-run finding, 2026-08-03). These four settings are the whole
+    # fix — no query rewrite needed.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - effective_cache_size=3GB
+      - -c
+      - work_mem=64MB
+      - -c
+      - maintenance_work_mem=256MB
     ports:
       - "5432:5432"
     environment:

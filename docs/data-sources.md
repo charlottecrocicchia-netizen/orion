@@ -10,6 +10,8 @@ Registre vivant : chaque source publique ingérée par Orion, avec sa juridictio
 | ANR (`anr`) | FR | EUR | **ODbL 1.0** (Open Database License) — vérifiée le 2026-07-31 sur data.gouv.fr, champ `license: odc-odbl`. ⚠️ **Pas** la Licence Ouverte : clause de partage à l'identique, voir l'alerte ci-dessous | ~mensuelle (dernière publication : 2026-07-02) | 34 720 projets, 117 859 participations (2026-07-31) |
 | ADEME (`ademe`) | FR | EUR | Licence Ouverte 2.0 (vérifiée le 2026-07-31) | — | **Décision fondatrice du 2026-07-31 : non ingérée** (source hors sujet, voir ci-dessous) ; **France 2030** sera visé plus tard comme source française de R&D industrielle |
 | LIFE (`life`) | UE | EUR | à confirmer sur l'export retenu | — | **Décision fondatrice du 2026-07-31 : reporté**, ne bloque pas la v0.1.0 ; piste de récupération future via **OpenAIRE** |
+| NIH RePORTER (`nih`) | US | USD → EUR (taux BCE datés) | **Domaine public** (données fédérales US) — vérifiée le 2026-08-03 sur reporter.nih.gov | annuelle par exercice (bulk par FY ; **FY2026 pas encore publié** — fenêtre réelle FY2005-2025) | **380 275 projets**, 379 346 participations, 358 911 résumés indexés, 77 instituts en programmes, 1 722 398 tranches annuelles repliées (2026-08-03) — voir les deux réserves ci-dessous |
+| Taux de change BCE (`ecb`) | — | — | Réutilisation libre avec attribution — vérifiée le 2026-08-03 | annuelle | 198 taux moyens annuels, 9 devises (USD/GBP/CHF/SEK/NOK/DKK/CAD/JPY/AUD) |
 | GLEIF Golden Copy (`gleif`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 sur gleif.org (« even for commercial purposes ») | quotidienne (publishes/latest, rejouée par le scheduler hebdo) | 3 391 838 LEI en miroir, 258 260 liens de consolidation ACTIVE (fonds exclus), exceptions filtrées aux LEI pontés : 17 208 (2026-08-03) |
 | Wikidata parents (`wikidata`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 | mensuelle visée (rejouée par le scheduler hebdo) | 3 098 paires parent P749 entre porteurs de LEI bien formés (garde ISO 17442 : quelques P1278 sales rejetés) |
 
@@ -78,6 +80,78 @@ conversion et à quel taux — jamais un euro muet.
 
 **⑤ Le périmètre annoncé est le périmètre chargé.** Chaque source dit
 sa fenêtre (NIH : FY2005+) et la volumétrie constatée ci-dessous.
+
+## ⚠️ NIH — deux réserves d'honnêteté (constatées au run du 2026-08-03)
+
+Ce ne sont pas des défauts du chargeur mais des **propriétés de la
+source**, à dire au lecteur plutôt qu'à masquer. **Deux décisions
+attendent la fondatrice.**
+
+**① Les véhicules contractuels et subventions de centre gonflent.** La
+convention replie les tranches sur le numéro de cœur — c'est juste pour
+un projet de recherche reconduit, mais certains numéros de cœur sont des
+**parapluies** : le « Cancer Center Support Grant » P30CA008748 agrège
+575 tranches, le contrat 261200800001E en agrège 619 pour 3,3 Md$.
+**1 867 projets (0,5 %) dépassent 50 tranches et concentrent 59,5 Md$
+sur 735,9 Md$ (8 %).** Ils ne sont ni faux ni comparables à un projet
+CORDIS. *Vérifié : aucun ne pollue la une aujourd'hui* (leurs dates de
+début sont anciennes, le plus gros projet 2024 reste européen).
+**Décision à prendre** : les marquer « parapluie » (seuil de tranches,
+visible sur la fiche et exclu des « plus gros projets »), ou les laisser
+tels quels avec la mention au registre. *Recommandation : les marquer —
+un parapluie et un projet ne se comparent pas.*
+
+**② 25 215 projets sans date de début (6,6 %)**, essentiellement la
+recherche **intra-muros** du NIH (préfixes ZIA/Z01) : RePORTER ne publie
+pas de `PROJECT_START` pour ces lignes. Conséquence assumée : ils
+n'apparaissent sur aucun axe temporel et **ne reçoivent aucune
+conversion en euros** (la convention ④ convertit au taux de l'année de
+début — sans année, pas de taux inventé). Avec les lignes sans montant,
+71 149 projets NIH n'ont pas de montant en euros.
+**Décision à prendre** : les dater par défaut à leur première année
+fiscale (visible, mais approximatif), ou les garder hors axe temporel.
+*Recommandation : les garder hors axe — une date inventée contaminerait
+toutes les analyses de tendance.*
+
+**Effet sur le corpus** : le total passe de **211 Md€ à ~650 Md€**
+(NIH 439 Md€, soit 67 % — les États-Unis financent réellement à cette
+échelle). Les libellés « UE + FR » ont été corrigés en conséquence.
+
+## ⚠️ NIH — ce que le quadruplement du corpus a révélé (2026-08-03)
+
+**① La collaboration américaine est invisible par construction.**
+RePORTER publie **une seule organisation par financement** (le
+bénéficiaire). Une organisation purement américaine n'a donc **aucun
+partenaire** dans Orion : l'acte « Où vivent ses partenaires » de la
+fiche ne s'affiche pas pour elle, et les cartes de collaboration
+restent européennes. Ce n'est pas un défaut du chargeur — c'est la
+donnée. À dire au lecteur le jour où une fiche américaine paraît vide
+de ce côté (piste : les co-publications OpenAIRE, vague 1 étape 10).
+
+**② La performance de recherche a décroché, et le réglage
+d'infrastructure était la cause.** Le corpus passe de ~119 k à ~500 k
+projets (2,5 Go de textes indexés) ; PostgreSQL tournait avec ses
+**réglages par défaut** (128 Mo de cache pour 4 Go de données).
+Mesures avant → après réglage (`shared_buffers=1GB`,
+`effective_cache_size=3GB`, `work_mem=64MB`, à chaud) :
+
+| Requête | Avant | Après |
+| --- | --- | --- |
+| « cancer » (75 k correspondances) | 9,4 s | 1,9 s |
+| « quantum » | 1,7 s | 0,22 s |
+| pays = FR (sans texte) | 4,7 s | 3,2 s |
+
+**Piège découvert dans la foulée** : Docker plafonne `/dev/shm` à 64 Mo,
+et les workers parallèles de PostgreSQL, avec le `work_mem` élargi, le
+débordaient — les partenaires d'une grosse organisation renvoyaient une
+**erreur 500** (« No space left on device »). `shm_size: 1gb` ajouté aux
+deux compose. Corrigé et vérifié.
+
+**Reste ouvert (chantier à proposer)** : « cancer » à 1,9 s et le filtre
+pays seul à 3,2 s dépassent encore le budget de 300 ms. Le goulot n'est
+plus l'infrastructure mais le **calcul des facettes sur des ensembles de
+correspondances énormes**. À instruire comme un chantier propre — pas à
+bricoler en fin de chargement.
 
 ## Couche identité — métriques du premier run réel (2026-08-03)
 

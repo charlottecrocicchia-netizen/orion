@@ -8,6 +8,20 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- Vague 1, étape 1 — NIH RePORTER is loaded (380 275 projects, 379 346
+  participations, 358 911 abstracts indexed, 77 institutes as
+  programmes, 1 722 398 yearly slices folded; FY2005-2025, FY2026 not
+  published yet). The registry's TRANSVERSE CONVENTION is written first
+  and applied here in readable SQL — a yearly slice is not a project,
+  the amount is the sum of the slices with sub-projects folded, the time
+  axis stays the calendar date, the native currency is kept and the EUR
+  figure converts at the ECB annual rate of the start year (new `rates`
+  loader: 198 yearly rates, 9 currencies ready for UKRI/SNSF/Vinnova).
+  Personal data (investigators, program officers) is dropped at the
+  door, as for the ANR. The corpus grows from €211B to ~€650B and every
+  "EU + FR" label became "public R&D" — a displayed promise must stay
+  true the day the data changes.
+
 - Vague 1, étape 0 — the identity layer runs FOR REAL: the groups
   schema (canonical layering — dated, weighted, JV-flagged memberships;
   entities never merged), the GLEIF Golden Copy mirror (3 391 838 LEI,
@@ -357,6 +371,15 @@ Phase 3 — analytics and geography.
   → CSV export) automated in CI.
 
 ### Fixed
+
+- PostgreSQL ran on its defaults while the corpus quadrupled: searches
+  matching many rows fell to seconds (9.4 s for "cancer"). Tuned in both
+  compose files (shared_buffers 1 GB, effective_cache_size 3 GB,
+  work_mem 64 MB) — measured 9.4 s → 1.9 s, "quantum" 1.7 s → 0.22 s.
+  The tuning then exposed Docker's 64 MB /dev/shm cap, which made a big
+  organisation's partners endpoint answer 500 ("No space left on
+  device"): `shm_size: 1gb` added. Remaining gap over the 300 ms budget
+  (facets over huge match sets) is documented as its own chantier.
 
 - The news band's progress bar froze mid-flight (recette 2026-08-03,
   third of the phantom family): ANY focus inside the section held the

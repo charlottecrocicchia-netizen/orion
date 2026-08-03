@@ -34,7 +34,12 @@ test("the phase-3 journey holds end to end", async ({ page }) => {
     .first()
     .click();
   await expect(page).toHaveURL(/\/organisations\/\d+/);
-  await expect(page.getByRole("heading", { name: "Where its partners live" })).toBeVisible({ timeout: 10_000 });
+  // The file always states its trajectory; the collaborators act only
+  // exists when the corpus gives this organisation partners — a NIH-only
+  // awardee has none (RePORTER publishes ONE organisation per award).
+  await expect(page.getByRole("heading", { name: "The years, role by role" })).toBeVisible({
+    timeout: 10_000,
+  });
 
   // 3 — benchmark it against its first recurring partner.
   await page.getByRole("link", { name: "Compare" }).click();
