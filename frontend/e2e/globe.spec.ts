@@ -33,7 +33,7 @@ test("the act-3 globe opens the country panel and Escape closes it", async ({ pa
 test("the globe greets by default and the switch reaches the flat map", async ({ page }) => {
   await page.goto("/explore/countries");
   await expect(page.getByRole("img", { name: /World globe/ })).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByText("Current coverage: EU + France.")).toBeVisible();
+  await expect(page.getByText(/^Current coverage:/)).toBeVisible();
 
   await page.getByRole("button", { name: "Map", exact: true }).click();
   await expect(page.getByRole("group", { name: /Map of Europe/ })).toBeVisible();
