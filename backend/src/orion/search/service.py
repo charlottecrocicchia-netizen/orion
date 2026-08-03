@@ -25,14 +25,25 @@ ORG_RELEVANCE_CANDIDATES = 500
 _CACHE: dict[str, tuple[str, Any]] = {}
 
 
+# Which sources actually change the project corpus. The identity layer
+# (GLEIF mirror, Wikidata parents, the groups builder) and the exchange
+# rates run weekly and touch none of it — before this list, their run
+# invalidated every cached facet and the first visitor of the morning
+# paid for a refresh that changed nothing (chantier performance, O4).
+CORPUS_SOURCES = ("cordis-horizon", "cordis-h2020", "cordis-fp7", "nih", "dedup")
+
+
 def _data_stamp(session: Session) -> str:
-    """Changes whenever an ingestion run succeeds — the cache invalidation key."""
+    """Changes when a run that TOUCHES THE CORPUS succeeds — the cache
+    invalidation key. A source that only feeds the identity layer leaves
+    the project caches alone."""
     return str(
         session.execute(
             text(
                 "SELECT coalesce(max(finished_at)::text, '0') "
-                "FROM ingestion_runs WHERE status = 'succeeded'"
-            )
+                "FROM ingestion_runs WHERE status = 'succeeded' AND source = ANY(:sources)"
+            ),
+            {"sources": list(CORPUS_SOURCES)},
         ).scalar()
     )
 

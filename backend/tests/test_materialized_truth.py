@@ -127,3 +127,30 @@ def test_country_stats_matches_the_live_query_on_every_country(db_session):
         """)
     ).scalar_one()
     assert drift == 0
+
+
+def test_identity_runs_do_not_invalidate_the_project_caches(db_session):
+    """O4: the weekly identity chain (GLEIF, Wikidata, groups) touches no
+    project — its runs must leave the project caches standing, or every
+    Monday morning the first visitor pays for a refresh that changed
+    nothing."""
+    from orion.search.service import _data_stamp
+
+    before = _data_stamp(db_session)
+    db_session.execute(
+        text("""
+        INSERT INTO ingestion_runs (source, status, started_at, finished_at)
+        VALUES ('gleif', 'succeeded', now(), now())
+        """)
+    )
+    db_session.flush()
+    assert _data_stamp(db_session) == before, "an identity run invalidated the corpus caches"
+
+    db_session.execute(
+        text("""
+        INSERT INTO ingestion_runs (source, status, started_at, finished_at)
+        VALUES ('nih', 'succeeded', now(), now())
+        """)
+    )
+    db_session.flush()
+    assert _data_stamp(db_session) != before, "a corpus run failed to invalidate the caches"
