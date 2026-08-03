@@ -171,7 +171,7 @@ l'instruction initiale ; le tableau récapitulatif porte l'ordre validé.
 
 | Étape | Contenu | Estimation |
 | --- | --- | --- |
-| 0 | Socle identité (groupes + GLEIF + Wikidata + ponts) — **en cours** | ~2 sem |
+| 0 | Socle identité (groupes + GLEIF + Wikidata + ponts) — **livré le 2026-08-03** (métriques réelles au [registre](data-sources.md) ; reste de l'étape : la curation top groupes, en continu) | ~2 sem |
 | 1-2 | NIH puis NSF (+ transverse devises/fiscal) | ~2,5 sem |
 | 3 | UKRI | ~1 sem |
 | 4-6 | SNSF, NWO, Vinnova | ~1,5-2 sem |

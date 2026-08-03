@@ -4,6 +4,26 @@ All notable changes to Orion are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Vague 1, étape 0 — the identity layer runs FOR REAL: the groups
+  schema (canonical layering — dated, weighted, JV-flagged memberships;
+  entities never merged), the GLEIF Golden Copy mirror (3 391 838 LEI,
+  258 260 ACTIVE consolidation links, CC0 re-verified), Wikidata parent
+  pairs (3 098, ISO-17442-guarded), and the three-pass builder:
+  conservative name+country bridges (11 030 organisations bridged,
+  ~10.7 %), reporting exceptions for bridged LEIs (17 208), and 1 457
+  groups with 2 638 memberships — Siemens 56 entities, Thales 27,
+  Airbus 17, Safran with its Goodrich/Crompton acquisitions. Curation
+  survives every rebuild (tested); `make identity` and the weekly
+  scheduler replay the chain. Real-run lessons folded in: free-text
+  registry ids, strict LEI shape, bridges rebuilt whole. Instruction
+  findings on the registry: the ANR publishes no SIREN (LEI→SIREN
+  captured on the GLEIF side, ready); JVs and state heads queued for
+  the curation pass.
+
 ## [0.4.0] - 2026-08-03
 
 The UI chantier, closed. Orion carries its design doctrine end to end:

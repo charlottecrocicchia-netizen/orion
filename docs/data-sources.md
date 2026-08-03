@@ -10,6 +10,8 @@ Registre vivant : chaque source publique ingérée par Orion, avec sa juridictio
 | ANR (`anr`) | FR | EUR | **ODbL 1.0** (Open Database License) — vérifiée le 2026-07-31 sur data.gouv.fr, champ `license: odc-odbl`. ⚠️ **Pas** la Licence Ouverte : clause de partage à l'identique, voir l'alerte ci-dessous | ~mensuelle (dernière publication : 2026-07-02) | 34 720 projets, 117 859 participations (2026-07-31) |
 | ADEME (`ademe`) | FR | EUR | Licence Ouverte 2.0 (vérifiée le 2026-07-31) | — | **Décision fondatrice du 2026-07-31 : non ingérée** (source hors sujet, voir ci-dessous) ; **France 2030** sera visé plus tard comme source française de R&D industrielle |
 | LIFE (`life`) | UE | EUR | à confirmer sur l'export retenu | — | **Décision fondatrice du 2026-07-31 : reporté**, ne bloque pas la v0.1.0 ; piste de récupération future via **OpenAIRE** |
+| GLEIF Golden Copy (`gleif`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 sur gleif.org (« even for commercial purposes ») | quotidienne (publishes/latest, rejouée par le scheduler hebdo) | 3 391 838 LEI en miroir, 258 260 liens de consolidation ACTIVE (fonds exclus), exceptions filtrées aux LEI pontés : 17 208 (2026-08-03) |
+| Wikidata parents (`wikidata`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 | mensuelle visée (rejouée par le scheduler hebdo) | 3 098 paires parent P749 entre porteurs de LEI bien formés (garde ISO 17442 : quelques P1278 sales rejetés) |
 
 ## ⚠️ PRÉREQUIS BLOQUANT DE LA MISE EN LIGNE — ANR sous ODbL
 
@@ -41,6 +43,31 @@ Options soumises à la fondatrice : (a) ne pas ingérer l'ADEME et viser plutôt
 ## LIFE : reporté (décision fondatrice du 2026-07-31)
 
 La base publique des projets LIFE existe (`https://webgate.ec.europa.eu/life/publicWebsite/search`) mais est un moteur de recherche web : aucun export CSV/Excel ni API documentée n'a été trouvé le 2026-07-31. **Décision : reporté, ne bloque pas la v0.1.0 ; piste privilégiée pour plus tard : récupération via OpenAIRE** (qui agrège les projets LIFE), sinon l'API interne du moteur de recherche si ses conditions l'autorisent.
+
+## Couche identité — métriques du premier run réel (2026-08-03)
+
+Socle de la vague 1 ([instruction](vague-1-instruction.md), cahier des
+charges [groupes-couche.md](groupes-couche.md)) :
+
+- **11 030 organisations pontées à un LEI** (~10,7 % des 103 457
+  canoniques) par le pont nom+pays conservateur — unicité exigée des
+  deux côtés, un pont qui hésite n'est pas un pont ;
+- **1 457 groupes** constitués, **2 638 appartenances** (méthodes gleif
+  0,75-0,90 / wikidata 0,60) ; têtes d'affiche immédiates : Siemens AG
+  56 entités, **Thales 27**, Airbus SE 17, Engie 16, RTX 16, Vinci 14,
+  BASF 13, ABB 13 — et **Safran** avec Goodrich Actuation et Crompton
+  Technology, des acquisitions que le nom seul n'aurait jamais
+  rattachées ;
+- découverte d'instruction : **l'ANR ne publie pas de SIREN** (seulement
+  RNSR) — le pont SIREN↔LEI est capté côté GLEIF (`ra_id` verbatim),
+  prêt à s'allumer avec une source française qui en portera ;
+- à traiter en curation (vague A, comme au cahier des charges) : les
+  **JV** (Thales Alenia Space consolidée sous Thales à 100 % par GLEIF —
+  à repondérer 67/33 avec marqueur JV) et les **têtes étatiques**
+  (GLEIF consolide des organismes publics français sous « République
+  française », 28 membres — vérité comptable, bruit produit) ; « Safran
+  SA » elle-même reste non pontée (plusieurs candidates au même nom
+  normalisé — file de curation, pas d'automatisme).
 
 ## Dédoublonnage des organisations — métriques (run du 2026-07-31, v0.1.0)
 
