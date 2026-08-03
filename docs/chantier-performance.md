@@ -1,6 +1,7 @@
 # Chantier performance — instruction
 
-> **Statut : PROPOSÉ — validation fondatrice avant exécution.**
+> **Statut : EXÉCUTÉ le 2026-08-03** (instruction validée le même jour).
+> Résultats, y compris ce qui contredit l'instruction, en fin de document.
 > Intercalé avant NSF (décision du 2026-08-03) : la vague 1 va tripler
 > le corpus et chaque source suivante paierait l'intérêt de cette dette.
 > Toutes les mesures ci-dessous sont **réelles**, prises le 2026-08-03
@@ -236,3 +237,112 @@ test d'égalité. Jour 4 : spike O3a + décision + O3b/O4. Jour 5 : preuve
 profondeur du vecteur condensé O3a (proposition : titre + 400 premiers
 mots du résumé) et l'acceptation de la perte de rappel dite ; ② la
 règle RAM d'O3c (Colima 8 Go en local, dimensionnement VPS écrit).
+
+
+---
+
+# Résultats du chantier (2026-08-03)
+
+## Ce qui a été livré
+
+| Option | Décision | Mesure |
+| --- | --- | --- |
+| **Règle RAM** (Colima 3 → 8 Go) | livrée en premier | **le levier le plus fort du chantier** : recherche ×7,6, filtre pays ×5,4, à elle seule |
+| **O1** — scope unique matérialisé, facettes en une passe, page top-N, semi-jointure pays, 3 index | livrée | filtre pays 1 602 → 524 ms, recherche 326 → 227 ms |
+| **O2** — `country_stats` et `country_pair_stats` matérialisées | livrée | carte 3 160 → 20 ms au pire ; facette pays d'un filtre pays : lecture au lieu de calcul |
+| **O3a** — matière condensée | **RETIRÉE** | voir ci-dessous |
+| **O3b** — préchauffage des termes fréquents | **non retenue** | la mesure a montré que le préchauffage utile n'est pas celui des termes mais celui de la MATIÈRE (`pg_prewarm`) — noté comme piste d'exploitation, pas comme code |
+| **O4** — invalidation par famille de sources | livrée | un run d'identité ne vide plus les caches du corpus (testé) |
+| **Banc + garde-fou CI + preuve d'échelle** | livrés | `scripts/bench_api.py`, budgets en CI, `scripts/triple_corpus.py` |
+
+## Les budgets, au corpus actuel (464 727 projets)
+
+Mesure de clôture, caches chauds, protocole respecté :
+
+| Parcours | Avant chantier | Clôture | Budget | Verdict |
+| --- | --- | --- | --- | --- |
+| Recherche à terme neuf | 2 221 ms | **303 ms** | 1 500 | ✅ |
+| Recherche, cache chaud | 173 ms | **191 ms** | 300 | ✅ |
+| Filtre pays | 7 995 ms | **245 ms** | 300 | ✅ |
+| Index des pays (carte) | 3 847 ms au pire | **19 ms au pire** | 300 | ✅ |
+| Fiche organisation | 27 ms | **9 ms** | 300 | ✅ |
+| Partenaires | 6 ms | **5 ms** | 300 | ✅ |
+
+## ⚠️ Ce que la preuve d'échelle a démenti
+
+**L'instruction promettait que les budgets tiendraient au triplement, par
+argument de complexité. La mesure dit non.** Corpus doublé (929 454
+projets, base 8,8 Go, machine à 8 Go de RAM) :
+
+| Parcours | Corpus nominal | Corpus ×2 | Facteur |
+| --- | --- | --- | --- |
+| Recherche à terme neuf | 303 ms | **10 120 ms** | ×33 |
+| Filtre pays | 245 ms | **5 453 ms** | ×22 |
+| Index des pays | 4 ms | **13 ms** | ×3 |
+| Fiche organisation | 9 ms | **44 ms** | ×5 |
+
+Le doublement des données multiplie les temps par bien plus que deux :
+**ce n'est pas la complexité algorithmique qui gouverne, c'est la
+mémoire**. Quand la matière chaude cesse de tenir en cache, chaque
+requête retourne au disque. Confirmé par contre-épreuve : le même
+corpus ×2 avec 5 Go de cache au lieu de 2 passe de 10 120 à 5 690 ms —
+mieux, mais une base de 8,8 Go ne tient pas dans 5 Go.
+
+**Les agrégats matérialisés, eux, encaissent le doublement sans broncher**
+(carte : 4 → 13 ms). C'est la validation la plus nette d'O2 : ce qui est
+pré-calculé devient insensible au volume.
+
+### La règle de dimensionnement, chiffrée
+
+Ce chantier transforme une note de bas de page en **décision produit** :
+
+- corpus actuel (465 k projets) : base ~5 Go → **8 Go de RAM** suffisent
+  (état local validé) ;
+- corpus ×2 (930 k) : base ~9 Go → **16 Go** ;
+- corpus ×3 attendu en fin de vague 1 (~1,4 M) : base ~13 Go →
+  **24 à 32 Go de RAM**, avec `shared_buffers` autour du tiers.
+
+**À porter au budget d'hébergement avant la mise en ligne.** Sans cette
+RAM, aucune optimisation logicielle ne tiendra les 300 ms — le chantier
+l'a mesuré des deux côtés.
+
+## Le spike O3a : critère atteint, système contredit
+
+En isolation : ×3,2 à ×10,7 selon le terme (médiane ×6,1), rappel
+98,4 %, moitié moins de matière — le critère d'adoption validé (≥ ×5)
+était atteint. Dans le système : la recherche passe de 203 à 913 ms.
+
+La matière condensée ne REMPLACE pas les textes complets (les extraits
+lisent le vrai texte), elle s'y ajoute — 1,3 Go de plus dans le cache
+déjà saturé. Le budget était tenu sans elle. **Retirée** (migration
+0016), mesure conservée.
+
+Ce que le spike laisse comme piste, pour le jour où la RAM ne suivra
+plus : retirer l'index plein texte une fois les extraits servis
+autrement. Un chantier à instruire alors, pas à improviser.
+
+## Le rituel installé
+
+1. **Le banc** (`scripts/bench_api.py`) avec son protocole écrit — le
+   cache applicatif survit entre deux exécutions, un « terme neuf » ne
+   l'est qu'à la première mesure (piège rencontré deux fois).
+2. **Le garde-fou CI** : budgets serrés sur le corpus seedé à chaque
+   build. Il n'attrape pas les murs de volume, il attrape les
+   régressions algorithmiques.
+3. **Le test d'égalité** des matérialisés, plus un test qui vérifie que
+   la liste des vues rafraîchies couvre le schéma réel — trois chemins
+   d'écriture (chaîne, fixtures, seed CI) lisent désormais la même liste.
+4. **Le relevé par chargeur** : chaque source de la vague 1 livre sa
+   ligne de perfs constatées au registre, banc rejoué après chargement.
+
+## Ce qui reste ouvert
+
+- **La variabilité selon l'état du cache est énorme** sur cette machine
+  (303 ms à 2 500 ms pour le même parcours selon le réchauffement).
+  Après une ingestion ou un redémarrage, le produit est lent jusqu'à ce
+  que la matière remonte en cache. Piste : un préchauffage explicite
+  (`pg_prewarm`) en fin de chaîne — à instruire.
+- **Le dimensionnement VPS** ci-dessus, à arbitrer au moment de
+  l'hébergement.
+- Les pistes écartées de l'instruction (moteur externe, RUM, pagination
+  keyset) restent écartées.

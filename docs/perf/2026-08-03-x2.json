@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-03T19:12:19+00:00",
+  "base": "http://localhost:8000",
+  "passes": 5,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 10119.5,
+      "worst_ms": 11752.6,
+      "samples": 5
+    },
+    "search_warm_term": {
+      "median_ms": 191.4,
+      "worst_ms": 335.4,
+      "samples": 5
+    },
+    "filter_country": {
+      "median_ms": 5452.6,
+      "worst_ms": 6045.7,
+      "samples": 5
+    },
+    "countries_index": {
+      "median_ms": 12.6,
+      "worst_ms": 53.2,
+      "samples": 5
+    },
+    "organisation_detail": {
+      "median_ms": 43.7,
+      "worst_ms": 2148.5,
+      "samples": 5
+    },
+    "organisation_partners": {
+      "median_ms": 6.8,
+      "worst_ms": 23.2,
+      "samples": 5
+    }
+  },
+  "label": "corpus x2 (929 454 projets) \u2014 preuve d'\u00e9chelle"
+}
