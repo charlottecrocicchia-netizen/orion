@@ -14,9 +14,9 @@ services:
     command:
       - postgres
       - -c
-      - shared_buffers=2GB
+      - shared_buffers=4GB
       - -c
-      - effective_cache_size=5GB
+      - effective_cache_size=6GB
       - -c
       - work_mem=64MB
       - -c
