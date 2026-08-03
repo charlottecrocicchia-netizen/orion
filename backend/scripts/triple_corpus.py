@@ -15,7 +15,6 @@ what this script added and nothing else. Rounds are limited by disk:
 one round doubles the corpus, two triple it.
 """
 
-import sys
 import time
 
 from sqlalchemy import text

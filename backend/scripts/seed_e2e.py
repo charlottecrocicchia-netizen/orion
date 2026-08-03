@@ -260,8 +260,15 @@ def main() -> None:
         refresh_normalized_names(session, RunStats())
         session.commit()
 
+    # The seed IS an ingestion chain in miniature, so it ends like one:
+    # every materialised aggregate refreshed, from the single list the
+    # real chain uses. Naming views one by one here is how the country
+    # index went silently empty in CI (2026-08-03).
+    from orion.ingest.dedup.merge import MATERIALIZED_VIEWS
+
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
-        connection.execute(text("REFRESH MATERIALIZED VIEW organisation_stats"))
+        for view in MATERIALIZED_VIEWS:
+            connection.execute(text(f"REFRESH MATERIALIZED VIEW {view}"))
 
     print(f"Seeded {len(PROJECTS)} projects, {len(ORGS)} organisations, 5 countries.")
 
