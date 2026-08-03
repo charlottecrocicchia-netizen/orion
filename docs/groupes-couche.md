@@ -1,7 +1,11 @@
 # La couche groupes — cahier des charges
 
 > Chantier données de la vague 1 (décisions fondatrice des 2026-08-02 et
-> 2026-08-03, conclusions de la grande recherche sources intégrées).
+> 2026-08-03, conclusions de la grande recherche sources intégrées —
+> rapport complet en annexe :
+> [groupes-recherche-sources.md](groupes-recherche-sources.md), à
+> consulter pour les fichiers GLEIF exacts, les API et le tableau des
+> licences au moment de construire la vague A).
 > Leçon U5 de Vega et différenciateur frontal confirmé sur pièces :
 > KAILA fait regrouper 21 entités à la main (Merge/Cross) à chaque
 > session ; notre couche automatique + curée rend ce geste caduc.
