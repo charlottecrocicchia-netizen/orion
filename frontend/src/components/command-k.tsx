@@ -1,40 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import { api } from "@/lib/api";
-import { buildCountryNames, countryMatches } from "@/lib/country-match";
+import { PALETTE_CAPS, useDebouncedValue, useDestinations } from "@/lib/destinations";
+import type { DestinationGroup } from "@/lib/destinations";
 import { cn } from "@/lib/utils";
-import { countryFlag, formatOrgName, themeLabel } from "@/lib/format";
 
 /** The command palette, grown into a real APG combobox (Vega lesson U7:
  *  "the search didn't understand what people typed"). As you type it
  *  suggests projects (by acronym), organisations (typo-tolerant, server
  *  trigram), themes and countries (closed vocabularies matched locally,
- *  accent-insensitive, localized via i18n and Intl.DisplayNames). Arrow
+ *  accent-insensitive, localized via i18n and Intl.DisplayNames) — the
+ *  matching extracted into the SHARED destination intelligence
+ *  (lib/destinations), the same one the visible bars consume. Arrow
  *  keys drive aria-activedescendant; Enter opens the active option —
  *  full-text search stays the default first option, so the old reflex
  *  (type, Enter) behaves exactly as before. */
 
 const STARTERS = ["Hydrogen", "Artificial intelligence", "Batteries", "Quantum", "Carbon capture"];
 
-const strip = (value: string) =>
-  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
-function useDebounced(value: string, delay = 180): string {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    // No timer when already in sync — mounting must not schedule state
-    // updates for later (they fire after teardown in tests).
-    if (value === debounced) return;
-    const handle = window.setTimeout(() => setDebounced(value), delay);
-    return () => window.clearTimeout(handle);
-  }, [value, delay, debounced]);
-  return debounced;
-}
-
-type Group = "full" | "projects" | "organisations" | "themes" | "countries";
+type Group = "full" | DestinationGroup;
 
 interface Option {
   id: string;
@@ -51,108 +36,32 @@ interface CommandKProps {
 }
 
 export function CommandK({ open, onOpenChange }: CommandKProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
-  const debounced = useDebounced(q);
-  const ready = debounced.trim().length >= 2;
-
-  const { data: remote } = useQuery({
-    queryKey: ["suggest", debounced.trim().toLowerCase()],
-    queryFn: () => api.suggest(debounced.trim()),
-    enabled: open && ready,
-    placeholderData: keepPreviousData,
-    staleTime: 60_000,
-  });
-  const { data: themes } = useQuery({
-    queryKey: ["suggest-themes"],
-    queryFn: () =>
-      api.explore(new URLSearchParams({ metric: "projects", by: "theme", limit: "41" })),
+  const debounced = useDebouncedValue(q);
+  const destinations = useDestinations(q, {
     enabled: open,
-    staleTime: Number.POSITIVE_INFINITY,
-  });
-  const { data: countryIndex } = useQuery({
-    queryKey: ["countries"],
-    queryFn: api.countries,
-    enabled: open,
-    staleTime: Number.POSITIVE_INFINITY,
+    caps: PALETTE_CAPS,
+    idPrefix: "ck-opt",
   });
 
   const options = useMemo<Option[]>(() => {
     const term = q.trim();
-    const qn = strip(term);
-    if (qn.length < 2) return [];
-    const out: Option[] = [
+    if (term.length < 2) return [];
+    return [
       {
         id: "ck-opt-full",
-        group: "full",
+        group: "full" as Group,
         label: t("ck.fullSearch", { q: term }),
         to: `/projects?q=${encodeURIComponent(term)}`,
       },
+      ...destinations,
     ];
-    for (const project of remote?.projects ?? []) {
-      out.push({
-        id: `ck-opt-p-${project.id}`,
-        group: "projects",
-        label: project.acronym ?? project.title,
-        sub: project.acronym ? project.title : undefined,
-        to: `/projects/${project.id}`,
-      });
-    }
-    for (const org of remote?.organisations ?? []) {
-      out.push({
-        id: `ck-opt-o-${org.id}`,
-        group: "organisations",
-        label: formatOrgName(org.name),
-        flag: org.country ? countryFlag(org.country) : undefined,
-        to: `/organisations/${org.id}`,
-      });
-    }
-    const themeMatches = (themes?.series ?? [])
-      .map((serie) => ({
-        key: String(serie.key),
-        label: themeLabel(String(serie.key), serie.label, t),
-        source: serie.label ?? "",
-      }))
-      .filter((theme) => strip(theme.label).includes(qn) || strip(theme.source).includes(qn))
-      .slice(0, 3);
-    for (const theme of themeMatches) {
-      out.push({
-        id: `ck-opt-t-${theme.key.replace(/[^a-z0-9]/gi, "_")}`,
-        group: "themes",
-        label: theme.label,
-        to: `/explore?by=theme&split=1&compare=${encodeURIComponent(theme.key)}`,
-      });
-    }
-    const displayNames = new Intl.DisplayNames([i18n.language || "en"], { type: "region" });
-    // Multi-locale matching (recette 2026-08-02): "Allemagne" under an
-    // English interface still finds Germany — display stays localized.
-    const names = buildCountryNames(countryIndex ?? []);
-    const matchedCountries = (countryIndex ?? [])
-      .map((entry) => ({
-        code: entry.code,
-        label: displayNames.of(entry.code) ?? entry.name,
-      }))
-      .filter((entry) => countryMatches(names.get(entry.code), qn))
-      .sort(
-        (a, b) =>
-          Number(strip(b.label).startsWith(qn)) - Number(strip(a.label).startsWith(qn)),
-      )
-      .slice(0, 3);
-    for (const country of matchedCountries) {
-      out.push({
-        id: `ck-opt-c-${country.code}`,
-        group: "countries",
-        label: country.label,
-        flag: countryFlag(country.code),
-        to: `/explore/countries/${country.code}`,
-      });
-    }
-    return out;
-  }, [q, remote, themes, countryIndex, t, i18n.language]);
+  }, [q, destinations, t]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

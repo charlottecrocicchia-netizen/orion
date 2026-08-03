@@ -110,6 +110,16 @@ réelle, constellation seedée pour les news sans visuel) ; la bande est
 un **rail scroll-snap au geste exact des decks d'Angles** (swipe,
 flèches, points, clavier), cadence de vrai carrousel (3,8 s), le filet
 bas devient la barre de progression, et la section se révèle au scroll.
+Recette v6 (2026-08-03) : la barre gelée au milieu — troisième membre
+de la famille fantôme — tuée (seul le focus CLAVIER retient le
+carrousel ; le pointermove synthétique post-scroll de Chrome ne compte
+plus) ; et **toutes les barres proposent des destinations** en cours de
+frappe (« Safran → la fiche organisation », « Allemagne → le pays »),
+l'intelligence de la palette ⌘K extraite en module partagé et servie
+par la palette, les barres composables (groupe « Aller à », le Entrée
+validé inchangé) et la demande de l'accueil ; « + Ajouter au dossier »
+posé sur les fiches organisation, pays et le benchmark (chaque fiche
+verse sa vue signature comme bloc vivant de l'Explorateur).
 
 ## Ensuite — extension des sources, vague 1
 

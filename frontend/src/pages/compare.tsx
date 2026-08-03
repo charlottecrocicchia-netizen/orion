@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { LinesChart } from "@/components/charts";
+import { CollectButton } from "@/components/collect-button";
 import { CountryFlags } from "@/components/country-flags";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
@@ -165,6 +166,16 @@ export function ComparePage() {
         </h1>
         {ids.length < MAX_ORGS ? (
           <AddOrganisation exclude={ids} onAdd={(id) => setIds([...ids, String(id)])} />
+        ) : null}
+        {/* The benchmark itself is a collectable view — the compared
+            trajectories land in the dossier as one living block. */}
+        {ids.length >= 2 && entries.length >= 2 ? (
+          <span className="ml-auto">
+            <CollectButton
+              view={`by=organisation&split=1&compare=${encodeURIComponent(ids.join("~"))}`}
+              title={entries.map((entry) => formatOrgName(entry.name)).join(" · ")}
+            />
+          </span>
         ) : null}
       </div>
 

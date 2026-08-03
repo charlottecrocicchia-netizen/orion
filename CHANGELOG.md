@@ -193,6 +193,24 @@ All notable changes to Orion are documented here. The format follows
   progress bar that freezes with the reader's real hold; the snapping
   rise-and-fade transition stays static under reduced motion.
 
+- Every search bar proposes DESTINATIONS while typing (recette
+  2026-08-03: "I type Safran in the projects bar and there is no obvious
+  path to the Safran page"): the ⌘K palette's matching is extracted into
+  ONE shared intelligence (lib/destinations — server trigram for
+  organisation and project files, local multi-locale vocabularies for
+  themes and countries) and consumed by the palette, the composable
+  bars ("Aller à" group below the filters — plain Enter keeps its
+  validated meaning) and the home ask (now a real combobox; the free
+  ask stays the first option). "Safran → the organisation file",
+  "hydrogen → the theme", "Allemagne → the country", from anywhere.
+
+- "+ Add to dossier" on the rich pages (same recette: "the dossier is
+  only worth it if you can fill it from everywhere"): the organisation
+  file collects its funding trajectory, the country file its years, the
+  benchmark its compared trajectories — each as a LIVING Explorer view
+  with an honest default title, through one shared CollectButton wearing
+  the Explorer's own pill and acknowledgement.
+
 - ACTUALITÉS v2, the newspaper front (recette: the big rounded slab was
   ugly; studied live on Apple Newsroom and Linear's Now): a full-width
   BAND between two hairlines — mono kicker, huge ink title and one exit
@@ -276,6 +294,16 @@ Phase 3 — analytics and geography.
   → CSV export) automated in CI.
 
 ### Fixed
+
+- The news band's progress bar froze mid-flight (recette 2026-08-03,
+  third of the phantom family): ANY focus inside the section held the
+  carousel, and in Chrome a click — an arrow, a dot, the rail itself —
+  parks focus there until you click elsewhere. Only KEYBOARD focus
+  (:focus-visible) counts as reading intent now; and pointer intent is
+  stamped only when the cursor's viewport position actually changed,
+  killing Chrome's synthetic post-scroll pointermoves. The e2e plays
+  the real gesture: click the arrow, leave the page alone, demand two
+  consecutive auto-advances.
 
 - ANR programme referential: case duplicates merged (Blanc/BLANC…) and
   year-as-code rows resolved through their names (SATT existed as «2010»

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
-import type { FormEvent, ReactNode } from "react";
+import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
@@ -14,6 +14,8 @@ import { StatHero } from "@/components/stat-hero";
 import { WorldGlobe } from "@/components/world-globe";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { HOME_CAPS, useDestinations } from "@/lib/destinations";
+import type { DestinationGroup } from "@/lib/destinations";
 import { useDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
@@ -180,7 +182,46 @@ export function HomePage() {
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    go(String(new FormData(event.currentTarget).get("q") ?? ""));
+    go(ask);
+  };
+
+  // The ask now knows the DESTINATIONS too (recette 2026-08-03) — the
+  // same shared intelligence as the palette and the search bars: typing
+  // "Safran" proposes the organisation file, "hydrogen" the theme,
+  // "Allemagne" the country. The free ask stays the first option, so
+  // Enter keeps its reflex.
+  const [ask, setAsk] = useState("");
+  const [askFocused, setAskFocused] = useState(false);
+  const [askActive, setAskActive] = useState(0);
+  const askDestinations = useDestinations(ask, {
+    enabled: askFocused,
+    caps: HOME_CAPS,
+    idPrefix: "home-go",
+  });
+  const askOpen = askFocused && ask.trim().length >= 2 && askDestinations.length > 0;
+  const askCount = askDestinations.length + 1;
+  const askType = (group: DestinationGroup) =>
+    group === "projects"
+      ? t("search.composer.typeGoProject")
+      : group === "organisations"
+        ? t("search.composer.typeGoOrg")
+        : group === "themes"
+          ? t("search.composer.typeGoTheme")
+          : t("search.composer.typeGoCountry");
+  const onAskKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "ArrowDown" && askOpen) {
+      event.preventDefault();
+      setAskActive((current) => (current + 1) % askCount);
+    } else if (event.key === "ArrowUp" && askOpen) {
+      event.preventDefault();
+      setAskActive((current) => (current - 1 + askCount) % askCount);
+    } else if (event.key === "Enter" && askOpen && askActive > 0) {
+      event.preventDefault();
+      const destination = askDestinations[askActive - 1];
+      if (destination) navigate(destination.to);
+    } else if (event.key === "Escape" && askOpen) {
+      setAskFocused(false);
+    }
   };
 
   const examples = [t("home.example1"), t("home.example2"), t("home.example3")];
@@ -242,7 +283,7 @@ export function HomePage() {
           className="mx-auto w-full max-w-[1240px] px-6 py-24 text-center"
         >
           <h1 className="font-display text-title">{t("home.ask")}</h1>
-          <form onSubmit={submit} role="search" className="mx-auto mt-8 max-w-[720px]">
+          <form onSubmit={submit} role="search" className="relative mx-auto mt-8 max-w-[720px]">
             <div className="flex items-center gap-3.5 rounded-[20px] border bg-background/60 px-6 py-5 transition-shadow duration-300 focus-within:shadow-key focus-within:ring-2 focus-within:ring-accent">
               <span aria-hidden="true" className="text-[19px] text-muted-foreground">
                 ⌕
@@ -250,11 +291,80 @@ export function HomePage() {
               <input
                 name="q"
                 type="search"
+                role="combobox"
+                aria-expanded={askOpen}
+                aria-controls="home-ask-listbox"
+                aria-activedescendant={
+                  askOpen
+                    ? askActive === 0
+                      ? "home-go-full"
+                      : askDestinations[askActive - 1]?.id
+                    : undefined
+                }
+                aria-autocomplete="list"
+                autoComplete="off"
+                value={ask}
+                onChange={(event) => {
+                  setAsk(event.target.value);
+                  setAskActive(0);
+                }}
+                onFocus={() => setAskFocused(true)}
+                onBlur={() => window.setTimeout(() => setAskFocused(false), 120)}
+                onKeyDown={onAskKeyDown}
                 placeholder={typed || t("home.freeTextPlaceholder")}
                 aria-label={t("home.freeTextPlaceholder")}
                 className="w-full bg-transparent text-[18.5px] outline-none placeholder:text-muted-foreground"
               />
             </div>
+            {askOpen ? (
+              <div
+                id="home-ask-listbox"
+                role="listbox"
+                aria-label={t("home.freeTextPlaceholder")}
+                className="absolute inset-x-0 top-[calc(100%+8px)] z-30 rounded-xl border bg-background p-1.5 text-left shadow-key"
+              >
+                {[
+                  {
+                    id: "home-go-full",
+                    label: t("ck.fullSearch", { q: ask.trim() }),
+                    flag: undefined as string | undefined,
+                    type: null as string | null,
+                    action: () => go(ask),
+                  },
+                  ...askDestinations.map((destination) => ({
+                    id: destination.id,
+                    label: destination.label,
+                    flag: destination.flag,
+                    type: askType(destination.group),
+                    action: () => navigate(destination.to),
+                  })),
+                ].map((option, index) => (
+                  <div
+                    key={option.id}
+                    id={option.id}
+                    role="option"
+                    aria-selected={index === askActive}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onMouseEnter={() => setAskActive(index)}
+                    onClick={() => option.action()}
+                    className={
+                      "flex cursor-pointer items-baseline gap-2.5 rounded-lg px-3.5 py-2.5 text-[15px]" +
+                      (index === askActive
+                        ? " bg-accent-soft text-accent shadow-[inset_2.5px_0_0_var(--color-accent)]"
+                        : "")
+                    }
+                  >
+                    {option.flag ? <span aria-hidden="true">{option.flag}</span> : null}
+                    <span className="min-w-0 leading-snug">{option.label}</span>
+                    {option.type ? (
+                      <span className="ml-auto whitespace-nowrap font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
+                        → {option.type}
+                      </span>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </form>
           <p className="mt-3.5 text-[13px] text-muted-foreground">
             {t("home.try")}{" "}

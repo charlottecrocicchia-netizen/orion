@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { CollectButton } from "@/components/collect-button";
 import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
 import { PartnerGraph } from "@/components/partner-graph";
@@ -81,9 +82,19 @@ export function OrganisationHubPage() {
           .filter(Boolean)
           .join(" · ")}
       </p>
-      <h1 className="display-tight mt-1.5 max-w-[26ch] text-[clamp(26px,3.6vw,38px)] font-semibold leading-tight">
-        {displayName}
-      </h1>
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+        <h1 className="display-tight mt-1.5 max-w-[26ch] text-[clamp(26px,3.6vw,38px)] font-semibold leading-tight">
+          {displayName}
+        </h1>
+        {/* The file's signature view — the funding trajectory — collects
+            into the dossier as a living Explorer view. */}
+        <div className="mt-2.5 shrink-0">
+          <CollectButton
+            view={`by=organisation&split=1&compare=${encodeURIComponent(id)}`}
+            title={displayName}
+          />
+        </div>
+      </div>
 
       {/* The record hero — the total as a display figure, its trajectory
           drawing itself on entry (doctrine step 4, Attio record layout). */}

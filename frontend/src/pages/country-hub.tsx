@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { CollectButton } from "@/components/collect-button";
 import { ExploreExits } from "@/components/explore-exits";
 import { TrajectorySpark } from "@/components/trajectory-spark";
 import { TrendDelta } from "@/components/trend-delta";
@@ -40,7 +41,7 @@ export function CountryHubPage() {
         › <span>{data.name}</span>
       </nav>
 
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <span aria-hidden="true" className="text-3xl leading-none">
           {countryFlag(data.code)}
         </span>
@@ -50,6 +51,11 @@ export function CountryHubPage() {
             {t("country.euMember")}
           </span>
         ) : null}
+        {/* The country's signature view — its funding years — collects
+            into the dossier as a living Explorer view. */}
+        <span className="ml-auto">
+          <CollectButton view={`by=year&country=${encodeURIComponent(code)}`} title={data.name} />
+        </span>
       </div>
 
       {/* The record hero — the total as a display figure, its trajectory

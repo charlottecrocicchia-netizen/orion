@@ -1,9 +1,12 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { api } from "@/lib/api";
 import { buildCountryNames, countryMatches, stripAccents } from "@/lib/country-match";
+import { BAR_CAPS, useDestinations } from "@/lib/destinations";
+import type { DestinationGroup } from "@/lib/destinations";
 import { countryFlag } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +17,14 @@ import { cn } from "@/lib/utils";
  *  the suggestions, never from the user. The whole state lives in the
  *  page's URL params, so the existing facets pose tags for free and any
  *  composed question is shareable. APG combobox, same keyboard language
- *  as the palette; Backspace on an empty field removes the last tag. */
+ *  as the palette; Backspace on an empty field removes the last tag.
+ *
+ *  Below the filters, the bar now also proposes DESTINATIONS (recette
+ *  2026-08-03: "I type Safran and there is no obvious path to the
+ *  Safran page") — organisation and project files, themes, countries —
+ *  through the same shared intelligence as the ⌘K palette. Plain Enter
+ *  keeps its validated meaning (entity tag, else free text); the
+ *  destinations are one arrow press or a click away. */
 
 interface Tag {
   key: "country" | "funder" | "programme" | "years" | "q";
@@ -29,6 +39,7 @@ interface Suggestion {
   label: string;
   type: string;
   flag?: string;
+  go?: boolean;
   apply: () => void;
 }
 
@@ -44,6 +55,7 @@ export function SearchComposer({
   toggleMulti: (key: string, value: string) => void;
 }) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [draft, setDraft] = useState("");
   const [active, setActive] = useState(0);
   const [focused, setFocused] = useState(false);
@@ -249,18 +261,48 @@ export function SearchComposer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, countries, programmes, funders, matchNames, params, kind, i18n.language, t]);
 
-  const open = focused && suggestions.length > 0;
+  // The destinations — the palette's intelligence, one arrow press away.
+  const destinations = useDestinations(draft, {
+    enabled: focused,
+    caps: BAR_CAPS,
+    idPrefix: "sc-go",
+  });
+  const goType = (group: DestinationGroup) =>
+    group === "projects"
+      ? t("search.composer.typeGoProject")
+      : group === "organisations"
+        ? t("search.composer.typeGoOrg")
+        : group === "themes"
+          ? t("search.composer.typeGoTheme")
+          : t("search.composer.typeGoCountry");
+  const all: Suggestion[] = useMemo(
+    () => [
+      ...suggestions,
+      ...destinations.map((destination) => ({
+        id: destination.id,
+        label: destination.label,
+        type: goType(destination.group),
+        flag: destination.flag,
+        go: true,
+        apply: () => navigate(destination.to),
+      })),
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [suggestions, destinations, navigate, t],
+  );
+
+  const open = focused && all.length > 0;
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown" && open) {
       event.preventDefault();
-      setActive((current) => (current + 1) % suggestions.length);
+      setActive((current) => (current + 1) % all.length);
     } else if (event.key === "ArrowUp" && open) {
       event.preventDefault();
-      setActive((current) => (current - 1 + suggestions.length) % suggestions.length);
+      setActive((current) => (current - 1 + all.length) % all.length);
     } else if (event.key === "Enter" && open) {
       event.preventDefault();
-      (suggestions[active] ?? suggestions[0]).apply();
+      (all[active] ?? all[0]).apply();
     } else if (event.key === "Escape" && open) {
       setFocused(false);
     } else if (event.key === "Backspace" && draft === "" && tags.length > 0) {
@@ -308,7 +350,7 @@ export function SearchComposer({
           role="combobox"
           aria-expanded={open}
           aria-controls="sc-listbox"
-          aria-activedescendant={open ? suggestions[active]?.id : undefined}
+          aria-activedescendant={open ? all[active]?.id : undefined}
           aria-label={t(
             kind === "projects" ? "search.composer.placeholder" : "search.composer.placeholderOrgs",
           )}
@@ -339,27 +381,36 @@ export function SearchComposer({
           role="listbox"
           className="absolute inset-x-0 top-[calc(100%+8px)] z-30 max-w-[520px] rounded-xl border bg-background p-1.5 shadow-key"
         >
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={suggestion.id}
-              id={suggestion.id}
-              role="option"
-              aria-selected={index === active}
-              onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => setActive(index)}
-              onClick={() => suggestion.apply()}
-              className={cn(
-                "flex cursor-pointer items-baseline gap-2.5 rounded-lg px-3.5 py-2.5 text-[14px]",
-                index === active
-                  ? "bg-accent-soft text-accent shadow-[inset_2.5px_0_0_var(--color-accent)]"
-                  : "",
-              )}
-            >
-              {suggestion.flag ? <span aria-hidden="true">{suggestion.flag}</span> : null}
-              <span className="min-w-0 leading-snug">{suggestion.label}</span>
-              <span className="ml-auto whitespace-nowrap font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
-                {suggestion.type}
-              </span>
+          {all.map((suggestion, index) => (
+            <div key={suggestion.id}>
+              {suggestion.go && !all[index - 1]?.go ? (
+                <div
+                  role="presentation"
+                  className="mt-1 border-t border-border-soft px-3.5 pb-1 pt-2.5 font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-foreground"
+                >
+                  {t("search.composer.groupGoTo")}
+                </div>
+              ) : null}
+              <div
+                id={suggestion.id}
+                role="option"
+                aria-selected={index === active}
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActive(index)}
+                onClick={() => suggestion.apply()}
+                className={cn(
+                  "flex cursor-pointer items-baseline gap-2.5 rounded-lg px-3.5 py-2.5 text-[14px]",
+                  index === active
+                    ? "bg-accent-soft text-accent shadow-[inset_2.5px_0_0_var(--color-accent)]"
+                    : "",
+                )}
+              >
+                {suggestion.flag ? <span aria-hidden="true">{suggestion.flag}</span> : null}
+                <span className="min-w-0 leading-snug">{suggestion.label}</span>
+                <span className="ml-auto whitespace-nowrap font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {suggestion.go ? `→ ${suggestion.type}` : suggestion.type}
+                </span>
+              </div>
             </div>
           ))}
           <p className="px-3.5 pb-1 pt-2 text-[10.5px] text-muted-foreground">

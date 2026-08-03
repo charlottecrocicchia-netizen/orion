@@ -33,7 +33,9 @@ test("interface ANGLAISE + « Allemagne » pose aussi le tag pays (le geste rée
   await page.goto("/projects");
   const input = page.getByRole("combobox", { name: /Compose/ });
   await input.fill("Allemagne");
-  await expect(page.getByRole("option", { name: /Germany/ })).toBeVisible();
+  // The name "Germany" now appears twice — the country FILTER and the
+  // country DESTINATION (« Aller à ») — so target the filter option.
+  await expect(page.locator("#sc-c-DE")).toBeVisible();
   await input.press("Enter");
   await expect(page).toHaveURL(/country=DE/);
   expect(page.url()).not.toContain("q=Allemagne");

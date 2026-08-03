@@ -45,8 +45,11 @@ test("the enriched demo journey holds end to end", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".hero-gradient")).toContainText(/€\d+B/, { timeout: 10_000 });
   await page.locator(".pin-spacer").waitFor({ state: "attached", timeout: 5_000 });
-  await page.getByRole("searchbox").fill("hydrogen");
-  await page.getByRole("searchbox").press("Enter");
+  // The home ask is a combobox now (it proposes destinations while
+  // typing); plain Enter keeps the free-text reflex.
+  const ask = page.getByRole("combobox", { name: /hydrogen by country/ });
+  await ask.fill("hydrogen");
+  await ask.press("Enter");
   await expect(page).toHaveURL(/\/projects\?q=hydrogen/);
   const resultsHeading = page.getByRole("heading", { level: 1 });
   await expect(resultsHeading).toContainText(/[\d,]+ results/, { timeout: 10_000 });
