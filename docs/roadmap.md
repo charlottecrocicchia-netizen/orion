@@ -139,6 +139,19 @@ validé inchangé) et la demande de l'accueil ; « + Ajouter au dossier »
 posé sur les fiches organisation, pays et le benchmark (chaque fiche
 verse sa vue signature comme bloc vivant de l'Explorateur).
 
+## PROPOSÉ — le chantier performance (intercalé avant NSF)
+
+Décision fondatrice du 2026-08-03 : le goulot des facettes s'instruit
+proprement avant toute nouvelle source. **Instruction livrée :**
+[chantier-performance.md](chantier-performance.md) — diagnostic mesuré
+pièce à pièce (le mur est la lecture du heap de project_texts, pas
+ts_rank ; stats absentes sur la table de correspondances ; cinq re-scans
+par requête ; tri de page 100× trop cher ; EXISTS pays 10× la jointure ;
+invalidation de cache trop brutale), quatre options comparées au prix
+honnête, cible 300 ms avec preuve au corpus ×3, banc + garde-fou CI +
+relevé par chargeur, ~1 semaine. **En attente de validation fondatrice**
+(dont deux décisions : profondeur du vecteur condensé, règle RAM).
+
 ## EN COURS — extension des sources, vague 1 (exécution ouverte)
 
 **Plan validé le 2026-08-03** avec un amendement d'ordre fondatrice
