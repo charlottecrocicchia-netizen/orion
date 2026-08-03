@@ -236,7 +236,7 @@ const resources = {
         openExplorer: "The Explorer",
         openExplorerHint: "Compose your own view of the data",
         mapLabel: "Map of Europe — funding by country",
-        mapLegend: "EU + FR funding",
+        mapLegend: "Public R&D funding",
         mapFlows: "on hover, the country's top collaborations",
         mapHint: "First click selects a country · a second opens its file",
         globeLabel: "World globe — {{brand}}'s coverage in ultramarine",
@@ -245,7 +245,7 @@ const resources = {
         viewMap: "Map",
         coverageHave: "{{brand}} data (EU + France)",
         coverageSoon: "coverage to come",
-        coverageNote: "Current coverage: EU + France.",
+        coverageNote: "Current coverage: EU, France and the United States (NIH).",
         coverageDetail: "United States, United Kingdom, Japan — sources in preparation.",
       },
       search: {
@@ -336,7 +336,7 @@ const resources = {
         other: "Other",
       },
       org: {
-        totalFunding: "Total EU + FR funding",
+        totalFunding: "Total public R&D funding",
         actTrajectoryKicker: "trajectory",
         actTrajectory: "The years, role by role",
         actTrajectoryPhrase:
@@ -789,7 +789,7 @@ const resources = {
         openExplorer: "L'Explorateur",
         openExplorerHint: "Composez votre propre vue des données",
         mapLabel: "Carte d'Europe — financements par pays",
-        mapLegend: "Financements UE + FR",
+        mapLegend: "Financements publics R&D",
         mapFlows: "au survol, les principales collaborations du pays",
         mapHint: "Premier clic : le pays se sélectionne · un second ouvre sa fiche",
         globeLabel: "Globe mondial — la couverture de {{brand}} en outremer",
@@ -798,7 +798,7 @@ const resources = {
         viewMap: "Carte",
         coverageHave: "données {{brand}} (UE + France)",
         coverageSoon: "couverture à venir",
-        coverageNote: "Couverture actuelle : UE + France.",
+        coverageNote: "Couverture actuelle : UE, France et États-Unis (NIH).",
         coverageDetail: "États-Unis, Royaume-Uni, Japon — sources en préparation.",
       },
       search: {
@@ -889,7 +889,7 @@ const resources = {
         other: "Autre",
       },
       org: {
-        totalFunding: "Financement total UE + FR",
+        totalFunding: "Financement public R&D total",
         actTrajectoryKicker: "trajectoire",
         actTrajectory: "Les années, rôle par rôle",
         actTrajectoryPhrase:

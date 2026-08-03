@@ -77,7 +77,7 @@ test("the enriched demo journey holds end to end", async ({ page }) => {
   // 4 — jump to the first participating organisation.
   await page.locator("tbody a").first().click();
   await expect(page).toHaveURL(/\/organisations\/\d+/);
-  await expect(page.getByText("Total EU + FR funding")).toBeVisible();
+  await expect(page.getByText("Total public R&D funding")).toBeVisible();
   await expect(page.getByText("Portfolio")).toBeVisible();
   await expect(page.locator("tbody tr").first()).toBeVisible();
 

@@ -20,7 +20,7 @@ test("compare two organisations from the hub CTA", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Compare organisations");
 
   // One column already there, with its KPIs.
-  await expect(page.getByText("Total EU + FR funding")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("Total public R&D funding")).toBeVisible({ timeout: 10_000 });
 
   // Add a second organisation through the picker.
   await page.getByLabel("Add an organisation").fill("fraunhofer");

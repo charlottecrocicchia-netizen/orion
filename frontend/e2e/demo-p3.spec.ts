@@ -39,7 +39,7 @@ test("the phase-3 journey holds end to end", async ({ page }) => {
   // 3 — benchmark it against its first recurring partner.
   await page.getByRole("link", { name: "Compare" }).click();
   await expect(page).toHaveURL(/\/compare\?orgs=\d+/);
-  await expect(page.getByText("Total EU + FR funding")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("Total public R&D funding")).toBeVisible({ timeout: 10_000 });
 
   // 4 — a theme trend in the Explorer, in French to close the bilingual loop.
   await page.goto("/explore?by=theme&split=1&limit=5");
