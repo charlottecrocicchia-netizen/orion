@@ -123,8 +123,12 @@ def test_explore_groups_and_frames_by_region(db_session):
                                   funding_amount_eur)
             VALUES ('test-zzreg', :sid, :title, :funder, '2022-01-01', :amount)
             """),
-            {"sid": f"zzreg-{index}", "title": f"zzreg {index}", "funder": funder,
-             "amount": amount},
+            {
+                "sid": f"zzreg-{index}",
+                "title": f"zzreg {index}",
+                "funder": funder,
+                "amount": amount,
+            },
         )
         project = db_session.execute(
             sql("SELECT id FROM projects WHERE source_id = :sid"), {"sid": f"zzreg-{index}"}
@@ -145,8 +149,13 @@ def test_explore_groups_and_frames_by_region(db_session):
                                         amount_eur, source, source_uid)
             VALUES (:p, :o, 'coordinator', :code, :amount, 'test-zzreg', :sid)
             """),
-            {"p": project, "o": organisation, "code": code,
-             "amount": dict((r[0], r[2]) for r in rows)[code], "sid": f"zzreg-{index}"},
+            {
+                "p": project,
+                "o": organisation,
+                "code": code,
+                "amount": dict((r[0], r[2]) for r in rows)[code],
+                "sid": f"zzreg-{index}",
+            },
         )
     db_session.flush()
 

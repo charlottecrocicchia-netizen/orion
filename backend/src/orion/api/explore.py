@@ -20,7 +20,9 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
     year_to: int | None = None,
     q: str | None = None,
     country: str | None = None,
-    scope: Annotated[str | None, Query(description="manager region slug — frames every view")] = None,
+    scope: Annotated[
+        str | None, Query(description="manager region slug — frames every view")
+    ] = None,
     limit: int = 8,
     programme: Annotated[
         int | None, Query(description="drill-down: group by this programme's direct children")

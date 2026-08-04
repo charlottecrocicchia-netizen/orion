@@ -50,7 +50,10 @@ VALID: frozenset[tuple[str, str]] = frozenset(
                 "theme",
             )
         ),
-        *(("organisations", d) for d in ("year", "country", "region", "funder", "orgtype", "theme")),
+        *(
+            ("organisations", d)
+            for d in ("year", "country", "region", "funder", "orgtype", "theme")
+        ),
         *(("coordination", d) for d in ("year", "country", "region", "organisation", "orgtype")),
     ]
 )
