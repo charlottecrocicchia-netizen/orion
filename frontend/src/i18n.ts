@@ -398,6 +398,8 @@ const resources = {
           "Shares are stated on the group's consolidated total; entities co-signing the same project can add up beyond 100 %.",
         methodNote: "Membership: {{method}}, confidence {{pct}} %",
         jv: "Joint venture",
+        status: { announced: "announced", historical: "historical" },
+        notConsolidated: "not consolidated",
         empty: "No entity carries funding in the corpus yet.",
       },
       org: {
@@ -1017,6 +1019,8 @@ const resources = {
           "Les parts se lisent sur le total consolidé du groupe ; des entités co-signant le même projet peuvent dépasser 100 % en cumul.",
         methodNote: "Rattachement : {{method}}, confiance {{pct}} %",
         jv: "Coentreprise",
+        status: { announced: "annoncé", historical: "historique" },
+        notConsolidated: "non consolidé",
         empty: "Aucune entité ne porte encore de financement dans le corpus.",
       },
       org: {

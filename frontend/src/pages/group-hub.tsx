@@ -299,6 +299,11 @@ export function GroupHubPage() {
                           {t("group.jv")}
                         </span>
                       ) : null}
+                      {entity.status !== "active" ? (
+                        <span className="ml-2 rounded-full border border-dashed px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                          {t(`group.status.${entity.status}`)}
+                        </span>
+                      ) : null}
                       <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                         {t("group.methodNote", {
                           method: entity.method,
@@ -311,9 +316,11 @@ export function GroupHubPage() {
                         {formatCompactEur(entity.funding_eur, i18n.language)}
                       </span>
                       <p className="tnum mt-0.5 text-[12px] text-muted-foreground">
-                        {t("group.entityShare", {
-                          pct: entity.share_pct.toLocaleString(i18n.language),
-                        })}
+                        {entity.status === "active"
+                          ? t("group.entityShare", {
+                              pct: entity.share_pct.toLocaleString(i18n.language),
+                            })
+                          : t("group.notConsolidated")}
                         {" · "}
                         {t("search.projectsCount", { count: entity.projects })}
                       </p>
@@ -323,7 +330,7 @@ export function GroupHubPage() {
                     <div
                       className="h-full rounded-full"
                       style={{
-                        width: `${Math.min(entity.share_pct, 100)}%`,
+                        width: `${entity.status === "active" ? Math.min(entity.share_pct, 100) : 0}%`,
                         background:
                           entity.region && isRegion(entity.region)
                             ? regionColor(entity.region)

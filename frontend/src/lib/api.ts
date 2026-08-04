@@ -175,6 +175,8 @@ export interface GroupHub {
     method: string;
     confidence: number;
     is_jv: boolean;
+    /** active | announced | historical — l'annoncé est listé, jamais consolidé. */
+    status: string;
     projects: number;
     funding_eur: number;
     share_pct: number;

@@ -714,7 +714,8 @@ def suggest(session: Session, q: str) -> dict[str, Any]:
         groups = session.execute(
             text("""
             SELECT g.id, g.name, g.country_code,
-                   (SELECT count(*) FROM entity_group_map m WHERE m.group_id = g.id) AS entities
+                   (SELECT count(*) FROM entity_group_map m
+                    WHERE m.group_id = g.id AND m.status = 'active') AS entities
             FROM groups g
             WHERE g.name ILIKE :qprefix OR g.name % :qraw
             ORDER BY GREATEST(similarity(g.name, :qraw),

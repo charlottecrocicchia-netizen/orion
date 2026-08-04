@@ -35,7 +35,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
     entities = session.execute(
         text("""
         SELECT o.id, o.name, o.country_code, c.region,
-               m.method, m.confidence, m.is_jv, m.share,
+               m.method, m.confidence, m.is_jv, m.share, m.status,
                count(DISTINCT pa.project_id) AS projects,
                coalesce(sum(pa.amount_eur), 0) AS funding
         FROM entity_group_map m
@@ -43,8 +43,10 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         LEFT JOIN countries c ON c.code = o.country_code
         LEFT JOIN participations pa ON pa.organisation_id = o.id
         WHERE m.group_id = :id
-        GROUP BY o.id, o.name, o.country_code, c.region, m.method, m.confidence, m.is_jv, m.share
-        ORDER BY funding DESC, o.name
+        GROUP BY o.id, o.name, o.country_code, c.region,
+                 m.method, m.confidence, m.is_jv, m.share, m.status
+        ORDER BY CASE m.status WHEN 'active' THEN 0 WHEN 'announced' THEN 1 ELSE 2 END,
+                 funding DESC, o.name
         """),
         {"id": group_id},
     ).all()
@@ -55,7 +57,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
                coalesce(sum(pa.amount_eur), 0) AS funding
         FROM entity_group_map m
         JOIN participations pa ON pa.organisation_id = m.organisation_id
-        WHERE m.group_id = :id
+        WHERE m.group_id = :id AND m.status = 'active'
         """),
         {"id": group_id},
     ).first()
@@ -67,7 +69,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         FROM entity_group_map m
         JOIN participations pa ON pa.organisation_id = m.organisation_id
         JOIN projects p ON p.id = pa.project_id
-        WHERE m.group_id = :id AND p.start_date IS NOT NULL
+        WHERE m.group_id = :id AND m.status = 'active' AND p.start_date IS NOT NULL
           AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
         GROUP BY 1 ORDER BY 1
         """),
@@ -87,7 +89,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         LEFT JOIN topics l2 ON l2.scheme = 'euroscivoc' AND l2.code = tj.tkey
         -- Level-1-only codes yield a NULL level-2 key: not a theme, and
         -- it must not consume one of the six slots (seen live: Safran).
-        WHERE m.group_id = :id AND tj.tkey IS NOT NULL
+        WHERE m.group_id = :id AND m.status = 'active' AND tj.tkey IS NOT NULL
         GROUP BY tj.tkey ORDER BY projects DESC
         LIMIT 6
         """),
@@ -104,6 +106,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
             "method": row.method,
             "confidence": float(row.confidence or 0),
             "is_jv": bool(row.is_jv),
+            "status": row.status,
             "projects": row.projects,
             "funding_eur": float(row.funding or 0),
             # The share is stated on the group's own consolidated total —
@@ -117,8 +120,9 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         for row in entities
     ]
 
+    active_rows = [row for row in entity_rows if row["status"] == "active"]
     countries: dict[str, dict[str, Any]] = {}
-    for row in entity_rows:
+    for row in active_rows:
         if not row["country"]:
             continue
         bucket = countries.setdefault(
@@ -138,13 +142,13 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         FROM entity_group_map m
         JOIN participations pa ON pa.organisation_id = m.organisation_id
         JOIN projects p ON p.id = pa.project_id
-        WHERE m.group_id = :id AND p.start_date IS NOT NULL
+        WHERE m.group_id = :id AND m.status = 'active' AND p.start_date IS NOT NULL
           AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
         GROUP BY 1, 2 ORDER BY 1, 2
         """),
         {"id": group_id},
     ).all()
-    lead_ids = [row["id"] for row in entity_rows[:5]]
+    lead_ids = [row["id"] for row in active_rows[:5]]
     names = {row["id"]: row["name"] for row in entity_rows}
     series: dict[int | None, dict[int, float]] = {}
     for org, year, funding in per_entity_years:
@@ -182,7 +186,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         "country": base.country_code,
         "lei": base.lei,
         "totals": {
-            "entities": len(entity_rows),
+            "entities": len(active_rows),
             "projects": totals.projects,
             "funding_eur": group_funding,
             "countries": len(countries),

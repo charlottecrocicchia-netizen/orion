@@ -639,10 +639,15 @@ def organisation_watchpost(
 
 
 def _group_member_ids(session: Session, group_id: int) -> list[int]:
+    # Adhésions ACTIVES seulement : une opération annoncée ou une
+    # cession passée ne consolide rien (partenaires, veille, benchmark).
     return [
         row[0]
         for row in session.execute(
-            text("SELECT organisation_id FROM entity_group_map WHERE group_id = :gid"),
+            text(
+                "SELECT organisation_id FROM entity_group_map "
+                "WHERE group_id = :gid AND status = 'active'"
+            ),
             {"gid": group_id},
         )
     ]
@@ -843,7 +848,8 @@ def group_compare_entry(session: Session, group_id: int) -> dict[str, Any] | Non
         base = session.execute(
             text("""
             SELECT g.id, g.name, g.country_code,
-                   (SELECT count(*) FROM entity_group_map m WHERE m.group_id = g.id) AS entities
+                   (SELECT count(*) FROM entity_group_map m
+                    WHERE m.group_id = g.id AND m.status = 'active') AS entities
             FROM groups g WHERE g.id = :gid
             """),
             {"gid": group_id},

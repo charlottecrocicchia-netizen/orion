@@ -61,7 +61,19 @@ Deux enseignements de la mesure elle-même :
   que le rattachement automatique par nom serait une faute — la
   validation humaine n'est pas un luxe, c'est la barrière.
 
-## 3. La fournée 1 — à valider ensemble, rien n'est chargé
+> **2026-08-04, soir — fournée 1 VALIDÉE et chargée** (décision
+> fondatrice, pivot spatial) avec les verdicts des six décisions du §4,
+> les JV spatiales sourcées du rapport externe (ArianeGroup, Thales
+> Alenia Space ×8, Telespazio ×7, ATR, MaiaSpace, Sodern, OHB, Beyond
+> Gravity) et l'opération Airbus·Leonardo·Thales en statut « announced »
+> — listée, jamais consolidée. Le format a gagné la colonne `status`
+> (active/announced/historical). Le fichier vivant :
+> [backend/curation/groups.csv](../backend/curation/groups.csv) — 399
+> lignes. Hors modèle, documentés : e-GEOS (80 % Telespazio / 20 % ASI —
+> parents non têtes), Europropulsion, Regulus, Spaceopal, CFM, ULA
+> (absents du corpus), OHB Austria (à vérifier).
+
+## 3. La fournée 1 — historique de la proposition
 
 **[curation-fournee-1.csv](curation-fournee-1.csv) : 318 propositions —
 290 rattachements, 28 refus — sur 26 groupes.** Le fichier est au format

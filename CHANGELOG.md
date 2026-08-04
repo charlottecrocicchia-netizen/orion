@@ -58,6 +58,35 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The space pivot begins: batch 1 is validated and LOADED, time
+  enters the identity layer** (founder decision, 2026-08-04 — « Orion
+  Space Intelligence »). The curation file went live with 399 lines:
+  batch 1, the six pending verdicts (Gemalto double-membership under
+  Thales; Siemens Gamesa under Siemens Energy AG, never Siemens AG; the
+  « United Nations » group refused — a system is not a consolidated
+  group), and the sourced space joint ventures — ArianeGroup 50/50
+  Airbus·Safran, Thales Alenia Space 67/33 and Telespazio 67/33 on both
+  sides, ATR 50/50, MaiaSpace and Sodern through the documented
+  ArianeGroup chain, OHB and Beyond Gravity subsidiaries. Memberships
+  now carry a temporal `status` (active/announced/historical, migration
+  0019): the announced Airbus·Leonardo·Thales space operation (public
+  MoU, 2025-10) exists as a group whose members are LISTED with an
+  « announced » chip and NEVER consolidated — 0 € until the operation
+  is real. Safran's file went from 4 entities / 27.4 M€ to 41 active
+  entities / 579 M€, confessed gap zero. Group ids are now STABLE
+  across identity rebuilds (empty heads are cleaned after the upsert,
+  not before — /groups/<id> links survive).
+- The sorting note for the external space report:
+  docs/lecons-pivot-spatial.md — adopted (the space lens over the
+  corpus, the curated actor registry, Opportunity/Contract/Mission as
+  the redefined P5, the ESA/NASA-mapped technology taxonomy as U6),
+  dated (fit score, industrial roles, AI assistant, Radar home), and
+  refused with grounds (non-limpid licences source by source — ESA
+  included, per the licence rule; no immediate navigation overhaul; the
+  art direction stays until a separate founder decision on mockups; the
+  globe remains, as the industrial-landscape screen). Includes the
+  V1 space-lens plan (2-3 weeks) to be decided together.
+
 - **The coverage hole is measured, and group curation has its tooling**
   (founder recette, 2026-08-04: Safran showed 4 entities and 27.4 M€
   while Safran Aircraft Engines et al. sat unattached). The figures:

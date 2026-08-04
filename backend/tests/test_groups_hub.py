@@ -253,7 +253,7 @@ def _write_curation(tmp_path, rows):
     path = tmp_path / "groups.csv"
     header = (
         "group_lei,group_name,org_name,org_country,decision,"
-        "confidence,is_jv,share,valid_from,valid_to,evidence,source"
+        "confidence,is_jv,share,status,valid_from,valid_to,evidence,source"
     )
     path.write_text("\n".join([header, *rows]) + "\n", encoding="utf-8")
     return path
@@ -268,7 +268,7 @@ def test_curation_attaches_refuses_and_silences_the_radar(db_session, tmp_path):
         tmp_path,
         [
             "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,"
-            '0.95,false,,,,"Filiale déclarée du groupe",https://example.test/registre',
+            '0.95,false,,,,,"Filiale déclarée du groupe",https://example.test/registre',
         ],
     )
     load_curation(db_session, RunStats(), path=path)
@@ -294,7 +294,7 @@ def test_curation_refusal_silences_without_attaching(db_session, tmp_path):
         tmp_path,
         [
             "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,refuse,"
-            ',,,,,"Homonyme sans lien capitalistique",https://example.test/registre',
+            ',,,,,,"Homonyme sans lien capitalistique",https://example.test/registre',
         ],
     )
     load_curation(db_session, RunStats(), path=path)
@@ -313,7 +313,7 @@ def test_curation_jv_keeps_its_share(db_session, tmp_path):
         tmp_path,
         [
             "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,"
-            '0.9,true,67,,,"Coentreprise 67/33 documentée",https://example.test/registre',
+            '0.9,true,67,,,,"Coentreprise 67/33 documentée",https://example.test/registre',
         ],
     )
     load_curation(db_session, RunStats(), path=path)
@@ -332,11 +332,11 @@ def test_curation_refuses_to_guess(db_session, tmp_path):
     _seed_group(db_session)
     bad_rows = [
         # Évidence vide.
-        "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,0.9,false,,,,,src",
+        "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,0.9,false,,,,,,src",
         # Organisation introuvable.
-        'ZZLEI000000000000001,,INCONNUE XYZ,FR,attach,0.9,false,,,,"ev",src',
+        'ZZLEI000000000000001,,INCONNUE XYZ,FR,attach,0.9,false,,,,,"ev",src',
         # JV sans part.
-        'ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,0.9,true,,,,"ev",src',
+        'ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,0.9,true,,,,,"ev",src',
     ]
     for bad in bad_rows:
         path = _write_curation(tmp_path, [bad])
@@ -346,3 +346,75 @@ def test_curation_refuses_to_guess(db_session, tmp_path):
         text("SELECT count(*) FROM entity_group_map WHERE method = 'curation'")
     ).scalar()
     assert count == 0
+
+
+def test_announced_membership_is_listed_never_consolidated(db_session, tmp_path):
+    """Le statut temporel (pivot spatial) : une adhésion « announced »
+    apparaît sur la fiche, marquée, mais ne consolide RIEN — totaux,
+    trajectoire, partenaires, benchmark restent au périmètre actif."""
+    from orion.ingest.groups.curation import load_curation
+    from orion.ingest.runlog import RunStats
+    from orion.search.aggregates import compare_entries
+
+    group_id = _seed_group(db_session)
+    path = _write_curation(
+        tmp_path,
+        [
+            "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,"
+            '0.7,false,,announced,,,"Opération publique annoncée non finalisée",https://example.test',
+        ],
+    )
+    load_curation(db_session, RunStats(), path=path)
+
+    hub = group_hub(db_session, group_id)
+    # Les totaux ignorent l'annoncé…
+    assert hub["totals"] == {
+        "entities": 2,
+        "projects": 2,
+        "funding_eur": pytest.approx(8_000_000),
+        "countries": 2,
+    }
+    # …mais la fiche le LISTE, marqué, en fin de liste.
+    statuses = [(e["name"], e["status"]) for e in hub["entities"]]
+    assert ("ZZGROUPE AERO PROPULSION SAS", "announced") in statuses
+    assert statuses[-1][1] == "announced"
+    # Le radar est apaisé (l'homonyme est arbitré par l'annonce)…
+    assert hub["coverage"]["unattached_count"] == 0
+    # …et le benchmark consolide l'actif seulement.
+    entry = compare_entries(db_session, [f"g{group_id}"])[0]
+    assert entry["kpis"]["total_funding_eur"] == pytest.approx(8_000_000)
+    assert entry["entities"] == 2
+
+
+def test_curation_creates_the_announced_group_head(db_session, tmp_path):
+    """Une opération annoncée n'a pas de tête GLEIF : la curation crée le
+    groupe (source='curation'), et le retire s'il redevient orphelin."""
+    from orion.ingest.groups.curation import load_curation
+    from orion.ingest.runlog import RunStats
+
+    _seed_group(db_session)
+    path = _write_curation(
+        tmp_path,
+        [
+            ",ZZ OPERATION ANNONCEE,ZZAERO SA,FR,attach,"
+            '0.7,false,,announced,,,"MoU public — opération annoncée",https://example.test',
+        ],
+    )
+    load_curation(db_session, RunStats(), path=path)
+    created = db_session.execute(
+        text("SELECT id, source FROM groups WHERE name = 'ZZ OPERATION ANNONCEE'")
+    ).first()
+    assert created is not None and created.source == "curation"
+    hub = group_hub(db_session, created.id)
+    assert hub["totals"]["funding_eur"] == 0  # rien de consolidé
+    assert [e["status"] for e in hub["entities"]] == ["announced"]
+
+    # Le fichier vidé de la ligne → la tête orpheline repart.
+    empty = _write_curation(tmp_path, [])
+    load_curation(db_session, RunStats(), path=empty)
+    assert (
+        db_session.execute(
+            text("SELECT count(*) FROM groups WHERE name = 'ZZ OPERATION ANNONCEE'")
+        ).scalar()
+        == 0
+    )

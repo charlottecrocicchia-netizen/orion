@@ -63,6 +63,10 @@ class EntityGroupMap(Base):
     # a 67/33 stays a 67/33, never a silent 100.
     share: Mapped[float | None] = mapped_column(Numeric(5, 2))
     is_jv: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    # Le temps de l'adhésion (pivot spatial, 2026-08-04) : `active` vaut
+    # aujourd'hui ; `announced` est une opération publique non finalisée
+    # (listée, jamais consolidée) ; `historical` est une adhésion passée.
+    status: Mapped[str] = mapped_column(String(12), default="active", server_default="active")
     valid_from: Mapped[date | None] = mapped_column(Date)
     valid_to: Mapped[date | None] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

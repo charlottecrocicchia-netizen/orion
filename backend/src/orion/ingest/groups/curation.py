@@ -45,11 +45,14 @@ COLUMNS = [
     "confidence",
     "is_jv",
     "share",
+    "status",
     "valid_from",
     "valid_to",
     "evidence",
     "source",
 ]
+
+STATUSES = ("active", "announced", "historical")
 
 
 _ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -82,6 +85,9 @@ def _parse_rows(path: Path) -> list[dict[str, Any]]:
             for field in ("valid_from", "valid_to"):
                 if row[field] and not _ISO_DATE.match(row[field]):
                     _fail(index, f"{field} « {row[field]} » n'est pas AAAA-MM-JJ")
+            row["status"] = row["status"] or "active"
+            if row["status"] not in STATUSES:
+                _fail(index, f"status « {row['status']} » (active|announced|historical)")
             if not row["group_lei"] and not row["group_name"]:
                 _fail(index, "group_lei ou group_name requis")
             if row["decision"] == "attach":
@@ -120,9 +126,24 @@ def _resolve_group(session: Session, row: dict[str, Any]) -> int:
     found = session.execute(
         text("SELECT id FROM groups WHERE name = :name"), {"name": row["group_name"]}
     ).first()
-    if not found:
-        _fail(row["line"], f"groupe introuvable ({row['group_lei'] or row['group_name']})")
-    return found.id
+    if found:
+        return found.id
+    if row["decision"] == "attach" and row["group_name"]:
+        # Tête inconnue des registres (opération annoncée, tête sans
+        # LEI) : la curation la crée, source='curation' — la revue de
+        # PR est la garde contre la coquille, le diff son journal.
+        session.execute(
+            text(
+                "INSERT INTO groups (name, country_code, lei, source) "
+                "VALUES (:name, NULL, :lei, 'curation')"
+            ),
+            {"name": row["group_name"], "lei": row["group_lei"] or None},
+        )
+        return session.execute(
+            text("SELECT id FROM groups WHERE name = :name"), {"name": row["group_name"]}
+        ).scalar_one()
+    _fail(row["line"], f"groupe introuvable ({row['group_lei'] or row['group_name']})")
+    raise AssertionError  # unreachable
 
 
 def _resolve_organisations(session: Session, row: dict[str, Any]) -> list[int]:
@@ -165,6 +186,7 @@ def load_curation(session: Session, stats: RunStats, path: Path | None = None) -
                         "source": "curation",
                         "is_jv": row["is_jv"],
                         "share": row["share"],
+                        "status": row["status"],
                         "valid_from": row["valid_from"] or None,
                         "valid_to": row["valid_to"] or None,
                     }
@@ -180,12 +202,13 @@ def load_curation(session: Session, stats: RunStats, path: Path | None = None) -
             text("""
             INSERT INTO entity_group_map
                 (organisation_id, group_id, method, confidence, source, is_jv, share,
-                 valid_from, valid_to)
+                 status, valid_from, valid_to)
             VALUES (:organisation_id, :group_id, :method, :confidence, :source, :is_jv, :share,
-                    :valid_from, :valid_to)
+                    :status, :valid_from, :valid_to)
             ON CONFLICT (organisation_id, group_id, method) DO UPDATE
                 SET confidence = excluded.confidence,
                     is_jv = excluded.is_jv, share = excluded.share,
+                    status = excluded.status,
                     valid_from = excluded.valid_from, valid_to = excluded.valid_to
             """),
             entry,
@@ -198,6 +221,14 @@ def load_curation(session: Session, stats: RunStats, path: Path | None = None) -
             """),
             entry,
         )
+    # Les têtes créées par curation et devenues orphelines repartent —
+    # APRÈS les inserts : une tête créée ce run porte déjà ses adhésions.
+    session.execute(
+        text("""
+        DELETE FROM groups g WHERE g.source = 'curation'
+        AND NOT EXISTS (SELECT 1 FROM entity_group_map m WHERE m.group_id = g.id)
+        """)
+    )
     session.commit()
     stats.add("curation_attachments", len(attachments))
     stats.add("curation_refusals", len(refusals))

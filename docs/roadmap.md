@@ -263,7 +263,21 @@ Points d'attention connus :
   fondatrice** ; la fiche groupe avoue son périmètre (note d'honnêteté)
   et devient l'écran de démo n°1 : trajectoire par entité, partenaires
   du groupe, poste de veille consolidé, entrée au benchmark (« g<id> »
-  dans /compare). Détail des décisions : dès
+  dans /compare).
+- **PIVOT SPATIAL acté (2026-08-04, soir) : « Orion Space
+  Intelligence ».** Invariants : aucune donnée supprimée, le globe
+  reste (écran du paysage industriel), la doctrine design tient, toute
+  source passe le registre des licences (zone grise = exclusion, ESA
+  comprise). Fournée 1 VALIDÉE et chargée avec verdicts + JV spatiales
+  sourcées + opération Airbus·Leonardo·Thales « announced » (statut
+  temporel au modèle, migration 0019 ; ids de groupes stabilisés).
+  Note de tri du rapport externe :
+  [lecons-pivot-spatial.md](lecons-pivot-spatial.md) — adopté /
+  prématuré daté / rejeté motivé (licences vérifiées une à une), et le
+  **plan lentille spatiale V1** (4 lots, 2-3 semaines) À TRANCHER
+  ensemble avant implémentation. Le cahier P5 se redéfinit en
+  « opportunités » (subventions + marchés + contrats), la taxonomie
+  techno devient le chantier U6. Détail des décisions : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension
   d'agrégation (Explorateur, benchmark, panneaux du globe). Spécification

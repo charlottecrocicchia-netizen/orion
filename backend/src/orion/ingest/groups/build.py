@@ -159,17 +159,16 @@ def _resolve_heads(session: Session) -> dict[str, tuple[str, str]]:
 
 def build_groups(session: Session, stats: RunStats) -> None:
     """Pass 3 — heads become groups, bridged organisations become
-    members. Only automatic memberships are rebuilt; curation stays."""
+    members. Only automatic memberships are rebuilt; curation stays.
+
+    Les ids de groupes sont STABLES à travers les rebuilds (constaté le
+    2026-08-04 : /groups/<id> cassait à chaque rechargement) : l'upsert
+    par LEI met à jour la tête en place, et les têtes devenues vides ne
+    sont supprimées qu'À LA FIN — jamais entre le vidage des adhésions
+    et leur reconstruction."""
     session.execute(
         text("DELETE FROM entity_group_map WHERE method = ANY(:methods)"),
         {"methods": list(BUILT_METHODS)},
-    )
-    session.execute(
-        text("""
-        DELETE FROM groups g WHERE g.source = ANY(:sources)
-        AND NOT EXISTS (SELECT 1 FROM entity_group_map m WHERE m.group_id = g.id)
-        """),
-        {"sources": list(BUILT_METHODS)},
     )
     session.commit()
 
@@ -250,6 +249,15 @@ def build_groups(session: Session, stats: RunStats) -> None:
         EntityGroupMap,
         list(unique.values()),
         conflict_cols=["organisation_id", "group_id", "method"],
+    )
+    # Le ménage des têtes vides se fait maintenant, adhésions posées :
+    # une tête encore résolue a gardé son id, une tête disparue part.
+    session.execute(
+        text("""
+        DELETE FROM groups g WHERE g.source = ANY(:sources)
+        AND NOT EXISTS (SELECT 1 FROM entity_group_map m WHERE m.group_id = g.id)
+        """),
+        {"sources": list(BUILT_METHODS)},
     )
     stats.add("memberships", len(unique))
     session.commit()

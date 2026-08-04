@@ -1,1 +1,400 @@
-group_lei,group_name,org_name,org_country,decision,confidence,is_jv,share,valid_from,valid_to,evidence,source
+group_lei,group_name,org_name,org_country,decision,confidence,is_jv,share,status,valid_from,valid_to,evidence,source
+,DANA INCORPORATED,DANA-FARBER CANCER INST,US,refuse,,,,,,,"Institut de cancérologie de Boston, nommé d'après le philanthrope Charles A. Dana — sans lien avec l'équipementier Dana Inc.",dana-farber.org
+,DANA INCORPORATED,DANA-FARBER CANCER INSTITUTE INC,US,refuse,,,,,,,Institut de cancérologie de Boston — sans lien avec Dana Inc.,dana-farber.org
+,DANA INCORPORATED,DANA TM4 ITALIA,IT,attach,0.9,false,,,,,Filiale e-mobilité Dana TM4 (Italie),dana.com
+,DANA INCORPORATED,DANA TRANSMISSION SYSTEMS ITALIA SRL,IT,attach,0.9,false,,,,,Filiale transmissions Dana (Italie),dana.com
+,DANA INCORPORATED,"DANA PHARMACEUTICAL CONSULTING, INC.",US,refuse,,,,,,,Conseil pharmaceutique américain sans lien avec Dana Inc.,registre public US
+,AIRBUS SE,AIRBUS,FR,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS OPERATIONS GMBH,DE,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS DEFENCE AND SPACE GMBH,DE,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS OPERATIONS SL,ES,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS DEFENCE AND SPACE SAS,FR,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS DS SAS,FR,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS CYBERSECURITY SAS,FR,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS HELICOPTERS ESPANA SA,ES,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS DS GMBH,DE,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS GROUP LIMITED,GB,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS PROTECT GMBH,DE,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS ITALIA SPA,IT,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS NETHERLANDS BV,NL,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS GEOTECH SA,ES,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS URBAN MOBILITY GMBH,DE,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS FRANCE SAS,FR,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS DS LIMITED,GB,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS HELICOPTERS POLSKA SP ZOO,PL,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,Airbus Operations S.A.S.,FR,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS SAS,FR,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,Airbus Group Spain,,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,AIRBUS SE,AIRBUS AEROSTRUCTURES GMBH,DE,attach,0.95,false,,,,,"Filiale Airbus — dénomination du groupe, organigramme public",airbus.com · registres nationaux
+,THALES,THALES,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,Thales Alenia Space Italia,IT,attach,0.9,true,67,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,LEONARDO - SOCIETA' PER AZIONI,Thales Alenia Space Italia,IT,attach,0.9,true,33,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,THALES,THALES SERVICES NUMERIQUES SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES ITALIA SPA,IT,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES DIS FRANCE SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES RESEARCH & TECHNOLOGY (UK) LIMITED,GB,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,"THALES EDISOFT PORTUGAL, S.A.",PT,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES TRANSPORTATION SYSTEMS GMBH,DE,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES DIS CZECH REPUBLIC SRO,CZ,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES ELECTRON DEVICES SA,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,Thales Cyber Solutions SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES ROMANIA SRL,RO,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES AVIONICS LCD SA,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES OPTRONIQUE SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES ALENIA SPACE SWITZERLAND AG,CH,attach,0.9,true,67,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,LEONARDO - SOCIETA' PER AZIONI,THALES ALENIA SPACE SWITZERLAND AG,CH,attach,0.9,true,33,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,THALES,THALES ALENIA SPACE LUXEMBOURG,LU,attach,0.9,true,67,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,LEONARDO - SOCIETA' PER AZIONI,THALES ALENIA SPACE LUXEMBOURG,LU,attach,0.9,true,33,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,THALES,THALES SECURITY SOLUTIONS & SERVICES SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES TRAINING AND SIMULATION SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES ANGENIEUX SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES SAFARE SA,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES DIS ESPANA SA,ES,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES ALENIA SPACE DEUTSCHLAND GMBH,DE,attach,0.9,true,67,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,LEONARDO - SOCIETA' PER AZIONI,THALES ALENIA SPACE DEUTSCHLAND GMBH,DE,attach,0.9,true,33,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,THALES,THALES INFORMATION SYSTEMS GMBH,AT,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES MICROELECTRONICS SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES HELLAS MONOPROSOPI ANONYMI ETAIREIA PARAGOGIS EMPORIAS KAI YPIRESION ILEKTRONIKOU EXOPLISMOU,GR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES UNDERWATER SYSTEMS SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES SECURITY SYSTEMS SAS,FR,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES PROGRAMAS DE ELECTRONICA Y COMUNICACIONES SA,ES,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,Thales Software Systems (Shanghai) Co. Ltd,CN,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES RAIL SIGNALLING SOLUTIONS INC,CA,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES ESPAÑA GRP S.A.,ES,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES INFORMATION SYSTEMS SA,BE,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,THALES AIR SYSTEMS & ELECTRON DEVICES GMBH,DE,attach,0.95,false,,,,,"Filiale Thales — dénomination du groupe, organigramme public",thalesgroup.com · registres nationaux
+,THALES,Thales-Akademie für Wirtschaft und Philosophie gemeinnützige GmbH,DE,refuse,,,,,,,Académie allemande nommée d'après le philosophe Thalès de Milet — aucun lien avec Thales SA,thales-akademie.de
+,SAFRAN,SAFRAN AIRCRAFT ENGINES,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ELECTRICAL & POWER,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN HELICOPTER ENGINES,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN AEROSYSTEMS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN SA,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ELECTRICAL & POWER CHATOU SAS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN NACELLES,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ELECTRONICS & DEFENSE,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN TRANSMISSION SYSTEMS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN LANDING SYSTEMS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN POWER UNITS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN SPACECRAFT PROPULSION,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN PASSENGER INNOVATIONS GERMANY GMBH,DE,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN AEROTECHNICS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ELECTRONICS & DEFENSE COCKPIT SOLUTIONS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ELECTRONICS & DEFENSE SPAIN SOCIEDAD LIMITADA,ES,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ELECTRICAL & POWER UK LTD,GB,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN VENTILATION SYSTEMS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN DATA SYSTEMS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN CABIN GERMANY GMBH,DE,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN SEATS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN CERAMICS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN TRUSTED 4D SAS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ENGINEERING SERVICES,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN FILTRATION SYSTEMS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN TIMING TECHNOLOGIES SA,CH,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ELECTRICAL COMPONENTS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,Safran Cabin Catering B.V.,NL,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ADDITIVE MANUFACTURING CAMPUS,FR,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN ENGINEERING SERVICES GMBH,DE,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN LANDING SYSTEMS UK LIMITED,GB,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN TRANSMISSION SYSTEMS POLAND SP Z O O,PL,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,SAFRAN,SAFRAN NACELLES LIMITED,GB,attach,0.95,false,,,,,"Filiale Safran — dénomination du groupe, organigramme public",safran-group.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS AKTIENGESELLSCHAFT OESTERREICH,AT,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,Siemens Emobility Charging B.V.,NL,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS SPA,IT,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS INDUSTRY SOFTWARE NETHERLANDS BV,NL,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS PROCESS SYSTEMS ENGINEERING LIMITED,GB,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS STIFTUNG,DE,refuse,,,,,,,"Fondation indépendante à but non lucratif, hors périmètre de consolidation de Siemens AG",siemens-stiftung.org
+,Siemens Aktiengesellschaft,SIEMENS NEDERLAND NV,NL,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS INDUSTRY SOFTWARE LTD,IL,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS INDUSTRY SOFTWARE A LIMITEDLIABILITY COMPANY UNDER THE PRIVATEFREE ZONES REGIME,EG,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS SA,PT,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS INDUSTRY SOFTWARE SRL,IT,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS INDUSTRY SOFTWARE KFT,HU,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS SRO,CZ,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS OOO,RU,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS MOBILITY BV,NL,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS TRANSPORTATION SYSTEMS SAS,FR,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS SANAYI VE TICARET AS,TR,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS CONCENTRATED SOLAR POWER LTD,IL,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS TRGOVSKO IN STORITVENO PODJETJE DOO,SI,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS LASER ANALYTICS AB,SE,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS AS,DK,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS CORPORATE RESEARCH INC,US,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,Siemens Healthcare Saglik a.s.,TR,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS ELECTRONIC DESIGN AUTOMATION LTD,IL,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,Siemens Mobility Kft,HU,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS ENERGY SAS,FR,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS HEALTHCARE SRO,SK,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS ENERGY AUSTRIA GMBH,AT,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,Siemens Healthineers BV,,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,Siemens AG Wind Power and Renewables Division Technology,DE,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,Siemens Healthcare Switzerland AG,,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,Siemens,DE,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS ENERGY UNIPESSOAL LDA,PT,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS ENERGY SRL,IT,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Siemens Aktiengesellschaft,SIEMENS GAMESA RENEWABLE ENERGY GMBH CO KG,DE,attach,0.9,false,,,,,Filiale Siemens — dénomination du groupe,siemens.com · registres nationaux
+,Infineon Technologies AG,INFINEON TECHNOLOGIES ITALIA SRL,IT,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,Infineon Technologies Romania and CO. Societate in Comandita Simpla,RO,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,Infineon Technologies UK Ltd,GB,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,INFINEON TECHNOLOGIES LINZ GMBH & CO KG,AT,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,INFINEON TECHNOLOGIES DUISBURG GMBH& CO. KG,DE,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,INFINEON TECHNOLOGIES CEGLED TELJESITMENYFELVEZETOKET GYARTO KORLATOLT FELELOSSEGU TARSASAG,HU,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,INFINEON TECHNOLOGIES FRANCE,FR,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,"INFINEON TECHNOLOGIES MANUFACTURING PORTO, UNIPESSOAL LDA",PT,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,INFINEON TECHNOLOGIES IRELAND LIMITED,IE,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Infineon Technologies AG,INFINEON TECHNOLOGIES SENSONOR AS,NO,attach,0.95,false,,,,,Filiale Infineon Technologies — dénomination du groupe,infineon.com · registres nationaux
+,Van Andel Institute,VAN ANDEL INSTITUTE GRADUATE SCHOOL,US,attach,0.95,false,,,,,"École doctorale du Van Andel Institute — même campus, même fondation",vanandelinstitute.org
+,RISE RESEARCH INSTITUTES OF SWEDEN AB,RISE RESEARCH INSTITUTES OF SWEDEN AB,SE,attach,0.95,false,,,,,RISE — même dénomination que la tête de groupe (pont bloqué par un doublon du corpus),ri.se · GLEIF
+,RISE RESEARCH INSTITUTES OF SWEDEN AB,RISE Research Institutes of Sweden,SE,attach,0.95,false,,,,,RISE — même dénomination que la tête de groupe (pont bloqué par un doublon du corpus),ri.se · GLEIF
+,GENERAL ELECTRIC COMPANY,GENERAL ELECTRIC GLOBAL RESEARCH CTR,US,attach,0.9,false,,,,,Filiale General Electric — dénomination du groupe,ge.com · registres nationaux
+,GENERAL ELECTRIC COMPANY,GENERAL ELECTRIC DEUTSCHLAND HOLDING GMBH,DE,attach,0.9,false,,,,,Filiale General Electric — dénomination du groupe,ge.com · registres nationaux
+,GENERAL ELECTRIC COMPANY,GENERAL ELECTRIC RENOVABLES ESPANA,ES,attach,0.9,false,,,,,Filiale General Electric — dénomination du groupe,ge.com · registres nationaux
+,GENERAL ELECTRIC COMPANY,GENERAL ELECTRIC (SWITZERLAND) GMBH,CH,attach,0.9,false,,,,,Filiale General Electric — dénomination du groupe,ge.com · registres nationaux
+,GENERAL ELECTRIC COMPANY,General Electric Company dba GE Research,US,attach,0.9,false,,,,,Filiale General Electric — dénomination du groupe,ge.com · registres nationaux
+,GENERAL ELECTRIC COMPANY,GENERAL ELECTRIC HEALTHCARE ESPANA SA,ES,attach,0.9,false,,,,,Filiale General Electric — dénomination du groupe,ge.com · registres nationaux
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS GMBH &CO KG,DE,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA BELL LABS FRANCE,FR,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS ITALIA SPA,IT,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS ISRAEL LTD,IL,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA DENMARK AS,DK,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS MANAGEMENT INTERNATIONAL GMBH,DE,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS KFT,HU,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA TECHNOLOGIES OY,FI,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS HELLAS SINGLE MEMBER SA,GR,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,Nokia of America Corporation,US,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA IRELAND LIMITED,IE,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA UK LIMITED,GB,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS PORTUGAL SA,PT,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA R&D (UK) LIMITED,GB,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS SP ZOO,PL,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,NOKIA SIEMENS NETWORKS TECHNOLOGIES ISRAEL 1990 LTD,IL,attach,0.8,false,,,,,"Ex-coentreprise Nokia Siemens Networks, intégrée à Nokia en 2013",nokia.com (historique NSN)
+,Nokia Oyj,NOKIA SOLUTIONS AND NETWORKS UK LIMITED,GB,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,Nokia Oyj,Nokia Bell Labs,US,attach,0.9,false,,,,,Filiale Nokia — dénomination du groupe,nokia.com · registres nationaux
+,TELEFONICA SA,TELEFONICA INVESTIGACION Y DESARROLLO SA,ES,attach,0.95,false,,,,,Filiale Telefónica — dénomination du groupe,telefonica.com · registres nationaux
+,TELEFONICA SA,TELEFONICA INNOVACION DIGITAL SL,ES,attach,0.95,false,,,,,Filiale Telefónica — dénomination du groupe,telefonica.com · registres nationaux
+,TELEFONICA SA,TELEFONICA INVESTIGACION Y DESARROLLO SA UNIPERSONAL,ES,attach,0.95,false,,,,,Filiale Telefónica — dénomination du groupe,telefonica.com · registres nationaux
+,TELEFONICA SA,TELEFONICA INNOVACION ALPHA SL,ES,attach,0.95,false,,,,,Filiale Telefónica — dénomination du groupe,telefonica.com · registres nationaux
+,TELEFONICA SA,TELEFONICA DEL PERU SAA,PE,attach,0.95,false,,,,,Filiale Telefónica — dénomination du groupe,telefonica.com · registres nationaux
+,TELEFONICA SA,TELEFONICA DIGITAL IDENTITY AND PRIVACY SL,ES,attach,0.95,false,,,,,Filiale Telefónica — dénomination du groupe,telefonica.com · registres nationaux
+,TELEFONICA SA,TELEFONICA EDUCACIÓN DIGITAL SL,ES,attach,0.95,false,,,,,Filiale Telefónica — dénomination du groupe,telefonica.com · registres nationaux
+,NORTHROP GRUMMAN CORPORATION,"NORTHROP GRUMMAN INFORMATION TECHNOLOGY,",US,attach,0.9,false,,,,,Filiale Northrop Grumman — dénomination du groupe,northropgrumman.com
+,NORTHROP GRUMMAN CORPORATION,Northrop Grumman Aerospace Systems,US,attach,0.9,false,,,,,Filiale Northrop Grumman — dénomination du groupe,northropgrumman.com
+,ALSTOM,Alstom Rail SWEDEN AB,SE,attach,0.95,false,,,,,"Ex-Bombardier Transportation Suède, intégrée à Alstom en 2021",alstom.com
+,ALSTOM,ALSTOM BELGIUM SA,BE,attach,0.9,false,,,,,Filiale Alstom Belgique (transport),alstom.com · registres belges
+,ALSTOM,ALSTOM FERROVIARIA SPA,IT,attach,0.95,false,,,,,Filiale ferroviaire Alstom Italie,alstom.com
+,ALSTOM,ALSTOM CRESPIN SAS,FR,attach,0.95,false,,,,,Site ferroviaire Alstom Crespin (ex-Bombardier),alstom.com
+,ALSTOM,ALSTOM POLSKA SPOLKA AKCYJNA,PL,attach,0.9,false,,,,,Filiale Alstom Pologne (transport),alstom.com
+,ALSTOM,ALSTOM TRANSPORT AUSTRIA GMBH,AT,attach,0.95,false,,,,,Filiale transport Alstom Autriche,alstom.com
+,ALSTOM,ALSTOM ZWUS SPOLKA Z OGRANICZONA ODPOWIEDZIALNOSCIA,PL,attach,0.9,false,,,,,Signalisation ferroviaire Alstom Pologne,alstom.com
+,ALSTOM,ALSTOM TRANSPORT UK LIMITED,GB,attach,0.95,false,,,,,Filiale transport Alstom Royaume-Uni,alstom.com
+,ORANGE,ORANGE POLSKA SPOLKA AKCYJNA,PL,attach,0.95,false,,,,,Filiale Orange Pologne (télécoms),orange.com
+,ORANGE,ORANGE COUNTY HEALTH DEPARTMENT,US,refuse,,,,,,,Administration du comté d'Orange (Californie/Floride) — sans lien avec Orange SA,registre public US
+,ORANGE,ORANGE QUANTUM SYSTEMS OPERATIONAL BV,NL,refuse,,,,,,,Start-up quantique de Delft sans lien avec Orange SA,orangeqs.com
+,ORANGE,ORANGE CTY ASIAN/PACIFIC ISL CMTY ALLNCE,US,refuse,,,,,,,Association du comté d'Orange (US) — sans lien avec Orange SA,registre public US
+,ORANGE,"ORANGE COUNTY BAR FOUNDATION, INC.",US,refuse,,,,,,,Fondation du barreau du comté d'Orange (US),registre public US
+,ORANGE,ORANGE SERVICES SRL,RO,attach,0.85,false,,,,,Filiale services Orange Roumanie,orange.com
+,ORANGE,"ORANGE SQUARE DESIGN, INC.",US,refuse,,,,,,,Studio de design américain sans lien avec Orange SA,registre public US
+,ORANGE,ORANGE FIBER S.R.L.,IT,refuse,,,,,,,PME italienne (textile d'agrumes) sans lien avec Orange SA,orangefiber.it
+,ORANGE,Orange Maker LLC,US,refuse,,,,,,,Société américaine d'impression 3D sans lien avec Orange SA,registre public US
+,ORANGE,Orange Aerospace Group B.V.,NL,refuse,,,,,,,Aérospatial néerlandais sans lien avec Orange SA,registre néerlandais
+,ORANGE,ORANGE FRANCE,FR,attach,0.95,false,,,,,Filiale Orange France,orange.com
+,ORANGE,Orange County Water District,US,refuse,,,,,,,Régie des eaux du comté d'Orange (US),registre public US
+,ORANGE,Orange County Coastkeeper,US,refuse,,,,,,,Association environnementale du comté d'Orange (US),registre public US
+,ORANGE,Orange Coast College,US,refuse,,,,,,,Community college californien,registre public US
+,ORANGE,Orange Quantum Systems Holding B.V.,NL,refuse,,,,,,,Holding de la start-up quantique de Delft,orangeqs.com
+,ORANGE,ORANGE CONSULTING SAS,FR,attach,0.85,false,,,,,Filiale conseil du groupe Orange,orange.com
+,ORANGE,ORANGE APPLICATIONS FOR BUSINESS,FR,attach,0.95,false,,,,,Filiale B2B du groupe Orange,orange.com
+,ORANGE,ORANGE COUNTY COMMUNITY COLLEGE,US,refuse,,,,,,,Community college de l'État de New York,registre public US
+,ORANGE,ORANGE COUNTY FIRE AUTHORITY,US,refuse,,,,,,,Pompiers du comté d'Orange (US),registre public US
+,ORANGE,ORANGE COUNTY ON TRACK,US,refuse,,,,,,,Programme social du comté d'Orange (US),registre public US
+,Acciona SA,ACCIONA CONSTRUCCION SA,ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Acciona SA,ACCIONA INMOBILIARIA SL,ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Acciona SA,ACCIONA INDUSTRIAL SA,ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Acciona SA,ACCIONA SERVICIOS URBANOS SRL,ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Acciona SA,ACCIONA WINDPOWER SA,ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Acciona SA,ACCIONA ENERGIA SOLAR S.L.,ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Acciona SA,"ACCIONA BIOCOMBUSTIBLES, S.A.",ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Acciona SA,ACCIONA TECNOLOGIA Y SERVICIOS SL,ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Acciona SA,ACCIONA ESCO SL,ES,attach,0.95,false,,,,,Filiale Acciona — dénomination du groupe,acciona.com · registres espagnols
+,Carl Zeiss AG,CARL ZEISS SMT GMBH,DE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,Carl Zeiss SMT GmbH,DE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS SMS LTD,IL,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS OPTRONICS GMBH,DE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS SMS GMBH,DE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS SMT AG,DE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS AB,SE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS SPECTROSCOPY GMBH,DE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS IBERIA,ES,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,Carl Zeiss Microscopy Deutschland GmbH,DE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS NTS GMBH,DE,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,Carl Zeiss AG,CARL ZEISS MICROSCOPY LLC,US,attach,0.95,false,,,,,Filiale Carl Zeiss — dénomination du groupe,zeiss.com · registres nationaux
+,HONEYWELL INTERNATIONAL INC.,HONEYWELL INTERNATIONAL SRO,CZ,attach,0.9,false,,,,,Filiale Honeywell — dénomination du groupe,honeywell.com
+,ArcelorMittal,ARCELORMITTAL MAIZIERES RESEARCH,FR,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL INNOVACION INVESTIGACION E INVERSION SL,ES,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL FRANCE,FR,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL SESTAO SL,ES,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL ESPANA SA,ES,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL BREMEN GMBH,DE,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL BELVAL & DIFFERDANGE SA,LU,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL BASQUE COUNTRY RESEARCH CENTRE AIE,ES,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL TUBULAR PRODUCTS IASI SA,RO,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL TUBULAR PRODUCTS ROMAN SA,RO,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ArcelorMittal Hamburg GmbH,DE,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL PROJECTS EUROPE B.V.,NL,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL OLABERRIA-BERGARA SL,ES,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL TUBULAR PRODUCTS LEGUTIO SA,ES,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL MEDITERRANEE,FR,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ArcelorMittal,ARCELORMITTAL ACERALIA BASQUE HOLDING SOCIEDAD LIMITADA,ES,attach,0.95,false,,,,,Filiale ArcelorMittal — dénomination du groupe,arcelormittal.com · registres nationaux
+,ENEL - SPA,ENEL GREEN POWER SPA,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL X SRL,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL PRODUZIONE SPA,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,Enel Ingegneria e Innovazione SpA,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL GLOBAL TRADING SPA,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL ENERGIA SPA,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL.SI SRL,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL X WAY SRL,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL DISTRIBUTIE DOBROGEA SA,RO,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL X WAY ITALIA SRL,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL X ITALIA SRL,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL GLOBAL SERVICES SRL,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL ITALIA SPA,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL GLOBAL THERMAL GENERATION SRL,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ENEL - SPA,ENEL GREEN POWER ITALIA SRL,IT,attach,0.95,false,,,,,Filiale Enel — dénomination du groupe,enel.com · registres italiens
+,ICON Plc,"ICON GOVERNMENT AND PUBLIC HEALTH SOLUTIONS, INC.",US,attach,0.85,false,,,,,Branche « government & public health » d'ICON plc aux États-Unis,iconplc.com
+,ICON Plc,ICON TECHNOLOGY &  PROCESS CONSULTING LIMITED,GB,refuse,,,,,,,Conseil en procédés britannique sans lien avec ICON plc,registre UK
+,ICON Plc,ICON LIFESAVER LIMITED,GB,refuse,,,,,,,Fabricant britannique de purification d'eau sans lien avec ICON plc,iconlifesaver.com
+,ICON Plc,ICON STUDIOS LTD,MT,refuse,,,,,,,Studio créatif maltais sans lien avec le CRO ICON plc,registre maltais
+,ICON Plc,ICON PHOTONICS,FR,refuse,,,,,,,PME photonique française sans lien avec ICON plc,registre français
+,ICON Plc,ICON CLINICAL RESEARCH,FR,attach,0.9,false,,,,,Entité de recherche clinique du CRO ICON plc,iconplc.com
+,ICON Plc,Icon International Services Limited,GB,refuse,,,,,,,Services britanniques sans lien avec ICON plc,registre UK
+,ICON Plc,ICON CLINICAL RESEARCH (U.K.) LIMITED,GB,attach,0.9,false,,,,,Entité de recherche clinique du CRO ICON plc,iconplc.com
+,ICON Plc,ICON CLINICAL RESEARCH GMBH,DE,attach,0.9,false,,,,,Entité de recherche clinique du CRO ICON plc,iconplc.com
+,ICON Plc,ICON-INSTITUTE GMBH & CO. KG CONSULTING GRUPPE,DE,refuse,,,,,,,Cabinet de conseil allemand sans lien avec ICON plc,icon-institute.de
+,ICON Plc,ICON CLINICAL RESEARCH SRO,CZ,attach,0.9,false,,,,,Entité de recherche clinique du CRO ICON plc,iconplc.com
+,ICON Plc,ICON CLINICAL RESEARCH ISRAEL LTD,IL,attach,0.9,false,,,,,Entité de recherche clinique du CRO ICON plc,iconplc.com
+,ICON Plc,ICON ANKARA KLINIK ARASTIRMA DIS TICARET ANONIM SIRKETI,TR,attach,0.85,false,,,,,Entité turque de recherche clinique d'ICON plc,iconplc.com
+,ICON Plc,ICON TECHNOLOGY SYSTEMS LTD,GB,refuse,,,,,,,Société technologique britannique sans lien avec ICON plc,registre UK
+,ICON Plc,"ICON INTERVENTIONAL SYSTEMS, INC.",US,refuse,,,,,,,Dispositifs médicaux américains sans lien avec le CRO ICON plc,registre public US
+,VALEO,VALEO ELECTRIFICATION SASAS,FR,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO COMFORT AND DRIVING ASSISTANCE,FR,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO EQUIPEMENTS ELECTRIQUES MOTEUR SAS,FR,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO SYSTEMES THERMIQUES SAS,FR,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO VISION SAS,FR,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO EMBRAYAGES SAS,FR,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO KLIMASYSTEME GMBH,DE,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO AUTOKLIMATIZACE K.S.,CZ,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO TELEMATIK UND AKUSTIK GMBH,DE,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO MANAGEMENT SERVICES,FR,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,VALEO,VALEO AIR MANAGEMENT UK LTD,GB,attach,0.95,false,,,,,Filiale Valeo — dénomination du groupe,valeo.com · registres nationaux
+,INTEL CORPORATION,INTEL RESEARCH AND INNOVATION IRELAND LIMITED,IE,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL CORPORATION SAS,FR,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL GMBH,DE,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL CORPORATION,BE,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL MOBILE COMMUNICATIONS FRANCE,FR,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL TECHNOLOGY POLAND SPOLKA Z OGRANICZONA ODPOWIEDZIALNOSCIA,PL,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL BENELUX BV,NL,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL SOFTWARE DEVELOPMENT SRL,RO,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL ISRAEL (74) LTD,IL,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL ELECTRONICS LTD,IL,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,INTEL CORPORATION ITALIA SPA,IT,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,INTEL CORPORATION,Intel Corporation,US,attach,0.9,false,,,,,Filiale Intel — dénomination du groupe,intel.com · registres nationaux
+,Siemens Energy AG,SIEMENS ENERGY BV,NL,attach,0.9,false,,,,,Filiale Siemens Energy — dénomination du groupe (société cotée distincte de Siemens AG depuis 2020),siemens-energy.com
+,Siemens Energy AG,SIEMENS ENERGY SAS,FR,attach,0.9,false,,,,,Filiale Siemens Energy — dénomination du groupe (société cotée distincte de Siemens AG depuis 2020),siemens-energy.com
+,Siemens Energy AG,SIEMENS ENERGY AUSTRIA GMBH,AT,attach,0.9,false,,,,,Filiale Siemens Energy — dénomination du groupe (société cotée distincte de Siemens AG depuis 2020),siemens-energy.com
+,Siemens Energy AG,SIEMENS ENERGY UNIPESSOAL LDA,PT,attach,0.9,false,,,,,Filiale Siemens Energy — dénomination du groupe (société cotée distincte de Siemens AG depuis 2020),siemens-energy.com
+,Siemens Energy AG,SIEMENS ENERGY SRL,IT,attach,0.9,false,,,,,Filiale Siemens Energy — dénomination du groupe (société cotée distincte de Siemens AG depuis 2020),siemens-energy.com
+,ABB Ltd,ABB E-MOBILITY BV,NL,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB OF ASEA BROWN BOVERI,BE,attach,0.85,false,,,,,Dénomination historique ABB (Asea Brown Boveri),global.abb
+,ABB Ltd,ABB SPA,IT,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB SPZOO,PL,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB BUSINESS SERVICE SPOLKA Z OGRANICZONA ODPOWIEDZIALNOSCIA,PL,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB EMOBILITY DIGITAL VENTURE GMBH,DE,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB INZENIRING DOO,SI,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB AUTOMATION GMBH,DE,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB SRO,CZ,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB SECHERON SA,CH,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB E-MOBILITY SPOLKA Z OGRANICZONAODPOWIEDZIALNOSCIA,PL,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB E-MOBILITY GMBH,DE,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,ABB Ltd,ABB SA,CL,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
+,HONEYWELL AEROSPACE INC.,HONEYWELL AEROSPACE,FR,attach,0.9,false,,,,,Filiale Honeywell Aerospace — dénomination du groupe,honeywell.com
+,HONEYWELL AEROSPACE INC.,HONEYWELL AEROSPACE GMBH,DE,attach,0.9,false,,,,,Filiale Honeywell Aerospace — dénomination du groupe,honeywell.com
+,THALES,THALES COMMUNICATION & SECURITE NUMERIQUES SA,FR,attach,0.9,false,,,,,"Gemalto acquise par Thales (avril 2019) — double appartenance : l'adhésion au groupe Gemalto Holding B.V. reste, celle-ci s'ajoute","thalesgroup.com (acquisition Gemalto, 2019)"
+,THALES,THALES DIS FINLAND OY,FI,attach,0.9,false,,,,,"Gemalto acquise par Thales (avril 2019) — double appartenance : l'adhésion au groupe Gemalto Holding B.V. reste, celle-ci s'ajoute","thalesgroup.com (acquisition Gemalto, 2019)"
+,Siemens Energy AG,SIEMENS GAMESA RENEWABLE ENERGY AS,DK,attach,0.9,false,,,2020-09-28,,"Siemens Gamesa détenue par Siemens Energy AG (majoritaire à la scission de 2020, 100 % depuis 2023) — jamais Siemens AG","siemens-energy.com (scission 2020, rachat SGRE 2023)"
+,Siemens Energy AG,SIEMENS GAMESA RENEWABLE ENERGY SAS,FR,attach,0.9,false,,,2020-09-28,,"Siemens Gamesa détenue par Siemens Energy AG (majoritaire à la scission de 2020, 100 % depuis 2023) — jamais Siemens AG","siemens-energy.com (scission 2020, rachat SGRE 2023)"
+,Siemens Energy AG,SIEMENS GAMESA RENEWABLE ENERGY DEUSTCHLAND GMBH,DE,attach,0.9,false,,,2020-09-28,,"Siemens Gamesa détenue par Siemens Energy AG (majoritaire à la scission de 2020, 100 % depuis 2023) — jamais Siemens AG","siemens-energy.com (scission 2020, rachat SGRE 2023)"
+,Siemens Energy AG,SIEMENS ENERGY BV,NL,attach,0.95,false,,,,,Filiale néerlandaise de Siemens Energy AG (cotée à part depuis 2020),siemens-energy.com · registre néerlandais
+,United Nations,"UNITED NATIONS FOUNDATION, INC.",US,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS EDUCATIONAL SCIENTIFIC AND CULTURAL ORGANIZATION,FR,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS ENVIRONMENT PROGRAMME,KE,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS INSTITUTE FOR TRAINING AND RESEARCH,CH,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS UNIVERSITY,JP,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS HUMAN SETTLEMENTS PROGRAMME,KE,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS INTERREGIONAL CRIME AND JUSTICE RESEARCH INSTITUTE,IT,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS UNIVERSITY - Comparative Regional Integration Studies,BE,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS HIGH COMMISSIONER FOR REFUGEES,CH,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,"UNITED NATIONS EDUCATIONAL, SCIENTIFIC AND CULTURAL ORGANIZATION -UNESCO",FR,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,United Nations University,DE,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS OFFICE ON DRUGS AND CRIME,AT,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,United Nations Interregional Crime and Justice Research Institute,IT,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS INDUSTRIAL DEVELOPMENT ORGANIZATION,AT,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,United Nations Educ Scientific & Cultural Organization (UNESCO),FR,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS OFFICE FOR DISASTER RISK REDUCTION,CH,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS ECONOMIC COMMISSION FOR LATIN AMERICA AND THE CARIBBEAN,CL,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS DEVELOPMENT PROGRAMME,US,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS POPULATION FUND,US,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS ECONOMIC COMMISSION FOR EUROPE,CH,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS CHILDREN'S FUND,US,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS OFFICE ON DRUGS AND CRIME  - UNODC,AT,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,United Nations at Geneva,CH,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,UNITED NATIONS CONFERENCE ON TRADE AND DEVELOPMENT (UNCTAD),CH,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,"United nations University Institute for water, Environment and Health",CA,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,"United Nations University Institute on Globalization, Culture and Mobility (UNU-GCM)",ES,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,United Nations,United Nations Economic Commission,BE,refuse,,,,,,,Le système onusien n'est pas un groupe consolidé (décision fondatrice 2026-08-04) — les agences restent des organisations,"décision produit, registre 2026-08-04"
+,AIRBUS SE,ARIANEGROUP SAS,FR,attach,0.9,true,50,,,,Coentreprise ArianeGroup — 50 % Airbus / 50 % Safran (création 2016),ariane.group · airbus.com · safran-group.com
+,SAFRAN,ARIANEGROUP SAS,FR,attach,0.9,true,50,,,,Coentreprise ArianeGroup — 50 % Airbus / 50 % Safran (création 2016),ariane.group · airbus.com · safran-group.com
+,AIRBUS SE,ARIANEGROUP GMBH,DE,attach,0.9,true,50,,,,Coentreprise ArianeGroup — 50 % Airbus / 50 % Safran (création 2016),ariane.group · airbus.com · safran-group.com
+,SAFRAN,ARIANEGROUP GMBH,DE,attach,0.9,true,50,,,,Coentreprise ArianeGroup — 50 % Airbus / 50 % Safran (création 2016),ariane.group · airbus.com · safran-group.com
+,LEONARDO - SOCIETA' PER AZIONI,TELESPAZIO SPA,IT,attach,0.9,true,67,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,THALES,TELESPAZIO SPA,IT,attach,0.9,true,33,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,LEONARDO - SOCIETA' PER AZIONI,TELESPAZIO FRANCE SAS,FR,attach,0.9,true,67,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,THALES,TELESPAZIO FRANCE SAS,FR,attach,0.9,true,33,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,LEONARDO - SOCIETA' PER AZIONI,TELESPAZIO BELGIUM,BE,attach,0.9,true,67,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,THALES,TELESPAZIO BELGIUM,BE,attach,0.9,true,33,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,LEONARDO - SOCIETA' PER AZIONI,TELESPAZIO UK LIMITED,GB,attach,0.9,true,67,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,THALES,TELESPAZIO UK LIMITED,GB,attach,0.9,true,33,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,LEONARDO - SOCIETA' PER AZIONI,TELESPAZIO GERMANY GMBH,DE,attach,0.9,true,67,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,THALES,TELESPAZIO GERMANY GMBH,DE,attach,0.9,true,33,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,LEONARDO - SOCIETA' PER AZIONI,TELESPAZIO IBERICA SL UNIPERSONAL,ES,attach,0.9,true,67,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,THALES,TELESPAZIO IBERICA SL UNIPERSONAL,ES,attach,0.9,true,33,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,LEONARDO - SOCIETA' PER AZIONI,Telespazio Argentina S.A.,AR,attach,0.9,true,67,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,THALES,Telespazio Argentina S.A.,AR,attach,0.9,true,33,,,,Coentreprise Telespazio — 67 % Leonardo / 33 % Thales (Space Alliance),telespazio.com · leonardo.com · thalesgroup.com
+,LEONARDO - SOCIETA' PER AZIONI,THALES ALENIA SPACE BELGIUM SA,BE,attach,0.9,true,33,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,LEONARDO - SOCIETA' PER AZIONI,THALES ALENIA SPACE ESPANA SA,ES,attach,0.9,true,33,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,LEONARDO - SOCIETA' PER AZIONI,Thales Alenia Space France,FR,attach,0.9,true,33,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,LEONARDO - SOCIETA' PER AZIONI,THALES ALENIA SPACE UK LTD,GB,attach,0.9,true,33,,,,"Coentreprise Thales Alenia Space — 67 % Thales / 33 % Leonardo, structure publique des deux groupes",thalesgroup.com · leonardo.com
+,"Airbus · Leonardo · Thales (espace, annoncé)",THALES ALENIA SPACE BELGIUM SA,BE,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",THALES ALENIA SPACE ESPANA SA,ES,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",Thales Alenia Space France,FR,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",THALES ALENIA SPACE UK LTD,GB,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",Thales Alenia Space Italia,IT,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",THALES ALENIA SPACE DEUTSCHLAND GMBH,DE,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",THALES ALENIA SPACE LUXEMBOURG,LU,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",THALES ALENIA SPACE SWITZERLAND AG,CH,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",TELESPAZIO SPA,IT,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",TELESPAZIO FRANCE SAS,FR,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",TELESPAZIO BELGIUM,BE,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",TELESPAZIO UK LIMITED,GB,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",TELESPAZIO GERMANY GMBH,DE,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",TELESPAZIO IBERICA SL UNIPERSONAL,ES,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,"Airbus · Leonardo · Thales (espace, annoncé)",Telespazio Argentina S.A.,AR,attach,0.7,false,,announced,,,"Protocole d'accord public (octobre 2025) pour une société spatiale commune Airbus/Leonardo/Thales — opération ANNONCÉE, non finalisée, listée sans consolidation ; les activités spatiales d'Airbus n'ont pas d'entité légale distincte dans le corpus",communiqués Airbus · Leonardo · Thales (2025-10)
+,AIRBUS SE,AVIONS DE TRANSPORT REGIONAL,FR,attach,0.9,true,50,,,,GIE ATR — partenariat paritaire Airbus/Leonardo (table des JV du rapport pivot),atr-aircraft.com · airbus.com · leonardo.com
+,LEONARDO - SOCIETA' PER AZIONI,AVIONS DE TRANSPORT REGIONAL,FR,attach,0.9,true,50,,,,GIE ATR — partenariat paritaire Airbus/Leonardo (table des JV du rapport pivot),atr-aircraft.com · airbus.com · leonardo.com
+,AIRBUS SE,MAIASPACE SAS,FR,attach,0.9,true,50,,,,"Filiale à 100 % d'ArianeGroup, détenue 50/50 par Airbus et Safran — chaîne documentée (gouvernance ArianeGroup)",ariane.group (gouvernance)
+,SAFRAN,MAIASPACE SAS,FR,attach,0.9,true,50,,,,"Filiale à 100 % d'ArianeGroup, détenue 50/50 par Airbus et Safran — chaîne documentée (gouvernance ArianeGroup)",ariane.group (gouvernance)
+,SAFRAN,SODERN SA,FR,attach,0.9,true,50,,,,"Filiale à 100 % d'ArianeGroup, détenue 50/50 par Airbus et Safran — chaîne documentée (gouvernance ArianeGroup)",ariane.group (gouvernance)
+,OHB SE,OHB ITALIA SPA,IT,attach,0.95,false,,,,,"Filiale OHB — dénomination du groupe, organigramme public",ohb.de · registres nationaux
+,OHB SE,OHB DIGITAL SERVICES GMBH,DE,attach,0.95,false,,,,,"Filiale OHB — dénomination du groupe, organigramme public",ohb.de · registres nationaux
+,OHB SE,OHB SWEDEN AB,SE,attach,0.95,false,,,,,"Filiale OHB — dénomination du groupe, organigramme public",ohb.de · registres nationaux
+,Confédération suisse,BEYOND GRAVITY GERMANY GMBH,DE,attach,0.85,false,,,,,"Beyond Gravity (ex-RUAG Space), RUAG International détenue par la Confédération suisse — même tête que les entités déjà rattachées",beyondgravity.com · admin.ch
+,Confédération suisse,Beyond Gravity Schweiz AG,CH,attach,0.85,false,,,,,"Beyond Gravity (ex-RUAG Space), RUAG International détenue par la Confédération suisse — même tête que les entités déjà rattachées",beyondgravity.com · admin.ch
+,Confédération suisse,RUAG Schweiz AG,CH,attach,0.9,false,,,,,RUAG détenue par la Confédération suisse,ruag.com · admin.ch
