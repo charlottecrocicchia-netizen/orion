@@ -58,6 +58,37 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The manager-regions chantier, designed and shipped the same day**
+  (founder-validated 5/5, 2026-08-04). The world in five regions a
+  decision-maker reads — Europe, North America, Asia-Pacific, Latin
+  America, Middle East & Africa — each wearing a muted tint validated
+  by scripts/validate_palette.js: the colour-blindness simulation
+  REJECTED olive (indistinguishable from ochre) and violet (identical
+  to ultramarine for a deuteranope); a deep purple entered for Latin
+  America. Intensity keeps encoding the amount through five LOG buckets
+  named in euros — rank quantiles lie at world scale, where Brazil
+  would paint as dark as a Germany worth 60× more.
+- **The engraved rule: every country in the corpus is coloured,
+  hoverable and clickable — grey is reserved for no data at all.** The
+  clickable layer used to stop at 38 European countries while 74 % of
+  the corpus in euros was American; Malta — an EU member — had NEVER
+  been displayed (no polygon in the 110m geometry, now a dot, like 74
+  other micro-territories). The geometry build fails if any ISO code is
+  neither polygon, nor dot, nor the written exception (Antarctica);
+  interactivity derives from the corpus end to end, tested on a seed
+  carrying MIT (US), the Technion (IL) and Malta (MT) — the Vega
+  hardcoded-name lesson applied to geography.
+- The home's globe keeps its place and takes the region tints — same
+  palette, same grammar as the flat maps, selection at full strength
+  with a background rim. The flat map went worldwide (EuropeMap's name
+  was a lie), with six pre-projected frames and the Europe window
+  pixel-stable. The URL-borne `?scope=` frames the countries page, the
+  Explorer gains the « region » dimension (region-tinted donut, keyed
+  colours), regions compare like countries, and search accepts the
+  scope. The coverage notes finally tell the truth: Europe — CORDIS ·
+  United States — NIH, NSF; next UKRI, SNSF, NWO, Vinnova.
+
+
 - Vague 1, étape 2 — **NSF is loaded** (235 071 projects, 259 788
   participations, 232 929 abstracts indexed, 72 divisions as
   programmes, €118.8B; FY2005-2026). Instruction on the source rather

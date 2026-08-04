@@ -185,8 +185,12 @@ chantier performance **est atteinte, pas anticipée**. Décision de
 dimensionnement à prendre (RAM de la VM locale et du futur VPS) avant
 d'ajouter une source de plus.
 
-**Puis : UKRI** — première source non américaine et non euro (GBP, année
-fiscale avril→mars), licence OGL à re-vérifier le jour du chargement.
+**Puis, séquencement fondatrice du 2026-08-04 : PAUSE CHARGEMENTS** —
+des tests utilisateurs réels sur le site, retouches de navigation selon
+leurs retours, et seulement ensuite UKRI (première source non américaine
+et non euro — GBP, année fiscale avril→mars, licence OGL à re-vérifier
+le jour du chargement), puis SNSF, NWO, Vinnova, SBIR. USAspending et
+OpenAIRE attendent le serveur ([hebergement.md](hebergement.md)).
 
 **Écart constaté au passage (2026-08-03)** : la **couche identité n'a
 jamais été chargée en prod** — `lei_records` y est vide, les métriques
@@ -224,10 +228,24 @@ Points d'attention connus :
   EDGAR/PSC attendent leurs sources ; la curation court en continu dès le
   socle ; la fiche groupe jalonne la fin de vague A ;
 - **grandes régions « manager »** (décision fondatrice 2026-08-02 ;
-  **chantier OUVERT le 2026-08-04, conception soumise à validation** :
-  [chantier-regions-manager.md](chantier-regions-manager.md), maquette
-  sur données réelles, palette passée au validateur — l'olive et le
-  violet rejetés par la simulation daltonienne, pourpre retenu) : dès
+  **chantier EXÉCUTÉ le 2026-08-04** — conception validée 5/5 puis les
+  quatre lots livrés le jour même :
+  [chantier-regions-manager.md](chantier-regions-manager.md). A : le
+  référentiel complet des cinq régions (249 codes, l'Antarctique seule
+  exception écrite, les 27 orphelins rattachés), régions sur l'API,
+  agrégats testés à l'égalité. B : le monde entier vivant — 174
+  polygones + 75 pastilles de micro-territoires (Malte n'avait JAMAIS
+  été affichée : pas de polygone dans le 110m), le globe de l'accueil
+  aux teintes de régions, la règle « tout pays du corpus est cliquable,
+  le gris est réservé à l'absence de donnée » gravée dans un test qui
+  dérive du corpus semé (US, IL, MT). C : `?scope=` porté par l'URL
+  (chips page pays, cadres par région, prêt pour les abonnements par
+  zone), dimension « région » dans l'Explorateur (donut aux teintes de
+  régions par clé), comparaison de régions, recherche cadrée. D : la
+  passe « le site dit vrai » (couverture Europe-CORDIS · États-Unis
+  NIH+NSF, à venir UKRI/SNSF/NWO/Vinnova — le Japon et « en
+  préparation » ont disparu). 49 parcours e2e verts, Firefox compris.
+  **Recette fondatrice en cours sur site.** Détail des décisions : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension
   d'agrégation (Explorateur, benchmark, panneaux du globe). Spécification
