@@ -132,7 +132,11 @@ PROJECTS = [
     (
         "e2e-qubitnet",
         "QUBITNET",
-        2023,
+        # 2022, pas 2023 : le thème « physical sciences » doit porter au
+        # moins deux années, sinon sa polyline de l'Explorateur est un
+        # point invisible (cassé en CI le 2026-08-04 quand SKYFORGE l'a
+        # promu série 1).
+        2022,
         "he-child",
         [("cnrs", 3.0), ("polito", 2.0)],
         {

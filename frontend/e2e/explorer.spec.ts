@@ -80,7 +80,10 @@ test("the ranks view races the series over time", async ({ page }) => {
   await page.goto("/explore?by=theme&split=1&limit=5&view=bump");
   const chart = page.getByRole("img", { name: /funding · theme/ });
   await expect(chart).toBeVisible({ timeout: 15_000 });
-  await expect(chart.locator("polyline").first()).toBeVisible();
+  // Attached, pas visible : une série au rang constant est un segment
+  // horizontal de hauteur zéro — dessinée, mais « hidden » au sens du
+  // bounding box de Playwright.
+  await expect(chart.locator("polyline").first()).toBeAttached();
   await expect(page.getByRole("button", { name: "Ranks" })).toBeVisible();
 });
 
