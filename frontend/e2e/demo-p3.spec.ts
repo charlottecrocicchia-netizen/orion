@@ -17,10 +17,14 @@ test("the phase-3 journey holds end to end", async ({ page }) => {
   // selects France (summary panel opens beside); the file opens on the
   // distinct gesture — the panel's CTA.
   await page.goto("/explore/countries");
+  // dispatchEvent : au cadre mondial, la bbox de la France (Guyane
+  // incluse) a son centre en mer — le clic-élément n'atteint pas la
+  // forme peinte. La sémantique du premier-clic est couverte par
+  // map.spec et regions.spec.
   await page
-    .getByRole("group", { name: /Map of Europe/ })
-    .getByRole("button", { name: /^France — €/ })
-    .click();
+    .getByRole("group", { name: /World map/ })
+    .locator('path[data-code="FR"]')
+    .dispatchEvent("click");
   await expect(page.getByRole("heading", { name: "France" })).toBeVisible();
   await page.getByRole("link", { name: /Open the France file/ }).click();
   await expect(page).toHaveURL(/\/explore\/countries\/FR/, { timeout: 10_000 });

@@ -36,11 +36,11 @@ test("the globe greets by default and the switch reaches the flat map", async ({
   await expect(page.getByText(/^Current coverage:/)).toBeVisible();
 
   await page.getByRole("button", { name: "Map", exact: true }).click();
-  await expect(page.getByRole("group", { name: /Map of Europe/ })).toBeVisible();
+  await expect(page.getByRole("group", { name: /World map/ })).toBeVisible();
 
   // The choice is remembered.
   await page.reload();
-  await expect(page.getByRole("group", { name: /Map of Europe/ })).toBeVisible({
+  await expect(page.getByRole("group", { name: /World map/ })).toBeVisible({
     timeout: 15_000,
   });
 });

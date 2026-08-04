@@ -105,16 +105,18 @@ test("the theme dimension aggregates euroSciVoc level-2 themes", async ({ page }
 test("the map view selects first, and only a second click opens the file", async ({ page }) => {
   await page.goto("/explore?by=country&split=0");
   await page.getByRole("button", { name: "Map", exact: true }).click();
-  const map = page.getByRole("group", { name: /Map of Europe/ });
+  const map = page.getByRole("group", { name: /World map/ });
   await expect(map).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(/funding · €/)).toBeVisible();
+  const france = map.locator('path[data-code="FR"]');
+  await expect(france).toHaveCount(1, { timeout: 15_000 });
 
   // First click: the country pins — summary bar, no navigation.
-  await map.getByRole("button", { name: /^France — €/ }).click();
+  await france.dispatchEvent("click");
   await expect(page.getByRole("link", { name: "Open the country file" })).toBeVisible();
   expect(page.url()).toContain("/explore?");
 
   // Second click on the selected shape: the cinematic zoom into the file.
-  await map.getByRole("button", { name: /^France — €/ }).click();
+  await france.dispatchEvent("click");
   await expect(page).toHaveURL(/\/explore\/countries\/FR/, { timeout: 10_000 });
 });

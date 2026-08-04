@@ -2,27 +2,24 @@ import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import mapData from "@/lib/europe-map.json";
+import { useFlatMaps } from "@/lib/flat-geo";
 import type { PartnerCountry } from "@/lib/api";
 import { formatInt, useCountryName } from "@/lib/format";
 
-/** WHERE the organisation's collaborators live (lot 4 bis): the Europe
- *  choropleth stepped by shared projects — sequential, one hue, opacity
- *  steps, monotone by construction. The map rule holds (fondatrice,
+/** WHERE the organisation's collaborators live (lot 4 bis, worldwide
+ *  since the chantier régions): a choropleth stepped by SHARED PROJECTS
+ *  — sequential, one hue, opacity steps, monotone by construction (a
+ *  count, not euros: the region palette does not apply here). The map rule holds (fondatrice,
  *  2026-08-02): the FIRST activation selects a country (highlight, the
  *  summary line below), only a second activation of the selected one
  *  opens the country file; keyboard rides the same path. Partners
  *  beyond the map's frame are listed honestly below — never dropped in
  *  silence. */
 
-interface MapCountry {
-  code: string;
-  path: string;
-  cx: number;
-  cy: number;
-}
-
-const MAP = mapData as { width: number; height: number; countries: MapCountry[] };
+// The WORLD scope (chantier régions): an organisation's American or
+// Asian partners are data, not decor — plus the micro-territory dots
+// (a partner in Singapore exists cartographically now).
+const STAGE = { width: 900, height: 675 };
 const STEPS = [0.12, 0.28, 0.46, 0.66, 0.88];
 
 export function CollaboratorsMap({ data }: { data: PartnerCountry[] }) {
@@ -34,15 +31,22 @@ export function CollaboratorsMap({ data }: { data: PartnerCountry[] }) {
   const [hover, setHover] = useState<string | null>(null);
   const [tip, setTip] = useState<{ x: number; y: number; lines: string[] } | null>(null);
 
+  const flatData = useFlatMaps();
+  const world = useMemo(
+    () => flatData?.scopes.world ?? { countries: [], points: [] },
+    [flatData],
+  );
   const byCode = useMemo(() => new Map(data.map((row) => [row.country, row])), [data]);
-  const onMap = useMemo(() => {
-    const codes = new Set(MAP.countries.map((country) => country.code));
-    return data.filter((row) => codes.has(row.country));
-  }, [data]);
-  const offMap = useMemo(() => {
-    const codes = new Set(MAP.countries.map((country) => country.code));
-    return data.filter((row) => !codes.has(row.country));
-  }, [data]);
+  const mapCodes = useMemo(
+    () =>
+      new Set([
+        ...world.countries.map((country) => country.code),
+        ...world.points.map((point) => point.code),
+      ]),
+    [world],
+  );
+  const onMap = useMemo(() => data.filter((row) => mapCodes.has(row.country)), [data, mapCodes]);
+  const offMap = useMemo(() => data.filter((row) => !mapCodes.has(row.country)), [data, mapCodes]);
 
   const sorted = onMap.map((row) => row.shared_projects).sort((a, b) => a - b);
   const thresholds = [0.2, 0.4, 0.6, 0.8].map(
@@ -84,8 +88,8 @@ export function CollaboratorsMap({ data }: { data: PartnerCountry[] }) {
 
   return (
     <div ref={wrapRef} className="relative">
-      <svg viewBox={`0 0 ${MAP.width} ${MAP.height}`} className="w-full" role="group" aria-label={t("org.mapAria")}>
-        {MAP.countries.map((country) => {
+      <svg viewBox={`0 0 ${STAGE.width} ${STAGE.height}`} className="w-full" role="group" aria-label={t("org.mapAria")}>
+        {world.countries.map((country) => {
           const row = byCode.get(country.code);
           const isSelected = selected === country.code;
           return (
@@ -126,6 +130,45 @@ export function CollaboratorsMap({ data }: { data: PartnerCountry[] }) {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
                   activate(country.code);
+                }
+              }}
+            />
+          );
+        })}
+        {world.points.map((point) => {
+          const row = byCode.get(point.code);
+          if (!row) return null;
+          const isSelected = selected === point.code;
+          return (
+            <circle
+              key={point.code}
+              cx={point.cx}
+              cy={point.cy}
+              r={isSelected || hover === point.code ? 6.5 : 5}
+              data-code={point.code}
+              role="button"
+              aria-pressed={isSelected}
+              tabIndex={0}
+              aria-label={`${countryName(point.code)} — ${t("org.mapPartners", { count: row.partners })}`}
+              fill="var(--color-accent)"
+              fillOpacity={Math.max(stepFor(row.shared_projects), 0.46)}
+              stroke="var(--color-background)"
+              strokeWidth={isSelected ? 2 : 1}
+              className="cursor-pointer outline-none transition-[fill-opacity] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+              onMouseEnter={(event) => {
+                setHover(point.code);
+                moveTip(event, row, point.code);
+              }}
+              onMouseMove={(event) => moveTip(event, row, point.code)}
+              onMouseLeave={() => {
+                setHover(null);
+                setTip(null);
+              }}
+              onClick={() => activate(point.code)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  activate(point.code);
                 }
               }}
             />

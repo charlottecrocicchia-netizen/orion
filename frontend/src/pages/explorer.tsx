@@ -10,7 +10,7 @@ import { BumpChart } from "@/components/bump-chart";
 import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
 import { ExploreTable } from "@/components/explore-table";
-import { EuropeMap } from "@/components/europe-map";
+import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { addToDossier } from "@/lib/dossier";
@@ -690,13 +690,17 @@ export function ExplorerPage() {
             <BarsChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "map" ? (
             <>
-              <EuropeMap
+              <WorldMap
                 countries={data.series
                   .filter((serie) => typeof serie.key === "string" && serie.value != null)
                   .map((serie) => ({
                     code: String(serie.key),
                     name: serie.label ?? String(serie.key),
                     eu_member: false,
+                    // La région vient de l'index des pays (le référentiel
+                    // backend) — jamais devinée côté front.
+                    region:
+                      countries?.find((entry) => entry.code === String(serie.key))?.region ?? null,
                     projects_count: 0,
                     funding_eur: serie.value ?? 0,
                   }))}

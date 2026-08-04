@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import mapData from "@/lib/europe-map.json";
+import { useFlatMaps } from "@/lib/flat-geo";
 import photoRegistry from "@/lib/country-photos.json";
 import { api } from "@/lib/api";
 import type { CountryFlow, CountryIndexEntry } from "@/lib/api";
@@ -30,11 +30,9 @@ interface CountryPhoto {
 }
 
 const PHOTOS = (photoRegistry as { photos: Record<string, CountryPhoto> }).photos;
-const MAP = mapData as {
-  width: number;
-  height: number;
-  countries: { code: string; path: string; cx: number; cy: number }[];
-};
+// The silhouette reads the WORLD scope: a United States panel deserves
+// its shape as much as a French one (chantier régions, 2026-08-04).
+const STAGE = { width: 900, height: 675 };
 
 export function CountryPanel({
   code,
@@ -53,7 +51,8 @@ export function CountryPanel({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const photo: CountryPhoto | undefined = PHOTOS[code];
   const [photoFailed, setPhotoFailed] = useState(false);
-  const silhouette = MAP.countries.find((country) => country.code === code);
+  const flatData = useFlatMaps();
+  const silhouette = flatData?.scopes.world.countries.find((country) => country.code === code);
 
   const { data: themes } = useQuery({
     queryKey: ["panel-themes", code],
@@ -114,12 +113,12 @@ export function CountryPanel({
           <div className="h-full w-full bg-gradient-to-b from-[#3b5cff] via-[#1c2f9e] to-[#101d5e]">
             {silhouette ? (
               <svg
-                viewBox={`0 0 ${MAP.width} ${MAP.height}`}
+                viewBox={`0 0 ${STAGE.width} ${STAGE.height}`}
                 preserveAspectRatio="xMidYMid slice"
                 className="h-full w-full"
               >
                 <g
-                  transform={`translate(${MAP.width / 2}, ${MAP.height / 2}) scale(3) translate(${-silhouette.cx}, ${-silhouette.cy})`}
+                  transform={`translate(${STAGE.width / 2}, ${STAGE.height / 2}) scale(3) translate(${-silhouette.cx}, ${-silhouette.cy})`}
                 >
                   <path
                     d={silhouette.path}

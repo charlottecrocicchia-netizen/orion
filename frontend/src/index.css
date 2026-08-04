@@ -31,6 +31,15 @@
   --series-4: #9d174d;
   --series-5: #7c3aed;
   --series-6: #4d7c0f;
+
+  /* Les cinq régions manager (chantier régions, palette validée au
+     script le 2026-08-04 — l'olive et le violet rejetés par la
+     simulation daltonienne, le pourpre retenu pour l'Amérique latine). */
+  --region-europe: #2d4fe3;
+  --region-north-america: #b45309;
+  --region-asia-pacific: #0d9488;
+  --region-latin-america: #6b21a8;
+  --region-middle-east-africa: #9d174d;
   /* The donut's "others" remainder — a NEUTRAL, deliberately outside the
      categorical palette: it means "not a category". */
   --donut-others: #d7dae1;
@@ -58,6 +67,11 @@
   --series-4: #be185d;
   --series-5: #8b5cf6;
   --series-6: #65a30d;
+  --region-europe: #8b9aff;
+  --region-north-america: #d97706;
+  --region-asia-pacific: #14b8a6;
+  --region-latin-america: #a855f7;
+  --region-middle-east-africa: #e11d48;
   --donut-others: #3a3f4b;
   color-scheme: dark;
 }

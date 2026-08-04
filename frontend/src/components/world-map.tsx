@@ -2,50 +2,44 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import mapData from "@/lib/europe-map.json";
 import type { CountryFlow, CountryIndexEntry } from "@/lib/api";
+import { useFlatMaps } from "@/lib/flat-geo";
 import { formatCompactEur, formatInt } from "@/lib/format";
+import {
+  AMOUNT_STEPS,
+  amountStep,
+  bucketLabels,
+  regionColor,
+  type RegionSlug,
+} from "@/lib/regions";
 
-/** The Europe choropleth — pre-projected SVG paths (zero runtime geometry),
- *  a sequential single-hue scale on funding, per-country flow arcs on hover
- *  or selection. Interaction rule (fondatrice, 2026-08-02): ON A MAP, THE
- *  FIRST CLICK EXPLORES, NEVER TELEPORTS — with `onSelect` the first
- *  activation selects the country (highlight, persistent flows, the parent
- *  shows its summary) and only a SECOND activation of the selected country
- *  runs the cinematic zoom into its file. Keyboard follows the exact same
- *  path (Enter/Space on the focusable shapes). The list below the map
- *  stays the canonical, accessible reading. */
-
-interface MapCountry {
-  code: string;
-  path: string;
-  cx: number;
-  cy: number;
-}
-
-const MAP = mapData as {
-  width: number;
-  height: number;
-  countries: MapCountry[];
-};
-
-// Sequential scale: one hue, stepped by opacity — monotone by construction.
-const STEPS = [0.12, 0.28, 0.46, 0.66, 0.88];
-
-function stepFor(value: number, thresholds: number[]): number {
-  let index = 0;
-  while (index < thresholds.length && value > thresholds[index]) index++;
-  return STEPS[Math.min(index, STEPS.length - 1)];
-}
+/** The flat analysis map, WORLDWIDE (chantier régions, 2026-08-04 —
+ *  formerly EuropeMap, whose 38-country scope had become a lie once
+ *  74 % of the corpus in euros turned American). One pre-projected
+ *  geometry per scope (world + the five manager regions), countries
+ *  tinted by their region, intensity encoding the amount through the
+ *  named LOG buckets (decision ⑤), micro-territories as clickable dots
+ *  (Malta was invisible before — it never had a 110m polygon).
+ *
+ *  THE RULE, founder-engraved: every country present in the corpus is
+ *  coloured, hoverable and clickable; grey is reserved for countries
+ *  without any data. Interactivity derives from the `countries` prop —
+ *  the corpus — never from a hardcoded list.
+ *
+ *  The map rule holds (fondatrice, 2026-08-02): first activation
+ *  selects, only a second activation of the selected country leaves
+ *  for its file; keyboard rides the same path. */
 
 const ZOOM_MS = 450;
+const STAGE = { width: 900, height: 675 };
 
-export function EuropeMap({
+export function WorldMap({
   countries,
   flows,
   legendLabel,
   selected = null,
   onSelect,
+  scope = "world",
 }: {
   countries: CountryIndexEntry[];
   flows: CountryFlow[];
@@ -54,28 +48,23 @@ export function EuropeMap({
   /** The currently selected country (select-first interaction). */
   selected?: string | null;
   /** First activation selects; a second activation of the selected
-   *  country zooms into its file. Without it, activation navigates
-   *  directly (legacy — no consumer should need it anymore). */
+   *  country zooms into its file. */
   onSelect?: (code: string) => void;
+  /** Geographic frame: the world, or one manager region. */
+  scope?: RegionSlug | "world";
 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const flatData = useFlatMaps();
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [viewBox, setViewBox] = useState(`0 0 ${MAP.width} ${MAP.height}`);
+  const [viewBox, setViewBox] = useState(`0 0 ${STAGE.width} ${STAGE.height}`);
   const [zooming, setZooming] = useState(false);
   const [hover, setHover] = useState<string | null>(null);
   const [tip, setTip] = useState<{ x: number; y: number; lines: string[] } | null>(null);
 
+  const geo = flatData?.scopes[scope] ?? flatData?.scopes.world ?? { countries: [], points: [] };
   const byCode = new Map(countries.map((entry) => [entry.code, entry]));
-  const centroids = new Map(MAP.countries.map((entry) => [entry.code, entry]));
-  const funded = countries
-    .filter((entry) => centroids.has(entry.code))
-    .map((entry) => entry.funding_eur)
-    .sort((a, b) => a - b);
-  const thresholds = [0.2, 0.4, 0.6, 0.8].map(
-    (q) => funded[Math.floor(q * (funded.length - 1))] ?? 0,
-  );
-  const maxFunding = funded[funded.length - 1] ?? 0;
+  const centroids = new Map(geo.countries.map((entry) => [entry.code, entry]));
 
   // Flows follow the hovered country, or stay pinned on the selection.
   const arcSource = hover ?? (onSelect ? selected : null);
@@ -102,7 +91,7 @@ export function EuropeMap({
             ];
           });
 
-  const openCountry = (code: string, target: SVGPathElement) => {
+  const openCountry = (code: string, target: SVGGraphicsElement) => {
     if (zooming) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
@@ -112,9 +101,9 @@ export function EuropeMap({
     setZooming(true);
     setTip(null);
     const box = target.getBBox();
-    const pad = Math.max(box.width, box.height) * 0.45;
+    const pad = Math.max(box.width, box.height, 14) * 0.45;
     const goal = [box.x - pad, box.y - pad, box.width + 2 * pad, box.height + 2 * pad];
-    const start = [0, 0, MAP.width, MAP.height];
+    const start = [0, 0, STAGE.width, STAGE.height];
     const t0 = performance.now();
     const ease = (u: number) => (u < 0.5 ? 4 * u ** 3 : 1 - (-2 * u + 2) ** 3 / 2);
     const frame = (now: number) => {
@@ -129,7 +118,7 @@ export function EuropeMap({
 
   // First activation selects; the second — on the already-selected
   // country — leaves for its file. Click and keyboard share this path.
-  const activate = (code: string, target: SVGPathElement) => {
+  const activate = (code: string, target: SVGGraphicsElement) => {
     if (onSelect && code !== selected) {
       setTip(null);
       onSelect(code);
@@ -155,62 +144,83 @@ export function EuropeMap({
     });
   };
 
+  const interactionProps = (code: string, entry: CountryIndexEntry | undefined) => ({
+    "data-code": code,
+    role: (onSelect ? "button" : "link") as "button" | "link",
+    "aria-pressed": onSelect ? selected === code : undefined,
+    tabIndex: zooming ? -1 : 0,
+    "aria-label": entry
+      ? `${entry.name} — ${formatCompactEur(entry.funding_eur, i18n.language)}`
+      : code,
+    className:
+      "cursor-pointer transition-[fill-opacity] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent",
+    onMouseEnter: (event: React.MouseEvent) => {
+      setHover(code);
+      moveTip(event, entry, code);
+    },
+    onMouseMove: (event: React.MouseEvent) => moveTip(event, entry, code),
+    onMouseLeave: () => {
+      setHover(null);
+      setTip(null);
+    },
+    onClick: (event: React.MouseEvent<SVGGraphicsElement>) =>
+      activate(code, event.currentTarget),
+    onKeyDown: (event: React.KeyboardEvent<SVGGraphicsElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        activate(code, event.currentTarget);
+      }
+    },
+  });
+
+  const buckets = bucketLabels(i18n.language);
+
   return (
     <div ref={wrapRef} className="relative">
-      <svg
-        viewBox={viewBox}
-        className="w-full"
-        role="group"
-        aria-label={t("explore.mapLabel")}
-      >
-        {MAP.countries.map((country) => {
+      <svg viewBox={viewBox} className="w-full" role="group" aria-label={t("explore.mapLabel")}>
+        {geo.countries.map((country) => {
           const entry = byCode.get(country.code);
-          const opacity = entry ? stepFor(entry.funding_eur, thresholds) : 0;
+          const opacity = entry ? amountStep(entry.funding_eur) : 0;
           const isSelected = onSelect != null && selected === country.code;
+          // No data: quiet surface. With data: the REGION's tint (from
+          // the API entry, never guessed here), stepped by amount.
+          const fill = entry ? regionColor(entry.region) : "var(--color-surface)";
           return (
             <path
               key={country.code}
               d={country.path}
-              data-code={country.code}
-              role={onSelect ? "button" : "link"}
-              aria-pressed={onSelect ? isSelected : undefined}
-              tabIndex={zooming ? -1 : 0}
-              aria-label={
-                entry
-                  ? `${entry.name} — ${formatCompactEur(entry.funding_eur, i18n.language)}`
-                  : country.code
-              }
-              fill={entry ? "var(--color-accent)" : "var(--color-surface)"}
+              fill={fill}
               fillOpacity={entry ? (isSelected ? Math.min(opacity + 0.2, 0.95) : opacity) : 1}
               stroke={
-                isSelected || hover === country.code
-                  ? "var(--color-accent)"
-                  : "var(--color-background)"
+                isSelected || hover === country.code ? fill : "var(--color-background)"
               }
               strokeWidth={isSelected ? 2 : hover === country.code ? 1.6 : 0.75}
-              className="cursor-pointer transition-[fill-opacity] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-              onMouseEnter={(event) => {
-                setHover(country.code);
-                moveTip(event, entry, country.code);
-              }}
-              onMouseMove={(event) => moveTip(event, entry, country.code)}
-              onMouseLeave={() => {
-                setHover(null);
-                setTip(null);
-              }}
-              onClick={(event) => activate(country.code, event.currentTarget)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  activate(country.code, event.currentTarget);
-                }
-              }}
+              {...(entry
+                ? interactionProps(country.code, entry)
+                : { "data-code": country.code })}
+            />
+          );
+        })}
+        {geo.points.map((point) => {
+          const entry = byCode.get(point.code);
+          if (!entry) return null; // no data: a micro-territory stays silent
+          const isSelected = onSelect != null && selected === point.code;
+          return (
+            <circle
+              key={point.code}
+              cx={point.cx}
+              cy={point.cy}
+              r={isSelected || hover === point.code ? 6.5 : 5}
+              fill={regionColor(entry.region)}
+              fillOpacity={Math.max(amountStep(entry.funding_eur), 0.46)}
+              stroke="var(--color-background)"
+              strokeWidth={isSelected ? 2 : 1}
+              {...interactionProps(point.code, entry)}
             />
           );
         })}
         {hoverArcs.map((arc) => (
-          // Flow arcs wear the palette's warm ochre (series-2): readable on
-          // every choropleth step, with a background halo for crossings.
+          // Flow arcs keep their halo so they read on every choropleth step.
           <g key={arc.key} pointerEvents="none">
             <path
               d={arc.d}
@@ -249,19 +259,21 @@ export function EuropeMap({
         </div>
       ) : null}
 
-      <div className="mt-3 flex items-center gap-2 text-[11.5px] text-muted-foreground">
+      <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11.5px] text-muted-foreground">
         <span>{legendLabel ?? t("explore.mapLegend")}</span>
         <span aria-hidden="true" className="ml-1 flex items-center gap-1">
-          {STEPS.map((step) => (
+          {AMOUNT_STEPS.map((step, index) => (
             <span
               key={step}
-              className="h-2.5 w-6 rounded-sm bg-accent"
-              style={{ opacity: step }}
+              title={buckets[index]}
+              className="h-2.5 w-6 rounded-sm bg-foreground"
+              style={{ opacity: 0.12 + step * 0.75 }}
             />
           ))}
         </span>
+        {/* The named euro buckets — an absolute legend a manager reads. */}
         <span className="tnum">
-          0 → {formatCompactEur(maxFunding, i18n.language)}
+          {buckets[0]} → {buckets[buckets.length - 1]}
         </span>
         <span className="ml-5 flex items-center gap-1.5">
           <svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true">

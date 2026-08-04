@@ -7,7 +7,7 @@ import { BarsChart, LinesChart } from "@/components/charts";
 import { BumpChart } from "@/components/bump-chart";
 import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
-import { EuropeMap } from "@/components/europe-map";
+import { WorldMap } from "@/components/world-map";
 import { ExploreTable } from "@/components/explore-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
@@ -46,6 +46,7 @@ export function ExploreView({
     enabled: active,
     staleTime: 60_000,
   });
+  const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: flows } = useQuery({
     queryKey: ["country-flows"],
     queryFn: api.countryFlows,
@@ -100,13 +101,16 @@ export function ExploreView({
         <BarsChart series={data.series} unit={data.unit} ariaLabel={title} />
       ) : view === "map" ? (
         <>
-          <EuropeMap
+          <WorldMap
             countries={data.series
               .filter((serie) => typeof serie.key === "string" && serie.value != null)
               .map((serie) => ({
                 code: String(serie.key),
                 name: serie.label ?? String(serie.key),
                 eu_member: false,
+                // La région vient du référentiel backend, jamais devinée.
+                region:
+                  countryIndex?.find((entry) => entry.code === String(serie.key))?.region ?? null,
                 projects_count: 0,
                 funding_eur: serie.value ?? 0,
               }))}

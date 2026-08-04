@@ -3,11 +3,12 @@ import { useTranslation } from "react-i18next";
 
 import type { CountryFlow, CountryIndexEntry } from "@/lib/api";
 import { formatCompactEur } from "@/lib/format";
+import { amountStep, REGION_ORDER, regionColor } from "@/lib/regions";
 
 /** The world globe — runtime orthographic projection over the shared Natural
  *  Earth geometries, drag to rotate. Two lives: on the countries page a click
  *  morphs the projection into the flat analysis map (same 900×675 viewBox,
- *  seamless hand-over to EuropeMap); on the home's act 3 (`mode="select"`)
+ *  seamless hand-over to WorldMap); on the home's act 3 (`mode="select"`)
  *  hovering a covered country lights its PARTNER CONSTELLATION — real flows
  *  drawn as thin lines to stars sized by amount, the Orion metaphor on the
  *  planet — and a click hands the country to the panel instead of morphing.
@@ -21,7 +22,20 @@ interface GeoCountry {
 
 interface GeoData {
   countries: GeoCountry[];
+  /** Micro-territories without a 110m polygon (Malta, Singapore…) —
+   *  clickable dots, so no data country can hide behind cartography. */
+  points: { code: string; lon: number; lat: number }[];
   world: [number, number][][];
+  /** The flat-morph target — the WORLD map's projection, generated with
+   *  the geometry (chantier régions: the globe melts into the world). */
+  flat: {
+    lonMin: number;
+    latMax: number;
+    k: number;
+    latScale: number;
+    offsetX: number;
+    offsetY: number;
+  };
 }
 
 const W = 900;
@@ -31,12 +45,9 @@ const CX = W / 2;
 const CY = H / 2 + 6;
 const RAD = Math.PI / 180;
 
-// The flat map's projection (identical to build-europe-map.mjs) — the morph target.
-const FLAT = { lon0: -25, lat1: 71.5, k: W / 70, latScale: 1.4 };
-
-function flat([lon, lat]: [number, number]): [number, number] {
-  return [(lon - FLAT.lon0) * FLAT.k, (FLAT.lat1 - lat) * FLAT.k * FLAT.latScale];
-}
+// The flat map's projection parameters ride with the geometry
+// (world-geo.json `flat`) — one source for the morph target and the
+// flat maps, never two constants to drift apart.
 
 function makeOrtho(lonC: number, latC: number, radius = R) {
   const sinLatC = Math.sin(latC * RAD);
@@ -228,6 +239,14 @@ export function WorldGlobe({
   };
 
   const ortho = makeOrtho(view.lonC, view.latC, radius);
+  const flatSpec = geo?.flat;
+  const flat = ([lon, lat]: [number, number]): [number, number] => {
+    if (!flatSpec) return [CX, CY];
+    return [
+      flatSpec.offsetX + (lon - flatSpec.lonMin) * flatSpec.k,
+      flatSpec.offsetY + (flatSpec.latMax - lat) * flatSpec.k * flatSpec.latScale,
+    ];
+  };
   const project =
     morphT == null
       ? ortho
@@ -355,19 +374,26 @@ export function WorldGlobe({
               key={country.code}
               d={d}
               data-code={country.code}
-              // The held-open country LIGHTS UP: full ultramarine with a
-              // background-colored rim that detaches it from its neighbours
-              // (ink was tried and rejected — "c'est moche"). Under wave-1
-              // region hues, selection = the region's hue at full strength.
-              fill={isCovered ? "var(--color-accent)" : "var(--color-surface)"}
+              // The held-open country LIGHTS UP: its REGION's hue at full
+              // strength with a background-colored rim that detaches it
+              // from its neighbours (ink was tried and rejected — "c'est
+              // moche"). Same grammar as the flat maps: region tint,
+              // intensity = amount through the named log buckets.
+              fill={entry ? regionColor(entry.region) : "var(--color-surface)"}
               fillOpacity={
-                isSelected ? 0.92 : isCovered ? (hover === country.code ? 0.6 : 0.32) : 0.9
+                isSelected
+                  ? 0.92
+                  : entry
+                    ? hover === country.code
+                      ? Math.min(amountStep(entry.funding_eur) + 0.24, 0.95)
+                      : amountStep(entry.funding_eur)
+                    : 0.9
               }
               stroke={
                 isSelected
                   ? "var(--color-background)"
-                  : isCovered
-                    ? "var(--color-accent)"
+                  : entry
+                    ? regionColor(entry.region)
                     : "var(--color-border)"
               }
               strokeOpacity={isSelected ? 1 : isCovered ? 0.6 : 1}
@@ -397,6 +423,64 @@ export function WorldGlobe({
                 if (!interactive) return;
                 stopSpin();
                 setHover(country.code);
+              }}
+              onBlur={() => {
+                resumeSpin();
+                setHover(null);
+              }}
+              onClick={activate}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  activate();
+                }
+              }}
+            />
+          );
+        })}
+        {geo?.points.map((point) => {
+          const entry = byCode.get(point.code);
+          if (!entry) return null; // no data: a micro-territory stays silent
+          const at = project([point.lon, point.lat]);
+          if (!at) return null;
+          const isSelected = mode === "select" && selected === point.code;
+          const interactive = morphT == null;
+          const activate = () => {
+            if (!interactive) return;
+            if (mode === "select") onOpenCountry(point.code);
+            else startMorph(point.code);
+          };
+          return (
+            <circle
+              key={point.code}
+              cx={at[0]}
+              cy={at[1]}
+              r={isSelected || hover === point.code ? 5 : 3.4}
+              data-code={point.code}
+              fill={regionColor(entry.region)}
+              fillOpacity={Math.max(amountStep(entry.funding_eur), 0.46)}
+              stroke="var(--color-background)"
+              strokeWidth={isSelected ? 1.6 : 0.9}
+              role={interactive ? "button" : undefined}
+              aria-pressed={interactive && mode === "select" ? isSelected : undefined}
+              aria-label={`${entry.name} — ${formatCompactEur(entry.funding_eur, i18n.language)}`}
+              tabIndex={interactive ? 0 : -1}
+              className={
+                interactive
+                  ? "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                  : undefined
+              }
+              onMouseEnter={() => {
+                stopSpin();
+                setHover(point.code);
+              }}
+              onMouseLeave={() => {
+                resumeSpin();
+                setHover(null);
+              }}
+              onFocus={() => {
+                stopSpin();
+                setHover(point.code);
               }}
               onBlur={() => {
                 resumeSpin();
@@ -485,11 +569,16 @@ export function WorldGlobe({
         </div>
       ) : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11.5px] text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <i className="inline-block h-2.5 w-2.5 rounded-[3px] bg-accent opacity-40" />
-          {t("explore.coverageHave")}
-        </span>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11.5px] text-muted-foreground">
+        {REGION_ORDER.map((region) => (
+          <span key={region} className="flex items-center gap-1.5">
+            <i
+              className="inline-block h-2.5 w-2.5 rounded-[3px]"
+              style={{ background: regionColor(region), opacity: 0.85 }}
+            />
+            {t(`regions.${region}`)}
+          </span>
+        ))}
         <span className="flex items-center gap-1.5">
           <i className="inline-block h-2.5 w-2.5 rounded-[3px] bg-surface ring-1 ring-border" />
           {t("explore.coverageSoon")}

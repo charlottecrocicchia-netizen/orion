@@ -159,6 +159,7 @@ export const api = {
   organisationProjects: (id: string, params: URLSearchParams) =>
     get<PortfolioResponse>(`/api/organisations/${id}/projects?${params}`),
   countries: () => get<CountryIndexEntry[]>("/api/countries"),
+  regions: () => get<RegionSummary[]>("/api/regions"),
   country: (code: string) => get<CountryHub>(`/api/countries/${code}`),
   programmes: () => get<ProgrammeIndexEntry[]>("/api/programmes"),
   programme: (id: string) => get<ProgrammeHub>(`/api/programmes/${id}`),
@@ -247,6 +248,16 @@ export interface CountryIndexEntry {
   code: string;
   name: string;
   eu_member: boolean;
+  /** Manager region slug — served by the backend referential, the
+   *  front never hardcodes geography (chantier régions, 2026-08-04). */
+  region: string | null;
+  projects_count: number;
+  funding_eur: number;
+}
+
+export interface RegionSummary {
+  region: string;
+  countries: number;
   projects_count: number;
   funding_eur: number;
 }

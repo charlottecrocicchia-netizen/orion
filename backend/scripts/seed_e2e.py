@@ -56,11 +56,30 @@ ORGS = {
         "NL",
         "REC",
     ),
+    # Hors d'Europe — la règle du chantier régions se teste : tout pays du
+    # corpus est vivant sur les cartes (US : polygone ; IL : Moyen-Orient
+    # & Afrique ; MT : pastille, aucun polygone dans le 110m).
+    "mit": ("MASSACHUSETTS INSTITUTE OF TECHNOLOGY", "US", "HES"),
+    "technion": ("TECHNION ISRAEL INSTITUTE OF TECHNOLOGY", "IL", "HES"),
+    "um_malta": ("UNIVERSITA TA MALTA", "MT", "HES"),
 }
 
 # (source_id, acronym, year, programme, m€ shares by org — first is coordinator,
 #  texts {lang: (title, abstract)})
 PROJECTS = [
+    (
+        "e2e-nsf-ocean",
+        "OCEANSENSE",
+        2024,
+        "nsf-root",
+        [("mit", 3.2), ("technion", 1.1), ("um_malta", 0.4)],
+        {
+            "en": (
+                "Ocean sensing across three seas",
+                "Distributed sensors for ocean monitoring, a transatlantic collaboration.",
+            )
+        },
+    ),
     (
         "e2e-h2store",
         "H2STORE",
@@ -183,15 +202,17 @@ def main() -> None:
         # The second funder is NIH since the ANR left the product
         # (2026-08-03): the seed must mirror the sources that exist.
         nih = session.scalar(select(Funder).where(Funder.code == "nih"))
+        nsf = session.scalar(select(Funder).where(Funder.code == "nsf"))
 
         he_root = Programme(funder_id=ec.id, code="HORIZON", name="Horizon Europe (2021-2027)")
         nih_root = Programme(funder_id=nih.id, code="CA", name="National Cancer Institute")
-        session.add_all([he_root, nih_root])
+        nsf_root = Programme(funder_id=nsf.id, code="OPP", name="Office of Polar Programs")
+        session.add_all([he_root, nih_root, nsf_root])
         session.flush()
         he_child = Programme(funder_id=ec.id, parent_id=he_root.id, code="HORIZON-CL5")
         session.add(he_child)
         session.flush()
-        programmes = {"he-child": he_child, "nih-root": nih_root}
+        programmes = {"he-child": he_child, "nih-root": nih_root, "nsf-root": nsf_root}
 
         organisations = {}
         for key, (name, country, org_type) in ORGS.items():
@@ -202,8 +223,16 @@ def main() -> None:
 
         for source_id, acronym, year, programme_key, shares, texts in PROJECTS:
             programme = programmes[programme_key]
-            funder_id = ec.id if programme_key.startswith("he") else nih.id
-            source = "cordis-horizon" if funder_id == ec.id else "nih"
+            funder_id = (
+                ec.id
+                if programme_key.startswith("he")
+                else nsf.id
+                if programme_key.startswith("nsf")
+                else nih.id
+            )
+            source = (
+                "cordis-horizon" if funder_id == ec.id else "nsf" if funder_id == nsf.id else "nih"
+            )
             total = round(sum(amount for _, amount in shares) * 1e6, 2)
             main_lang = next(iter(texts))
             project = Project(

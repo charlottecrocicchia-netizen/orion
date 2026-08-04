@@ -209,6 +209,13 @@ const resources = {
         footer:
           "Sources: © European Union, CORDIS (CC BY 4.0) · NIH RePORTER and NSF (public domain). A session dossier — accounts (P6) will make it durable.",
       },
+      regions: {
+        europe: "Europe",
+        "north-america": "North America",
+        "asia-pacific": "Asia-Pacific",
+        "latin-america": "Latin America",
+        "middle-east-africa": "Middle East & Africa",
+      },
       explore: {
         title: "Explore",
         countries: "By country",
@@ -235,7 +242,7 @@ const resources = {
         noProgrammeMatch: "No programme matches “{{q}}”.",
         openExplorer: "The Explorer",
         openExplorerHint: "Compose your own view of the data",
-        mapLabel: "Map of Europe — funding by country",
+        mapLabel: "World map — funding by country, tinted by region",
         mapLegend: "Public R&D funding",
         mapFlows: "on hover, the country's top collaborations",
         mapHint: "First click selects a country · a second opens its file",
@@ -244,7 +251,7 @@ const resources = {
         viewGlobe: "Globe",
         viewMap: "Map",
         coverageHave: "{{brand}} data (EU + France)",
-        coverageSoon: "coverage to come",
+        coverageSoon: "no data yet",
         coverageNote: "Current coverage: EU, France and the United States (NIH).",
         coverageDetail: "United States, United Kingdom, Japan — sources in preparation.",
       },
@@ -763,6 +770,13 @@ const resources = {
         footer:
           "Sources : © Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER et NSF (domaine public). Dossier de session — les comptes (P6) le rendront durable.",
       },
+      regions: {
+        europe: "Europe",
+        "north-america": "Amérique du Nord",
+        "asia-pacific": "Asie-Pacifique",
+        "latin-america": "Amérique latine",
+        "middle-east-africa": "Moyen-Orient & Afrique",
+      },
       explore: {
         title: "Explorer",
         countries: "Par pays",
@@ -789,7 +803,7 @@ const resources = {
         noProgrammeMatch: "Aucun programme ne correspond à « {{q}} ».",
         openExplorer: "L'Explorateur",
         openExplorerHint: "Composez votre propre vue des données",
-        mapLabel: "Carte d'Europe — financements par pays",
+        mapLabel: "Carte du monde — financements par pays, teintés par région",
         mapLegend: "Financements publics R&D",
         mapFlows: "au survol, les principales collaborations du pays",
         mapHint: "Premier clic : le pays se sélectionne · un second ouvre sa fiche",
@@ -798,7 +812,7 @@ const resources = {
         viewGlobe: "Globe",
         viewMap: "Carte",
         coverageHave: "données {{brand}} (UE + France)",
-        coverageSoon: "couverture à venir",
+        coverageSoon: "pas encore de donnée",
         coverageNote: "Couverture actuelle : UE, France et États-Unis (NIH).",
         coverageDetail: "États-Unis, Royaume-Uni, Japon — sources en préparation.",
       },

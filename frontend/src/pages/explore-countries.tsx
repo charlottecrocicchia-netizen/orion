@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 
 import { CountryPanel } from "@/components/country-panel";
-import { EuropeMap } from "@/components/europe-map";
+import { WorldMap } from "@/components/world-map";
 import { WorldGlobe } from "@/components/world-globe";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -106,7 +106,7 @@ export function ExploreCountriesPage() {
                   onOpenCountry={activate}
                 />
               ) : (
-                <EuropeMap
+                <WorldMap
                   countries={data}
                   flows={flows ?? []}
                   selected={selected}
