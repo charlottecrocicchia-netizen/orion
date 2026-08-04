@@ -256,12 +256,17 @@ def build_groups(session: Session, stats: RunStats) -> None:
 
 
 def run(force: bool = False) -> dict[str, int]:  # noqa: ARG001 — rebuild is total
+    from orion.ingest.groups.curation import load_curation
+
     with record_run(SOURCE) as stats:
         session = SessionLocal()
         try:
             bridge_organisations(session, stats)
             load_bridged_exceptions(session, stats)
             build_groups(session, stats)
+            # La curation en dernier : les faits humains versionnés
+            # (backend/curation/groups.csv) se posent sur le rebuild.
+            load_curation(session, stats)
         finally:
             session.close()
     return stats.counts

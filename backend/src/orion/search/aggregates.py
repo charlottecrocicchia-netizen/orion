@@ -636,3 +636,306 @@ def organisation_watchpost(
 
     key = f"orgmeta:{organisation_id}:{new_partner_cutoff}"
     return _cached_bounded(session, key, build, prefix="orgmeta:", cap=WATCHPOST_CACHE_MAX)
+
+
+def _group_member_ids(session: Session, group_id: int) -> list[int]:
+    return [
+        row[0]
+        for row in session.execute(
+            text("SELECT organisation_id FROM entity_group_map WHERE group_id = :gid"),
+            {"gid": group_id},
+        )
+    ]
+
+
+def group_partners(session: Session, group_id: int, limit: int = 8) -> list[dict]:
+    """Les partenaires du GROUPE : les organisations qui co-signent avec
+    n'importe laquelle de ses entités — les entités elles-mêmes exclues
+    (une co-signature interne n'est pas un partenariat)."""
+
+    def build() -> list[dict[str, Any]]:
+        member_ids = _group_member_ids(session, group_id)
+        if not member_ids:
+            return []
+        rows = session.execute(
+            text("""
+            WITH group_projects AS (
+                SELECT DISTINCT pa.project_id
+                FROM participations pa
+                WHERE pa.organisation_id = ANY(:oids)
+            )
+            SELECT pb.organisation_id AS id, max(o.name) AS name,
+                   max(o.country_code) AS country, max(o.org_type) AS org_type,
+                   count(DISTINCT pb.project_id) AS shared_projects,
+                   sum(pb.amount_eur) AS partner_amount_eur
+            FROM group_projects gp
+            JOIN participations pb ON pb.project_id = gp.project_id
+            JOIN organisations o ON o.id = pb.organisation_id
+            WHERE pb.organisation_id <> ALL(:oids)
+            GROUP BY pb.organisation_id
+            ORDER BY shared_projects DESC, partner_amount_eur DESC NULLS LAST
+            LIMIT :limit
+            """),
+            {"oids": member_ids, "limit": limit},
+        ).all()
+        return [
+            {
+                "id": r.id,
+                "name": r.name,
+                "country": r.country,
+                "org_type": r.org_type,
+                "shared_projects": r.shared_projects,
+                "partner_amount_eur": float(r.partner_amount_eur)
+                if r.partner_amount_eur is not None
+                else None,
+            }
+            for r in rows
+        ]
+
+    return _cached_bounded(
+        session, f"gpartners:{group_id}:{limit}", build, prefix="gpartners:", cap=64
+    )
+
+
+def group_watchpost(session: Session, group_id: int, new_partner_cutoff: str) -> dict[str, Any]:
+    """Le poste de veille CONSOLIDÉ : le profil thématique et les signaux
+    de l'organisation, généralisés au groupe entier — mêmes seuils
+    d'honnêteté, un projet co-signé par deux entités compté UNE fois,
+    les partenaires internes au groupe jamais comptés comme « nouveaux »."""
+
+    def build() -> dict[str, Any]:
+        member_ids = _group_member_ids(session, group_id)
+        if not member_ids:
+            return {"top_themes": [], "signals": {}, "sources_count": 0}
+        top_themes = session.execute(
+            text(f"""
+            WITH proj_theme AS (
+                SELECT DISTINCT pt.project_id,
+                       substring(t.code from {_THEME_L2}) AS tkey
+                FROM project_topics pt
+                JOIN topics t ON t.id = pt.topic_id
+                WHERE t.scheme = 'euroscivoc' AND t.code ~ '^/[0-9]+/[0-9]+'
+            )
+            SELECT j.tkey, coalesce(l2.label, j.tkey) AS label,
+                   sum(pa.amount_eur) AS amount,
+                   count(DISTINCT pa.project_id) AS projects
+            FROM participations pa
+            JOIN proj_theme j ON j.project_id = pa.project_id
+            LEFT JOIN topics l2
+              ON l2.scheme = 'euroscivoc' AND l2.code = j.tkey
+            WHERE pa.organisation_id = ANY(:oids)
+            GROUP BY j.tkey, l2.label
+            ORDER BY amount DESC NULLS LAST
+            LIMIT 5
+            """),
+            {"oids": member_ids},
+        ).all()
+
+        theme_windows = session.execute(
+            text(f"""
+            WITH proj_theme AS (
+                SELECT DISTINCT pt.project_id,
+                       substring(t.code from {_THEME_L2}) AS tkey
+                FROM project_topics pt
+                JOIN topics t ON t.id = pt.topic_id
+                WHERE t.scheme = 'euroscivoc' AND t.code ~ '^/[0-9]+/[0-9]+'
+            )
+            SELECT j.tkey, coalesce(l2.label, j.tkey) AS label,
+                   sum(pa.amount_eur) FILTER (
+                     WHERE extract(year FROM p.start_date) BETWEEN 2019 AND 2021
+                   ) AS before,
+                   sum(pa.amount_eur) FILTER (
+                     WHERE extract(year FROM p.start_date) BETWEEN 2022 AND 2024
+                   ) AS recent,
+                   count(DISTINCT pa.project_id) FILTER (
+                     WHERE extract(year FROM p.start_date) BETWEEN 2019 AND 2024
+                   ) AS window_projects
+            FROM participations pa
+            JOIN projects p ON p.id = pa.project_id
+            JOIN proj_theme j ON j.project_id = pa.project_id
+            LEFT JOIN topics l2
+              ON l2.scheme = 'euroscivoc' AND l2.code = j.tkey
+            WHERE pa.organisation_id = ANY(:oids)
+            GROUP BY j.tkey, l2.label
+            """),
+            {"oids": member_ids},
+        ).all()
+
+        accelerating = None
+        best_growth = SIGNAL_MIN_GROWTH
+        for tkey, label, before, recent, window_projects in theme_windows:
+            before = float(before or 0)
+            recent = float(recent or 0)
+            if before < SIGNAL_MIN_WINDOW_EUR or recent < SIGNAL_MIN_WINDOW_EUR:
+                continue
+            if (window_projects or 0) < SIGNAL_MIN_WINDOW_PROJECTS:
+                continue
+            growth = (recent - before) / before
+            if growth >= best_growth:
+                best_growth = growth
+                accelerating = {
+                    "key": tkey,
+                    "label": label,
+                    "growth_pct": round(growth * 100),
+                }
+
+        new_partners = session.execute(
+            text("""
+            WITH firsts AS (
+                SELECT pb.organisation_id AS partner_id,
+                       min(p.start_date) AS first_shared
+                FROM participations pa
+                JOIN participations pb
+                  ON pb.project_id = pa.project_id
+                 AND pb.organisation_id <> ALL(:oids)
+                JOIN projects p ON p.id = pa.project_id
+                WHERE pa.organisation_id = ANY(:oids) AND p.start_date IS NOT NULL
+                GROUP BY pb.organisation_id
+            )
+            SELECT f.partner_id, o.name, f.first_shared
+            FROM firsts f JOIN organisations o ON o.id = f.partner_id
+            WHERE f.first_shared >= :cutoff
+            ORDER BY f.first_shared DESC
+            LIMIT 50
+            """),
+            {"oids": member_ids, "cutoff": new_partner_cutoff},
+        ).all()
+
+        sources_count = session.execute(
+            text("""
+            SELECT count(DISTINCT pa.source) FROM participations pa
+            WHERE pa.organisation_id = ANY(:oids)
+            """),
+            {"oids": member_ids},
+        ).scalar()
+
+        return {
+            "top_themes": [
+                {
+                    "key": tkey,
+                    "label": label,
+                    "amount_eur": float(amount) if amount is not None else 0.0,
+                    "projects": projects or 0,
+                }
+                for tkey, label, amount, projects in top_themes
+            ],
+            "signals": {
+                "accelerating_theme": accelerating,
+                "new_partners": {
+                    "count": len(new_partners),
+                    "names": [name for _, name, _ in new_partners[:3]],
+                }
+                if new_partners
+                else None,
+            },
+            "sources_count": sources_count or 0,
+        }
+
+    key = f"groupmeta:{group_id}:{new_partner_cutoff}"
+    return _cached_bounded(session, key, build, prefix="groupmeta:", cap=WATCHPOST_CACHE_MAX)
+
+
+def group_compare_entry(session: Session, group_id: int) -> dict[str, Any] | None:
+    """Le groupe comme entité de benchmark — mêmes rubriques que les
+    organisations, consolidées : un projet co-signé compte UNE fois."""
+
+    def build() -> dict[str, Any] | None:
+        base = session.execute(
+            text("""
+            SELECT g.id, g.name, g.country_code,
+                   (SELECT count(*) FROM entity_group_map m WHERE m.group_id = g.id) AS entities
+            FROM groups g WHERE g.id = :gid
+            """),
+            {"gid": group_id},
+        ).first()
+        if base is None:
+            return None
+        member_ids = _group_member_ids(session, group_id)
+        kpis = session.execute(
+            text("""
+            SELECT count(DISTINCT pa.project_id) AS projects,
+                   coalesce(sum(pa.amount_eur), 0) AS funding,
+                   count(DISTINCT pa.project_id)
+                     FILTER (WHERE pa.role = 'coordinator') AS coordinated,
+                   min(extract(year FROM p.start_date))::int AS first_year,
+                   max(extract(year FROM p.start_date))::int AS last_year
+            FROM participations pa
+            LEFT JOIN projects p ON p.id = pa.project_id
+            WHERE pa.organisation_id = ANY(:oids)
+            """),
+            {"oids": member_ids or [-1]},
+        ).first()
+        by_year = session.execute(
+            text("""
+            SELECT extract(year FROM p.start_date)::int AS y, sum(pa.amount_eur) AS amount
+            FROM participations pa JOIN projects p ON p.id = pa.project_id
+            WHERE pa.organisation_id = ANY(:oids) AND p.start_date IS NOT NULL
+              AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
+            GROUP BY 1 ORDER BY 1
+            """),
+            {"oids": member_ids or [-1]},
+        ).all()
+        themes = session.execute(
+            text("""
+            SELECT substring(t.code from '^(/[0-9]+/[0-9]+)') AS key,
+                   max(l2.label) AS label,
+                   count(DISTINCT pa.project_id) AS projects
+            FROM participations pa
+            JOIN project_topics pt ON pt.project_id = pa.project_id
+            JOIN topics t ON t.id = pt.topic_id AND t.scheme = 'euroscivoc'
+            LEFT JOIN topics l2 ON l2.scheme = 'euroscivoc'
+                 AND l2.code = substring(t.code from '^(/[0-9]+/[0-9]+)')
+            WHERE pa.organisation_id = ANY(:oids)
+              AND substring(t.code from '^(/[0-9]+/[0-9]+)') IS NOT NULL
+            GROUP BY 1 ORDER BY projects DESC
+            LIMIT 5
+            """),
+            {"oids": member_ids or [-1]},
+        ).all()
+        return {
+            "id": f"g{base.id}",
+            "kind": "group",
+            "name": base.name,
+            "country": base.country_code,
+            "org_type": None,
+            "entities": base.entities,
+            "kpis": {
+                "projects_count": kpis.projects or 0,
+                "total_funding_eur": float(kpis.funding or 0),
+                "coordinator_count": kpis.coordinated or 0,
+                "first_year": kpis.first_year,
+                "last_year": kpis.last_year,
+            },
+            "funding_by_year": [
+                {"year": y, "amount_eur": float(amount or 0)} for y, amount in by_year
+            ],
+            "top_themes": [
+                {"key": key, "label": label, "projects": projects}
+                for key, label, projects in themes
+            ],
+            "top_partners": group_partners(session, group_id, limit=5),
+        }
+
+    return _cached_bounded(session, f"gcompare:{group_id}", build, prefix="gcompare:", cap=64)
+
+
+def compare_entries(session: Session, refs: list[str]) -> list[dict]:
+    """Le benchmark mixte : des organisations (id numérique) et des
+    groupes (« g<id> ») côte à côte, dans l'ordre demandé."""
+    refs = list(dict.fromkeys(refs))[:COMPARE_MAX]
+    org_ids = [int(r) for r in refs if r.isdigit()]
+    org_entries = {
+        str(entry["id"]): {**entry, "kind": "organisation"}
+        for entry in compare_organisations(session, org_ids)
+    }
+    out = []
+    for ref in refs:
+        if ref.isdigit():
+            entry = org_entries.get(ref)
+            if entry:
+                out.append(entry)
+        elif ref.startswith("g") and ref[1:].isdigit():
+            entry = group_compare_entry(session, int(ref[1:]))
+            if entry:
+                out.append(entry)
+    return out

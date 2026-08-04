@@ -3,6 +3,7 @@ from orion.models.funding import Call, Funder, Programme
 from orion.models.groups import (
     EntityGroupMap,
     Group,
+    GroupCurationRefusal,
     LeiException,
     LeiRecord,
     LeiRelationship,
@@ -22,6 +23,7 @@ __all__ = [
     "ExchangeRate",
     "Funder",
     "Group",
+    "GroupCurationRefusal",
     "IngestionRun",
     "LeiException",
     "LeiRecord",

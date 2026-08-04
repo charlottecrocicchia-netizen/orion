@@ -68,6 +68,21 @@ class EntityGroupMap(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class GroupCurationRefusal(Base):
+    """Un refus arbitré : cette organisation homonyme n'appartient PAS à
+    ce groupe (Dana-Farber n'est pas Dana Inc.). Chargé depuis le fichier
+    de curation ; fait taire le radar des homonymes."""
+
+    __tablename__ = "group_curation_refusals"
+
+    group_id: Mapped[int] = mapped_column(
+        ForeignKey("groups.id", ondelete="CASCADE"), primary_key=True
+    )
+    organisation_id: Mapped[int] = mapped_column(
+        ForeignKey("organisations.id", ondelete="CASCADE"), primary_key=True
+    )
+
+
 class LeiRecord(Base):
     """GLEIF Level 1 — one legal entity as the LEI system knows it.
 

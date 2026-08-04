@@ -20,6 +20,9 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from orion.ingest.groups.homonyms import unattached_summary
+from orion.search import aggregates
+
 
 def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
     base = session.execute(
@@ -125,6 +128,54 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         bucket["entities"] += 1
         bucket["funding_eur"] += row["funding_eur"]
 
+    # La trajectoire ÉCLATÉE par entité (fiche en deck, 2026-08-04) : une
+    # série par entité pour les cinq plus financées, le reste consolidé en
+    # une série « autres » dite telle quelle — jamais tronqué en silence.
+    per_entity_years = session.execute(
+        text("""
+        SELECT m.organisation_id AS org, extract(year FROM p.start_date)::int AS year,
+               coalesce(sum(pa.amount_eur), 0) AS funding
+        FROM entity_group_map m
+        JOIN participations pa ON pa.organisation_id = m.organisation_id
+        JOIN projects p ON p.id = pa.project_id
+        WHERE m.group_id = :id AND p.start_date IS NOT NULL
+          AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
+        GROUP BY 1, 2 ORDER BY 1, 2
+        """),
+        {"id": group_id},
+    ).all()
+    lead_ids = [row["id"] for row in entity_rows[:5]]
+    names = {row["id"]: row["name"] for row in entity_rows}
+    series: dict[int | None, dict[int, float]] = {}
+    for org, year, funding in per_entity_years:
+        slot = org if org in lead_ids else None
+        series.setdefault(slot, {})[year] = series.setdefault(slot, {}).get(year, 0.0) + float(
+            funding or 0
+        )
+    by_entity = [
+        {
+            "id": org_id,
+            "name": names[org_id],
+            "points": [{"year": y, "funding_eur": v} for y, v in sorted(years.items())],
+        }
+        for org_id in lead_ids
+        if (years := series.get(org_id))
+    ]
+    if series.get(None):
+        by_entity.append(
+            {
+                "id": None,
+                "name": None,
+                "points": [{"year": y, "funding_eur": v} for y, v in sorted(series[None].items())],
+            }
+        )
+
+    # La note d'honnêteté (recette fondatrice, 2026-08-04) : le périmètre
+    # rattaché ne se fait jamais passer pour le groupe entier — la fiche
+    # dit combien d'homonymes du corpus attendent la curation, et leur
+    # poids. Même définition que le diagnostic et la fournée.
+    coverage = unattached_summary(session, group_id)
+
     return {
         "id": base.id,
         "name": base.name,
@@ -136,8 +187,11 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
             "funding_eur": group_funding,
             "countries": len(countries),
         },
+        "coverage": coverage,
         "trajectory": [{"year": r.year, "funding_eur": float(r.funding or 0)} for r in trajectory],
+        "by_entity": by_entity,
         "themes": [{"key": r.key, "label": r.label, "projects": r.projects} for r in themes],
         "entities": entity_rows,
         "countries": sorted(countries.values(), key=lambda c: -c["funding_eur"]),
+        "partners": aggregates.group_partners(session, group_id),
     }

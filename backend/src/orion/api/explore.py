@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -70,6 +71,12 @@ def group(group_id: int, db: Annotated[Session, Depends(get_db)]) -> dict[str, A
     hub = groups_hub.group_hub(db, group_id)
     if hub is None:
         raise HTTPException(status_code=404, detail="Group not found")
+    # Le poste de veille consolidé — même horloge que la fiche
+    # organisation : « nouveau partenaire » = premier projet partagé
+    # dans les 24 derniers mois.
+    hub["watchpost"] = aggregates.group_watchpost(
+        db, group_id, (date.today() - timedelta(days=730)).isoformat()
+    )
     return hub
 
 
@@ -78,10 +85,16 @@ def compare_organisations(
     db: Annotated[Session, Depends(get_db)],
     ids: Annotated[str, Query(description="tilde-separated organisation ids, 2 to 4")],
 ) -> list[dict[str, Any]]:
-    parsed = [int(i) for i in ids.split("~") if i.isdigit()][:4]
-    if len(parsed) < 1:
-        raise HTTPException(status_code=400, detail="ids must hold 1 to 4 organisation ids")
-    return aggregates.compare_organisations(db, parsed)
+    # Le benchmark accepte les groupes (« g<id> ») comme les
+    # organisations — Safran face à Thales EN TANT QUE groupes.
+    refs = [
+        ref
+        for ref in ids.split("~")
+        if ref.isdigit() or (ref.startswith("g") and ref[1:].isdigit())
+    ][:4]
+    if len(refs) < 1:
+        raise HTTPException(status_code=400, detail="ids must hold 1 to 4 entity refs")
+    return aggregates.compare_entries(db, refs)
 
 
 @router.get("/countries/flows")

@@ -61,8 +61,48 @@ def _seed_group(session: Session) -> int:
             {"o": orgs[name], "g": group_id},
         )
 
+    # Le trou de couverture en miniature : un homonyme NON rattaché
+    # (clé « zzgroupe aero … »), un homonyme arbitré vers un autre
+    # groupe, et un partenaire extérieur qui co-signe avec le groupe.
+    extras = (
+        ("ZZGROUPE AERO PROPULSION SAS", "zzgroupe aero propulsion", "FR"),
+        ("ZZGROUPE AERO LEGACY", "zzgroupe aero legacy", "FR"),
+        ("ZZPARTNER UNIV", "zzpartner univ", "NL"),
+    )
+    for name, normalized, country in extras:
+        session.execute(
+            text(
+                "INSERT INTO organisations (name, name_normalized, country_code) "
+                "VALUES (:n, :k, :c)"
+            ),
+            {"n": name, "k": normalized, "c": country},
+        )
+        orgs[name] = session.execute(
+            text("SELECT id FROM organisations WHERE name = :n"), {"n": name}
+        ).scalar_one()
+    session.execute(
+        text(
+            "INSERT INTO groups (name, country_code, lei, source) "
+            "VALUES ('ZZGROUPE RIVAL', 'FR', 'ZZLEI000000000000002', 'gleif')"
+        )
+    )
+    rival_id = session.execute(
+        text("SELECT id FROM groups WHERE name = 'ZZGROUPE RIVAL'")
+    ).scalar_one()
+    session.execute(
+        text(
+            "INSERT INTO entity_group_map (organisation_id, group_id, method, confidence, "
+            "source, is_jv) VALUES (:o, :g, 'wikidata', 0.6, 'wikidata', false)"
+        ),
+        {"o": orgs["ZZGROUPE AERO LEGACY"], "g": rival_id},
+    )
+
     projects = {}
-    for sid, title, year in (("zzg-1", "zz solo", 2020), ("zzg-2", "zz co-signe", 2022)):
+    for sid, title, year in (
+        ("zzg-1", "zz solo", 2020),
+        ("zzg-2", "zz co-signe", 2022),
+        ("zzg-3", "zz homonyme", 2021),
+    ):
         session.execute(
             text(
                 "INSERT INTO projects (source, source_id, title, funder_id, start_date) "
@@ -78,6 +118,8 @@ def _seed_group(session: Session) -> int:
         ("zzg-1", "ZZAERO SA", 4_000_000, "p1"),
         ("zzg-2", "ZZAERO SA", 3_000_000, "p2"),  # le même projet…
         ("zzg-2", "ZZAERO GMBH", 1_000_000, "p3"),  # …signé par les deux entités
+        ("zzg-2", "ZZPARTNER UNIV", 500_000, "p4"),  # le partenaire extérieur
+        ("zzg-3", "ZZGROUPE AERO PROPULSION SAS", 2_000_000, "p5"),  # l'homonyme
     ]
     for sid, org, amount, uid in rows:
         session.execute(
@@ -136,3 +178,171 @@ def test_suggest_surfaces_the_group_first_with_its_entity_count(db_session):
     assert top["name"] == "ZZGROUPE AERO"
     assert top["entities"] == 2
     assert top["country"] == "FR"
+
+
+def test_coverage_confesses_the_unattached_homonyms(db_session):
+    """La note d'honnêteté : l'homonyme hors périmètre est compté et
+    pesé ; l'homonyme arbitré vers un autre groupe et le partenaire
+    extérieur ne le sont pas."""
+    group_id = _seed_group(db_session)
+    hub = group_hub(db_session, group_id)
+
+    assert hub["coverage"] == {
+        "unattached_count": 1,
+        "unattached_funding_eur": pytest.approx(2_000_000),
+    }
+
+
+def test_the_trajectory_splits_by_entity(db_session):
+    group_id = _seed_group(db_session)
+    hub = group_hub(db_session, group_id)
+
+    by_name = {s["name"]: s for s in hub["by_entity"]}
+    assert [(p["year"], p["funding_eur"]) for p in by_name["ZZAERO SA"]["points"]] == [
+        (2020, pytest.approx(4_000_000)),
+        (2022, pytest.approx(3_000_000)),
+    ]
+    assert [(p["year"], p["funding_eur"]) for p in by_name["ZZAERO GMBH"]["points"]] == [
+        (2022, pytest.approx(1_000_000)),
+    ]
+    # Deux entités seulement : pas de série « autres ».
+    assert None not in by_name
+
+
+def test_group_partners_exclude_the_members(db_session):
+    group_id = _seed_group(db_session)
+    hub = group_hub(db_session, group_id)
+
+    names = [p["name"] for p in hub["partners"]]
+    assert names == ["ZZPARTNER UNIV"]
+    assert hub["partners"][0]["shared_projects"] == 1
+
+
+def test_group_watchpost_consolidates_with_the_org_thresholds(db_session):
+    from orion.search.aggregates import group_watchpost
+
+    group_id = _seed_group(db_session)
+    post = group_watchpost(db_session, group_id, "2021-01-01")
+
+    # Le partenaire extérieur est « nouveau » (premier projet partagé en
+    # 2022) ; les entités du groupe ne comptent jamais comme partenaires.
+    assert post["signals"]["new_partners"] == {"count": 1, "names": ["ZZPARTNER UNIV"]}
+    assert post["sources_count"] == 1  # test-zzg
+
+
+def test_the_group_enters_the_benchmark(db_session):
+    from orion.search.aggregates import compare_entries
+
+    group_id = _seed_group(db_session)
+    partner_id = db_session.execute(
+        text("SELECT id FROM organisations WHERE name = 'ZZPARTNER UNIV'")
+    ).scalar_one()
+
+    entries = compare_entries(db_session, [f"g{group_id}", str(partner_id)])
+    assert [e["kind"] for e in entries] == ["group", "organisation"]
+    group_entry = entries[0]
+    assert group_entry["id"] == f"g{group_id}"
+    assert group_entry["name"] == "ZZGROUPE AERO"
+    # Le consolidé du benchmark obéit à la même règle : co-signé = UNE fois.
+    assert group_entry["kpis"]["projects_count"] == 2
+    assert group_entry["kpis"]["total_funding_eur"] == pytest.approx(8_000_000)
+    assert group_entry["top_partners"][0]["name"] == "ZZPARTNER UNIV"
+
+
+def _write_curation(tmp_path, rows):
+    path = tmp_path / "groups.csv"
+    header = (
+        "group_lei,group_name,org_name,org_country,decision,"
+        "confidence,is_jv,share,valid_from,valid_to,evidence,source"
+    )
+    path.write_text("\n".join([header, *rows]) + "\n", encoding="utf-8")
+    return path
+
+
+def test_curation_attaches_refuses_and_silences_the_radar(db_session, tmp_path):
+    from orion.ingest.groups.curation import load_curation
+    from orion.ingest.runlog import RunStats
+
+    group_id = _seed_group(db_session)
+    path = _write_curation(
+        tmp_path,
+        [
+            "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,"
+            '0.95,false,,,,"Filiale déclarée du groupe",https://example.test/registre',
+        ],
+    )
+    load_curation(db_session, RunStats(), path=path)
+
+    hub = group_hub(db_session, group_id)
+    # L'entité curée entre au consolidé…
+    assert hub["totals"]["entities"] == 3
+    assert hub["totals"]["projects"] == 3
+    assert hub["totals"]["funding_eur"] == pytest.approx(10_000_000)
+    curated = next(e for e in hub["entities"] if e["name"] == "ZZGROUPE AERO PROPULSION SAS")
+    assert curated["method"] == "curation"
+    assert curated["confidence"] == pytest.approx(0.95)
+    # …et le radar se tait : plus d'homonyme en attente.
+    assert hub["coverage"] == {"unattached_count": 0, "unattached_funding_eur": 0}
+
+
+def test_curation_refusal_silences_without_attaching(db_session, tmp_path):
+    from orion.ingest.groups.curation import load_curation
+    from orion.ingest.runlog import RunStats
+
+    group_id = _seed_group(db_session)
+    path = _write_curation(
+        tmp_path,
+        [
+            "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,refuse,"
+            ',,,,,"Homonyme sans lien capitalistique",https://example.test/registre',
+        ],
+    )
+    load_curation(db_session, RunStats(), path=path)
+
+    hub = group_hub(db_session, group_id)
+    assert hub["totals"]["entities"] == 2  # rien de rattaché
+    assert hub["coverage"] == {"unattached_count": 0, "unattached_funding_eur": 0}
+
+
+def test_curation_jv_keeps_its_share(db_session, tmp_path):
+    from orion.ingest.groups.curation import load_curation
+    from orion.ingest.runlog import RunStats
+
+    group_id = _seed_group(db_session)
+    path = _write_curation(
+        tmp_path,
+        [
+            "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,"
+            '0.9,true,67,,,"Coentreprise 67/33 documentée",https://example.test/registre',
+        ],
+    )
+    load_curation(db_session, RunStats(), path=path)
+
+    hub = group_hub(db_session, group_id)
+    curated = next(e for e in hub["entities"] if e["name"] == "ZZGROUPE AERO PROPULSION SAS")
+    assert curated["is_jv"] is True
+
+
+def test_curation_refuses_to_guess(db_session, tmp_path):
+    """Une ligne fausse = rien ne charge : évidence vide, organisation
+    introuvable, JV sans part."""
+    from orion.ingest.groups.curation import CurationError, load_curation
+    from orion.ingest.runlog import RunStats
+
+    _seed_group(db_session)
+    bad_rows = [
+        # Évidence vide.
+        "ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,0.9,false,,,,,src",
+        # Organisation introuvable.
+        'ZZLEI000000000000001,,INCONNUE XYZ,FR,attach,0.9,false,,,,"ev",src',
+        # JV sans part.
+        'ZZLEI000000000000001,,ZZGROUPE AERO PROPULSION SAS,FR,attach,0.9,true,,,,"ev",src',
+    ]
+    for bad in bad_rows:
+        path = _write_curation(tmp_path, [bad])
+        with pytest.raises(CurationError):
+            load_curation(db_session, RunStats(), path=path)
+    count = db_session.execute(
+        text("SELECT count(*) FROM entity_group_map WHERE method = 'curation'")
+    ).scalar()
+    assert count == 0
