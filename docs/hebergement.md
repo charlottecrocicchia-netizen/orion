@@ -1,0 +1,246 @@
+# Hébergement d'Orion — dossier de décision
+
+> **Objet** : dire exactement où en est Orion sur la machine actuelle, ce
+> qu'elle peut encore encaisser, ce qu'il faut pour la fin de la vague 1,
+> et ce que coûte chaque option. Écrit pour être lu par la fondatrice et,
+> le cas échéant, par un partenaire.
+>
+> **Prix relevés le 2026-08-04** sur les pages publiques des
+> fournisseurs, hors taxes sauf mention. Ils changent ; ils sont datés
+> pour cette raison.
+
+## 1. La machine d'aujourd'hui, mesurée
+
+**MacBook Pro M1, 8 Go de RAM, 8 cœurs.** C'est la seule machine du
+projet : elle sert au développement, à la recette et au chargement des
+sources.
+
+Le corpus qu'elle porte au 2026-08-04 :
+
+| | |
+| --- | --- |
+| Projets | 699 798 |
+| Organisations | 110 117 |
+| Participations | 1 102 259 |
+| Textes indexés | 676 016 |
+| Base PostgreSQL | **5,7 Go** |
+| dont matière chaude (textes + index de recherche) | **1,3 Go** |
+| dont table des projets | 731 Mo |
+
+### Ce qui a été découvert le 2026-08-04
+
+La machine tournait avec **une VM Docker de 8 Go sur 8 Go de RAM
+physique**. Conséquence mesurée : **11,3 Go de swap macOS utilisés sur
+12,3**, 94 Mo de pages libres. Les « 4 Go de cache PostgreSQL » n'ont
+jamais existé en mémoire réelle — ils étaient eux-mêmes paginés sur
+disque. Une part importante des latences attribuées au corpus était de
+la **double pagination**, pas de la lecture de données.
+
+C'est le genre d'erreur qui fausse tout diagnostic tant qu'on ne la
+voit pas. Elle est corrigée.
+
+## 2. La configuration de survie, appliquée
+
+| Réglage | Avant | Après | Pourquoi |
+| --- | --- | --- | --- |
+| Mémoire de la VM Docker | 8 Go | **4 Go** | macOS a besoin de ~4 Go pour lui, Firefox et l'app Claude (~1,1 Go à elle seule) |
+| `shared_buffers` PostgreSQL | 4 Go | **1,5 Go** | ~40 % d'une VM dédiée à la base ; de la mémoire réelle vaut mieux qu'un cache nominal |
+| `effective_cache_size` | 6 Go | **3 Go** | dire la vérité au planificateur |
+| `work_mem` | 64 Mo | **16 Mo** | multiplié par les workers parallèles ; c'est lui qui avait fait déborder `/dev/shm` |
+| `/dev/shm` du conteneur | 1 Go | **256 Mo** | un tmpfs d'1 Go consomme de la mémoire de VM |
+| Piles simultanées | dev **et** prod | **une seule** | deux PostgreSQL sur une machine de 8 Go ; `make up` arrête la dev, `make db-up` arrête la prod |
+| Ordonnanceur hebdomadaire | actif en local | **derrière un profil** | il réingérait tout le corpus un lundi à 3 h du matin sur un portable |
+| Copie dev du corpus | 6,9 Go | **supprimée** | redondante avec la prod ; les tests n'utilisent que `orion_test` |
+| Préchauffage du cache | aucun | **`pg_prewarm` en fin de chaîne** | supprime la falaise du premier visiteur (37 s → 6 s) |
+
+**Ces réglages sont pilotés par `.env`** (`ORION_PG_SHARED_BUFFERS`,
+`ORION_PG_EFFECTIVE_CACHE`, `ORION_PG_WORK_MEM`,
+`ORION_PG_MAINTENANCE_MEM`) : le jour de l'hébergement, on change quatre
+lignes, pas le code.
+
+### Gestes qui gagnent du temps réel pendant un chargement
+
+- **Fermer Firefox et l'app Claude** pendant une ingestion : ~2 Go
+  rendus à la VM, soit la différence entre un chargement qui pagine et
+  un chargement qui ne pagine pas.
+- **Ne jamais lancer les tests pendant un chargement** : `make db-up`
+  arrête maintenant la prod, ce qui l'interromprait.
+- **`make prod-ingest SOURCES="…"`** charge dans la pile de prod sans
+  démarrer une seconde base.
+
+## 3. Ce qu'on peut en attendre — honnêtement
+
+Mesuré après recalibrage, corpus de 699 798 projets, cache chaud :
+
+| Parcours | Temps constaté | Verdict |
+| --- | --- | --- |
+| Carte du monde / index des pays | **19 ms** | excellent |
+| Fiche organisation | **25 ms** | excellent |
+| Partenaires d'une organisation | **7 ms** | excellent |
+| Une du site / actualités | **850 ms** | acceptable |
+| Recherche, terme rare (« hydrogen », 7 298 résultats) | **1 à 4 s** | acceptable |
+| Recherche, terme courant (« cancer », 77 378 résultats) | **5 à 6 s** | **pénible** |
+| Filtre pays = États-Unis (626 086 participations) | **6 s** | **pénible** |
+| Premier appel après un démarrage à froid | **15 à 37 s** | inacceptable — atténué par le préchauffage |
+
+**Traduction produit.** Tout ce qui repose sur les **agrégats
+matérialisés** — la carte, les pays, les fiches — est rapide et le
+restera : ce sont des tables pré-calculées, elles encaissent la
+croissance sans broncher (mesuré : +51 % de corpus, la carte passe de
+4,6 à 19 ms). Tout ce qui doit **lire le texte intégral** est lent, et
+aucun réglage ne le corrige sur 8 Go de RAM.
+
+Tu disais préférer « un site à 2-3 s assumées qu'un mensonge ». Voici la
+vérité : **on est à 2-3 s sur les recherches ordinaires et à 5-6 s sur
+les termes courants.** Une démonstration client sur « cancer » ou sur
+les États-Unis est aujourd'hui hasardeuse. Une démonstration sur la
+carte, un pays européen, une fiche d'organisation ou un groupe est
+irréprochable.
+
+## 4. Ce qu'il reste raisonnable de charger sur cette machine
+
+**Le chargement n'est pas le problème : la lecture l'est.** Les
+chargeurs travaillent en flux, mémoire plate — NSF a chargé 260 000
+financements en 25 minutes sur cette machine. Ce qui se dégrade à chaque
+source ajoutée, c'est le temps de recherche.
+
+| Source | Projets attendus | Charge-t-elle encore ? | Effet sur la lecture |
+| --- | --- | --- | --- |
+| **UKRI** (GtR) | ~150 000 | **oui** | +20 % de corpus ; recherches lourdes ~7 s |
+| **SNSF** | ~90 000 | oui | marginal |
+| **NWO** | ~40 000 | oui | marginal |
+| **Vinnova** | ~90 000 | oui | marginal |
+| **SBIR/STTR** | ~100 000 net | oui | marginal |
+| **USAspending** | 200 000+ | **disque limite** (11 Go libres sur la VM) | significatif |
+| **OpenAIRE** | 200 000 à 500 000 | **non sans hébergement** | rédhibitoire |
+
+**La vraie limite est double :**
+
+1. **Le disque de la VM (30 Go)** — 18 Go déjà utilisés. Il reste de la
+   place pour l'Europe élargie, pas pour USAspending ni OpenAIRE.
+2. **La RAM (8 Go)** — déjà dépassée. Chaque source aggrave la lecture
+   sans que rien ne puisse la compenser.
+
+**Recommandation de séquencement.** Charger **UKRI, SNSF, NWO et
+Vinnova** sur cette machine : c'est ta priorité client (l'Europe
+élargie), le disque tient, et la dégradation reste dans le supportable.
+**Arrêter là.** SBIR, USAspending, Grants.gov et OpenAIRE attendent
+l'hébergement — non par prudence excessive, mais parce qu'ils
+transformeraient un site pénible en site inutilisable.
+
+## 5. Le dimensionnement requis
+
+Extrapolé des mesures réelles (699 798 projets → 5,7 Go de base, dont
+1,3 Go de matière chaude ; la base croît à peu près linéairement avec le
+nombre de projets porteurs de texte).
+
+| Palier | Corpus | Base | RAM nécessaire | Disque |
+| --- | --- | --- | --- | --- |
+| **Aujourd'hui** | 700 k projets | 5,7 Go | **12-16 Go** | 60 Go |
+| **Europe élargie** (UKRI, SNSF, NWO, Vinnova) | ~1,0 M | 8-9 Go | **16-24 Go** | 100 Go |
+| **Fin de vague 1** (+ SBIR, USAspending, OpenAIRE) | 1,5-1,8 M | 13-15 Go | **24-32 Go** | 160 Go |
+| **Phase 5 + comptes clients** | 2 M+ | 18-20 Go | **32-64 Go** | 320 Go |
+
+**La règle, dite simplement** : il faut que **la base entière tienne en
+mémoire**, cache PostgreSQL et cache système confondus. En dessous, les
+recherches sur termes courants retombent au disque et le produit
+redevient pénible. C'est la même conclusion que la preuve d'échelle du
+chantier performance, confirmée deux fois depuis.
+
+**Le CPU n'est pas la contrainte.** 4 à 8 cœurs suffisent : PostgreSQL
+parallélise, mais le goulot est la mémoire. Inutile de payer pour des
+vCPU dédiés.
+
+## 6. Les options, avec leurs prix publics
+
+### OVH Cloud — VPS gamme 2027 (France, prix HT/mois, relevés le 2026-08-04)
+
+| Offre | vCores | RAM | Disque NVMe | Prix HT | Prix TTC |
+| --- | --- | --- | --- | --- | --- |
+| VPS-1 | 2 | 4 Go | 40 Go | 3,81 € | 4,57 € |
+| VPS-2 | 4 | 8 Go | 75 Go | 7,21 € | 8,65 € |
+| VPS-3 | 6 | 12 Go | 100 Go | 10,40 € | 12,48 € |
+| **VPS-4** | **8** | **24 Go** | **200 Go** | **19,96 €** | **23,95 €** |
+
+Sauvegarde quotidienne automatique **incluse**, trafic illimité,
+anti-DDoS, hébergement en France.
+
+### Hetzner Cloud (Allemagne/Finlande, prix €/mois après la hausse du 15 juin 2026, hors IPv4 à 0,50 €)
+
+**Cost-Optimized (CX / CAX)** — le meilleur rapport qualité-prix du
+marché, mais **affiché « indisponible » à la commande le 2026-08-04** :
+
+| Offre | vCPU | RAM | Disque | Prix |
+| --- | --- | --- | --- | --- |
+| CX43 | 8 Intel/AMD | 16 Go | 160 Go | 15,99 € |
+| CAX31 | 8 Ampere ARM | 16 Go | 160 Go | 20,99 € |
+| CX53 | 16 Intel/AMD | 32 Go | 320 Go | 29,49 € |
+| CAX41 | 16 Ampere ARM | 32 Go | 320 Go | 40,99 € |
+
+**Regular Performance (CPX)** — disponible :
+
+| Offre | vCPU | RAM | Disque | Prix |
+| --- | --- | --- | --- | --- |
+| CPX32 | 4 AMD | 8 Go | 160 Go | 35,49 € |
+| CPX42 | 8 AMD | 16 Go | 320 Go | 69,49 € |
+| CPX52 | 12 AMD | 24 Go | 480 Go | 100,49 € |
+| CPX62 | 16 AMD | 32 Go | 640 Go | 129,99 € |
+
+**Dedicated vCPU (CCX)** — à écarter : après la hausse de juin 2026,
+CCX23 (16 Go) coûte 85,99 € et CCX33 (32 Go) 138,49 €, soit plus cher
+qu'un serveur dédié à 64 Go.
+
+### Hetzner — serveurs dédiés (prix indicatifs relevés le 2026-08-04)
+
+| Modèle | CPU | RAM | Disques | Prix |
+| --- | --- | --- | --- | --- |
+| **AX42** | Ryzen 7 PRO 8700GE, 8c/16t | **64 Go DDR5 ECC** | 2× 512 Go NVMe | **~57 €** |
+| AX102 | Ryzen 9 7950X3D, 16c/32t | 128 Go DDR5 ECC | 2× 1,92 To NVMe | ~122 € |
+
+Frais d'installation ponctuels selon le modèle ; la tarification des
+dédiés a été restructurée le 15 juin 2026 (mensuel plus élevé, frais
+d'installation plus bas) — **à revérifier au moment de commander**.
+
+## 7. Recommandation
+
+**Pour partir maintenant et couvrir toute la vague 1 européenne :
+OVH VPS-4, 19,96 € HT par mois** (24 Go de RAM, 200 Go NVMe, sauvegarde
+incluse, hébergement français). Il couvre confortablement le corpus
+actuel, absorbe UKRI/SNSF/NWO/Vinnova sans discussion, et tient encore
+la fin de vague 1 — sans marge, mais il tient. C'est **240 € par an**
+pour transformer un site pénible en site rapide.
+
+**Pour ne plus se poser la question avant longtemps : Hetzner AX42
+dédié, ~57 € par mois**, 64 Go de RAM et 1 To de NVMe. C'est le meilleur
+rapport mémoire/prix du marché : **deux fois plus de RAM que la plus
+grosse instance cloud de Hetzner, pour moins de la moitié du prix.** À
+684 € par an, il couvre la fin de vague 1, la phase 5 et les premiers
+clients sans nouvelle décision.
+
+**Ce qu'on n'achète pas** : des vCPU dédiés. La contrainte est la
+mémoire ; payer 138 € pour 32 Go « dédiés » quand 57 € achètent 64 Go
+n'a pas de sens ici.
+
+**Ce que l'hébergement règle** : les recherches sur termes courants
+(5-6 s → attendu sous 300 ms une fois la base entièrement en cache), la
+falaise du premier visiteur, les chargements qui monopolisent ta
+machine, et la reprise de l'ordonnanceur hebdomadaire — qui redevient un
+travail de serveur, pas de portable.
+
+**Ce que l'hébergement ne règle pas** : rien du produit. Le code est le
+même. Ce qui change, c'est qu'il cesse de tourner sur une machine qui
+n'a pas la mémoire de son corpus.
+
+## 8. Ce qui reste à décider
+
+1. **Le palier** : 24 Go à 20 € (suffit à la vague 1) ou 64 Go à 57 €
+   (suffit à tout ce qui est prévu) ?
+2. **La juridiction** : OVH est français, Hetzner allemand — les deux
+   sont dans l'UE et conformes au RGPD. Si un argument commercial exige
+   un hébergement français, OVH tranche.
+3. **La sauvegarde** : incluse chez OVH sur la gamme 2027 ; à ajouter
+   chez Hetzner (snapshots facturés). À chiffrer avant de comparer les
+   prix nus.
+4. **Le nom de domaine et le TLS** : la pile embarque déjà Caddy, qui
+   obtient et renouvelle les certificats seul. Rien à faire d'autre que
+   pointer un domaine.

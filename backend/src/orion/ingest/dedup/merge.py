@@ -308,6 +308,39 @@ def refresh_organisation_stats() -> None:
             conn.execute(text(f"REFRESH MATERIALIZED VIEW CONCURRENTLY {view}"))
 
 
+# The objects a reader touches first, in the order that pays: the
+# full-text index, then the texts it points into, then the projects.
+HOT_OBJECTS = ("ix_project_texts_search", "project_texts", "projects")
+
+
+def prewarm_hot_objects() -> int:
+    """Pull the hot matter into the cache before the first visitor does.
+
+    The open item left by the chantier performance, closed here. It is
+    NOT a fix for a cache that is too small — measured on the founder's
+    8 GB machine it buys 15-20 % (a heavy search 6.1 → 5.0 s), because
+    1.3 GB of hot matter cannot fit in 1.5 GB of buffers whatever the
+    order. What it does remove is the cliff paid by whoever arrives
+    first after a load: 37 s against 6 s, measured 2026-08-04.
+
+    Best-effort: a machine without pg_prewarm, or too small to hold the
+    objects, must not fail an ingestion run over a warm-up.
+    """
+    from orion.core.db import engine
+
+    pages = 0
+    try:
+        with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_prewarm"))
+            for name in HOT_OBJECTS:
+                warmed = conn.execute(text("SELECT pg_prewarm(:name)"), {"name": name})
+                pages += warmed.scalar() or 0
+    except Exception as error:  # noqa: BLE001 — a warm-up never fails a run
+        print(f"    prewarm skipped: {type(error).__name__}: {error}", flush=True)
+        return 0
+    return pages
+
+
 def run(force: bool = False) -> dict[str, int]:
     with record_run("dedup") as stats:
         session = SessionLocal()
@@ -324,4 +357,5 @@ def run(force: bool = False) -> dict[str, int]:
             session.close()
         refresh_organisation_stats()
         stats.add("organisation_stats_refreshed", 1)
+        stats.add("prewarmed_pages", prewarm_hot_objects())
     return stats.counts

@@ -6,21 +6,31 @@ services:
     # Docker caps /dev/shm at 64 MB; parallel workers sharing the
     # larger work_mem above overflow it and the query dies with
     # "No space left on device" (real-run finding, 2026-08-03).
-    shm_size: 1gb
-    # The corpus outgrew the PostgreSQL defaults with NIH (4 GB of data,
-    # 128 MB of cache): searches matching many rows fell to seconds
-    # (real-run finding, 2026-08-03). These four settings are the whole
-    # fix — no query rewrite needed.
+    # Docker caps /dev/shm at 64 MB; parallel workers sharing a large
+    # work_mem overflow it and the query dies with "No space left on
+    # device" (real-run finding, 2026-08-03). 256 MB is ample now that
+    # work_mem is small — and a 1 GB tmpfs would itself eat VM memory.
+    shm_size: 256m
+    # SIZED FOR THE MACHINE THAT RUNS IT, not for the corpus.
+    #
+    # These values assume a 4 GB Docker VM (see docs/hebergement.md).
+    # The previous ones (4 GB of shared_buffers) were sized for a corpus
+    # on a machine that did not have the memory: on an 8 GB MacBook the
+    # VM was itself paged out by macOS — 11 GB of swap in use — so the
+    # "cache" lived on disk twice over. Real memory beats nominal cache.
+    #
+    # Override on a real host: `ORION_PG_SHARED_BUFFERS=8GB` etc. The
+    # sizing table per corpus size is in docs/hebergement.md.
     command:
       - postgres
       - -c
-      - shared_buffers=4GB
+      - shared_buffers=${ORION_PG_SHARED_BUFFERS:-1GB}
       - -c
-      - effective_cache_size=6GB
+      - effective_cache_size=${ORION_PG_EFFECTIVE_CACHE:-2GB}
       - -c
-      - work_mem=64MB
+      - work_mem=${ORION_PG_WORK_MEM:-16MB}
       - -c
-      - maintenance_work_mem=256MB
+      - maintenance_work_mem=${ORION_PG_MAINTENANCE_MEM:-128MB}
     restart: unless-stopped
     environment:
       POSTGRES_USER: orion
@@ -41,6 +51,12 @@ services:
     environment:
       ORION_ENV: ${ORION_ENV:-production}
       ORION_DATABASE_URL: postgresql+psycopg://orion:${POSTGRES_PASSWORD}@postgres:5432/orion
+    # The download cache lives here too, not only on the scheduler: with
+    # the scheduler behind a profile, `make prod-ingest` runs inside this
+    # container, and a source re-downloaded on every run would be a
+    # gigabytes-per-week mistake.
+    volumes:
+      - ingest_data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,6 +98,11 @@ services:
     image: ${API_IMAGE:-ghcr.io/charlottecrocicchia-netizen/orion-api:latest}
     build: ../backend
     restart: unless-stopped
+    # BEHIND A PROFILE: the weekly full replay is a hosting job, not a
+    # laptop job. On an 8 GB machine it would wake up on a Monday at 3am
+    # and re-ingest the whole corpus. `make up` leaves it off; the VPS
+    # deployment starts it explicitly (infra/deploy.sh).
+    profiles: ["scheduler"]
     command: ["uv", "run", "--no-sync", "orion-scheduler"]
     environment:
       ORION_ENV: ${ORION_ENV:-production}

@@ -329,6 +329,25 @@ réécriture de requête ne remplacera cette RAM ; le chantier performance
 l'a mesuré des deux côtés, et NSF vient de le confirmer en vraie
 grandeur.
 
+### ⚠️ Correction du 2026-08-04 : ces chiffres surestiment l'effet du corpus
+
+Le tableau ci-dessus a été mesuré alors que la VM Docker était
+configurée à **8 Go sur une machine qui n'en a que 8** : macOS paginait
+11,3 Go. Les « 4 Go de cache PostgreSQL » étaient eux-mêmes sur disque.
+Une part des latences attribuées à la croissance du corpus était de la
+**double pagination**.
+
+Les deux colonnes ayant été mesurées dans le même état, **le rapport
+avant/après reste indicatif** ; les **valeurs absolues, non**. Après
+recalibrage de la machine (VM 4 Go, cache 1,5 Go, une seule pile), le
+même corpus donne : recherche sur terme courant **5 à 6 s**, filtre
+États-Unis **6 s**, carte **19 ms**, fiche organisation **25 ms**. Le
+détail, la configuration et le dimensionnement requis sont dans
+[hebergement.md](hebergement.md).
+
+La conclusion, elle, ne bouge pas : **c'est la mémoire qui gouverne**, et
+cette machine n'en a pas assez pour son corpus.
+
 **⑤ La NSF entre directement dans « les plus gros projets ».** Sa
 « Leadership Class Computing Facility » (347 M€, 2024) devient le
 deuxième plus gros projet récent du corpus, derrière un pilote européen

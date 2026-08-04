@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-04T06:35:52+00:00",
+  "base": "http://localhost:8080",
+  "passes": 10,
+  "journeys": {
+    "search_fresh_term": {
+      "median_ms": 3508.8,
+      "worst_ms": 35066.5,
+      "samples": 10
+    },
+    "search_warm_term": {
+      "median_ms": 453.5,
+      "worst_ms": 7082.0,
+      "samples": 10
+    },
+    "filter_country": {
+      "median_ms": 3735.1,
+      "worst_ms": 6047.1,
+      "samples": 10
+    },
+    "countries_index": {
+      "median_ms": 18.6,
+      "worst_ms": 57.5,
+      "samples": 10
+    },
+    "organisation_detail": {
+      "median_ms": 25.9,
+      "worst_ms": 896.9,
+      "samples": 10
+    },
+    "organisation_partners": {
+      "median_ms": 7.3,
+      "worst_ms": 16.3,
+      "samples": 10
+    }
+  },
+  "label": "8 Go M1 \u2014 VM 4 Go, PG 1,5 Go, pile unique \u2014 699 798 projets (10 passes)"
+}
