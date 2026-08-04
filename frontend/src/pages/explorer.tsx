@@ -14,7 +14,7 @@ import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { regionColor } from "@/lib/regions";
-import { addToDossier } from "@/lib/dossier";
+import { addToDossier, isCollected, removeByParams } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
@@ -169,18 +169,22 @@ export function ExplorerPage() {
   const openInComposer = (query: string) =>
     setParams(new URLSearchParams(query), { preventScrollReset: true });
   const [copied, setCopied] = useState(false);
-  const [collected, setCollected] = useState(false);
+  // L'état « au dossier » vient du store, par VUE — le bouton dit la
+  // vérité et sait défaire (recette 2026-08-04). `dossierTick` force la
+  // relecture après chaque bascule.
+  const [dossierTick, setDossierTick] = useState(0);
   // Map rule: the first click on a country SELECTS it (summary bar below);
   // a second click on the selected shape zooms into its file.
   const [mapSelected, setMapSelected] = useState<string | null>(null);
 
   // "Add to dossier" collects the CURRENT view — the board's URL, or the
-  // active angle in a deck (lot 4: every collected block is a URL).
+  // active angle in a deck. A TOGGLE: added views remove on the spot.
   const collect = (query: string, title: string) => {
-    addToDossier(query, title);
-    setCollected(true);
-    window.setTimeout(() => setCollected(false), 2000);
+    if (isCollected(query)) removeByParams(query);
+    else addToDossier(query, title);
+    setDossierTick((tick) => tick + 1);
   };
+  void dossierTick;
 
   const patch = (changes: Partial<ExplorerState>) => {
     const next = { ...state, ...changes };
@@ -359,12 +363,19 @@ export function ExplorerPage() {
           <div className="flex items-center gap-2.5">
             <button
               type="button"
+              aria-pressed={activeSlide ? isCollected(activeSlide.params) : false}
               onClick={() =>
                 activeSlide && collect(activeSlide.params, t(activeSlide.titleKey))
               }
-              className="rounded-full border px-4 py-2 text-[13px] transition-colors hover:border-accent hover:text-accent"
+              className={
+                activeSlide && isCollected(activeSlide.params)
+                  ? "rounded-full border border-accent bg-accent-soft px-4 py-2 text-[13px] text-accent transition-colors hover:border-destructive hover:bg-transparent hover:text-destructive"
+                  : "rounded-full border px-4 py-2 text-[13px] transition-colors hover:border-accent hover:text-accent"
+              }
             >
-              {collected ? t("dossier.added") : `+ ${t("dossier.add")}`}
+              {activeSlide && isCollected(activeSlide.params)
+                ? `✓ ${t("dossier.inDossier")}`
+                : `+ ${t("dossier.add")}`}
             </button>
             <button
               type="button"
@@ -642,10 +653,17 @@ export function ExplorerPage() {
           <div className="ml-auto flex gap-2">
             <button
               type="button"
+              aria-pressed={isCollected(params.toString())}
               onClick={() => collect(params.toString(), boardTitle)}
-              className="rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
+              className={
+                isCollected(params.toString())
+                  ? "rounded-full border border-accent bg-accent-soft px-3.5 py-1.5 text-[12.5px] text-accent transition-colors hover:border-destructive hover:bg-transparent hover:text-destructive"
+                  : "rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
+              }
             >
-              {collected ? t("dossier.added") : `+ ${t("dossier.add")}`}
+              {isCollected(params.toString())
+                ? `✓ ${t("dossier.inDossier")}`
+                : `+ ${t("dossier.add")}`}
             </button>
             <button
               type="button"

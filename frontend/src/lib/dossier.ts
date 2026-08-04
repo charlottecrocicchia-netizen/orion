@@ -82,6 +82,21 @@ export function removeFromDossier(id: string): void {
   write({ ...dossier, items: dossier.items.filter((item) => item.id !== id) });
 }
 
+/** Whether this exact view is already in the dossier — the collect
+ *  buttons reflect it and become toggles (recette 2026-08-04 : « je ne
+ *  peux plus retirer un bloc une fois ajouté » — once added, the button
+ *  must know how to undo, right where the hand is). */
+export function isCollected(params: string): boolean {
+  const clean = params.replace(/^\?/, "");
+  return read().items.some((item) => item.params === clean);
+}
+
+export function removeByParams(params: string): void {
+  const clean = params.replace(/^\?/, "");
+  const dossier = read();
+  write({ ...dossier, items: dossier.items.filter((item) => item.params !== clean) });
+}
+
 export function updateDossierItem(
   id: string,
   changes: Partial<Pick<DossierItem, "title" | "note">>,
@@ -124,4 +139,10 @@ function subscribe(callback: () => void): () => void {
 
 export function useDossier(): Dossier {
   return useSyncExternalStore(subscribe, read, () => EMPTY);
+}
+
+export function useIsCollected(params: string): boolean {
+  const dossier = useSyncExternalStore(subscribe, read, () => EMPTY);
+  const clean = params.replace(/^\?/, "");
+  return dossier.items.some((item) => item.params === clean);
 }

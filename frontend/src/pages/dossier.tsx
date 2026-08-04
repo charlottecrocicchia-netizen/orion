@@ -75,43 +75,47 @@ function Block({
         ) : (
           <h2 className="text-[21px] font-semibold leading-tight">{item.title}</h2>
         )}
-        <div className="no-print ml-auto flex items-center gap-1 text-[12.5px] text-muted-foreground">
+        {/* Every gesture a block affords, SPELLED OUT — the icon row
+            was too quiet to be found (recette 2026-08-04 : « le retrait
+            est devenu introuvable »). Real bordered buttons, full
+            labels, the removal in destructive tone. */}
+        <div className="no-print ml-auto flex flex-wrap items-center gap-1.5 text-[12.5px]">
           <button
             type="button"
             onClick={() => moveDossierItem(item.id, -1)}
             disabled={index === 0}
             aria-label={t("dossier.moveUp")}
-            className="rounded-md px-2 py-1 hover:bg-surface hover:text-foreground disabled:opacity-30"
+            className="rounded-full border border-border px-2.5 py-1 text-muted-foreground hover:border-foreground/40 hover:text-foreground disabled:opacity-30"
           >
-            ↑
+            ↑ {t("dossier.moveUp")}
           </button>
           <button
             type="button"
             onClick={() => moveDossierItem(item.id, 1)}
             disabled={index === count - 1}
             aria-label={t("dossier.moveDown")}
-            className="rounded-md px-2 py-1 hover:bg-surface hover:text-foreground disabled:opacity-30"
+            className="rounded-full border border-border px-2.5 py-1 text-muted-foreground hover:border-foreground/40 hover:text-foreground disabled:opacity-30"
           >
-            ↓
+            ↓ {t("dossier.moveDown")}
           </button>
           <button
             type="button"
             onClick={() => setRenaming(true)}
-            className="rounded-md px-2 py-1 hover:bg-surface hover:text-foreground"
+            className="rounded-full border border-border px-2.5 py-1 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
           >
             ✎ {t("dossier.rename")}
           </button>
           <button
             type="button"
             onClick={() => setNoting(true)}
-            className="rounded-md px-2 py-1 hover:bg-surface hover:text-foreground"
+            className="rounded-full border border-border px-2.5 py-1 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
           >
             ＋ {t("dossier.annotate")}
           </button>
           <button
             type="button"
             onClick={() => removeFromDossier(item.id)}
-            className="rounded-md px-2 py-1 hover:bg-surface hover:text-destructive"
+            className="rounded-full border border-border px-2.5 py-1 text-muted-foreground hover:border-destructive hover:bg-destructive/5 hover:text-destructive"
           >
             − {t("dossier.remove")}
           </button>

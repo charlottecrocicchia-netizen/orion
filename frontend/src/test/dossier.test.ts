@@ -36,3 +36,16 @@ test("collects once per view, reorders and edits in place", () => {
   removeFromDossier(first.id);
   expect(readDossier().items).toHaveLength(1);
 });
+
+test("the toggle helpers say the truth and undo by params", async () => {
+  const { isCollected, removeByParams } = await import("../lib/dossier");
+
+  expect(isCollected("by=funder&split=0")).toBe(false);
+  addToDossier("by=funder&split=0", "Bailleurs");
+  expect(isCollected("by=funder&split=0")).toBe(true);
+  expect(isCollected("?by=funder&split=0")).toBe(true); // le « ? » ne compte pas
+
+  removeByParams("?by=funder&split=0");
+  expect(isCollected("by=funder&split=0")).toBe(false);
+  expect(readDossier().items).toHaveLength(0);
+});

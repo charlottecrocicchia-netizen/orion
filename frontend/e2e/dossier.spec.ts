@@ -19,7 +19,7 @@ test("collect, assemble, annotate, remove", async ({ page }) => {
   });
 
   await page.getByRole("button", { name: "+ Add to dossier" }).click();
-  await expect(page.getByRole("button", { name: "Added ✓" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /In dossier · remove/ })).toBeVisible();
 
   // The discreet counter appears in the header and opens the dossier.
   const counter = page.getByRole("link", { name: /Dossier · 1/ });
@@ -48,13 +48,22 @@ test("collect, assemble, annotate, remove", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Dossier ·/ })).toHaveCount(0);
 });
 
-test("the same view never stacks up twice", async ({ page }) => {
+test("the collect button is a TOGGLE — once added, it removes from the very same place", async ({
+  page,
+}) => {
+  // La recette du 2026-08-04 : « je ne peux plus retirer un bloc une
+  // fois ajouté ». Avant : le bouton redevenait « + Ajouter » et le
+  // re-clic ne faisait RIEN (l'ajout refusait le doublon en silence).
+  // Désormais il dit l'état et sait défaire.
   await page.goto("/explore?by=funder&split=0");
   const add = page.getByRole("button", { name: "+ Add to dossier" });
   await expect(add).toBeVisible({ timeout: 15_000 });
   await add.click();
-  await expect(page.getByRole("button", { name: "Added ✓" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "+ Add to dossier" })).toBeVisible();
-  await page.getByRole("button", { name: "+ Add to dossier" }).click();
+  const added = page.getByRole("button", { name: /In dossier · remove/ });
+  await expect(added).toBeVisible();
   await expect(page.getByRole("link", { name: /Dossier · 1/ })).toBeVisible();
+
+  await added.click();
+  await expect(page.getByRole("button", { name: "+ Add to dossier" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Dossier ·/ })).toHaveCount(0);
 });
