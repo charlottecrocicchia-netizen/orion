@@ -21,14 +21,22 @@ import {
 const MAX_ORGS = 4;
 const seriesColor = (index: number) => `var(--color-series-${index + 1})`;
 
-/** Type-to-add picker, reusing the fuzzy organisation search. */
-function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (id: number) => void }) {
+/** Type-to-add picker — organisations by fuzzy search, GROUPS first
+ *  with their badge (the benchmark compares Safran to Thales AS groups,
+ *  recette 2026-08-04). */
+function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (ref: string) => void }) {
   const { t } = useTranslation();
   const [q, setQ] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
   const { data } = useQuery({
     queryKey: ["compare-picker", q],
     queryFn: () => api.searchOrganisations(new URLSearchParams({ q, size: "6" })),
+    enabled: q.trim().length >= 3,
+    placeholderData: keepPreviousData,
+  });
+  const { data: suggested } = useQuery({
+    queryKey: ["compare-picker-groups", q],
+    queryFn: () => api.suggest(q),
     enabled: q.trim().length >= 3,
     placeholderData: keepPreviousData,
   });
@@ -41,6 +49,9 @@ function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (id: nu
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
+  const groupHits = (suggested?.groups ?? []).filter(
+    (group) => !exclude.includes(`g${group.id}`),
+  );
   const suggestions = (data?.results ?? []).filter((hit) => !exclude.includes(String(hit.id)));
 
   return (
@@ -53,11 +64,29 @@ function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (id: nu
         aria-label={t("compare.add")}
         className="w-[260px] rounded-full bg-surface px-4 py-2 text-[13.5px] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
       />
-      {q.trim().length >= 3 && suggestions.length > 0 ? (
+      {q.trim().length >= 3 && (groupHits.length > 0 || suggestions.length > 0) ? (
         <div
           role="listbox"
           className="absolute left-0 top-[calc(100%+6px)] z-30 w-[320px] rounded-xl border bg-background p-1.5 shadow-key"
         >
+          {groupHits.map((group) => (
+            <button
+              key={`g${group.id}`}
+              type="button"
+              role="option"
+              aria-selected="false"
+              onClick={() => {
+                onAdd(`g${group.id}`);
+                setQ("");
+              }}
+              className="flex w-full items-baseline gap-2 rounded-lg px-3 py-1.5 text-left text-[13.5px] leading-snug transition-colors hover:bg-surface"
+            >
+              <span className="min-w-0">{formatOrgName(group.name)}</span>
+              <span className="rounded-full border border-accent/50 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-accent">
+                {t("ck.groupBadge")}
+              </span>
+            </button>
+          ))}
           {suggestions.map((hit) => (
             <button
               key={hit.id}
@@ -65,7 +94,7 @@ function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (id: nu
               role="option"
               aria-selected="false"
               onClick={() => {
-                onAdd(hit.id);
+                onAdd(String(hit.id));
                 setQ("");
               }}
               className="block w-full rounded-lg px-3 py-1.5 text-left text-[13.5px] leading-snug transition-colors hover:bg-surface"
@@ -165,11 +194,11 @@ export function ComparePage() {
           {t("compare.title")}
         </h1>
         {ids.length < MAX_ORGS ? (
-          <AddOrganisation exclude={ids} onAdd={(id) => setIds([...ids, String(id)])} />
+          <AddOrganisation exclude={ids} onAdd={(ref) => setIds([...ids, ref])} />
         ) : null}
         {/* The benchmark itself is a collectable view — the compared
             trajectories land in the dossier as one living block. */}
-        {ids.length >= 2 && entries.length >= 2 ? (
+        {ids.length >= 2 && entries.length >= 2 && entries.every((e) => e.kind !== "group") ? (
           <span className="ml-auto">
             <CollectButton
               view={`by=organisation&split=1&compare=${encodeURIComponent(ids.join("~"))}`}
@@ -235,16 +264,27 @@ export function ComparePage() {
                         />
                         <span className="min-w-0">
                           <Link
-                            to={`/organisations/${entry.id}`}
+                            to={
+                              entry.kind === "group"
+                                ? `/groups/${String(entry.id).slice(1)}`
+                                : `/organisations/${entry.id}`
+                            }
                             className="display-tight block max-w-[26ch] text-[15.5px] font-semibold leading-snug hover:underline underline-offset-2"
                           >
                             {formatOrgName(entry.name)}
                           </Link>
                           <span className="mt-0.5 block text-[12px] font-normal text-muted-foreground">
+                            {entry.kind === "group" ? (
+                              <span className="mr-1.5 rounded-full border border-accent/50 bg-accent-soft px-1.5 py-px text-[9.5px] font-semibold uppercase tracking-[0.06em] text-accent">
+                                {t("ck.groupBadge")}
+                              </span>
+                            ) : null}
                             {entry.country ? <CountryFlags codes={[entry.country]} /> : null}
-                            {orgTypeKey(entry.org_type)
-                              ? ` ${t(`orgType.${orgTypeKey(entry.org_type)}`)}`
-                              : null}
+                            {entry.kind === "group" && entry.entities != null
+                              ? ` ${t("ck.groupEntities", { count: entry.entities })}`
+                              : orgTypeKey(entry.org_type)
+                                ? ` ${t(`orgType.${orgTypeKey(entry.org_type)}`)}`
+                                : null}
                           </span>
                         </span>
                         <button

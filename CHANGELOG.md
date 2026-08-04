@@ -58,6 +58,30 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The coverage hole is measured, and group curation has its tooling**
+  (founder recette, 2026-08-04: Safran showed 4 entities and 27.4 M€
+  while Safran Aircraft Engines et al. sat unattached). The figures:
+  4.77 Bn€ of unattached homonyms across 1 412 groups — Safran 95 % of
+  its potential perimeter, Airbus 49 % (invisible until the radar folded
+  head legal forms the bridge does not fold), Thales 28 %. Dana-Farber
+  (1.73 Bn€, no relation to Dana Inc.) is the standing proof that
+  name-based auto-attachment would be a fault. The mechanism: a
+  versioned curation file (backend/curation/groups.csv) — one line = one
+  sourced human fact (attach or refuse), an all-or-nothing loader,
+  weighted JVs, validity windows, and refusals that silence the radar.
+  Batch 1 (docs/curation-fournee-1.csv): 318 proposals over 26 groups,
+  AWAITING founder validation — nothing is loaded unvalidated.
+- **The group file confesses what it does not know and reads like a
+  deck** (demo screen no. 1). Under the hero: the honesty note — 
+  memberships come from public registries; N corpus homonyms are not
+  attached yet, weighed in euros; totals state the attached perimeter,
+  never the whole group. New acts: the trajectory split by entity (top
+  5 + an honest "others" series), the group's partners (internal
+  co-signatures never counted), the consolidated watch-post (whole-group
+  thematic profile and thresholded signals, same honesty floors as the
+  organisation hub), and the benchmark door — /compare accepts groups
+  ("g<id>") beside organisations, badge on the column, Safran vs Thales
+  AS groups.
 - **The group file — the identity layer becomes a product surface**
   (founder recette, 2026-08-04). Typing a group's name anywhere (⌘K
   palette, composable bars, home ask) surfaces the group FIRST with a

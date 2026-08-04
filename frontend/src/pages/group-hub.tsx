@@ -6,19 +6,22 @@ import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { countryFlag, formatCompactEur, formatInt, formatOrgName, themeLabel, useCountryName } from "@/lib/format";
 import { isRegion, REGION_ORDER, regionColor } from "@/lib/regions";
+import { LinesChart } from "@/components/charts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrajectorySpark } from "@/components/trajectory-spark";
 import { WorldMap } from "@/components/world-map";
 
 /** The GROUP file (recette fondatrice, 2026-08-04) — the identity layer
- *  becomes a product surface, read in the acts grammar of the record
- *  pages: one consolidated view of every legal entity, then the world
- *  map of where the group lives (the charter vision: entities clickable
- *  one by one or by region).
+ *  as a product surface, in the acts grammar, DECK-RICH (demo screen
+ *  no. 1): the consolidated view with the trajectory split by entity,
+ *  the world map of the entities, the group's partners, the
+ *  consolidated watch-post, and the benchmark door.
  *
- *  Honesty carried from the backend: a co-signed project counts ONCE in
- *  the totals; shares are stated on the group's own total and may sum
- *  beyond 100 % — the page says so in the margin. */
+ *  Honesty carried everywhere: a co-signed project counts ONCE; shares
+ *  are stated on the group's own total; and the file CONFESSES what it
+ *  does not know — the corpus homonyms not yet attached (conservative
+ *  bridge; curation pending) are counted and weighed under the hero.
+ *  The total never passes itself off as the whole group. */
 
 function ActHeader({ index, title, phrase }: { index: string; title: string; phrase: string }) {
   return (
@@ -70,6 +73,11 @@ export function GroupHubPage() {
 
   const displayName = formatOrgName(hub.name);
   const trajectory = hub.trajectory.map((row) => ({ year: row.year, amount_eur: row.funding_eur }));
+  const entitySeries = hub.by_entity.map((serie) => ({
+    key: serie.id ?? "others",
+    label: serie.name ? formatOrgName(serie.name) : t("group.othersSeries"),
+    points: serie.points.map((point) => ({ year: point.year, value: point.funding_eur })),
+  }));
   // The map derives from the corpus the hub returned — never a hardcoded
   // list (the engraved rule applies to the group file too).
   const mapCountries = hub.countries.map((row) => ({
@@ -98,6 +106,9 @@ export function GroupHubPage() {
     setSelectedRegion(slug);
   };
 
+  const watchpost = hub.watchpost;
+  const maxTheme = Math.max(...watchpost.top_themes.map((theme) => theme.amount_eur), 1);
+
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
@@ -113,9 +124,18 @@ export function GroupHubPage() {
         ) : null}
       </p>
 
-      <h1 className="display-tight mt-1.5 max-w-[26ch] text-[clamp(26px,3.6vw,38px)] font-semibold leading-tight">
-        {displayName}
-      </h1>
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+        <h1 className="display-tight mt-1.5 max-w-[26ch] text-[clamp(26px,3.6vw,38px)] font-semibold leading-tight">
+          {displayName}
+        </h1>
+        {/* The benchmark door — this group beside another, AS groups. */}
+        <Link
+          to={`/compare?orgs=g${hub.id}`}
+          className="mt-2.5 shrink-0 rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors hover:border-accent hover:text-accent"
+        >
+          ⇄ {t("group.compareCta")}
+        </Link>
+      </div>
 
       {/* The record hero — the consolidated total as a display figure,
           its trajectory drawing itself on entry (doctrine step 4). */}
@@ -124,13 +144,37 @@ export function GroupHubPage() {
           {formatCompactEur(hub.totals.funding_eur, i18n.language)}
         </div>
         <div className="mt-1.5 text-[13px] text-muted-foreground">{t("group.totalFunding")}</div>
+        {/* The honesty note: the attached perimeter never passes itself
+            off as the whole group (recette fondatrice, 2026-08-04). */}
+        <p className="mt-4 max-w-[62ch] border-l-2 border-border pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          {t("group.coverageBasis")}
+          {hub.coverage.unattached_count > 0 ? (
+            <>
+              {" "}
+              <span className="text-foreground/80">
+                {t("group.coverageGap", {
+                  count: hub.coverage.unattached_count,
+                  weight:
+                    hub.coverage.unattached_funding_eur > 0
+                      ? t("group.coverageWeight", {
+                          amount: formatCompactEur(
+                            hub.coverage.unattached_funding_eur,
+                            i18n.language,
+                          ),
+                        })
+                      : "",
+                })}
+              </span>
+            </>
+          ) : null}
+        </p>
         <div className="mt-6">
           <TrajectorySpark data={trajectory} />
         </div>
       </div>
 
-      {/* Act 01 — the group as one: distinct-project totals and the
-          themes the whole group works on. */}
+      {/* Act 01 — the group as one: distinct-project totals, the
+          trajectory SPLIT BY ENTITY, and the whole group's themes. */}
       <section className="mt-16 border-t pt-10">
         <ActHeader
           index={`01 · ${t("group.actConsolidatedKicker")}`}
@@ -153,6 +197,14 @@ export function GroupHubPage() {
             </div>
           ))}
         </div>
+        {entitySeries.length > 1 ? (
+          <div className="mt-10">
+            <p className="mb-3 text-[13px] font-medium text-muted-foreground">
+              {t("group.byEntityLabel")}
+            </p>
+            <LinesChart series={entitySeries} unit="eur" ariaLabel={t("group.byEntityLabel")} />
+          </div>
+        ) : null}
         {hub.themes.length > 0 ? (
           <div className="mt-9">
             <p className="text-[13px] font-medium text-muted-foreground">{t("group.themesTitle")}</p>
@@ -289,6 +341,118 @@ export function GroupHubPage() {
           </>
         )}
       </section>
+
+      {/* Act 03 — who the group works with: partners across every
+          entity, internal co-signatures never counted. */}
+      {hub.partners.length > 0 ? (
+        <section id="partners" className="mt-16 scroll-mt-24 border-t pt-10">
+          <ActHeader
+            index={`03 · ${t("group.actPartnersKicker")}`}
+            title={t("group.actPartners")}
+            phrase={t("group.actPartnersPhrase")}
+          />
+          <ul className="divide-y">
+            {hub.partners.map((partner) => (
+              <li key={partner.id} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-3.5">
+                <Link
+                  to={`/organisations/${partner.id}`}
+                  className="min-w-0 text-[14.5px] font-medium underline-offset-4 hover:underline"
+                >
+                  {partner.country ? `${countryFlag(partner.country)} ` : ""}
+                  {formatOrgName(partner.name)}
+                </Link>
+                <span className="tnum text-[13px] text-muted-foreground">
+                  {t("group.partnerShared", { count: partner.shared_projects })}
+                  {partner.partner_amount_eur != null
+                    ? ` · ${formatCompactEur(partner.partner_amount_eur, i18n.language)}`
+                    : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {/* Act 04 — the consolidated watch-post: the whole group's
+          thematic profile and its thresholded signals (lot 2 grammar,
+          generalised — below the honesty floors, nothing shows). */}
+      {watchpost.top_themes.length > 0 ||
+      watchpost.signals.accelerating_theme ||
+      watchpost.signals.new_partners ? (
+        <section className="mt-16 border-t pt-10">
+          <ActHeader
+            index={`04 · ${t("group.actWatchKicker")}`}
+            title={t("group.actWatch")}
+            phrase={t("group.actWatchPhrase")}
+          />
+          {watchpost.top_themes.length > 0 ? (
+            <div>
+              {watchpost.top_themes.map((theme) => (
+                <div
+                  key={theme.key}
+                  className="grid grid-cols-[minmax(120px,190px)_minmax(0,1fr)_112px] items-center gap-3 border-b border-border-soft py-2.5 text-[13.5px]"
+                >
+                  <span className="leading-snug">{themeLabel(theme.key, theme.label, t)}</span>
+                  <span
+                    aria-hidden="true"
+                    className="block h-2 rounded-full bg-gradient-to-r from-accent to-gradient-to"
+                    style={{ width: `${Math.max((theme.amount_eur / maxTheme) * 100, 2)}%` }}
+                  />
+                  <span className="tnum text-right text-muted-foreground">
+                    <b className="font-semibold text-foreground">
+                      {formatCompactEur(theme.amount_eur, i18n.language)}
+                    </b>{" "}
+                    · {t("search.projectsCount", { count: theme.projects })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {watchpost.signals.accelerating_theme || watchpost.signals.new_partners ? (
+            <div className="mt-7 grid gap-3.5 lg:grid-cols-2">
+              {watchpost.signals.accelerating_theme ? (
+                <Link
+                  to={`/explore?by=theme&split=1&compare=${encodeURIComponent(watchpost.signals.accelerating_theme.key)}`}
+                  className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-3 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
+                >
+                  <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-3">
+                    ↑ {watchpost.signals.accelerating_theme.growth_pct} %
+                  </span>
+                  <span className="text-[13.5px] leading-snug">
+                    {t("org.signalTheme", {
+                      theme: themeLabel(
+                        watchpost.signals.accelerating_theme.key,
+                        watchpost.signals.accelerating_theme.label,
+                        t,
+                      ),
+                    })}{" "}
+                    <span className="tnum text-[11.5px] text-muted-foreground">
+                      ({t("org.signalThemeWindow")})
+                    </span>
+                  </span>
+                </Link>
+              ) : null}
+              {watchpost.signals.new_partners ? (
+                <a
+                  href="#partners"
+                  className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-2 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
+                >
+                  <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-2">
+                    {formatInt(watchpost.signals.new_partners.count, i18n.language)}
+                    {watchpost.signals.new_partners.count >= 50 ? "+" : ""}
+                  </span>
+                  <span className="text-[13.5px] leading-snug">
+                    {t("org.signalPartners", { count: watchpost.signals.new_partners.count })}
+                  </span>
+                </a>
+              ) : null}
+            </div>
+          ) : null}
+          <p className="mt-4 text-[11.5px] text-muted-foreground">
+            {t("group.watchSources", { count: watchpost.sources_count })}
+          </p>
+        </section>
+      ) : null}
     </div>
   );
 }

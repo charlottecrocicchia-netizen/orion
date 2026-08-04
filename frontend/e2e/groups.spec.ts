@@ -64,7 +64,7 @@ test("la fiche consolide : un projet co-signé compte une fois, la carte et les 
 
   // Le consolidé : SKYFORGE est co-signé par les deux entités —
   // 1 projet distinct, 8 M€, jamais 2 projets.
-  await expect(page.getByText("€8M", { exact: true })).toBeVisible();
+  await expect(page.locator(".font-display.tnum").first()).toHaveText("€8M");
   const act1 = page.locator("section").filter({
     has: page.getByRole("heading", { name: "Le groupe d’un seul tenant" }),
   });
@@ -103,4 +103,63 @@ test("la fiche consolide : un projet co-signé compte une fois, la carte et les 
   // Chaque entité relie à sa fiche organisation canonique.
   await act2.getByRole("link", { name: /aerostellar sa/i }).click();
   await expect(page).toHaveURL(/\/organisations\/\d+/);
+});
+
+test("la fiche avoue son périmètre et déroule ses actes de deck", async ({ page }) => {
+  await page.goto("/projects");
+  const bar = page.getByRole("combobox", { name: /Composez/ });
+  await bar.click();
+  await bar.fill("aerostellar");
+  const groupOption = page.locator("#sc-listbox [id^='sc-go-g-']").first();
+  await expect(groupOption).toBeVisible({ timeout: 10_000 });
+  await groupOption.click();
+  await expect(page).toHaveURL(/\/groups\/\d+/);
+
+  // La note d'honnêteté : AEROSTELLAR GROUP SERVICES BV porte le nom du
+  // groupe sans y être rattachée — la fiche le dit, pesé.
+  const note = page.getByText(/pas encore rattachée/);
+  await expect(note).toBeVisible();
+  await expect(note).toContainText("€400k");
+  await expect(note).toContainText("jamais le groupe entier");
+
+  // Acte 03 — les partenaires : MIT co-signe SKYFORGE sans être du
+  // groupe ; les entités internes ne sont jamais des partenaires.
+  const act3 = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Avec qui le groupe travaille" }),
+  });
+  await expect(act3.getByRole("link", { name: /massachusetts/i })).toBeVisible();
+  await expect(act3.getByText("1 projet partagé")).toBeVisible();
+  await expect(act3.getByRole("link", { name: /aerostellar/i })).toHaveCount(0);
+
+  // Acte 04 — le poste de veille consolidé, profil thématique en tête.
+  const act4 = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Le poste de veille consolidé" }),
+  });
+  await expect(act4).toBeVisible();
+  await expect(act4.getByText(/Alimenté par 1 source/)).toBeVisible();
+
+  // La porte du benchmark : ce groupe, comparé EN TANT QUE groupe.
+  await page.getByRole("link", { name: /Comparer ce groupe/ }).click();
+  await expect(page).toHaveURL(/\/compare\?orgs=g\d+/);
+});
+
+test("le benchmark compare un groupe à une organisation, badge au revers", async ({ page }) => {
+  await page.goto("/compare");
+  const picker = page.getByRole("textbox", { name: /Ajouter/ });
+  await picker.fill("aerostellar");
+  const groupOption = page.getByRole("option", { name: /aerostellar group.*Groupe/i }).first();
+  await expect(groupOption).toBeVisible({ timeout: 10_000 });
+  await groupOption.click();
+  await expect(page).toHaveURL(/orgs=g\d+/);
+
+  // La colonne du groupe : badge, compte d'entités, total consolidé.
+  const table = page.locator("table");
+  await expect(table.getByText("Groupe", { exact: true })).toBeVisible();
+  await expect(table.getByText("2 entités légales")).toBeVisible();
+
+  await picker.fill("centre");
+  const orgOption = page.getByRole("option", { name: /centre/i }).first();
+  await expect(orgOption).toBeVisible({ timeout: 10_000 });
+  await orgOption.click();
+  await expect(table.locator("th").filter({ has: page.getByRole("link") })).toHaveCount(2);
 });

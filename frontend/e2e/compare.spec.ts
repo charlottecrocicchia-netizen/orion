@@ -23,7 +23,7 @@ test("compare two organisations from the hub CTA", async ({ page }) => {
   await expect(page.getByText("Total public R&D funding")).toBeVisible({ timeout: 10_000 });
 
   // Add a second organisation through the picker.
-  await page.getByLabel("Add an organisation").fill("fraunhofer");
+  await page.getByLabel("Add a group or an organisation").fill("fraunhofer");
   await page.getByRole("option", { name: /Fraunhofer/i }).first().click();
   await expect(page).toHaveURL(/orgs=\d+(?:~|%7E)\d+/);
 

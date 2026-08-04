@@ -116,7 +116,11 @@ export interface CountryFlow {
 }
 
 export interface CompareEntry {
-  id: number;
+  /** Organisation id (number) or group ref ("g<id>"). */
+  id: number | string;
+  /** Set by the mixed benchmark — groups compare beside organisations. */
+  kind?: "organisation" | "group";
+  entities?: number;
   name: string;
   country: string | null;
   org_type: string | null;
@@ -144,7 +148,24 @@ export interface GroupHub {
   country: string | null;
   lei: string | null;
   totals: { entities: number; projects: number; funding_eur: number; countries: number };
+  /** La note d'honnêteté : les homonymes du corpus hors périmètre. */
+  coverage: { unattached_count: number; unattached_funding_eur: number };
   trajectory: { year: number; funding_eur: number }[];
+  /** Trajectoire éclatée : top 5 entités + série « autres » (id null). */
+  by_entity: {
+    id: number | null;
+    name: string | null;
+    points: { year: number; funding_eur: number }[];
+  }[];
+  partners: OrganisationPartner[];
+  watchpost: {
+    top_themes: { key: string; label: string | null; amount_eur: number; projects: number }[];
+    signals: {
+      accelerating_theme?: { key: string; label: string | null; growth_pct: number } | null;
+      new_partners?: { count: number; names: string[] } | null;
+    };
+    sources_count: number;
+  };
   themes: { key: string; label: string | null; projects: number }[];
   entities: {
     id: number;

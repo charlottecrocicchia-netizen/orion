@@ -39,7 +39,7 @@ THEMES = {
         "electrical engineering, electronic engineering, information engineering",
         ["H2STORE", "HYVALLEY", "GRIDFLEX"],
     ),
-    "/23/43": ("physical sciences", ["QUBITNET", "FUSIONX"]),
+    "/23/43": ("physical sciences", ["QUBITNET", "FUSIONX", "SKYFORGE"]),
     "/23/45": ("earth and related environmental sciences", ["MEDAIR", "DEEPSEA"]),
 }
 
@@ -69,6 +69,9 @@ ORGS = {
     # doit le compter UNE fois (la règle DISTINCT se teste en e2e).
     "aero_sa": ("AEROSTELLAR SA", "FR", "PRC"),
     "aero_gmbh": ("AEROSTELLAR AVIONICS GMBH", "DE", "PRC"),
+    # L'homonyme HORS périmètre : porte le nom du groupe, jamais
+    # rattaché — la note d'honnêteté de la fiche doit le compter.
+    "aero_services": ("AEROSTELLAR GROUP SERVICES BV", "NL", "PRC"),
 }
 
 # (source_id, acronym, year, programme, m€ shares by org — first is coordinator,
@@ -199,8 +202,18 @@ PROJECTS = [
         "SKYFORGE",
         2023,
         "he-child",
-        [("aero_sa", 5.0), ("aero_gmbh", 3.0)],
+        # MIT co-signe SANS être du groupe : l'acte partenaires se teste,
+        # et le consolidé ne bouge pas (les totaux somment les entités).
+        [("aero_sa", 5.0), ("aero_gmbh", 3.0), ("mit", 0.7)],
         {"en": ("Hybrid-electric regional aircraft", "Propulsion chain for regional aviation.")},
+    ),
+    (
+        "e2e-aeroserv",
+        "AEROSERV",
+        2022,
+        "he-child",
+        [("aero_services", 0.4)],
+        {"en": ("Aerostellar services platform", "MRO data services for regional fleets.")},
     ),
 ]
 

@@ -254,7 +254,16 @@ Points d'attention connus :
   les « 38 pays », « Europe + France » et la version affichée remis à la
   vérité), et la réflexion **[parcours-mondial.md](parcours-mondial.md)**
   ouverte (diagnostic + six propositions, AUCUNE implémentation — à
-  croiser avec les tests utilisateurs réels avant de trancher). Détail des décisions : dès
+  croiser avec les tests utilisateurs réels avant de trancher). Seconde
+  passe le même jour, sur recette de la fiche Safran : le **trou de
+  couverture mesuré** (4,77 Md€ d'homonymes non rattachés ; Safran 95 %,
+  Airbus 49 %) et la **curation outillée** —
+  [curation-groupes.md](curation-groupes.md), fichier versionné
+  tout-ou-rien, fournée 1 de 318 propositions **en attente de validation
+  fondatrice** ; la fiche groupe avoue son périmètre (note d'honnêteté)
+  et devient l'écran de démo n°1 : trajectoire par entité, partenaires
+  du groupe, poste de veille consolidé, entrée au benchmark (« g<id> »
+  dans /compare). Détail des décisions : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension
   d'agrégation (Explorateur, benchmark, panneaux du globe). Spécification
