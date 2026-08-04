@@ -245,7 +245,16 @@ Points d'attention connus :
   passe « le site dit vrai » (couverture Europe-CORDIS · États-Unis
   NIH+NSF, à venir UKRI/SNSF/NWO/Vinnova — le Japon et « en
   préparation » ont disparu). 49 parcours e2e verts, Firefox compris.
-  **Recette fondatrice en cours sur site.** Détail des décisions : dès
+  **Recette fondatrice validée le 2026-08-04**, et son paquet de suites
+  livré le jour même : le bouton de collecte devenu un vrai toggle
+  (retirer là où on a ajouté, contrôles du dossier épelés), **la fiche
+  groupe** (le groupe ressort en tête des recherches avec son badge,
+  consolidé DISTINCT, carte monde des entités, parts sur le total —
+  [CHANGELOG](../CHANGELOG.md)), la passe de langage mondial (l'accroche,
+  les « 38 pays », « Europe + France » et la version affichée remis à la
+  vérité), et la réflexion **[parcours-mondial.md](parcours-mondial.md)**
+  ouverte (diagnostic + six propositions, AUCUNE implémentation — à
+  croiser avec les tests utilisateurs réels avant de trancher). Détail des décisions : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension
   d'agrégation (Explorateur, benchmark, panneaux du globe). Spécification

@@ -58,6 +58,20 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The group file — the identity layer becomes a product surface**
+  (founder recette, 2026-08-04). Typing a group's name anywhere (⌘K
+  palette, composable bars, home ask) surfaces the group FIRST with a
+  distinctive badge, before its same-named organisations. Its file
+  reads in the acts grammar: the consolidated view — totals,
+  trajectory, whole-group themes, where a project co-signed by several
+  member entities counts ONCE — then the world map of its entities,
+  readable one by one or by region, and the entity list with shares
+  stated on the group's own total (the sum can exceed 100 % when
+  entities co-sign; the page says so). Membership method and confidence
+  ride along: a GLEIF fact and a name-bridge guess never look the same.
+  The e2e seed gained the fictional AEROSTELLAR group and its co-signed
+  project so the DISTINCT rule is tested end to end.
+
 - **The manager-regions chantier, designed and shipped the same day**
   (founder-validated 5/5, 2026-08-04). The world in five regions a
   decision-maker reads — Europe, North America, Asia-Pacific, Latin
@@ -162,6 +176,23 @@ All notable changes to Orion are documented here. The format follows
   findings on the registry: the ANR publishes no SIREN (LEI→SIREN
   captured on the GLEIF side, ready); JVs and state heads queued for
   the curation pass.
+
+### Fixed
+
+- **The collect button now tells the truth and undoes itself** (founder
+  recette, 2026-08-04: "I can no longer remove a block once added").
+  The removal always worked on /dossier — the bug was the collect
+  button: it only knew how to add, and a re-click did nothing. It is a
+  real toggle everywhere now (added → "In dossier · remove"), and the
+  dossier blocks spell their controls out loud — move up, move down,
+  rename, annotate, remove — instead of hiding them behind hover icons.
+- **The world-language pass** (founder recette, 2026-08-04): the brand
+  eyebrow no longer says "in Europe", the home's act 3 dropped its
+  dated "38 countries covered", the country panel ranks "worldwide",
+  header and footer state the real coverage (Europe · United States)
+  instead of "Europe + France", the displayed version caught up with
+  the real one, and the FR example chip stopped mixing languages
+  ("Commission européenne + hydrogène", query in the reader's tongue).
 
 ## [0.4.0] - 2026-08-03
 
