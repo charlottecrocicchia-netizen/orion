@@ -1,0 +1,46 @@
+{
+  "name": "Régions manager — vague 1 (proposition 2026-08-04)",
+  "comment": "Une teinte par grande région, l'intensité (paliers d'opacité des cartes) continuant d'encoder le montant. Deux verdicts du validateur : l'OLIVE est rejetée des cartes (confusion rouge-vert avec l'ocre en deutéranopie/protanopie — elle reste une série de graphiques) et le VIOLET série-5 est rejeté aussi (il devient l'outremer pour un deutéranope) ; l'Amérique latine porte un POURPRE profond (#6b21a8) séparé de l'Europe par la clarté, que la simulation valide. Au palier le plus pâle les cinq teintes convergent (ΔE ~5) : assumé, l'identité y est portée par le survol, la légende et le libellé. Sélection : teinte pleine force + liseré couleur de fond (l'encre essayée et rejetée en recette globe).",
+  "modes": {
+    "light": {
+      "background": "#ffffff",
+      "surface": "#f5f5f7",
+      "ink": "#1d1d1f",
+      "steps": [
+        0.12,
+        0.28,
+        0.46,
+        0.66,
+        0.88
+      ],
+      "selection": 0.92,
+      "colors": {
+        "europe": "#2d4fe3",
+        "amerique-nord": "#b45309",
+        "asie-pacifique": "#0d9488",
+        "amerique-latine": "#6b21a8",
+        "moyen-orient-afrique": "#9d174d"
+      }
+    },
+    "dark": {
+      "background": "#0b0d12",
+      "surface": "#14171f",
+      "ink": "#f5f5f7",
+      "steps": [
+        0.12,
+        0.28,
+        0.46,
+        0.66,
+        0.88
+      ],
+      "selection": 0.92,
+      "colors": {
+        "europe": "#8b9aff",
+        "amerique-nord": "#d97706",
+        "asie-pacifique": "#14b8a6",
+        "amerique-latine": "#a855f7",
+        "moyen-orient-afrique": "#e11d48"
+      }
+    }
+  }
+}

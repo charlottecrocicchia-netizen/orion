@@ -223,7 +223,11 @@ Points d'attention connus :
   identité** (tables groupes + GLEIF + ponts) avant les chargeurs US/UK ;
   EDGAR/PSC attendent leurs sources ; la curation court en continu dès le
   socle ; la fiche groupe jalonne la fin de vague A ;
-- **grandes régions « manager »** (décision fondatrice 2026-08-02) : dès
+- **grandes régions « manager »** (décision fondatrice 2026-08-02 ;
+  **chantier OUVERT le 2026-08-04, conception soumise à validation** :
+  [chantier-regions-manager.md](chantier-regions-manager.md), maquette
+  sur données réelles, palette passée au validateur — l'olive et le
+  violet rejetés par la simulation daltonienne, pourpre retenu) : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en
   régions parlantes — Europe, Amérique du Nord, Asie… — comme dimension
   d'agrégation (Explorateur, benchmark, panneaux du globe). Spécification
