@@ -82,7 +82,9 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
               FROM project_topics pt JOIN topics t ON t.id = pt.topic_id
               WHERE t.scheme = 'euroscivoc') tj ON tj.project_id = pa.project_id
         LEFT JOIN topics l2 ON l2.scheme = 'euroscivoc' AND l2.code = tj.tkey
-        WHERE m.group_id = :id
+        -- Level-1-only codes yield a NULL level-2 key: not a theme, and
+        -- it must not consume one of the six slots (seen live: Safran).
+        WHERE m.group_id = :id AND tj.tkey IS NOT NULL
         GROUP BY tj.tkey ORDER BY projects DESC
         LIMIT 6
         """),
