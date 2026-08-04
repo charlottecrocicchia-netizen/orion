@@ -14,6 +14,18 @@ EU_MEMBERS = {
     "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
 }  # fmt: skip
 
+# LES CINQ RÉGIONS « MANAGER » (chantier régions, validé le 2026-08-04).
+# Le monde entier, découpé comme un décideur le lit — et COMPLET : chaque
+# code ISO connu appartient à une région, un test le garantit (la leçon
+# Vega du « nom en dur » appliquée à la géographie : aucun pays à données
+# ne doit pouvoir rester du décor). Règle de rattachement des territoires
+# (verdict fondatrice ③) : la géographie, seule règle défendable — la
+# Guyane rejoint l'Amérique latine au référentiel même si le polygone
+# France la colore en Europe sur les cartes (fait cartographique).
+# RU/TR restent en Europe (réalité du corpus) ; Israël au
+# Moyen-Orient & Afrique. Unique exception à la complétude : l'Antarctique
+# (AQ) n'a ni région ni financeur — l'exception est écrite, le test la
+# connaît.
 REGIONS: dict[str, set[str]] = {
     "europe": EU_MEMBERS
     | {
@@ -42,14 +54,17 @@ REGIONS: dict[str, set[str]] = {
         "SM",
         "AD",
         "VA",
+        "JE",
+        "GG",
+        "IM",
+        "AX",
+        "SJ",
     },  # fmt: skip
-    "americas": {
-        "US",
-        "CA",
+    "north-america": {"US", "CA", "MX", "BM", "GL", "PM"},
+    "latin-america": {
         "BR",
         "AR",
         "CL",
-        "MX",
         "CO",
         "PE",
         "UY",
@@ -67,13 +82,44 @@ REGIONS: dict[str, set[str]] = {
         "SV",
         "JM",
         "TT",
+        "HT",
+        "BS",
+        "BZ",
+        "GY",
+        "SR",
+        "GF",
+        "GP",
+        "MQ",
+        "BL",
+        "MF",
+        "PR",
+        "VI",
+        "VG",
+        "AI",
+        "CW",
+        "AW",
+        "BQ",
+        "SX",
+        "MS",
+        "TC",
+        "KY",
+        "DM",
+        "GD",
+        "KN",
+        "LC",
+        "VC",
+        "AG",
+        "BB",
+        "FK",
+        "GS",
+        "BV",
     },  # fmt: skip
-    "asia": {
+    "asia-pacific": {
         "CN",
         "JP",
         "KR",
+        "KP",
         "IN",
-        "IL",
         "TW",
         "SG",
         "TH",
@@ -88,13 +134,7 @@ REGIONS: dict[str, set[str]] = {
         "TM",
         "MN",
         "HK",
-        "SA",
-        "AE",
-        "QA",
-        "JO",
-        "LB",
-        "IQ",
-        "IR",
+        "MO",
         "PK",
         "BD",
         "LK",
@@ -102,17 +142,57 @@ REGIONS: dict[str, set[str]] = {
         "KH",
         "LA",
         "MM",
+        "BT",
+        "MV",
+        "AF",
+        "BN",
+        "TL",
+        "AU",
+        "NZ",
+        "FJ",
+        "PG",
+        "SB",
+        "VU",
+        "WS",
+        "TO",
+        "NC",
+        "PF",
+        "GU",
+        "MP",
+        "AS",
+        "FM",
+        "MH",
+        "PW",
+        "KI",
+        "TV",
+        "NR",
+        "CK",
+        "NU",
+        "TK",
+        "PN",
+        "NF",
+        "UM",
+        "WF",
+        "CX",
+        "CC",
+        "IO",
+        "HM",
+    },  # fmt: skip
+    "middle-east-africa": {
+        "SA",
+        "AE",
+        "QA",
+        "JO",
+        "LB",
+        "IQ",
+        "IR",
         "PS",
         "SY",
         "YE",
         "OM",
         "KW",
         "BH",
-        "BT",
-        "MV",
-        "AF",
-    },  # fmt: skip
-    "africa": {
+        "IL",
         "ZA",
         "EG",
         "MA",
@@ -167,8 +247,12 @@ REGIONS: dict[str, set[str]] = {
         "CF",
         "GQ",
         "SS",
+        "EH",
+        "SH",
+        "RE",
+        "YT",
+        "TF",
     },  # fmt: skip
-    "oceania": {"AU", "NZ", "FJ", "PG", "SB", "VU", "WS", "TO", "NC", "PF"},
 }
 
 # Codes used by EU datasets that differ from ISO 3166-1 alpha-2.

@@ -53,6 +53,12 @@ def countries(db: Annotated[Session, Depends(get_db)]) -> list[dict[str, Any]]:
     return aggregates.countries_index(db)
 
 
+@router.get("/regions")
+def regions(db: Annotated[Session, Depends(get_db)]) -> list[dict[str, Any]]:
+    """The five manager regions, aggregated from the countries' view."""
+    return aggregates.regions_index(db)
+
+
 @router.get("/compare/organisations")
 def compare_organisations(
     db: Annotated[Session, Depends(get_db)],

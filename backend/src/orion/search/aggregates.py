@@ -53,13 +53,16 @@ def countries_index(session: Session) -> list[dict[str, Any]]:
     def build() -> list[dict[str, Any]]:
         # Read from the materialised view (O2): the aggregate over 842 k
         # participations is computed by the ingestion chain, not by the
-        # visitor who happens to open the map first.
+        # visitor who happens to open the map first. The manager region
+        # rides along from the referential — the front never hardcodes
+        # geography (chantier régions, 2026-08-04).
         rows = session.execute(
             text("""
-            SELECT code, name_en, eu_member, projects_count AS projects,
-                   funding_eur AS funding
-            FROM country_stats
-            ORDER BY funding_eur DESC NULLS LAST
+            SELECT s.code, s.name_en, s.eu_member, s.projects_count AS projects,
+                   s.funding_eur AS funding, c.region
+            FROM country_stats s
+            JOIN countries c ON c.code = s.code
+            ORDER BY s.funding_eur DESC NULLS LAST
             """)
         ).all()
         return [
@@ -67,6 +70,7 @@ def countries_index(session: Session) -> list[dict[str, Any]]:
                 "code": r.code,
                 "name": r.name_en,
                 "eu_member": r.eu_member,
+                "region": r.region,
                 "projects_count": r.projects,
                 "funding_eur": float(r.funding or 0),
             }
@@ -74,6 +78,37 @@ def countries_index(session: Session) -> list[dict[str, Any]]:
         ]
 
     return _cached(session, "countries_index", build)
+
+
+def regions_index(session: Session) -> list[dict[str, Any]]:
+    """The five manager regions, aggregated from the same materialised
+    view the countries read — one source, no drift to test twice."""
+
+    def build() -> list[dict[str, Any]]:
+        rows = session.execute(
+            text("""
+            SELECT c.region,
+                   count(*) AS countries,
+                   sum(s.projects_count) AS projects,
+                   sum(s.funding_eur) AS funding
+            FROM country_stats s
+            JOIN countries c ON c.code = s.code
+            WHERE c.region IS NOT NULL
+            GROUP BY c.region
+            ORDER BY sum(s.funding_eur) DESC NULLS LAST
+            """)
+        ).all()
+        return [
+            {
+                "region": r.region,
+                "countries": r.countries,
+                "projects_count": int(r.projects or 0),
+                "funding_eur": float(r.funding or 0),
+            }
+            for r in rows
+        ]
+
+    return _cached(session, "regions_index", build)
 
 
 def country_hub(session: Session, code: str) -> dict[str, Any] | None:
