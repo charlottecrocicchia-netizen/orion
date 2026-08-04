@@ -115,9 +115,12 @@ export function WorldMap({
       const e = ease(u);
       setViewBox(start.map((s, i) => (s + (goal[i] - s) * e).toFixed(1)).join(" "));
       if (u < 1) requestAnimationFrame(frame);
-      else navigate(`/explore/countries/${code}`);
     };
     requestAnimationFrame(frame);
+    // L'arrivée ne dépend JAMAIS du zoom : rAF peut être throttlé
+    // (onglet occulté, machine chargée — vu en CI le 2026-08-04), la
+    // navigation part sur l'horloge, l'animation reste cosmétique.
+    window.setTimeout(() => navigate(`/explore/countries/${code}`), ZOOM_MS + 50);
   };
 
   // First activation selects; the second — on the already-selected
