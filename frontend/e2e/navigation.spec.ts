@@ -108,5 +108,5 @@ test("the scope pill stays hidden while a single zone exists", async ({ page }) 
   // The header selector is gone (one zone says nothing); the footer's
   // honest coverage note is a different, legitimate mention.
   await page.goto("/");
-  await expect(page.getByRole("banner").getByText("Europe + France")).toHaveCount(0);
+  await expect(page.getByRole("banner").getByText(/Europe ·/)).toHaveCount(0);
 });

@@ -68,7 +68,7 @@ function ComposerExamples({
       ? [
           {
             label: t("search.composer.ex1"),
-            entries: { country: "DE", funder: "ec", q: "hydrogen" },
+            entries: { country: "DE", funder: "ec", q: t("search.composer.ex1Q") },
           },
           {
             label: t("search.composer.ex2"),

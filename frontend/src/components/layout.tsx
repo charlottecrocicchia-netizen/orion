@@ -28,7 +28,7 @@ function ScopeBadge() {
       title={t("scope.label")}
     >
       <span aria-hidden="true">🌍</span>
-      {t("scope.europeFr")}
+      {t("scope.coverage")}
     </span>
   );
 }
