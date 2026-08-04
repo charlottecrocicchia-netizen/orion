@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +12,7 @@ import { WorldGlobe } from "@/components/world-globe";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { countryFlag, formatCompactEur } from "@/lib/format";
+import { isRegion, REGION_ORDER, regionColor, type RegionSlug } from "@/lib/regions";
 
 type GeoView = "globe" | "map";
 
@@ -33,7 +34,32 @@ export function ExploreCountriesPage() {
   const navigate = useNavigate();
   const [view, setView] = useState<GeoView>(storedView);
   const [selected, setSelected] = useState<string | null>(null);
-  const { data, isPending } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
+  // Le scope géographique vit dans l'URL — partageable, épinglable, et
+  // prêt à porter les abonnements par zone (chantier régions, validé
+  // 2026-08-04). Un slug inconnu retombe sur le monde, sans bruit.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawScope = searchParams.get("scope");
+  const scope: RegionSlug | "world" = isRegion(rawScope) ? rawScope : "world";
+  const setScope = (next: RegionSlug | "world") => {
+    setSelected(null);
+    setSearchParams(
+      (current) => {
+        const out = new URLSearchParams(current);
+        if (next === "world") out.delete("scope");
+        else out.set("scope", next);
+        return out;
+      },
+      { replace: true },
+    );
+  };
+  const { data: allCountries, isPending } = useQuery({
+    queryKey: ["countries"],
+    queryFn: api.countries,
+  });
+  const data =
+    scope === "world"
+      ? allCountries
+      : allCountries?.filter((entry) => entry.region === scope);
   const { data: flows } = useQuery({ queryKey: ["country-flows"], queryFn: api.countryFlows });
 
   const switchView = (next: GeoView) => {
@@ -84,6 +110,32 @@ export function ExploreCountriesPage() {
         </div>
       </div>
 
+      <div className="mt-5 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("regions.scopeLabel")}>
+        {(["world", ...REGION_ORDER] as const).map((candidate) => (
+          <button
+            key={candidate}
+            type="button"
+            aria-pressed={scope === candidate}
+            onClick={() => setScope(candidate)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] transition-colors",
+              scope === candidate
+                ? "border-foreground/60 bg-foreground text-background"
+                : "border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {candidate !== "world" ? (
+              <i
+                aria-hidden="true"
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ background: regionColor(candidate), opacity: 0.9 }}
+              />
+            ) : null}
+            {candidate === "world" ? t("regions.world") : t(`regions.${candidate}`)}
+          </button>
+        ))}
+      </div>
+
       {data ? (
         <MotionConfig reducedMotion="user">
           <div
@@ -111,6 +163,7 @@ export function ExploreCountriesPage() {
                   flows={flows ?? []}
                   selected={selected}
                   onSelect={setSelected}
+                  scope={scope}
                 />
               )}
             </motion.div>

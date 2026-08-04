@@ -76,6 +76,10 @@ class ProjectFilters:
     funders: list[str] = field(default_factory=list)
     programmes: list[str] = field(default_factory=list)  # root programme ids (stringified)
     countries: list[str] = field(default_factory=list)
+    # Manager region slug — the URL-borne geographic scope (chantier
+    # régions): frames the search to the region's member countries, the
+    # list coming from the referential, never from the client.
+    scope: str | None = None
     year_from: int | None = None
     year_to: int | None = None
     amount_min: float | None = None
@@ -91,6 +95,7 @@ class ProjectFilters:
             self.funders
             or self.programmes
             or self.countries
+            or self.scope
             or self.year_from is not None
             or self.year_to is not None
             or self.amount_min is not None
@@ -206,6 +211,12 @@ def _project_where(f: ProjectFilters, params: dict[str, Any]) -> str:
             "WHERE pa.country_code = ANY(:countries))"
         )
         params["countries"] = f.countries
+    if f.scope:
+        clauses.append(
+            "p.id IN (SELECT pa.project_id FROM participations pa "
+            "WHERE pa.country_code IN (SELECT code FROM countries WHERE region = :scope))"
+        )
+        params["scope"] = f.scope
     if f.year_from is not None:
         clauses.append("extract(year FROM p.start_date) >= :year_from")
         params["year_from"] = f.year_from

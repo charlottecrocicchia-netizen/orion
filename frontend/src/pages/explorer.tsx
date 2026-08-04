@@ -13,6 +13,7 @@ import { ExploreTable } from "@/components/explore-table";
 import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+import { regionColor } from "@/lib/regions";
 import { addToDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
@@ -24,6 +25,7 @@ import { cn } from "@/lib/utils";
 const METRICS = ["funding", "projects", "organisations", "avg", "coordination"] as const;
 const DIMENSIONS = [
   "country",
+  "region",
   "programme",
   "theme",
   "organisation",
@@ -746,6 +748,7 @@ export function ExplorerPage() {
               unit={data.unit}
               total={data.total}
               ariaLabel={boardTitle}
+              colorOf={state.by === "region" ? (key) => regionColor(key) : undefined}
               onSlice={
                 state.by === "programme" && !state.programme
                   ? (key) => patch({ programme: key })

@@ -215,6 +215,8 @@ const resources = {
         "asia-pacific": "Asia-Pacific",
         "latin-america": "Latin America",
         "middle-east-africa": "Middle East & Africa",
+        world: "World",
+        scopeLabel: "Geographic scope",
       },
       explore: {
         title: "Explore",
@@ -437,6 +439,7 @@ const resources = {
           organisation: "organisation",
           funder: "funder",
           orgtype: "organisation type",
+          region: "region",
         },
         multiTheme: "a project can carry several themes · CORDIS corpus",
         unit: { eur: "€", count: "count", pct: "%" },
@@ -776,6 +779,8 @@ const resources = {
         "asia-pacific": "Asie-Pacifique",
         "latin-america": "Amérique latine",
         "middle-east-africa": "Moyen-Orient & Afrique",
+        world: "Monde",
+        scopeLabel: "Périmètre géographique",
       },
       explore: {
         title: "Explorer",
@@ -998,6 +1003,7 @@ const resources = {
           organisation: "organisation",
           funder: "bailleur",
           orgtype: "type d'organisation",
+          region: "région",
         },
         multiTheme: "un projet peut porter plusieurs thèmes · corpus CORDIS",
         unit: { eur: "€", count: "nombre", pct: "%" },

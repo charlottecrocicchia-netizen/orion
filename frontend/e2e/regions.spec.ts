@@ -59,3 +59,21 @@ test("first activation selects the US, second leaves for its file (map rule)", a
   await us.click();
   await expect(page).toHaveURL(/\/explore\/countries\/US/, { timeout: 10_000 });
 });
+
+test("the scope lives in the URL and frames the map to the region", async ({ page }) => {
+  await page.goto("/explore/countries?scope=europe");
+  // La chip Europe est pressée, l'URL porte le scope.
+  await expect(page.getByRole("button", { name: "Europe", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  const map = page.getByRole("group", { name: /World map/ });
+  await expect(map.locator('path[data-code="FR"]')).toHaveCount(1, { timeout: 15_000 });
+  // Le cadre Europe ne contient pas les États-Unis — le scope cadre.
+  await expect(map.locator('[data-code="US"]')).toHaveCount(0);
+
+  // Retour au monde : les États-Unis réapparaissent, l'URL se nettoie.
+  await page.getByRole("button", { name: /World|Monde/ }).click();
+  await expect(map.locator('[data-code="US"]')).toHaveCount(1, { timeout: 15_000 });
+  await expect(page).not.toHaveURL(/scope=/);
+});

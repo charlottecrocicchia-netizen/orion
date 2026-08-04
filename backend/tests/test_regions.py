@@ -99,3 +99,68 @@ def test_regions_index_says_exactly_what_country_stats_says(db_session):
     # Chaque pays de l'index porte sa région — le front n'a jamais à
     # deviner la géographie.
     assert all(c["region"] in EXPECTED_REGIONS for c in countries)
+
+
+def test_explore_groups_and_frames_by_region(db_session):
+    """La dimension « région » et le cadrage `scope=` de l'Explorateur :
+    la somme des régions égale la somme des pays, et un scope réduit la
+    vue à ses membres — le référentiel décide, jamais le client."""
+    from sqlalchemy import text as sql
+
+    from orion.search.explore import aggregate
+
+    funder = db_session.execute(sql("SELECT id FROM funders WHERE code = 'ec'")).scalar_one()
+    rows = [
+        ("FR", "europe", 4_000_000),
+        ("DE", "europe", 3_000_000),
+        ("US", "north-america", 9_000_000),
+        ("IL", "middle-east-africa", 1_000_000),
+    ]
+    for index, (code, _, amount) in enumerate(rows):
+        db_session.execute(
+            sql("""
+            INSERT INTO projects (source, source_id, title, funder_id, start_date,
+                                  funding_amount_eur)
+            VALUES ('test-zzreg', :sid, :title, :funder, '2022-01-01', :amount)
+            """),
+            {"sid": f"zzreg-{index}", "title": f"zzreg {index}", "funder": funder,
+             "amount": amount},
+        )
+        project = db_session.execute(
+            sql("SELECT id FROM projects WHERE source_id = :sid"), {"sid": f"zzreg-{index}"}
+        ).scalar_one()
+        db_session.execute(
+            sql("""
+            INSERT INTO organisations (name, name_normalized, country_code)
+            VALUES (:name, :name, :code)
+            """),
+            {"name": f"zzreg org {index}", "code": code},
+        )
+        organisation = db_session.execute(
+            sql("SELECT id FROM organisations WHERE name = :n"), {"n": f"zzreg org {index}"}
+        ).scalar_one()
+        db_session.execute(
+            sql("""
+            INSERT INTO participations (project_id, organisation_id, role, country_code,
+                                        amount_eur, source, source_uid)
+            VALUES (:p, :o, 'coordinator', :code, :amount, 'test-zzreg', :sid)
+            """),
+            {"p": project, "o": organisation, "code": code,
+             "amount": dict((r[0], r[2]) for r in rows)[code], "sid": f"zzreg-{index}"},
+        )
+    db_session.flush()
+
+    by_region = aggregate(db_session, metric="funding", by="region", limit=10)
+    values = {row["key"]: row["value"] for row in by_region["series"]}
+    assert values["europe"] >= 7_000_000
+    assert values["north-america"] >= 9_000_000
+    assert values["middle-east-africa"] >= 1_000_000
+
+    # Le scope cadre : l'Europe seule, et jamais un slug inventé.
+    scoped = aggregate(db_session, metric="funding", by="country", scope="europe", limit=50)
+    keys = {row["key"] for row in scoped["series"]}
+    assert "FR" in keys and "DE" in keys
+    assert "US" not in keys and "IL" not in keys
+    assert aggregate(db_session, metric="funding", by="country", scope="atlantide") is None
+    # Cadrer une région en groupant par région = un donut à une part : refusé.
+    assert aggregate(db_session, metric="funding", by="region", scope="europe") is None

@@ -23,7 +23,12 @@ from orion.search.service import (
 )
 
 METRICS = ("funding", "projects", "organisations", "avg", "coordination")
-PARTICIPATION_DIMS = {"country", "organisation", "orgtype"}
+
+# The manager regions' slugs — the referential is the source of truth.
+from orion.ingest.reference import REGIONS as _REGIONS  # noqa: E402
+
+MANAGER_REGIONS: frozenset[str] = frozenset(_REGIONS)
+PARTICIPATION_DIMS = {"country", "region", "organisation", "orgtype"}
 
 # (metric, dimension) pairs served in V1. Deliberately absent:
 # organisations×programme and coordination×programme/funder — the programme
@@ -34,10 +39,19 @@ VALID: frozenset[tuple[str, str]] = frozenset(
         *(
             (m, d)
             for m in ("funding", "projects", "avg")
-            for d in ("year", "country", "programme", "organisation", "funder", "orgtype", "theme")
+            for d in (
+                "year",
+                "country",
+                "region",
+                "programme",
+                "organisation",
+                "funder",
+                "orgtype",
+                "theme",
+            )
         ),
-        *(("organisations", d) for d in ("year", "country", "funder", "orgtype", "theme")),
-        *(("coordination", d) for d in ("year", "country", "organisation", "orgtype")),
+        *(("organisations", d) for d in ("year", "country", "region", "funder", "orgtype", "theme")),
+        *(("coordination", d) for d in ("year", "country", "region", "organisation", "orgtype")),
     ]
 )
 
@@ -115,6 +129,16 @@ def _dimension(by: str, participation: bool, params: dict[str, Any]) -> dict[str
             "label": "max(c.name_en)",
             "clause": "pa.country_code IS NOT NULL",
         }
+    if by == "region":
+        # The five manager regions (chantier régions, 2026-08-04): the
+        # participation's country carries its region from the referential —
+        # labels are localized by the frontend (i18n `regions.*`).
+        return {
+            "key": "c.region",
+            "joins": "JOIN countries c ON c.code = pa.country_code",
+            "label": "NULL",
+            "clause": "c.region IS NOT NULL",
+        }
     if by == "organisation":
         return {
             "key": "pa.organisation_id",
@@ -165,9 +189,22 @@ def _filters(
     year_from: int | None,
     year_to: int | None,
     country: str | None,
+    scope: str | None,
     params: dict[str, Any],
 ) -> list[str]:
     clauses: list[str] = []
+    if scope:
+        # The URL-borne geographic scope: a region frames every view. The
+        # member list comes from the referential, never from the client.
+        params["scope_filter"] = scope
+        member = "SELECT code FROM countries WHERE region = :scope_filter"
+        if participation:
+            clauses.append(f"pa.country_code IN ({member})")
+        else:
+            clauses.append(
+                "EXISTS (SELECT 1 FROM participations px "
+                f"WHERE px.project_id = p.id AND px.country_code IN ({member}))"
+            )
     if q:
         clauses.append("p.id IN (SELECT project_id FROM _orion_match)")
     if year_from is not None:
@@ -307,12 +344,19 @@ def aggregate(
     year_to: int | None = None,
     q: str | None = None,
     country: str | None = None,
+    scope: str | None = None,
     limit: int = 8,
     programme: int | None = None,
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
         return None
     if by == "country" and country:
+        return None
+    # A scope frames, a dimension distributes: framing the world on ONE
+    # region while grouping by region would be a one-slice donut.
+    if by == "region" and scope:
+        return None
+    if scope is not None and scope not in MANAGER_REGIONS:
         return None
     # The drill-down: inside one programme, grouped by its direct children.
     # Additive metrics only (same constraint as the root fold), and compare
@@ -326,7 +370,7 @@ def aggregate(
 
     key = (
         f"explore:{metric}:{by}:{split}:{compare}:{year_from}:{year_to}:{q}:{country}:"
-        f"{limit}:{programme}"
+        f"{scope}:{limit}:{programme}"
     )
 
     def build() -> dict[str, Any]:
@@ -340,6 +384,7 @@ def aggregate(
             year_to=year_to,
             q=q,
             country=country,
+            scope=scope,
             limit=limit,
             programme=programme,
         )
@@ -360,6 +405,7 @@ def _build(
     year_to: int | None,
     q: str | None,
     country: str | None,
+    scope: str | None,
     limit: int,
     programme: int | None = None,
 ) -> dict[str, Any]:
@@ -388,6 +434,7 @@ def _build(
         year_from=year_from,
         year_to=year_to,
         country=country,
+        scope=scope,
         params=params,
     )
     if dim["clause"]:
@@ -408,7 +455,7 @@ def _build(
         elif by == "organisation":
             params["compare_ids"] = [int(c) for c in compare if c.isdigit()] or [-1]
             clauses.append("pa.organisation_id = ANY(:compare_ids)")
-        elif by in ("orgtype", "funder", "theme"):
+        elif by in ("orgtype", "funder", "theme", "region"):
             # funder codes are lowercase, orgtype keys canonical, theme keys
             # are the euroSciVoc level-2 prefixes — none of them upper-cased
             params["compare_keys"] = compare

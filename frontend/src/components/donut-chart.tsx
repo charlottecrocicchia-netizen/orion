@@ -41,6 +41,7 @@ interface Slice {
 
 export function DonutChart({
   series,
+  colorOf,
   unit,
   total,
   ariaLabel,
@@ -54,6 +55,9 @@ export function DonutChart({
   ariaLabel: string;
   /** Present when a slice can be drilled into (programme hierarchy). */
   onSlice?: (key: string, label: string) => void;
+  /** Fixed colour per KEY (the region donut wears the region tints —
+   *  never index colours, which would reshuffle with the sort). */
+  colorOf?: (key: string) => string;
 }) {
   const { t, i18n } = useTranslation();
   const [active, setActive] = useState<number | null>(null);
@@ -65,7 +69,7 @@ export function DonutChart({
       key: String(serie.key),
       label: seriesLabel(serie, t),
       value: serie.value ?? 0,
-      color: seriesColor(index),
+      color: colorOf ? colorOf(String(serie.key)) : seriesColor(index),
       others: false,
     }));
   const shownSum = shown.reduce((sum, slice) => sum + slice.value, 0);

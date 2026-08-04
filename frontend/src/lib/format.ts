@@ -143,9 +143,12 @@ export function seriesLabel(serie: LabelledSeries, t: (key: string) => string): 
   if (typeof serie.key === "string") {
     if (serie.key.startsWith("/")) return themeLabel(serie.key, serie.label, t);
     if (!serie.label) {
-      // Canonical org-type keys translate; other bare keys display as-is.
+      // Canonical org-type keys and manager-region slugs translate;
+      // other bare keys display as-is.
       const translated = t(`orgType.${serie.key}`);
       if (!translated.startsWith("orgType.")) return translated;
+      const region = t(`regions.${serie.key}`);
+      if (!region.startsWith("regions.")) return region;
     }
   }
   return formatOrgName(serie.label ?? String(serie.key));
