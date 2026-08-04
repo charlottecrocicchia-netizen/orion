@@ -308,9 +308,12 @@ def refresh_organisation_stats() -> None:
             conn.execute(text(f"REFRESH MATERIALIZED VIEW CONCURRENTLY {view}"))
 
 
-# The objects a reader touches first, in the order that pays: the
-# full-text index, then the texts it points into, then the projects.
-HOT_OBJECTS = ("ix_project_texts_search", "project_texts", "projects")
+# ONE object, deliberately: the full-text index. Warming the texts and
+# the projects behind it pulls ~3 GB through a cache that may only hold
+# 1,5 GB, and the tail evicts the head — measured 2026-08-04, the warm-up
+# made things worse. The index is what every search reads first and it
+# fits; the heap pages follow on demand.
+HOT_OBJECTS = ("ix_project_texts_search",)
 
 
 def prewarm_hot_objects() -> int:

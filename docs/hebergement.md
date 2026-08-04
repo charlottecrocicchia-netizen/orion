@@ -70,18 +70,26 @@ lignes, pas le code.
 
 ## 3. Ce qu'on peut en attendre — honnêtement
 
-Mesuré après recalibrage, corpus de 699 798 projets, cache chaud :
+Mesuré après recalibrage, corpus de 699 798 projets, pile chaude et
+index de recherche préchauffé (trois appels consécutifs, le dernier
+retenu) :
 
 | Parcours | Temps constaté | Verdict |
 | --- | --- | --- |
-| Carte du monde / index des pays | **19 ms** | excellent |
-| Fiche organisation | **25 ms** | excellent |
+| Une du site / actualités | **4 ms** | excellent |
+| Carte du monde / index des pays | **6 ms** | excellent |
 | Partenaires d'une organisation | **7 ms** | excellent |
-| Une du site / actualités | **850 ms** | acceptable |
-| Recherche, terme rare (« hydrogen », 7 298 résultats) | **1 à 4 s** | acceptable |
-| Recherche, terme courant (« cancer », 77 378 résultats) | **5 à 6 s** | **pénible** |
-| Filtre pays = États-Unis (626 086 participations) | **6 s** | **pénible** |
-| Premier appel après un démarrage à froid | **15 à 37 s** | inacceptable — atténué par le préchauffage |
+| Fiche organisation | **25 ms** | excellent |
+| Recherche, terme rare (« hydrogen », 7 298 résultats) | **126 ms** | excellent |
+| Filtre pays = France (44 123 participations) | **2,0 s** | acceptable |
+| Recherche, terme courant (« cancer », 77 378 résultats) | **3,5 s** | limite |
+| Filtre pays = États-Unis (626 086 participations) | **4,0 s** | limite |
+| **Le même, à froid** (premier appel après démarrage) | **15 à 31 s** | inacceptable |
+
+**Le préchauffage compte, et sa taille aussi.** Précharger l'index de
+recherche (418 Mo) accélère nettement ; précharger en plus les textes et
+les projets (3 Go au total) **dégrade**, parce que la fin évince le
+début dans 1,5 Go de cache. Le chargeur ne préchauffe donc que l'index.
 
 **Traduction produit.** Tout ce qui repose sur les **agrégats
 matérialisés** — la carte, les pays, les fiches — est rapide et le
@@ -91,11 +99,15 @@ croissance sans broncher (mesuré : +51 % de corpus, la carte passe de
 aucun réglage ne le corrige sur 8 Go de RAM.
 
 Tu disais préférer « un site à 2-3 s assumées qu'un mensonge ». Voici la
-vérité : **on est à 2-3 s sur les recherches ordinaires et à 5-6 s sur
-les termes courants.** Une démonstration client sur « cancer » ou sur
-les États-Unis est aujourd'hui hasardeuse. Une démonstration sur la
-carte, un pays européen, une fiche d'organisation ou un groupe est
-irréprochable.
+vérité : **une fois la pile chaude, on y est** — 126 ms sur une
+recherche ordinaire, 2 s sur un filtre pays européen, 3,5 à 4 s sur les
+deux cas les plus lourds du corpus. La carte, les actualités, les fiches
+d'organisation et les groupes sont **instantanés**.
+
+**Le vrai défaut n'est pas la vitesse, c'est le démarrage.** Le premier
+appel après un `make up` coûte 15 à 31 s le temps que le cache se
+remplisse. En démonstration, ouvre le site cinq minutes avant et fais
+une recherche : ensuite tout tient.
 
 ## 4. Ce qu'il reste raisonnable de charger sur cette machine
 
