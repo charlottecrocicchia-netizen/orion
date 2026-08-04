@@ -58,6 +58,21 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **Groups now surface in the page search, and the benchmark reads
+  like a deck** (founder recette, 2026-08-05). On /organisations,
+  matching groups land FIRST in their own band — badge, weighed
+  consolidated total, « announced » pill for the operation that must
+  never lie — while « airbus leonardo » used to return 35 scattered
+  entities and no group at all; at equal relevance, organisations now
+  tie-break on funding (a 1 Bn€ group is never buried under a street
+  in Madrid). The /compare screen becomes a real analysis surface:
+  overlaid trajectories plus the YEARLY GAP strip for two entities,
+  theme profiles and STRONGEST PROGRAMMES side by side, geography face
+  to face (each group's entity map), and COMMON PARTNERS — who works
+  with every compared entity, the watcher's shortcut, honest when
+  empty. Collecting each view into the dossier rides on the explorer
+  `organisation=`/`compare=g…` extension, queued next.
+
 - **The space pivot begins: batch 1 is validated and LOADED, time
   enters the identity layer** (founder decision, 2026-08-04 — « Orion
   Space Intelligence »). The curation file went live with 399 lines:

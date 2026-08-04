@@ -84,7 +84,7 @@ def group(group_id: int, db: Annotated[Session, Depends(get_db)]) -> dict[str, A
 def compare_organisations(
     db: Annotated[Session, Depends(get_db)],
     ids: Annotated[str, Query(description="tilde-separated organisation ids, 2 to 4")],
-) -> list[dict[str, Any]]:
+) -> dict[str, Any]:
     # Le benchmark accepte les groupes (« g<id> ») comme les
     # organisations — Safran face à Thales EN TANT QUE groupes.
     refs = [
@@ -94,7 +94,7 @@ def compare_organisations(
     ][:4]
     if len(refs) < 1:
         raise HTTPException(status_code=400, detail="ids must hold 1 to 4 entity refs")
-    return aggregates.compare_entries(db, refs)
+    return aggregates.compare_entries(db, refs)  # {entries, common_partners}
 
 
 @router.get("/countries/flows")

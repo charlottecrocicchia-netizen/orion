@@ -33,6 +33,15 @@ def _seed_group(session: Session) -> int:
     funder = session.execute(text("SELECT id FROM funders WHERE code = 'ec'")).scalar_one()
     session.execute(
         text(
+            "INSERT INTO programmes (funder_id, code, name) VALUES (:f, 'ZZPROG', 'ZZ Programme')"
+        ),
+        {"f": funder},
+    )
+    programme = session.execute(
+        text("SELECT id FROM programmes WHERE code = 'ZZPROG'")
+    ).scalar_one()
+    session.execute(
+        text(
             "INSERT INTO groups (name, country_code, lei, source) "
             "VALUES ('ZZGROUPE AERO', 'FR', 'ZZLEI000000000000001', 'gleif')"
         )
@@ -105,10 +114,10 @@ def _seed_group(session: Session) -> int:
     ):
         session.execute(
             text(
-                "INSERT INTO projects (source, source_id, title, funder_id, start_date) "
-                "VALUES ('test-zzg', :sid, :title, :f, :d)"
+                "INSERT INTO projects (source, source_id, title, funder_id, programme_id, "
+                "start_date) VALUES ('test-zzg', :sid, :title, :f, :prog, :d)"
             ),
-            {"sid": sid, "title": title, "f": funder, "d": f"{year}-01-01"},
+            {"sid": sid, "title": title, "f": funder, "prog": programme, "d": f"{year}-01-01"},
         )
         projects[sid] = session.execute(
             text("SELECT id FROM projects WHERE source_id = :sid"), {"sid": sid}
@@ -238,7 +247,8 @@ def test_the_group_enters_the_benchmark(db_session):
         text("SELECT id FROM organisations WHERE name = 'ZZPARTNER UNIV'")
     ).scalar_one()
 
-    entries = compare_entries(db_session, [f"g{group_id}", str(partner_id)])
+    result = compare_entries(db_session, [f"g{group_id}", str(partner_id)])
+    entries = result["entries"]
     assert [e["kind"] for e in entries] == ["group", "organisation"]
     group_entry = entries[0]
     assert group_entry["id"] == f"g{group_id}"
@@ -247,6 +257,13 @@ def test_the_group_enters_the_benchmark(db_session):
     assert group_entry["kpis"]["projects_count"] == 2
     assert group_entry["kpis"]["total_funding_eur"] == pytest.approx(8_000_000)
     assert group_entry["top_partners"][0]["name"] == "ZZPARTNER UNIV"
+    # L'écran d'analyse : programmes forts et géographie sur l'entrée.
+    assert group_entry["top_programmes"][0]["projects"] == 2
+    assert {c["code"] for c in group_entry["countries"]} == {"FR", "DE"}
+    # Les partenaires communs du panel : le groupe et ZZPARTNER UNIV
+    # partagent zzg-2 avec... personne d'autre — panel de 2 sans tiers
+    # commun, la liste est vide et le dit.
+    assert result["common_partners"] == []
 
 
 def _write_curation(tmp_path, rows):
@@ -381,7 +398,7 @@ def test_announced_membership_is_listed_never_consolidated(db_session, tmp_path)
     # Le radar est apaisé (l'homonyme est arbitré par l'annonce)…
     assert hub["coverage"]["unattached_count"] == 0
     # …et le benchmark consolide l'actif seulement.
-    entry = compare_entries(db_session, [f"g{group_id}"])[0]
+    entry = compare_entries(db_session, [f"g{group_id}"])["entries"][0]
     assert entry["kpis"]["total_funding_eur"] == pytest.approx(8_000_000)
     assert entry["entities"] == 2
 
@@ -418,3 +435,69 @@ def test_curation_creates_the_announced_group_head(db_session, tmp_path):
         ).scalar()
         == 0
     )
+
+
+def test_the_organisations_search_surfaces_groups_first(db_session):
+    """Recette 2026-08-04 : la règle du moment Safran vaut PARTOUT — la
+    recherche de la page organisations remonte les groupes en tête, et
+    un nom portant TOUS les mots de la requête gagne (l'opération
+    annoncée sort sur « zzgroupe aero »)."""
+    from orion.search.service import OrganisationFilters, search_organisations
+
+    _seed_group(db_session)
+    db_session.execute(text("SELECT set_config('pg_trgm.similarity_threshold', '0.25', true)"))
+    result = search_organisations(db_session, OrganisationFilters(q="zzgroupe aero"))
+
+    assert result["groups"], "le bloc groupes doit exister"
+    top = result["groups"][0]
+    assert top["name"] == "ZZGROUPE AERO"
+    assert top["entities"] == 2
+    assert top["funding_eur"] == pytest.approx(8_000_000)
+    assert top["announced_entities"] == 0
+
+
+def test_announced_groups_surface_with_their_count(db_session, tmp_path):
+    from orion.ingest.groups.curation import load_curation
+    from orion.ingest.runlog import RunStats
+    from orion.search.service import OrganisationFilters, search_organisations
+
+    _seed_group(db_session)
+    path = _write_curation(
+        tmp_path,
+        [
+            ",ZZ OPERATION COMMUNE,ZZAERO SA,FR,attach,"
+            '0.7,false,,announced,,,"MoU public — opération annoncée",https://example.test',
+        ],
+    )
+    load_curation(db_session, RunStats(), path=path)
+    db_session.execute(text("SELECT set_config('pg_trgm.similarity_threshold', '0.25', true)"))
+    result = search_organisations(db_session, OrganisationFilters(q="zz operation commune"))
+    top = result["groups"][0]
+    assert top["name"] == "ZZ OPERATION COMMUNE"
+    assert top["entities"] == 0
+    assert top["announced_entities"] == 1
+    assert top["funding_eur"] == 0
+
+
+def test_common_partners_find_who_works_with_both(db_session):
+    """L'info du veilleur : qui travaille avec les DEUX entités
+    comparées. MIT co-signe avec le groupe (via SA sur zzg-2… non — via
+    la graine : ZZPARTNER UNIV co-signe zzg-2 avec les deux entités du
+    groupe) ; comparé au groupe ET à ZZAERO SA, le partenaire commun est
+    ZZPARTNER UNIV."""
+    from orion.search.aggregates import compare_entries
+
+    group_id = _seed_group(db_session)
+    sa_id = db_session.execute(
+        text("SELECT id FROM organisations WHERE name = 'ZZAERO GMBH'")
+    ).scalar_one()
+
+    result = compare_entries(db_session, [f"g{group_id}", str(sa_id)])
+    commons = result["common_partners"]
+    names = [c["name"] for c in commons]
+    # ZZPARTNER UNIV partage zzg-2 avec le groupe ET avec ZZAERO GMBH ;
+    # les organisations des entités comparées ne comptent jamais.
+    assert "ZZPARTNER UNIV" in names
+    assert all("ZZAERO" not in n for n in names)
+    entry_refs = set(commons[0]["shared"].keys())
+    assert entry_refs == {f"g{group_id}", str(sa_id)}

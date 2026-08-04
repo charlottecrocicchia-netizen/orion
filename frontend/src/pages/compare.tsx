@@ -8,6 +8,9 @@ import { CollectButton } from "@/components/collect-button";
 import { CountryFlags } from "@/components/country-flags";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+import type { CompareEntry } from "@/lib/api";
+import { WorldMap } from "@/components/world-map";
+import { useCountryName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   formatCompactEur,
@@ -20,6 +23,69 @@ import {
 
 const MAX_ORGS = 4;
 const seriesColor = (index: number) => `var(--color-series-${index + 1})`;
+
+/** L'écart A − B par année, autour d'un axe zéro — le complément de la
+ *  superposition quand on compare exactement deux entités. Chaque barre
+ *  porte sa lecture exacte en infobulle native. */
+function DeltaStrip({ a, b }: { a: CompareEntry; b: CompareEntry }) {
+  const { t, i18n } = useTranslation();
+  const byYear = (entry: CompareEntry) =>
+    new Map(entry.funding_by_year.map((p) => [p.year, p.amount_eur]));
+  const mapA = byYear(a);
+  const mapB = byYear(b);
+  const years = [...new Set([...mapA.keys(), ...mapB.keys()])]
+    .filter((y) => y >= 2005)
+    .sort((x, y) => x - y);
+  if (years.length < 2) return null;
+  const deltas = years.map((year) => (mapA.get(year) ?? 0) - (mapB.get(year) ?? 0));
+  const maxAbs = Math.max(...deltas.map((d) => Math.abs(d)), 1);
+  const W = 640;
+  const H = 96;
+  const zero = H / 2;
+  const step = W / years.length;
+  return (
+    <div className="mt-6">
+      <p className="mb-2 text-[12px] text-muted-foreground">
+        {t("compare.gapLabel", {
+          a: formatOrgName(a.name),
+          b: formatOrgName(b.name),
+        })}
+      </p>
+      <svg
+        viewBox={`0 0 ${W} ${H + 16}`}
+        className="block w-full"
+        role="img"
+        aria-label={t("compare.gapLabel", { a: formatOrgName(a.name), b: formatOrgName(b.name) })}
+      >
+        <line x1="0" y1={zero} x2={W} y2={zero} stroke="var(--color-border)" strokeWidth="1" />
+        {years.map((year, index) => {
+          const delta = deltas[index];
+          const h = (Math.abs(delta) / maxAbs) * (H / 2 - 6);
+          return (
+            <rect
+              key={year}
+              x={index * step + step * 0.22}
+              y={delta >= 0 ? zero - h : zero}
+              width={step * 0.56}
+              height={Math.max(h, 0.5)}
+              rx="1.5"
+              fill={delta >= 0 ? "var(--color-series-1)" : "var(--color-series-2)"}
+              opacity="0.8"
+            >
+              <title>{`${year} : ${delta >= 0 ? "+" : "−"}${formatCompactEur(Math.abs(delta), i18n.language)}`}</title>
+            </rect>
+          );
+        })}
+        <text x="0" y={H + 12} className="fill-muted-foreground" fontSize="10">
+          {years[0]}
+        </text>
+        <text x={W} y={H + 12} textAnchor="end" className="fill-muted-foreground" fontSize="10">
+          {years[years.length - 1]}
+        </text>
+      </svg>
+    </div>
+  );
+}
 
 /** Type-to-add picker — organisations by fuzzy search, GROUPS first
  *  with their badge (the benchmark compares Safran to Thales AS groups,
@@ -113,6 +179,7 @@ function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (ref: s
 
 export function ComparePage() {
   const { t, i18n } = useTranslation();
+  const countryName = useCountryName();
   const [params, setParams] = useSearchParams();
   const ids = (params.get("orgs") ?? "").split("~").filter(Boolean).slice(0, MAX_ORGS);
   const find = params.get("find");
@@ -158,7 +225,8 @@ export function ComparePage() {
     setParams(out, { preventScrollReset: true });
   };
 
-  const entries = data ?? [];
+  const entries = data?.entries ?? [];
+  const commonPartners = data?.common_partners ?? [];
   const series = entries.map((entry) => ({
     key: entry.id,
     label: formatOrgName(entry.name),
@@ -323,6 +391,90 @@ export function ComparePage() {
                 {t("org.fundingByYear")}
               </h2>
               <LinesChart series={series} unit="eur" ariaLabel={t("compare.chartLabel")} />
+              {entries.length === 2 ? <DeltaStrip a={entries[0]} b={entries[1]} /> : null}
+            </section>
+          ) : null}
+
+          {/* Les partenaires COMMUNS — l'info du veilleur : qui
+              travaille avec CHAQUE entité comparée. */}
+          {entries.length >= 2 ? (
+            <section className="mt-12">
+              <h2 className="mb-1 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+                {t("compare.commonTitle")}
+              </h2>
+              <p className="mb-3 max-w-[62ch] text-[13px] text-muted-foreground">
+                {t("compare.commonPhrase")}
+              </p>
+              {commonPartners.length === 0 ? (
+                <p className="text-[13.5px] text-muted-foreground">{t("compare.commonNone")}</p>
+              ) : (
+                <ul className="divide-y divide-border-soft">
+                  {commonPartners.map((partner) => (
+                    <li key={partner.id} className="flex flex-wrap items-baseline gap-x-6 gap-y-1 py-2.5">
+                      <Link
+                        to={`/organisations/${partner.id}`}
+                        className="min-w-0 flex-1 text-[13.5px] font-medium underline-offset-2 hover:underline"
+                      >
+                        {partner.country ? <CountryFlags codes={[partner.country]} /> : null}{" "}
+                        {formatOrgName(partner.name)}
+                      </Link>
+                      <span className="flex items-baseline gap-3">
+                        {entries.map((entry, index) => (
+                          <span key={entry.id} className="tnum flex items-baseline gap-1.5 text-[12.5px] text-muted-foreground">
+                            <span
+                              aria-hidden="true"
+                              className="h-2 w-2 self-center rounded-full"
+                              style={{ background: seriesColor(index) }}
+                            />
+                            {t("search.projectsCount", {
+                              count: partner.shared[String(entry.id)] ?? 0,
+                            })}
+                          </span>
+                        ))}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+
+          {/* La géographie face à face — les cartes d'entités des
+              groupes comparés, même grammaire que leurs fiches. */}
+          {entries.some((entry) => (entry.countries?.length ?? 0) > 0) ? (
+            <section className="mt-12">
+              <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+                {t("compare.geoTitle")}
+              </h2>
+              <div className={cn("grid gap-8", entries.length > 1 && "lg:grid-cols-2")}>
+                {entries
+                  .filter((entry) => (entry.countries?.length ?? 0) > 0)
+                  .map((entry, index) => (
+                    <div key={entry.id}>
+                      <p className="mb-2 flex items-center gap-2 text-[13px] font-medium">
+                        <span
+                          aria-hidden="true"
+                          className="h-2 w-2 rounded-full"
+                          style={{ background: seriesColor(index) }}
+                        />
+                        {formatOrgName(entry.name)}
+                      </p>
+                      <WorldMap
+                        countries={(entry.countries ?? []).map((row) => ({
+                          code: row.code,
+                          name: countryName(row.code),
+                          eu_member: false,
+                          region: row.region,
+                          projects_count: row.entities,
+                          funding_eur: row.funding_eur,
+                        }))}
+                        flows={[]}
+                        legendLabel={t("group.mapLegend")}
+                        countLabel={(count) => t("ck.groupEntities", { count })}
+                      />
+                    </div>
+                  ))}
+              </div>
             </section>
           ) : null}
 
@@ -347,6 +499,23 @@ export function ComparePage() {
                       {formatInt(theme.projects, i18n.language)}
                     </span>
                   </div>
+                ))}
+                <h2 className="mb-3 mt-8 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+                  {t("compare.programmesTitle")}
+                </h2>
+                {entry.top_programmes.map((programme) => (
+                  <Link
+                    key={programme.id}
+                    to={`/explore/programmes/${programme.id}`}
+                    className="group flex items-baseline gap-2 border-b border-border-soft py-2 text-[13px]"
+                  >
+                    <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
+                      {formatOrgName(programme.label)}
+                    </span>
+                    <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
+                      {formatCompactEur(programme.funding_eur, i18n.language)}
+                    </span>
+                  </Link>
                 ))}
                 <h2 className="mb-3 mt-8 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
                   {t("org.partners")}

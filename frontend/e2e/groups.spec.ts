@@ -162,4 +162,33 @@ test("le benchmark compare un groupe à une organisation, badge au revers", asyn
   await expect(orgOption).toBeVisible({ timeout: 10_000 });
   await orgOption.click();
   await expect(table.locator("th").filter({ has: page.getByRole("link") })).toHaveCount(2);
+
+  // L'écran d'analyse (recette 2026-08-05) : l'écart par année à deux
+  // entités, les programmes forts par colonne, les partenaires communs
+  // (honnêtement vides ici), la géographie du groupe.
+  await expect(page.getByText(/Écart par année/)).toBeVisible();
+  await expect(page.getByText("Programmes forts").first()).toBeVisible();
+  await expect(page.getByText("HORIZON-CL5").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Partenaires communs" })).toBeVisible();
+  await expect(page.getByText("Aucun partenaire commun dans le corpus.")).toBeVisible();
+  const geo = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Géographie face à face" }),
+  });
+  await expect(geo).toBeVisible();
+  await expect(geo.locator("path[data-code='FR']")).toHaveCount(1, { timeout: 10_000 });
+});
+
+test("la recherche des pages remonte les groupes en tête, badge au revers", async ({ page }) => {
+  // Recette 2026-08-05 : « airbus leonardo » sur /organisations rendait
+  // 35 entités éparses et AUCUN groupe — la règle du moment Safran vaut
+  // partout.
+  await page.goto("/organisations?q=aerostellar");
+  const band = page.locator("article").filter({ has: page.getByText("Groupe", { exact: true }) });
+  await expect(band.first()).toBeVisible({ timeout: 10_000 });
+  await expect(band.first()).toContainText(/aerostellar group/i);
+  await expect(band.first()).toContainText("2 entités légales");
+  await expect(band.first()).toContainText("€8M");
+  // Le bloc mène à la fiche groupe.
+  await band.first().getByRole("link").click();
+  await expect(page).toHaveURL(/\/groups\/\d+/);
 });

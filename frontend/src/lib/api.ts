@@ -53,6 +53,16 @@ export interface OrganisationHit {
 
 export interface OrganisationSearchResponse {
   total: number;
+  /** Les groupes qui répondent à la requête — en tête, jamais enterrés
+   *  (recette 2026-08-04). L'opération annoncée remonte avec son compte. */
+  groups: {
+    id: number;
+    name: string;
+    country: string | null;
+    entities: number;
+    announced_entities: number;
+    funding_eur: number;
+  }[];
   results: OrganisationHit[];
   facets: {
     countries: { code: string; count: number }[];
@@ -134,6 +144,28 @@ export interface CompareEntry {
   funding_by_year: { year: number; amount_eur: number }[];
   top_themes: { key: string; label: string | null; projects: number }[];
   top_partners: OrganisationPartner[];
+  /** Les programmes où l'entité est forte (écran d'analyse, 2026-08-05). */
+  top_programmes: {
+    id: number;
+    label: string;
+    funder: string | null;
+    projects: number;
+    funding_eur: number;
+  }[];
+  /** Géographie de l'entrée — présent pour les groupes seulement. */
+  countries?: { code: string; region: string | null; entities: number; funding_eur: number }[];
+}
+
+export interface CompareResponse {
+  entries: CompareEntry[];
+  /** Qui travaille avec CHAQUE entité comparée — l'info du veilleur. */
+  common_partners: {
+    id: number;
+    name: string;
+    country: string | null;
+    org_type: string | null;
+    shared: Record<string, number>;
+  }[];
 }
 
 export interface SuggestResponse {
@@ -194,7 +226,7 @@ export const api = {
     get<PartnerCountry[]>(`/api/organisations/${id}/partner-countries`),
   countryFlows: () => get<CountryFlow[]>("/api/countries/flows?limit=200"),
   compareOrganisations: (ids: string[]) =>
-    get<CompareEntry[]>(`/api/compare/organisations?ids=${ids.join("~")}`),
+    get<CompareResponse>(`/api/compare/organisations?ids=${ids.join("~")}`),
   stats: () => get<Stats>("/api/stats"),
   news: () => get<NewsItem[]>("/api/news"),
   searchProjects: (params: URLSearchParams) =>

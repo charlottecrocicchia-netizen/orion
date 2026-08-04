@@ -547,6 +547,47 @@ export function OrganisationsSearchPage() {
         </div>
       ) : null}
 
+      {/* Les GROUPES en tête (recette 2026-08-04) : la règle du moment
+          Safran vaut partout — badge, pastille « annoncé », jamais
+          enterrés sous les homonymes. */}
+      {!isPending && q && (data?.groups?.length ?? 0) > 0 ? (
+        <div className="mb-1 mt-3 space-y-2">
+          {data?.groups.map((group) => (
+            <article key={group.id} className="rounded-2xl border border-accent/30 bg-accent-soft/30 p-5">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <div className="min-w-0 flex-1">
+                  <span className="mr-2.5 rounded-full border border-accent/50 bg-accent-soft px-2 py-0.5 align-middle text-[10.5px] font-semibold uppercase tracking-[0.06em] text-accent">
+                    {t("ck.groupBadge")}
+                  </span>
+                  <Link
+                    to={`/groups/${group.id}`}
+                    className="display-tight align-middle text-[17px] font-semibold leading-snug underline-offset-2 hover:underline"
+                  >
+                    {group.country ? `${countryFlag(group.country)} ` : ""}
+                    {formatOrgName(group.name)}
+                  </Link>
+                  <p className="mt-1 text-[12.5px] text-muted-foreground">
+                    {group.entities > 0
+                      ? t("ck.groupEntities", { count: group.entities })
+                      : null}
+                    {group.announced_entities > 0 ? (
+                      <span className="ml-1.5 rounded-full border border-dashed px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.06em]">
+                        {t("search.groupAnnounced", { count: group.announced_entities })}
+                      </span>
+                    ) : null}
+                  </p>
+                </div>
+                <span className="display-tight tnum text-[19px] font-semibold">
+                  {group.funding_eur > 0
+                    ? formatCompactEur(group.funding_eur, i18n.language)
+                    : "—"}
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mt-2">
         {isPending ? (
           Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="mt-3 h-14 w-full" />)

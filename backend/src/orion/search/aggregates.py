@@ -480,6 +480,7 @@ def compare_organisations(session: Session, ids: list[int]) -> list[dict]:
                     "funding_by_year": series.get(row.id, []),
                     "top_themes": top_themes.get(row.id, []),
                     "top_partners": organisation_partners(session, row.id, limit=5),
+                    "top_programmes": _entry_top_programmes(session, [row.id]),
                 }
             )
         return out
@@ -920,14 +921,17 @@ def group_compare_entry(session: Session, group_id: int) -> dict[str, Any] | Non
                 for key, label, projects in themes
             ],
             "top_partners": group_partners(session, group_id, limit=5),
+            "top_programmes": _entry_top_programmes(session, member_ids),
+            "countries": _entry_countries(session, member_ids),
         }
 
     return _cached_bounded(session, f"gcompare:{group_id}", build, prefix="gcompare:", cap=64)
 
 
-def compare_entries(session: Session, refs: list[str]) -> list[dict]:
+def compare_entries(session: Session, refs: list[str]) -> dict[str, Any]:
     """Le benchmark mixte : des organisations (id numérique) et des
-    groupes (« g<id> ») côte à côte, dans l'ordre demandé."""
+    groupes (« g<id> ») côte à côte, dans l'ordre demandé — avec les
+    partenaires communs du panel (recette 2026-08-04, écran d'analyse)."""
     refs = list(dict.fromkeys(refs))[:COMPARE_MAX]
     org_ids = [int(r) for r in refs if r.isdigit()]
     org_entries = {
@@ -944,4 +948,143 @@ def compare_entries(session: Session, refs: list[str]) -> list[dict]:
             entry = group_compare_entry(session, int(ref[1:]))
             if entry:
                 out.append(entry)
+    kept = [str(entry["id"]) for entry in out]
+    return {
+        "entries": out,
+        "common_partners": compare_common_partners(session, kept) if len(kept) >= 2 else [],
+    }
+
+
+def _entry_top_programmes(session: Session, oids: list[int], limit: int = 5) -> list[dict]:
+    """Les programmes où une entité de benchmark est forte — libellé du
+    programme tel qu'enregistré, bailleur au revers, projets DISTINCTS."""
+    if not oids:
+        return []
+    rows = session.execute(
+        text("""
+        SELECT pr.id, coalesce(pr.name, pr.code) AS label, f.code AS funder,
+               count(DISTINCT pa.project_id) AS projects,
+               coalesce(sum(pa.amount_eur), 0) AS funding
+        FROM participations pa
+        JOIN projects p ON p.id = pa.project_id
+        JOIN programmes pr ON pr.id = p.programme_id
+        LEFT JOIN funders f ON f.id = pr.funder_id
+        WHERE pa.organisation_id = ANY(:oids)
+        GROUP BY pr.id, pr.name, pr.code, f.code
+        ORDER BY funding DESC
+        LIMIT :limit
+        """),
+        {"oids": oids, "limit": limit},
+    ).all()
+    return [
+        {
+            "id": r.id,
+            "label": r.label,
+            "funder": r.funder,
+            "projects": r.projects,
+            "funding_eur": float(r.funding or 0),
+        }
+        for r in rows
+    ]
+
+
+def _entry_countries(session: Session, oids: list[int]) -> list[dict]:
+    """La géographie d'une entité de benchmark : les pays de ses
+    organisations, teinte de région portée par le référentiel."""
+    if not oids:
+        return []
+    rows = session.execute(
+        text("""
+        SELECT o.country_code AS code, max(c.region) AS region,
+               count(DISTINCT o.id) AS entities,
+               coalesce(sum(pa.amount_eur), 0) AS funding
+        FROM organisations o
+        LEFT JOIN countries c ON c.code = o.country_code
+        LEFT JOIN participations pa ON pa.organisation_id = o.id
+        WHERE o.id = ANY(:oids) AND o.country_code IS NOT NULL
+        GROUP BY o.country_code
+        ORDER BY funding DESC
+        """),
+        {"oids": oids},
+    ).all()
+    return [
+        {
+            "code": r.code,
+            "region": r.region,
+            "entities": r.entities,
+            "funding_eur": float(r.funding or 0),
+        }
+        for r in rows
+    ]
+
+
+def _refs_member_ids(session: Session, refs: list[str]) -> dict[str, list[int]]:
+    out: dict[str, list[int]] = {}
+    for ref in refs:
+        if ref.isdigit():
+            out[ref] = [int(ref)]
+        elif ref.startswith("g") and ref[1:].isdigit():
+            out[ref] = _group_member_ids(session, int(ref[1:]))
     return out
+
+
+def compare_common_partners(session: Session, refs: list[str], limit: int = 10) -> list[dict]:
+    """Les partenaires COMMUNS du benchmark — qui travaille avec CHAQUE
+    entité comparée (l'info du veilleur). Les organisations des entités
+    elles-mêmes sont exclues ; le partage se compte en projets DISTINCTS
+    par entité comparée."""
+
+    def build() -> list[dict[str, Any]]:
+        members = _refs_member_ids(session, refs)
+        if len(members) < 2:
+            return []
+        own = sorted({oid for oids in members.values() for oid in oids})
+        shared: dict[str, dict[int, int]] = {}
+        for ref, oids in members.items():
+            if not oids:
+                return []
+            rows = session.execute(
+                text("""
+                WITH entry_projects AS (
+                    SELECT DISTINCT pa.project_id FROM participations pa
+                    WHERE pa.organisation_id = ANY(:oids)
+                )
+                SELECT pb.organisation_id AS id,
+                       count(DISTINCT pb.project_id) AS shared
+                FROM entry_projects ep
+                JOIN participations pb ON pb.project_id = ep.project_id
+                WHERE pb.organisation_id <> ALL(:own)
+                GROUP BY pb.organisation_id
+                """),
+                {"oids": oids, "own": own},
+            ).all()
+            shared[ref] = {r.id: r.shared for r in rows}
+
+        common_ids = set.intersection(*(set(d) for d in shared.values()))
+        if not common_ids:
+            return []
+        ranked = sorted(common_ids, key=lambda oid: -sum(shared[ref][oid] for ref in refs))[:limit]
+        details = {
+            r.id: r
+            for r in session.execute(
+                text(
+                    "SELECT id, name, country_code, org_type FROM organisations "
+                    "WHERE id = ANY(:ids)"
+                ),
+                {"ids": ranked},
+            )
+        }
+        return [
+            {
+                "id": oid,
+                "name": details[oid].name,
+                "country": details[oid].country_code,
+                "org_type": details[oid].org_type,
+                "shared": {ref: shared[ref][oid] for ref in refs},
+            }
+            for oid in ranked
+            if oid in details
+        ]
+
+    key = "gcommon:" + "~".join(refs)
+    return _cached_bounded(session, key, build, prefix="gcommon:", cap=64)

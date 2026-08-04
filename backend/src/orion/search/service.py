@@ -561,6 +561,57 @@ def _organisation_where(f: OrganisationFilters, params: dict[str, Any]) -> tuple
     return where, rank
 
 
+def _matching_groups(session: Session, q: str) -> list[dict[str, Any]]:
+    """Les groupes qui répondent à la requête de la page organisations —
+    en tête, jamais enterrés : un nom qui porte TOUS les mots de la
+    requête gagne (« airbus leonardo » trouve l'opération annoncée),
+    puis la similarité, puis le poids consolidé. L'annoncé remonte avec
+    son compte d'entités annoncées ; le gel des seuils trigram est déjà
+    posé par l'appelant."""
+    tokens = [t for t in q.split() if len(t) >= 2][:6]
+    if not tokens:
+        return []
+    rows = session.execute(
+        text("""
+        WITH toks AS (SELECT unnest(CAST(:g_tokens AS text[])) AS tok),
+        cand AS (
+            SELECT g.id, g.name, g.country_code,
+                   (SELECT count(*) FROM toks
+                    WHERE g.name ILIKE '%' || tok || '%') AS hits,
+                   similarity(g.name, :g_qraw) AS sim
+            FROM groups g
+            WHERE g.name % :g_qraw
+               OR NOT EXISTS (SELECT 1 FROM toks
+                              WHERE g.name NOT ILIKE '%' || tok || '%')
+        )
+        SELECT c.id, c.name, c.country_code, c.hits, c.sim,
+               (SELECT count(*) FROM entity_group_map m
+                WHERE m.group_id = c.id AND m.status = 'active') AS entities,
+               (SELECT count(*) FROM entity_group_map m
+                WHERE m.group_id = c.id AND m.status = 'announced') AS announced,
+               coalesce((SELECT sum(pa.amount_eur)
+                         FROM entity_group_map m
+                         JOIN participations pa ON pa.organisation_id = m.organisation_id
+                         WHERE m.group_id = c.id AND m.status = 'active'), 0) AS funding
+        FROM cand c
+        ORDER BY c.hits DESC, c.sim DESC, funding DESC, c.id
+        LIMIT 3
+        """),
+        {"g_tokens": tokens, "g_qraw": q},
+    ).all()
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "country": r.country_code,
+            "entities": r.entities,
+            "announced_entities": r.announced,
+            "funding_eur": float(r.funding or 0),
+        }
+        for r in rows
+    ]
+
+
 def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, Any]:
     size = min(max(f.size, 1), PAGE_SIZE_MAX)
     offset = (max(f.page, 1) - 1) * size
@@ -593,8 +644,9 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
         page_rows = session.execute(
             text(f"""
             SELECT o.id, {rank} AS rank FROM organisations o
+            LEFT JOIN organisation_stats os ON os.organisation_id = o.id
             {where}
-            ORDER BY rank DESC, o.id
+            ORDER BY rank DESC, os.total_funding_eur DESC NULLS LAST, o.id
             LIMIT :cap
             """),
             params,
@@ -669,6 +721,7 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
 
     return {
         "total": total,
+        "groups": _matching_groups(session, f.q) if f.q else [],
         "results": [
             {
                 "id": r["id"],
