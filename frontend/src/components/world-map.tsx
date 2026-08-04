@@ -37,6 +37,7 @@ export function WorldMap({
   countries,
   flows,
   legendLabel,
+  countLabel,
   selected = null,
   onSelect,
   scope = "world",
@@ -45,6 +46,9 @@ export function WorldMap({
   flows: CountryFlow[];
   /** Override the legend label (the Explorer maps its current euro metric). */
   legendLabel?: string;
+  /** Override the tooltip's count wording — the group file counts legal
+   *  entities, not projects, and the tooltip must not lie. */
+  countLabel?: (count: number) => string;
   /** The currently selected country (select-first interaction). */
   selected?: string | null;
   /** First activation selects; a second activation of the selected
@@ -137,7 +141,11 @@ export function WorldMap({
         ? [
             entry.name,
             entry.projects_count > 0
-              ? `${formatCompactEur(entry.funding_eur, i18n.language)} · ${t("search.projectsCount", { count: entry.projects_count })}`
+              ? `${formatCompactEur(entry.funding_eur, i18n.language)} · ${
+                  countLabel
+                    ? countLabel(entry.projects_count)
+                    : t("search.projectsCount", { count: entry.projects_count })
+                }`
               : formatCompactEur(entry.funding_eur, i18n.language),
           ]
         : [code],

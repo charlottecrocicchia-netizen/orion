@@ -9,6 +9,7 @@ import { BAR_CAPS, buildDestinations, PALETTE_CAPS } from "../lib/destinations";
 const t = i18n.t.bind(i18n);
 
 const SUGGEST = {
+  groups: [{ id: 1, name: "SAFRAN", country: "FR", entities: 3 }],
   organisations: [
     { id: 7, name: "SAFRAN SA", country: "FR" },
     { id: 8, name: "SAFRAN ELECTRONICS", country: "FR" },
@@ -39,6 +40,14 @@ test("an organisation name yields its file as a destination", () => {
   const org = out.find((destination) => destination.group === "organisations");
   expect(org?.label).toMatch(/Safran/i);
   expect(org?.to).toBe("/organisations/7");
+});
+
+test("le groupe ressort EN TÊTE, avant ses organisations homonymes", () => {
+  // Recette 2026-08-04 : « je tape Safran, le groupe ressort en tête ».
+  const out = buildDestinations({ ...base, query: "safran", caps: PALETTE_CAPS });
+  expect(out[0]?.group).toBe("groups");
+  expect(out[0]?.label).toBe("Safran");
+  expect(out[0]?.to).toBe("/groups/1");
 });
 
 test("caps bound each group — the inline bars stay tight", () => {

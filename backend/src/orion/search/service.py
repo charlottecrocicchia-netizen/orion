@@ -700,7 +700,7 @@ def suggest(session: Session, q: str) -> dict[str, Any]:
     vocabularies matched client-side. Bounded cache per normalized query."""
     q = q.strip()
     if len(q) < 2:
-        return {"organisations": [], "projects": []}
+        return {"groups": [], "organisations": [], "projects": []}
 
     def build() -> dict[str, Any]:
         session.execute(text("SELECT set_config('pg_trgm.similarity_threshold', '0.25', true)"))
@@ -709,6 +709,21 @@ def suggest(session: Session, q: str) -> dict[str, Any]:
             "qraw": q,
             "qprefix": f"{q}%",
         }
+        # Les groupes d'abord (recette 2026-08-04 : « Safran ressort en
+        # tête avec un badge ») — la couche identité devient une porte.
+        groups = session.execute(
+            text("""
+            SELECT g.id, g.name, g.country_code,
+                   (SELECT count(*) FROM entity_group_map m WHERE m.group_id = g.id) AS entities
+            FROM groups g
+            WHERE g.name ILIKE :qprefix OR g.name % :qraw
+            ORDER BY GREATEST(similarity(g.name, :qraw),
+                              CASE WHEN g.name ILIKE :qprefix THEN 0.9 ELSE 0 END) DESC,
+              entities DESC, g.id
+            LIMIT 3
+            """),
+            params,
+        ).all()
         organisations = session.execute(
             text("""
             SELECT o.id, o.name, o.country_code
@@ -734,6 +749,7 @@ def suggest(session: Session, q: str) -> dict[str, Any]:
             params,
         ).all()
         return {
+            "groups": [{"id": i, "name": n, "country": c, "entities": e} for i, n, c, e in groups],
             "organisations": [{"id": i, "name": n, "country": c} for i, n, c in organisations],
             "projects": [{"id": i, "acronym": a, "title": t} for i, a, t in projects],
         }

@@ -118,13 +118,15 @@ export function CommandK({ open, onOpenChange }: CommandKProps) {
   };
 
   const groupLabel = (group: Group) =>
-    group === "projects"
-      ? t("ck.groupProjects")
-      : group === "organisations"
-        ? t("ck.groupOrganisations")
-        : group === "themes"
-          ? t("ck.groupThemes")
-          : t("ck.groupCountries");
+    group === "groups"
+      ? t("ck.groupGroups")
+      : group === "projects"
+        ? t("ck.groupProjects")
+        : group === "organisations"
+          ? t("ck.groupOrganisations")
+          : group === "themes"
+            ? t("ck.groupThemes")
+            : t("ck.groupCountries");
 
   return (
     <div
@@ -193,6 +195,11 @@ export function CommandK({ open, onOpenChange }: CommandKProps) {
                   >
                     {option.flag ? <span aria-hidden="true">{option.flag}</span> : null}
                     <span className="min-w-0 leading-snug">{option.label}</span>
+                    {option.group === "groups" ? (
+                      <span className="rounded-full border border-accent/50 bg-accent-soft px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-accent">
+                        {t("ck.groupBadge")}
+                      </span>
+                    ) : null}
                     {option.sub ? (
                       <span className="min-w-0 flex-1 text-[12px] leading-snug text-muted-foreground">
                         {option.sub}

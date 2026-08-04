@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from orion.core.db import get_db
-from orion.search import aggregates, explore
+from orion.search import aggregates, explore, groups_hub
 
 router = APIRouter()
 
@@ -61,6 +61,16 @@ def countries(db: Annotated[Session, Depends(get_db)]) -> list[dict[str, Any]]:
 def regions(db: Annotated[Session, Depends(get_db)]) -> list[dict[str, Any]]:
     """The five manager regions, aggregated from the countries' view."""
     return aggregates.regions_index(db)
+
+
+@router.get("/groups/{group_id}")
+def group(group_id: int, db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
+    """A corporate group's consolidated file — the identity layer read
+    as a product surface (never a merge of the entities)."""
+    hub = groups_hub.group_hub(db, group_id)
+    if hub is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+    return hub
 
 
 @router.get("/compare/organisations")

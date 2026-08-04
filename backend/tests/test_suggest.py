@@ -58,4 +58,4 @@ def test_suggest_matches_projects_by_acronym_prefix(db_session, seeded):
 
 
 def test_suggest_needs_two_characters(db_session):
-    assert suggest(db_session, "a") == {"organisations": [], "projects": []}
+    assert suggest(db_session, "a") == {"groups": [], "organisations": [], "projects": []}

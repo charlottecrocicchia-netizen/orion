@@ -87,12 +87,12 @@ test("la fiche organisation et la fiche pays se collectent au dossier", async ({
   await orgOption.click();
   await expect(page).toHaveURL(/\/organisations\/\d+/);
   await page.getByRole("button", { name: /Ajouter au dossier/ }).click();
-  await expect(page.getByRole("button", { name: /Ajouté/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Au dossier/ })).toBeVisible();
 
   // The country file offers the same collect.
   await page.goto("/explore/countries/FR");
   await page.getByRole("button", { name: /Ajouter au dossier/ }).click();
-  await expect(page.getByRole("button", { name: /Ajouté/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Au dossier/ })).toBeVisible();
 
   // Both views landed as living blocks of the dossier.
   await page.goto("/dossier");

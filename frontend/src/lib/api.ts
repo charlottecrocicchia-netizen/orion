@@ -133,8 +133,32 @@ export interface CompareEntry {
 }
 
 export interface SuggestResponse {
+  groups: { id: number; name: string; country: string | null; entities: number }[];
   organisations: { id: number; name: string; country: string | null }[];
   projects: { id: number; acronym: string | null; title: string }[];
+}
+
+export interface GroupHub {
+  id: number;
+  name: string;
+  country: string | null;
+  lei: string | null;
+  totals: { entities: number; projects: number; funding_eur: number; countries: number };
+  trajectory: { year: number; funding_eur: number }[];
+  themes: { key: string; label: string | null; projects: number }[];
+  entities: {
+    id: number;
+    name: string;
+    country: string | null;
+    region: string | null;
+    method: string;
+    confidence: number;
+    is_jv: boolean;
+    projects: number;
+    funding_eur: number;
+    share_pct: number;
+  }[];
+  countries: { code: string; region: string | null; entities: number; funding_eur: number }[];
 }
 
 export const api = {
@@ -160,6 +184,7 @@ export const api = {
     get<PortfolioResponse>(`/api/organisations/${id}/projects?${params}`),
   countries: () => get<CountryIndexEntry[]>("/api/countries"),
   regions: () => get<RegionSummary[]>("/api/regions"),
+  group: (id: string) => get<GroupHub>(`/api/groups/${id}`),
   country: (code: string) => get<CountryHub>(`/api/countries/${code}`),
   programmes: () => get<ProgrammeIndexEntry[]>("/api/programmes"),
   programme: (id: string) => get<ProgrammeHub>(`/api/programmes/${id}`),

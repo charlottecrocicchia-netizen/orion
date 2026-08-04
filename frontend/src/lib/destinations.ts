@@ -17,7 +17,7 @@ import { countryFlag, formatOrgName, themeLabel } from "@/lib/format";
  *  local multi-locale vocabularies for themes and countries), so typing
  *  anywhere finds the same places. */
 
-export type DestinationGroup = "projects" | "organisations" | "themes" | "countries";
+export type DestinationGroup = "groups" | "projects" | "organisations" | "themes" | "countries";
 
 export interface Destination {
   id: string;
@@ -29,6 +29,7 @@ export interface Destination {
 }
 
 export interface DestinationCaps {
+  groups: number;
   projects: number;
   organisations: number;
   themes: number;
@@ -38,13 +39,14 @@ export interface DestinationCaps {
 /** Every surface states how much room it has; the palette is generous,
  *  the inline bars stay tight. */
 export const PALETTE_CAPS: DestinationCaps = {
+  groups: 3,
   projects: 99,
   organisations: 99,
   themes: 3,
   countries: 3,
 };
-export const BAR_CAPS: DestinationCaps = { projects: 1, organisations: 2, themes: 1, countries: 1 };
-export const HOME_CAPS: DestinationCaps = { projects: 2, organisations: 3, themes: 2, countries: 2 };
+export const BAR_CAPS: DestinationCaps = { groups: 1, projects: 1, organisations: 2, themes: 1, countries: 1 };
+export const HOME_CAPS: DestinationCaps = { groups: 2, projects: 2, organisations: 3, themes: 2, countries: 2 };
 
 interface BuildInput {
   query: string;
@@ -58,12 +60,26 @@ interface BuildInput {
 }
 
 /** Pure — all the matching in one testable place. Group order is the
- *  palette's: projects, organisations, themes, countries. */
+ *  palette's: groups first (recette 2026-08-04), then projects,
+ *  organisations, themes, countries. */
 export function buildDestinations(input: BuildInput): Destination[] {
   const { query, idPrefix, caps, suggest, themeSeries, countries, t, language } = input;
   const needle = stripAccents(query.trim());
   if (needle.length < 2) return [];
   const out: Destination[] = [];
+
+  // Les GROUPES d'abord (recette 2026-08-04 : « Safran ressort en tête
+  // avec un badge distinctif ») — la couche identité est une porte.
+  for (const group of (suggest?.groups ?? []).slice(0, caps.groups)) {
+    out.push({
+      id: `${idPrefix}-g-${group.id}`,
+      group: "groups",
+      label: formatOrgName(group.name),
+      sub: t("ck.groupEntities", { count: group.entities }),
+      flag: group.country ? countryFlag(group.country) : undefined,
+      to: `/groups/${group.id}`,
+    });
+  }
 
   for (const project of (suggest?.projects ?? []).slice(0, caps.projects)) {
     out.push({

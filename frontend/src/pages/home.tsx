@@ -328,6 +328,7 @@ export function HomePage() {
                     id: "home-go-full",
                     label: t("ck.fullSearch", { q: ask.trim() }),
                     flag: undefined as string | undefined,
+                    badge: undefined as string | undefined,
                     type: null as string | null,
                     action: () => go(ask),
                   },
@@ -335,6 +336,9 @@ export function HomePage() {
                     id: destination.id,
                     label: destination.label,
                     flag: destination.flag,
+                    // Le badge distinctif des groupes (recette 2026-08-04).
+                    badge:
+                      destination.group === "groups" ? t("ck.groupBadge") : undefined,
                     type: askType(destination.group),
                     action: () => navigate(destination.to),
                   })),
@@ -356,6 +360,11 @@ export function HomePage() {
                   >
                     {option.flag ? <span aria-hidden="true">{option.flag}</span> : null}
                     <span className="min-w-0 leading-snug">{option.label}</span>
+                    {option.badge ? (
+                      <span className="self-center whitespace-nowrap rounded-full border border-accent/50 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-accent">
+                        {option.badge}
+                      </span>
+                    ) : null}
                     {option.type ? (
                       <span className="ml-auto whitespace-nowrap font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
                         → {option.type}

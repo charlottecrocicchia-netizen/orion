@@ -39,6 +39,8 @@ interface Suggestion {
   label: string;
   type: string;
   flag?: string;
+  /** Accent chip beside the label — the groups' distinctive badge. */
+  badge?: string;
   go?: boolean;
   apply: () => void;
 }
@@ -268,13 +270,15 @@ export function SearchComposer({
     idPrefix: "sc-go",
   });
   const goType = (group: DestinationGroup) =>
-    group === "projects"
-      ? t("search.composer.typeGoProject")
-      : group === "organisations"
-        ? t("search.composer.typeGoOrg")
-        : group === "themes"
-          ? t("search.composer.typeGoTheme")
-          : t("search.composer.typeGoCountry");
+    group === "groups"
+      ? t("search.composer.typeGoGroup")
+      : group === "projects"
+        ? t("search.composer.typeGoProject")
+        : group === "organisations"
+          ? t("search.composer.typeGoOrg")
+          : group === "themes"
+            ? t("search.composer.typeGoTheme")
+            : t("search.composer.typeGoCountry");
   const all: Suggestion[] = useMemo(
     () => [
       ...suggestions,
@@ -283,6 +287,9 @@ export function SearchComposer({
         label: destination.label,
         type: goType(destination.group),
         flag: destination.flag,
+        // Le badge distinctif des groupes (recette 2026-08-04) — la
+        // couche identité se voit, même dans les barres.
+        badge: destination.group === "groups" ? t("ck.groupBadge") : undefined,
         go: true,
         apply: () => navigate(destination.to),
       })),
@@ -407,6 +414,11 @@ export function SearchComposer({
               >
                 {suggestion.flag ? <span aria-hidden="true">{suggestion.flag}</span> : null}
                 <span className="min-w-0 leading-snug">{suggestion.label}</span>
+                {suggestion.badge ? (
+                  <span className="self-center whitespace-nowrap rounded-full border border-accent/50 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-accent">
+                    {suggestion.badge}
+                  </span>
+                ) : null}
                 <span className="ml-auto whitespace-nowrap font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted-foreground">
                   {suggestion.go ? `→ ${suggestion.type}` : suggestion.type}
                 </span>

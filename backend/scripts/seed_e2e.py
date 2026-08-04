@@ -19,7 +19,9 @@ from orion.ingest.dedup.merge import refresh_normalized_names
 from orion.ingest.reference import seed_reference
 from orion.ingest.runlog import RunStats
 from orion.models import (
+    EntityGroupMap,
     Funder,
+    Group,
     IngestionRun,
     Organisation,
     Participation,
@@ -62,6 +64,11 @@ ORGS = {
     "mit": ("MASSACHUSETTS INSTITUTE OF TECHNOLOGY", "US", "HES"),
     "technion": ("TECHNION ISRAEL INSTITUTE OF TECHNOLOGY", "IL", "HES"),
     "um_malta": ("UNIVERSITA TA MALTA", "MT", "HES"),
+    # La paire AEROSTELLAR (fictive) porte la fiche groupe : deux entités
+    # légales sous un même groupe, qui co-signent un projet — le consolidé
+    # doit le compter UNE fois (la règle DISTINCT se teste en e2e).
+    "aero_sa": ("AEROSTELLAR SA", "FR", "PRC"),
+    "aero_gmbh": ("AEROSTELLAR AVIONICS GMBH", "DE", "PRC"),
 }
 
 # (source_id, acronym, year, programme, m€ shares by org — first is coordinator,
@@ -185,6 +192,16 @@ PROJECTS = [
         [("cea", 2.4), ("fraunhofer", 1.9)],
         {"en": ("Fusion materials exchange", "Plasma-facing components under neutron load.")},
     ),
+    # Co-signé par les deux entités du groupe AEROSTELLAR : la fiche
+    # groupe doit dire 1 projet, 8 M€ — jamais 2 projets.
+    (
+        "e2e-skyforge",
+        "SKYFORGE",
+        2023,
+        "he-child",
+        [("aero_sa", 5.0), ("aero_gmbh", 3.0)],
+        {"en": ("Hybrid-electric regional aircraft", "Propulsion chain for regional aviation.")},
+    ),
 ]
 
 
@@ -220,6 +237,28 @@ def main() -> None:
             session.add(organisation)
             organisations[key] = organisation
         session.flush()
+
+        # Le groupe AEROSTELLAR — la couche identité en miniature, pour
+        # que la fiche groupe se teste de bout en bout (suggest → fiche).
+        aero_group = Group(
+            name="AEROSTELLAR GROUP",
+            country_code="FR",
+            lei="E2ELEI0000000000TEST",
+            source="gleif",
+        )
+        session.add(aero_group)
+        session.flush()
+        for org_key in ("aero_sa", "aero_gmbh"):
+            session.add(
+                EntityGroupMap(
+                    organisation_id=organisations[org_key].id,
+                    group_id=aero_group.id,
+                    method="gleif",
+                    confidence=0.9,
+                    source="gleif",
+                    is_jv=False,
+                )
+            )
 
         for source_id, acronym, year, programme_key, shares, texts in PROJECTS:
             programme = programmes[programme_key]

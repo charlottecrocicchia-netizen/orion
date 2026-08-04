@@ -15,6 +15,7 @@ import { ExploreThemesPage } from "@/pages/explore-themes";
 import { HomePage } from "@/pages/home";
 import { NotFoundPage } from "@/pages/not-found";
 import { OrganisationHubPage } from "@/pages/organisation-hub";
+import { GroupHubPage } from "@/pages/group-hub";
 import { ProgrammeHubPage } from "@/pages/programme-hub";
 import { ComparePage } from "@/pages/compare";
 import { DossierPage } from "@/pages/dossier";
@@ -48,6 +49,7 @@ export function AppRoutes() {
           <Route path="/projects/:id" element={<ProjectDetailPage />} />
           <Route path="/organisations" element={<OrganisationsSearchPage />} />
           <Route path="/organisations/:id" element={<OrganisationHubPage />} />
+          <Route path="/groups/:id" element={<GroupHubPage />} />
           <Route path="/compare" element={<ComparePage />} />
           <Route path="/dossier" element={<DossierPage />} />
           <Route path="/analyses" element={<AnalysesPage />} />
