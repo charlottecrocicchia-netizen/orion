@@ -32,6 +32,7 @@ function requestPhrase(
     state.by !== "year" && state.split ? t("explorer.overTime") : null,
     state.q ? `« ${state.q} »` : null,
     state.country ? state.country : null,
+    state.organisation ? t("explorer.entityScoped") : null,
     state.from != null || state.to != null ? `${state.from ?? ""} → ${state.to ?? ""}` : null,
   ]
     .filter(Boolean)

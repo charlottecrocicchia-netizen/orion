@@ -27,16 +27,20 @@ test("compare two organisations from the hub CTA", async ({ page }) => {
   await page.getByRole("option", { name: /Fraunhofer/i }).first().click();
   await expect(page).toHaveURL(/orgs=\d+(?:~|%7E)\d+/);
 
-  // Two columns, the compared chart, per-column themes and partners.
+  // Two columns, the composed trajectory view (default), then a
+  // side-by-side composition through the prepared chips.
   await expect(page.getByRole("link", { name: /Fraunhofer/i }).first()).toBeVisible({
     timeout: 10_000,
   });
-  const chart = page.getByRole("img", { name: "Funding by year, compared" });
-  await expect(chart).toBeVisible();
+  const chart = page.getByRole("img", { name: /Trajectories — / });
+  await expect(chart).toBeVisible({ timeout: 10_000 });
   await expect(chart.locator("polyline")).toHaveCount(2);
-  expect(await page.getByText("Top themes").count()).toBe(2);
+  await page.getByRole("button", { name: "By theme" }).click();
+  await expect(page).toHaveURL(/cby=theme/);
+  await expect(page.getByRole("button", { name: /Add the 2 views/ })).toBeVisible();
+  await expect(page.getByText(/theme — Fraunhofer/i).first()).toBeVisible({ timeout: 10_000 });
 
   // Removing one column narrows the URL back to a single id.
   await page.getByRole("button", { name: /^Remove / }).first().click();
-  await expect(page).toHaveURL(/orgs=\d+$/);
+  await expect(page).toHaveURL(/orgs=\d+(?:&|$)/);
 });

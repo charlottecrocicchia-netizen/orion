@@ -13,6 +13,9 @@ export interface ExplorerState {
   country: string;
   /** Programme drill-down: inside this programme, by its direct children. */
   programme: string;
+  /** Entity frame: an organisation id or a group ref (« g<id> ») — the
+   *  composable benchmark scopes a view to one compared entity. */
+  organisation: string;
   limit: number;
   view: string;
 }
@@ -29,6 +32,7 @@ export function readState(params: URLSearchParams): ExplorerState {
     q: params.get("q") ?? "",
     country: params.get("country") ?? "",
     programme: params.get("programme") ?? "",
+    organisation: params.get("organisation") ?? "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
   };
@@ -47,6 +51,7 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   if (state.q) apiParams.set("q", state.q);
   if (state.country) apiParams.set("country", state.country);
   if (state.programme && state.by === "programme") apiParams.set("programme", state.programme);
+  if (state.organisation) apiParams.set("organisation", state.organisation);
   return apiParams;
 }
 

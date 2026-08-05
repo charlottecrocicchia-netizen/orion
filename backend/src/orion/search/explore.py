@@ -10,6 +10,7 @@ share); year, programme and funder views aggregate *projects*. The metrics
 "organisations" and "coordination" always need participations.
 """
 
+import re
 from typing import Any
 
 from sqlalchemy import text
@@ -89,6 +90,28 @@ EXPLORE_CACHE_MAX = 128
 # A country with three participations and two coordinations is not "a country
 # that coordinates": ratio views need a minimum sample.
 MIN_COORDINATION_SAMPLE = 100
+
+
+def _entity_ref_ids(session: Session, refs: list[str]) -> dict[str, list[int]]:
+    """« 123 » → [123] ; « g45 » → les organisations ACTIVES du groupe 45.
+    Le benchmark composable parle les deux langues (recette 2026-08-05)."""
+    out: dict[str, list[int]] = {}
+    for ref in refs:
+        if ref.isdigit():
+            out[ref] = [int(ref)]
+        elif ref[:1] == "g" and ref[1:].isdigit():
+            out[ref] = [
+                row[0]
+                for row in session.execute(
+                    text(
+                        "SELECT organisation_id FROM entity_group_map "
+                        "WHERE group_id = :gid AND status = 'active'"
+                    ),
+                    {"gid": int(ref[1:])},
+                )
+            ]
+    return out
+
 
 _METRIC_COLS = {
     True: {  # participation-based
@@ -350,9 +373,18 @@ def aggregate(
     scope: str | None = None,
     limit: int = 8,
     programme: int | None = None,
+    organisation: str | None = None,
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
         return None
+    # Le filtre entité : une organisation ou un groupe (« g<id> ») — le
+    # benchmark composable s'appuie dessus. Se filtrer sur la dimension
+    # qu'on distribue n'a pas de sens (même règle que region×scope).
+    if organisation is not None:
+        if not re.fullmatch(r"g?\d+", organisation):
+            return None
+        if by == "organisation":
+            return None
     if by == "country" and country:
         return None
     # A scope frames, a dimension distributes: framing the world on ONE
@@ -373,7 +405,7 @@ def aggregate(
 
     key = (
         f"explore:{metric}:{by}:{split}:{compare}:{year_from}:{year_to}:{q}:{country}:"
-        f"{scope}:{limit}:{programme}"
+        f"{scope}:{limit}:{programme}:{organisation}"
     )
 
     def build() -> dict[str, Any]:
@@ -390,6 +422,7 @@ def aggregate(
             scope=scope,
             limit=limit,
             programme=programme,
+            organisation=organisation,
         )
 
     if q:
@@ -411,10 +444,39 @@ def _build(
     scope: str | None,
     limit: int,
     programme: int | None = None,
+    organisation: str | None = None,
 ) -> dict[str, Any]:
-    participation = by in PARTICIPATION_DIMS or metric in ("organisations", "coordination")
+    # Le filtre entité force la base participations : l'argent COMPTÉ est
+    # celui des participations de l'entité, jamais les totaux projets.
+    participation = (
+        by in PARTICIPATION_DIMS
+        or metric in ("organisations", "coordination")
+        or organisation is not None
+    )
     params: dict[str, Any] = {}
     dim = _dimension(by, participation, params)
+    cmp_entity_refs: dict[str, list[int]] | None = None
+    if by == "organisation" and compare and any(not c.isdigit() for c in compare):
+        cmp_entity_refs = _entity_ref_ids(session, compare)
+        pairs = [
+            (org_id, ref) for ref, org_ids in cmp_entity_refs.items() for org_id in org_ids
+        ] or [(-1, "none")]
+        values_sql = ", ".join(
+            f"(CAST(:cmpo{i} AS integer), CAST(:cmpr{i} AS text))" for i in range(len(pairs))
+        )
+        for i, (org_id, ref) in enumerate(pairs):
+            params[f"cmpo{i}"] = org_id
+            params[f"cmpr{i}"] = ref
+        # La dimension devient le REF du benchmark : les organisations
+        # d'un groupe se replient en une série, étiquetée plus bas.
+        dim = {
+            "key": "cmp.ref",
+            "joins": (
+                f"JOIN (VALUES {values_sql}) AS cmp(org_id, ref) ON cmp.org_id = pa.organisation_id"
+            ),
+            "label": "NULL",
+            "clause": "",
+        }
     to_root, roots = _programme_roots(session)
     parents, tree_info = _programme_tree(session) if programme is not None else ({}, {})
 
@@ -445,6 +507,10 @@ def _build(
     if programme is not None:
         params["member_ids"] = _subtree(programme, parents) or [-1]
         clauses.append("p.programme_id = ANY(:member_ids)")
+    if organisation is not None:
+        org_filter_ids = _entity_ref_ids(session, [organisation]).get(organisation) or [-1]
+        params["organisation_ids"] = org_filter_ids
+        clauses.append("pa.organisation_id = ANY(:organisation_ids)")
     if split:
         clauses.append(
             "p.start_date IS NOT NULL AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035"
@@ -456,8 +522,10 @@ def _build(
             params["compare_ids"] = [pid for pid, root in to_root.items() if root in wanted] or [-1]
             clauses.append("p.programme_id = ANY(:compare_ids)")
         elif by == "organisation":
-            params["compare_ids"] = [int(c) for c in compare if c.isdigit()] or [-1]
-            clauses.append("pa.organisation_id = ANY(:compare_ids)")
+            if cmp_entity_refs is None:
+                params["compare_ids"] = [int(c) for c in compare if c.isdigit()] or [-1]
+                clauses.append("pa.organisation_id = ANY(:compare_ids)")
+            # sinon : la jointure VALUES filtre déjà aux entités comparées.
         elif by in ("orgtype", "funder", "theme", "region"):
             # funder codes are lowercase, orgtype keys canonical, theme keys
             # are the euroSciVoc level-2 prefixes — none of them upper-cased
@@ -504,6 +572,24 @@ def _build(
             }
             for r in rows
         ]
+
+    if cmp_entity_refs is not None:
+        group_ids = [int(r[1:]) for r in cmp_entity_refs if r.startswith("g")]
+        org_ids = [int(r) for r in cmp_entity_refs if r.isdigit()]
+        labels: dict[str, str] = {}
+        if group_ids:
+            for gid, name in session.execute(
+                text("SELECT id, name FROM groups WHERE id = ANY(:ids)"), {"ids": group_ids}
+            ):
+                labels[f"g{gid}"] = name
+        if org_ids:
+            for oid, name in session.execute(
+                text("SELECT id, name FROM organisations WHERE id = ANY(:ids)"),
+                {"ids": org_ids},
+            ):
+                labels[str(oid)] = name
+        for row in folded:
+            row["label"] = row["label"] or labels.get(row["key"])
 
     if by == "year":
         points = sorted(
@@ -559,5 +645,6 @@ def _build(
             "country": country,
             "programme": programme,
             "programme_label": (tree_info[programme]["label"] if programme in tree_info else None),
+            "organisation": organisation,
         },
     }

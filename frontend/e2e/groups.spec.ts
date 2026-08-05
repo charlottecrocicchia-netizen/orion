@@ -163,12 +163,39 @@ test("le benchmark compare un groupe à une organisation, badge au revers", asyn
   await orgOption.click();
   await expect(table.locator("th").filter({ has: page.getByRole("link") })).toHaveCount(2);
 
-  // L'écran d'analyse (recette 2026-08-05) : l'écart par année à deux
-  // entités, les programmes forts par colonne, les partenaires communs
-  // (honnêtement vides ici), la géographie du groupe.
-  await expect(page.getByText(/Écart par année/)).toBeVisible();
-  await expect(page.getByText("Programmes forts").first()).toBeVisible();
-  await expect(page.getByText("HORIZON-CL5").first()).toBeVisible();
+  // L'écran d'analyse composable (recette 2026-08-05) : la trajectoire
+  // par défaut avec son écart à deux entités, COLLECTABLE — le parcours
+  // complet jusqu'au dossier, groupe compris (le bug de la recette).
+  await expect(page.getByText(/Écart par année/)).toBeVisible({ timeout: 10_000 });
+  await page
+    .getByRole("button", { name: /Ajouter au dossier/ })
+    .click();
+  await expect(page.getByRole("button", { name: /Au dossier/ }).first()).toBeVisible();
+
+  // Une composition côte à côte : par programme, deux vues jumelles,
+  // ajoutées d'un clic.
+  await page.getByRole("button", { name: "Par programme" }).click();
+  await expect(page).toHaveURL(/cby=programme/);
+  const twin = page.getByRole("button", { name: /Ajouter les 2 vues au dossier/ });
+  await expect(twin).toBeVisible();
+  await expect(page.getByText(/programme — Aerostellar group/i).first()).toBeVisible({
+    timeout: 10_000,
+  });
+  await twin.click();
+  await expect(page.getByRole("button", { name: /Au dossier · retirer/ })).toBeVisible();
+
+  // Le dossier rend les trois blocs — la trajectoire du benchmark de
+  // groupes comprise (compare=g…, le chemin qui manquait).
+  await page.goto("/dossier");
+  await expect(page.locator(".dossier-section")).toHaveCount(3);
+  await expect(page.getByText(/Trajectoires — /).first()).toBeVisible();
+  await expect(
+    page.locator(".dossier-section").first().locator("polyline").first(),
+  ).toBeAttached({ timeout: 10_000 });
+
+  // Les actes non composables restent : partenaires communs honnêtement
+  // vides, géographie du groupe.
+  await page.goBack();
   await expect(page.getByRole("heading", { name: "Partenaires communs" })).toBeVisible();
   await expect(page.getByText("Aucun partenaire commun dans le corpus.")).toBeVisible();
   const geo = page.locator("section").filter({

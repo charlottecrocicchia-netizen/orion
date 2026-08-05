@@ -501,3 +501,54 @@ def test_common_partners_find_who_works_with_both(db_session):
     assert all("ZZAERO" not in n for n in names)
     entry_refs = set(commons[0]["shared"].keys())
     assert entry_refs == {f"g{group_id}", str(sa_id)}
+
+
+def test_explore_compare_accepts_group_refs(db_session):
+    """Le benchmark composable (recette 2026-08-05) : by=organisation
+    avec compare=g<id>~<org> rend UNE série par entité — le groupe
+    replie ses organisations actives, l'étiquette est son nom."""
+    from orion.search.explore import aggregate
+
+    group_id = _seed_group(db_session)
+    partner_id = db_session.execute(
+        text("SELECT id FROM organisations WHERE name = 'ZZPARTNER UNIV'")
+    ).scalar_one()
+
+    result = aggregate(
+        db_session,
+        metric="funding",
+        by="organisation",
+        split=True,
+        compare=[f"g{group_id}", str(partner_id)],
+    )
+    assert result is not None
+    by_key = {s["key"]: s for s in result["series"]}
+    assert set(by_key) == {f"g{group_id}", str(partner_id)}
+    assert by_key[f"g{group_id}"]["label"] == "ZZGROUPE AERO"
+    # Le groupe consolide ses participations : 4 M€ en 2020, 4 M€ en 2022.
+    points = {p["year"]: p["value"] for p in by_key[f"g{group_id}"]["points"]}
+    assert points[2020] == pytest.approx(4_000_000)
+    assert points[2022] == pytest.approx(4_000_000)
+
+
+def test_explore_organisation_filter_scopes_to_the_entity(db_session):
+    """organisation=g<id> cadre la vue sur l'entité : ses programmes, son
+    argent (base participations, jamais les totaux projets)."""
+    from orion.search.explore import aggregate
+
+    group_id = _seed_group(db_session)
+    result = aggregate(
+        db_session,
+        metric="funding",
+        by="programme",
+        organisation=f"g{group_id}",
+    )
+    assert result is not None
+    assert result["meta"]["organisation"] == f"g{group_id}"
+    # Un seul programme (ZZPROG), au total des participations du groupe.
+    assert len(result["series"]) == 1
+    assert result["series"][0]["value"] == pytest.approx(8_000_000)
+
+    # Garde-fous : ref invalide → None ; organisation × by=organisation → None.
+    assert aggregate(db_session, metric="funding", by="programme", organisation="zz") is None
+    assert aggregate(db_session, metric="funding", by="organisation", organisation="12") is None

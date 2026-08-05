@@ -58,6 +58,21 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The benchmark is COMPOSABLE, and its views land in the dossier —
+  groups included** (founder recette, 2026-08-05, second pass). The
+  Explorer learned two words: `compare=g<id>` folds a group's active
+  organisations into ONE series (labelled with the group's name), and
+  `organisation=<id|g id>` frames any view on one entity, forcing the
+  participation basis — the entity's own money, never project totals.
+  On /compare, metric × dimension × form compose in the URL; the former
+  fixed acts became PREPARED views (Trajectories · By programme · By
+  theme · By country), side-by-side compositions render one Explorer
+  view per entity (donuts or bars), and a twin-collect adds the N
+  sibling views to the dossier in one click. The recette bug falls: the
+  Safran-vs-Thales trajectory now collects, and the dossier RENDERS it
+  (same ExploreView machinery, zero new renderer). Non-composable acts
+  stay: common partners, geography face to face.
+
 - **Groups now surface in the page search, and the benchmark reads
   like a deck** (founder recette, 2026-08-05). On /organisations,
   matching groups land FIRST in their own band — badge, weighed

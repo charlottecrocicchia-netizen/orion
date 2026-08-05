@@ -28,6 +28,10 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
     programme: Annotated[
         int | None, Query(description="drill-down: group by this programme's direct children")
     ] = None,
+    organisation: Annotated[
+        str | None,
+        Query(description="entity filter: organisation id or group ref (g<id>)"),
+    ] = None,
 ) -> dict[str, Any]:
     result = explore.aggregate(
         db,
@@ -42,6 +46,7 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         scope=scope or None,
         limit=limit,
         programme=programme,
+        organisation=organisation or None,
     )
     if result is None:
         raise HTTPException(status_code=400, detail="Unsupported metric/dimension combination")

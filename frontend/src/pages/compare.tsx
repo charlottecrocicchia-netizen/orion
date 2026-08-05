@@ -3,26 +3,57 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import { LinesChart } from "@/components/charts";
 import { CollectButton } from "@/components/collect-button";
 import { CountryFlags } from "@/components/country-flags";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import type { CompareEntry } from "@/lib/api";
+import { ExploreView } from "@/components/explore-view";
 import { WorldMap } from "@/components/world-map";
 import { useCountryName } from "@/lib/format";
+import { addToDossier, removeByParams, useDossier } from "@/lib/dossier";
 import { cn } from "@/lib/utils";
 import {
   formatCompactEur,
   formatInt,
   formatOrgName,
   orgTypeKey,
-  themeLabel,
   yearsRange,
 } from "@/lib/format";
 
 const MAX_ORGS = 4;
 const seriesColor = (index: number) => `var(--color-series-${index + 1})`;
+
+/** Ajoute (ou retire) d'un clic les N vues jumelles d'une composition
+ *  côte à côte — un bloc de dossier par entité comparée, mêmes params
+ *  Explorateur que la vue affichée. */
+function TwinCollect({ queries }: { queries: { params: string; title: string }[] }) {
+  const { t } = useTranslation();
+  const dossier = useDossier();
+  const collected =
+    queries.length > 0 &&
+    queries.every((q) => dossier.items.some((item) => item.params === q.params));
+  return (
+    <button
+      type="button"
+      aria-pressed={collected}
+      onClick={() => {
+        if (collected) for (const q of queries) removeByParams(q.params);
+        else for (const q of queries) addToDossier(q.params, q.title);
+      }}
+      className={cn(
+        "rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors",
+        collected
+          ? "border-accent/50 bg-accent-soft text-accent hover:border-destructive hover:bg-destructive/5 hover:text-destructive"
+          : "hover:border-accent hover:text-accent",
+      )}
+    >
+      {collected
+        ? `✓ ${t("compare.collectedAll")}`
+        : `＋ ${t("compare.collectAll", { count: queries.length })}`}
+    </button>
+  );
+}
 
 /** L'écart A − B par année, autour d'un axe zéro — le complément de la
  *  superposition quand on compare exactement deux entités. Chaque barre
@@ -183,6 +214,12 @@ export function ComparePage() {
   const [params, setParams] = useSearchParams();
   const ids = (params.get("orgs") ?? "").split("~").filter(Boolean).slice(0, MAX_ORGS);
   const find = params.get("find");
+  // Le benchmark composable (recette 2026-08-05) : métrique × dimension
+  // × forme dans l'URL — chaque vue composée est partageable telle
+  // quelle, et les vues préparées ne sont que des URL pré-remplies.
+  const cby = params.get("cby") ?? "year";
+  const cmetric = params.get("cmetric") ?? "funding";
+  const cview = params.get("cview") ?? "donut";
 
   // The free-text parser lands "X vs Y" here as find=X~Y: resolve each term
   // to its best fuzzy match once, then hand over to the regular orgs= state.
@@ -220,19 +257,31 @@ export function ComparePage() {
   });
 
   const setIds = (next: string[]) => {
-    const out = new URLSearchParams();
+    const out = new URLSearchParams(params);
     if (next.length > 0) out.set("orgs", next.join("~"));
+    else out.delete("orgs");
+    setParams(out, { preventScrollReset: true });
+  };
+  const setCompose = (patch: Record<string, string | null>) => {
+    const out = new URLSearchParams(params);
+    for (const [key, value] of Object.entries(patch)) {
+      if (value == null || value === "") out.delete(key);
+      else out.set(key, value);
+    }
     setParams(out, { preventScrollReset: true });
   };
 
   const entries = data?.entries ?? [];
   const commonPartners = data?.common_partners ?? [];
-  const series = entries.map((entry) => ({
-    key: entry.id,
-    label: formatOrgName(entry.name),
-    points: entry.funding_by_year
-      .filter((point) => point.year >= 2005)
-      .map((point) => ({ year: point.year, value: point.amount_eur })),
+  const entityName = (entry: CompareEntry) => formatOrgName(entry.name);
+  const trajectoryQuery = `metric=${cmetric}&by=organisation&split=1&compare=${ids.join("~")}&limit=6`;
+  const entityQueries = entries.map((entry) => ({
+    params: `metric=${cmetric}&by=${cby}&split=0&organisation=${entry.id}&limit=6&view=${cview}`,
+    title: t("compare.entityViewTitle", {
+      dim: t(`explorer.dim.${cby}`),
+      name: entityName(entry),
+    }),
+    entry,
   }));
 
   const kpiRows: { label: string; render: (entry: (typeof entries)[number]) => string }[] = [
@@ -385,15 +434,122 @@ export function ComparePage() {
             </table>
           </div>
 
-          {series.length >= 1 ? (
-            <section className="mt-12">
-              <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-                {t("org.fundingByYear")}
-              </h2>
-              <LinesChart series={series} unit="eur" ariaLabel={t("compare.chartLabel")} />
-              {entries.length === 2 ? <DeltaStrip a={entries[0]} b={entries[1]} /> : null}
-            </section>
-          ) : null}
+          <section className="mt-12">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+              <div>
+                <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+                  {t("compare.composeTitle")}
+                </h2>
+                <p className="mt-1 max-w-[62ch] text-[13px] text-muted-foreground">
+                  {t("compare.composePhrase")}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 text-[13px]">
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                {t("compare.preparedLabel")}
+              </span>
+              {(
+                [
+                  ["year", t("compare.prepTrajectories")],
+                  ["programme", t("compare.prepProgrammes")],
+                  ["theme", t("compare.prepThemes")],
+                  ["country", t("compare.prepCountries")],
+                ] as const
+              ).map(([dim, label]) => (
+                <button
+                  key={dim}
+                  type="button"
+                  onClick={() => setCompose({ cby: dim === "year" ? null : dim })}
+                  aria-pressed={cby === dim}
+                  className={cn(
+                    "rounded-full border px-3 py-1 transition-colors",
+                    cby === dim
+                      ? "border-foreground/50 bg-foreground/5 font-medium"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+              <span className="ml-2 text-muted-foreground">
+                {(["funding", "projects"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setCompose({ cmetric: m === "funding" ? null : m })}
+                    aria-pressed={cmetric === m}
+                    className={cn("ml-2", cmetric === m ? "font-medium text-accent" : "hover:text-foreground")}
+                  >
+                    {t(`explorer.metric.${m}`)}
+                  </button>
+                ))}
+              </span>
+              {cby !== "year" ? (
+                <span className="text-muted-foreground">
+                  {(["donut", "bars"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setCompose({ cview: v === "donut" ? null : v })}
+                      aria-pressed={cview === v}
+                      className={cn("ml-2", cview === v ? "font-medium text-accent" : "hover:text-foreground")}
+                    >
+                      {v === "donut" ? t("compare.formDonuts") : t("compare.formBars")}
+                    </button>
+                  ))}
+                </span>
+              ) : null}
+            </div>
+
+            {cby === "year" ? (
+              <div className="mt-6">
+                <div className="mb-2 flex items-baseline justify-between gap-4">
+                  <h3 className="text-[13px] font-medium">
+                    {t("compare.trajectoriesTitle", {
+                      names: entries.map(entityName).join(" · "),
+                    })}
+                  </h3>
+                  <CollectButton
+                    view={trajectoryQuery}
+                    title={t("compare.trajectoriesTitle", {
+                      names: entries.map(entityName).join(" · "),
+                    })}
+                  />
+                </div>
+                <ExploreView
+                  query={trajectoryQuery}
+                  title={t("compare.trajectoriesTitle", {
+                    names: entries.map(entityName).join(" · "),
+                  })}
+                  active
+                />
+                {entries.length === 2 ? <DeltaStrip a={entries[0]} b={entries[1]} /> : null}
+              </div>
+            ) : (
+              <div className="mt-6">
+                <div className="mb-2 flex justify-end">
+                  <TwinCollect queries={entityQueries} />
+                </div>
+                <div className={cn("grid gap-8", entries.length > 1 && "md:grid-cols-2")}>
+                  {entityQueries.map(({ params: viewParams, title, entry }, index) => (
+                    <div key={entry.id}>
+                      <p className="mb-2 flex items-center gap-2 text-[13px] font-medium">
+                        <span
+                          aria-hidden="true"
+                          className="h-2 w-2 rounded-full"
+                          style={{ background: seriesColor(index) }}
+                        />
+                        {title}
+                      </p>
+                      <ExploreView query={viewParams} title={title} active />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
 
           {/* Les partenaires COMMUNS — l'info du veilleur : qui
               travaille avec CHAQUE entité comparée. */}
@@ -478,65 +634,9 @@ export function ComparePage() {
             </section>
           ) : null}
 
-          <div className={cn("mt-12 grid gap-10", entries.length > 1 && "md:grid-cols-2", entries.length > 2 && "lg:grid-cols-4")}>
-            {entries.map((entry, index) => (
-              <section key={entry.id}>
-                <h2 className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-                  <span
-                    aria-hidden="true"
-                    className="h-2 w-2 rounded-full"
-                    style={{ background: seriesColor(index) }}
-                  />
-                  {t("compare.themes")}
-                </h2>
-                {entry.top_themes.map((theme) => (
-                  <div
-                    key={theme.key}
-                    className="flex items-baseline gap-3 border-b border-border-soft py-2 text-[13px]"
-                  >
-                    <span className="min-w-0 leading-snug">{themeLabel(theme.key, theme.label, t)}</span>
-                    <span className="tnum ml-auto text-muted-foreground">
-                      {formatInt(theme.projects, i18n.language)}
-                    </span>
-                  </div>
-                ))}
-                <h2 className="mb-3 mt-8 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-                  {t("compare.programmesTitle")}
-                </h2>
-                {entry.top_programmes.map((programme) => (
-                  <Link
-                    key={programme.id}
-                    to={`/explore/programmes/${programme.id}`}
-                    className="group flex items-baseline gap-2 border-b border-border-soft py-2 text-[13px]"
-                  >
-                    <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
-                      {formatOrgName(programme.label)}
-                    </span>
-                    <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
-                      {formatCompactEur(programme.funding_eur, i18n.language)}
-                    </span>
-                  </Link>
-                ))}
-                <h2 className="mb-3 mt-8 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-                  {t("org.partners")}
-                </h2>
-                {entry.top_partners.map((partner) => (
-                  <Link
-                    key={partner.id}
-                    to={`/organisations/${partner.id}`}
-                    className="group flex items-baseline gap-2 border-b border-border-soft py-2 text-[13px]"
-                  >
-                    <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
-                      {formatOrgName(partner.name)}
-                    </span>
-                    <span className="tnum ml-auto whitespace-nowrap text-muted-foreground">
-                      {formatInt(partner.shared_projects, i18n.language)}
-                    </span>
-                  </Link>
-                ))}
-              </section>
-            ))}
-          </div>
+          {/* Les anciens actes figés (thèmes, programmes, partenaires par
+              colonne) sont devenus des vues préparées du composeur — les
+              partenaires de chaque entité vivent sur sa fiche. */}
         </>
       )}
     </div>
