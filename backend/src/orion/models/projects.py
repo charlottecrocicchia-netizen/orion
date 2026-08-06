@@ -47,6 +47,9 @@ class Project(Base):
     funding_amount: Mapped[float | None] = mapped_column(Numeric(16, 2))
     funding_currency: Mapped[str | None] = mapped_column(String(3))
     funding_amount_eur: Mapped[float | None] = mapped_column(Numeric(16, 2))
+    # La lentille spatiale (V1, 2026-08-05) : core | adjacent | NULL —
+    # dérivé de backend/curation/space-lens.csv, jamais posé à la main.
+    space_tag: Mapped[str | None] = mapped_column(String(8))
     funder_id: Mapped[int] = mapped_column(ForeignKey("funders.id"), index=True)
     programme_id: Mapped[int | None] = mapped_column(ForeignKey("programmes.id"), index=True)
     call_id: Mapped[int | None] = mapped_column(ForeignKey("calls.id"), index=True)

@@ -274,8 +274,13 @@ Points d'attention connus :
   Note de tri du rapport externe :
   [lecons-pivot-spatial.md](lecons-pivot-spatial.md) — adopté /
   prématuré daté / rejeté motivé (licences vérifiées une à une), et le
-  **plan lentille spatiale V1** (4 lots, 2-3 semaines) À TRANCHER
-  ensemble avant implémentation. Le cahier P5 se redéfinit en
+  **plan lentille spatiale V1** (4 lots) VALIDÉ — **lots 1 et 4 livrés
+  le 2026-08-05** : la lentille versionnée `space-lens.csv` tague le
+  corpus core|adjacent (migration 0020, chargeur testé),
+  `?sector=space` sur l'Explorateur, la recherche et les stats, et la
+  home **Orion Space Intelligence** avec ses compteurs vrais ; lots 2
+  (registre spatial visible sur les fiches) et 3 (stories spatiales) à
+  suivre. Le cahier P5 se redéfinit en
   « opportunités » (subventions + marchés + contrats), la taxonomie
   techno devient le chantier U6. Détail des décisions : dès
   les sources mondiales, le globe et l'analyse doivent aussi raisonner en

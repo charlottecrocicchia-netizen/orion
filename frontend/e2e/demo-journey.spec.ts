@@ -47,7 +47,7 @@ test("the enriched demo journey holds end to end", async ({ page }) => {
   await page.locator(".pin-spacer").waitFor({ state: "attached", timeout: 5_000 });
   // The home ask is a combobox now (it proposes destinations while
   // typing); plain Enter keeps the free-text reflex.
-  const ask = page.getByRole("combobox", { name: /hydrogen by country/ });
+  const ask = page.getByRole("combobox", { name: /earth observation by country/ });
   await ask.fill("hydrogen");
   await ask.press("Enter");
   await expect(page).toHaveURL(/\/projects\?q=hydrogen/);

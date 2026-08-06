@@ -19,7 +19,7 @@ import type { DestinationGroup } from "@/lib/destinations";
 import { useDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
-import { formatOrgName } from "@/lib/format";
+import { formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 import { useRevealProgress } from "@/hooks/use-reveal-progress";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -390,6 +390,62 @@ export function HomePage() {
               </button>
             ))}
           </p>
+
+          {/* La lentille spatiale (V1, 2026-08-05) : la porte « Espace »
+              dit des chiffres VRAIS — les projets tagués par la lentille
+              versionnée, cœur et adjacent séparés, jamais gonflés. */}
+          {(stats?.space?.core ?? 0) > 0 && stats ? (
+            <section
+              aria-label={t("home.spaceTitle")}
+              className="mt-16 border-y border-border-soft py-8 text-left"
+            >
+              <p className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted-foreground">
+                {t("home.spaceKicker")}
+              </p>
+              <div className="mt-2 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+                <div className="max-w-[52ch]">
+                  <h2 className="font-display text-[clamp(20px,2.4vw,26px)] font-[560] tracking-[-0.02em]">
+                    {t("home.spaceTitle")}
+                  </h2>
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">
+                    {t("home.spaceLead")}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2">
+                  <span>
+                    <span className="tnum font-display block text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
+                      {formatInt(stats.space.core, i18n.language)}
+                    </span>
+                    <span className="text-[12.5px] text-muted-foreground">
+                      {t("home.spaceCore", { count: stats.space.core })}
+                    </span>
+                  </span>
+                  <span>
+                    <span className="tnum font-display block text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
+                      {formatCompactEur(stats.space.core_funding_eur, i18n.language)}
+                    </span>
+                    <span className="text-[12.5px] text-muted-foreground">
+                      {t("home.spaceFunding")}
+                    </span>
+                  </span>
+                  <span>
+                    <span className="tnum font-display block text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
+                      {formatInt(stats.space.adjacent, i18n.language)}
+                    </span>
+                    <span className="text-[12.5px] text-muted-foreground">
+                      {t("home.spaceAdjacent", { count: stats.space.adjacent })}
+                    </span>
+                  </span>
+                  <Link
+                    to="/explore?sector=space&by=country&split=0"
+                    className="rounded-full bg-foreground px-5 py-2.5 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
+                  >
+                    {t("home.spaceCta")} →
+                  </Link>
+                </div>
+              </div>
+            </section>
+          ) : null}
 
           {/* Lot D (architecture validated 2026-08-02): the doors say the
               four VERBS, and each carries LIVING content — a real file, a

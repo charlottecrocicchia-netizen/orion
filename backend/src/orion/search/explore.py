@@ -374,8 +374,11 @@ def aggregate(
     limit: int = 8,
     programme: int | None = None,
     organisation: str | None = None,
+    sector: str | None = None,
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
+        return None
+    if sector is not None and sector != "space":
         return None
     # Le filtre entité : une organisation ou un groupe (« g<id> ») — le
     # benchmark composable s'appuie dessus. Se filtrer sur la dimension
@@ -405,7 +408,7 @@ def aggregate(
 
     key = (
         f"explore:{metric}:{by}:{split}:{compare}:{year_from}:{year_to}:{q}:{country}:"
-        f"{scope}:{limit}:{programme}:{organisation}"
+        f"{scope}:{limit}:{programme}:{organisation}:{sector}"
     )
 
     def build() -> dict[str, Any]:
@@ -423,6 +426,7 @@ def aggregate(
             limit=limit,
             programme=programme,
             organisation=organisation,
+            sector=sector,
         )
 
     if q:
@@ -445,6 +449,7 @@ def _build(
     limit: int,
     programme: int | None = None,
     organisation: str | None = None,
+    sector: str | None = None,
 ) -> dict[str, Any]:
     # Le filtre entité force la base participations : l'argent COMPTÉ est
     # celui des participations de l'entité, jamais les totaux projets.
@@ -511,6 +516,9 @@ def _build(
         org_filter_ids = _entity_ref_ids(session, [organisation]).get(organisation) or [-1]
         params["organisation_ids"] = org_filter_ids
         clauses.append("pa.organisation_id = ANY(:organisation_ids)")
+    if sector == "space":
+        # La lentille spatiale cadre la vue — le tag vit sur le projet.
+        clauses.append("p.space_tag IS NOT NULL")
     if split:
         clauses.append(
             "p.start_date IS NOT NULL AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035"
@@ -646,5 +654,6 @@ def _build(
             "programme": programme,
             "programme_label": (tree_info[programme]["label"] if programme in tree_info else None),
             "organisation": organisation,
+            "sector": sector,
         },
     }

@@ -34,7 +34,7 @@ test("la barre des projets propose la fiche organisation en destination", async 
 
 test("la demande de l'accueil propose les destinations aussi", async ({ page }) => {
   await page.goto("/");
-  const ask = page.getByRole("combobox", { name: /hydrogène par pays/ });
+  const ask = page.getByRole("combobox", { name: /observation de la Terre/ });
   await ask.click();
   await ask.fill("centre");
   const listbox = page.locator("#home-ask-listbox");

@@ -58,6 +58,25 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The space lens V1 ships: the sector is identified in the corpus,
+  and the home says Orion Space Intelligence** (validated plan, lots 1
+  and 4 — 2026-08-05). backend/curation/space-lens.csv defines the
+  perimeter in three sourced rule families: programmes by subtree
+  (FP7-SPACE, H2020 LEIT-Space, NSF AST core / AGS adjacent — the
+  mixed HORIZON.2.4 cluster deliberately refused), euroSciVoc themes by
+  CODE prefix (never labels: « astro » caught gastroenterology), and
+  hand-validated text motifs framed by source (never NIH, where a
+  « satellite cell » is muscle tissue). The all-or-nothing-on-form
+  loader retags projects `core` or `adjacent` (migration 0020) — core
+  wins structurally, nothing is inflated, nothing removed.
+  `?sector=space` enters the Explorer, the project search (which now
+  treats the lens as a real filter, list instead of invite) and the
+  stats. The home carries the brand — Orion Space Intelligence — with
+  the space band's TRUE counters (core projects, core funding,
+  adjacent), a door landing on the world map framed to the lens, space
+  search examples, and the footer tagline following. Found on the way:
+  « 1 résultats » — the results count now pluralises in both languages.
+
 - **The benchmark is COMPOSABLE, and its views land in the dossier —
   groups included** (founder recette, 2026-08-05, second pass). The
   Explorer learned two words: `compare=g<id>` folds a group's active

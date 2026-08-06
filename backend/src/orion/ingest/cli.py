@@ -11,6 +11,7 @@ from orion.ingest.groups import build as groups_build
 from orion.ingest.nih import load as nih_load
 from orion.ingest.nsf import load as nsf_load
 from orion.ingest.rates import run as rates_run
+from orion.ingest.space_lens import run as space_lens_run
 from orion.ingest.wikidata import load as wikidata_load
 
 REGISTRY = {
@@ -27,6 +28,9 @@ REGISTRY = {
     "gleif": gleif_load.run,
     "wikidata": wikidata_load.run,
     "groups": groups_build.run,
+    # La lentille spatiale : un TAGGING dérivé du fichier versionné,
+    # pas une source — elle se rejoue après tout chargement de corpus.
+    "space-lens": space_lens_run,
 }
 
 # `all` rebuilds everything: reference data first, deduplication before
@@ -41,6 +45,7 @@ ALL = [
     "gleif",
     "wikidata",
     "groups",
+    "space-lens",
 ]
 
 

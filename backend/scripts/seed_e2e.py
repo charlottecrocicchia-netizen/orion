@@ -219,6 +219,21 @@ PROJECTS = [
         [("aero_services", 0.4)],
         {"en": ("Aerostellar services platform", "MRO data services for regional fleets.")},
     ),
+    # Le projet SPATIAL de la graine : la lentille (motif « in-orbit »)
+    # doit le taguer core — la home et ?sector=space se testent dessus.
+    (
+        "e2e-orbit",
+        "ORBITGUARD",
+        2024,
+        "he-child",
+        [("tno", 1.2), ("polito", 0.8)],
+        {
+            "en": (
+                "In-orbit servicing demonstrator",
+                "Debris removal and in-orbit servicing for LEO constellations.",
+            )
+        },
+    ),
 ]
 
 
@@ -354,6 +369,14 @@ def main() -> None:
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
         for view in MATERIALIZED_VIEWS:
             connection.execute(text(f"REFRESH MATERIALIZED VIEW {view}"))
+
+    # La lentille spatiale tague la graine comme elle taguera la prod —
+    # même fichier, même chargeur (ORBITGUARD doit sortir core).
+    from orion.ingest.runlog import RunStats as _RunStats
+    from orion.ingest.space_lens import load_space_lens
+
+    with Session(engine) as session:
+        load_space_lens(session, _RunStats())
 
     print(f"Seeded {len(PROJECTS)} projects, {len(ORGS)} organisations, 5 countries.")
 

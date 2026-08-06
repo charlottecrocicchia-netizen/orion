@@ -35,7 +35,7 @@ test("le groupe ressort en tête des destinations, badge au revers", async ({ pa
 
 test("la demande de l'accueil propose le groupe aussi, badge compris", async ({ page }) => {
   await page.goto("/");
-  const ask = page.getByRole("combobox", { name: /hydrogène par pays/ });
+  const ask = page.getByRole("combobox", { name: /observation de la Terre/ });
   await ask.click();
   await ask.fill("aerostellar");
 

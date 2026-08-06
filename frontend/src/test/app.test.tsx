@@ -18,6 +18,7 @@ const STATS = {
     { year: 2023, amount_eur: 18.3e9 },
     { year: 2027, amount_eur: 0.9e9 },
   ],
+  space: { core: 812, adjacent: 2140, core_funding_eur: 3.1e9 },
 };
 
 const SEARCH = {

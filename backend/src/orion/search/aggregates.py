@@ -23,7 +23,12 @@ def global_stats(session: Session) -> dict[str, Any]:
                    (SELECT count(*) FROM participations) AS participations,
                    (SELECT sum(funding_amount_eur) FROM projects) AS funding_eur,
                    (SELECT count(DISTINCT country_code) FROM participations
-                    WHERE country_code IS NOT NULL) AS countries
+                    WHERE country_code IS NOT NULL) AS countries,
+                   (SELECT count(*) FROM projects WHERE space_tag = 'core') AS space_core,
+                   (SELECT count(*) FROM projects
+                    WHERE space_tag = 'adjacent') AS space_adjacent,
+                   (SELECT coalesce(sum(funding_amount_eur), 0) FROM projects
+                    WHERE space_tag = 'core') AS space_core_funding
             """)
         ).one()
         by_year = session.execute(
@@ -42,6 +47,11 @@ def global_stats(session: Session) -> dict[str, Any]:
                 "participations": totals.participations,
                 "funding_eur": float(totals.funding_eur or 0),
                 "countries": totals.countries,
+            },
+            "space": {
+                "core": totals.space_core or 0,
+                "adjacent": totals.space_adjacent or 0,
+                "core_funding_eur": float(totals.space_core_funding or 0),
             },
             "funding_by_year": [{"year": y, "amount_eur": float(a or 0)} for y, a in by_year],
         }

@@ -285,7 +285,10 @@ export function ProjectsSearchPage() {
     activeProgrammes.length > 0 ||
     activeCountries.length > 0 ||
     params.get("year_from") != null ||
-    params.get("year_to") != null;
+    params.get("year_to") != null ||
+    // La lentille spatiale est un filtre à part entière : une URL
+    // ?sector=space encadre une vraie liste, jamais l'invite.
+    params.get("sector") === "space";
   const composed = Boolean(q) || hasFilters;
 
   return (

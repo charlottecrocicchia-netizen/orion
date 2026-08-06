@@ -16,6 +16,8 @@ export interface ExplorerState {
   /** Entity frame: an organisation id or a group ref (« g<id> ») — the
    *  composable benchmark scopes a view to one compared entity. */
   organisation: string;
+  /** La lentille spatiale : « space » cadre aux projets tagués. */
+  sector: string;
   limit: number;
   view: string;
 }
@@ -33,6 +35,7 @@ export function readState(params: URLSearchParams): ExplorerState {
     country: params.get("country") ?? "",
     programme: params.get("programme") ?? "",
     organisation: params.get("organisation") ?? "",
+    sector: params.get("sector") ?? "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
   };
@@ -52,6 +55,7 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   if (state.country) apiParams.set("country", state.country);
   if (state.programme && state.by === "programme") apiParams.set("programme", state.programme);
   if (state.organisation) apiParams.set("organisation", state.organisation);
+  if (state.sector) apiParams.set("sector", state.sector);
   return apiParams;
 }
 
