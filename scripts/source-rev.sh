@@ -17,7 +17,11 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 
-rev=$(git rev-parse --short HEAD 2>/dev/null) || rev="hors-git"
+# Longueur FIXE, pas l'abréviation automatique de git : celle-ci dépend
+# du nombre d'objets du dépôt, et le clone superficiel de la CI n'en a
+# pas le même compte — deux tampons du même commit auraient divergé.
+rev=$(git rev-parse HEAD 2>/dev/null | cut -c1-12) || rev="hors-git"
+[ -n "$rev" ] || rev="hors-git"
 
 # Seuls les contextes réellement copiés dans les images comptent : une
 # retouche de docs ne doit pas déclencher une reconstruction de 4 min.

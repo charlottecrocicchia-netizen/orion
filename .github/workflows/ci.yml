@@ -159,6 +159,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - id: rev
+        run: echo "short=${GITHUB_SHA:0:12}" >> "$GITHUB_OUTPUT"
       - uses: docker/metadata-action@v5
         id: meta
         with:
@@ -173,6 +175,14 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Le même tampon qu'en local : scripts/source-rev.sh rend les
+          # 12 premiers caractères du SHA d'un arbre propre. Longueur
+          # FIXE des deux côtés — l'abréviation automatique de git
+          # dépend du nombre d'objets, que le clone superficiel de la CI
+          # n'a pas. Une image tirée du registre se compare donc au
+          # dépôt exactement comme une image construite en local.
+          build-args: |
+            GIT_REV=${{ steps.rev.outputs.short }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
