@@ -58,6 +58,42 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The US-state drill-down: the data was already in our caches**
+  (validated conception, lot D — 2026-08-17). Nothing was re-downloaded:
+  the beneficiary's state slept in the 43 yearly caches (NSF
+  `inst_state_code`, NIH `ORG_STATE`) and CORDIS' `nutsCode` with them; a
+  backfill matched by `source_uid` lays them on the existing
+  participations (migration 0021: ISO 3166-2 `subdivision_code` + raw
+  `nuts_code`, a complete 56-mesh US reference). **362 219 participations
+  now carry their state** — California 60.6 Bn€, New York 40.4 Bn€,
+  Massachusetts 39.2 Bn€. The symmetry with Europe-by-country is exact
+  because it reuses the SAME map: `us-states` enters as a 7th
+  pre-projected scope (us-atlas ISC / U.S. Census Bureau public domain,
+  Alaska and Hawaii as insets, territories as dots like Malta) and
+  WorldMap renders it with no new component. One socket was missing: the
+  SECOND activation sent a mesh to a non-existent country file — `onOpen`
+  hands it back to the caller, the original behaviour stays the default.
+  `by=subdivision` and `subdivision=` join the Explorer grammar, so the
+  composable benchmark inherits them (California vs Massachusetts as two
+  donuts).
+- **Coverage honesty: absence no longer passes for zero** (validated
+  conception, lot E — the founder's standing rule). The registry is
+  DERIVED, never written: a country is `funders` when a LOADED funder
+  finances it directly, `participations` when we only see it through the
+  consortiums it joins (its domestic budget is invisible here — not
+  zero), `none` when it has nothing at all. Loading UKRI tomorrow will
+  change every surface from one line, and a funder in the referential
+  with no loaded project covers nothing (tested). Four gestures: the
+  « domestic funding not covered » TEXTURE on maps and globe with its
+  legend — a texture, not a colour, so it reads under colour-blindness;
+  the automatic PHRASE when a comparative view mixes classes, naming the
+  loaded funders and the countries seen only through consortiums, silent
+  on a homogeneous view; the CLASS at the tooltip, the globe panel and
+  the country file; and the BASIS under the hero (« across 4 official
+  sources »), without which 734 Bn€ reads as « all public research
+  money ». The benchmark carries a « partial » badge on entities from
+  uncovered countries.
+
 - **The space lens V1 ships: the sector is identified in the corpus,
   and the home says Orion Space Intelligence** (validated plan, lots 1
   and 4 — 2026-08-05). backend/curation/space-lens.csv defines the

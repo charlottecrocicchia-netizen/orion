@@ -293,6 +293,35 @@ Points d'attention connus :
   place sur le globe depuis 2026-08-02. Toute déclinaison passe au
   validateur de palette avant adoption.
 
+## Conceptions instruites puis LIVRÉES (2026-08-17)
+
+Deux conceptions écrites sur pièces, validées, puis exécutées le jour
+même : [conception-drill-etats.md](conception-drill-etats.md) et
+[conception-couverture.md](conception-couverture.md).
+
+- **Lot D — la maille américaine : LIVRÉ.** La donnée dormait dans les
+  caches (rien de retéléchargé) : 362 219 participations taguées de leur
+  État, 56 mailles au référentiel, scope `us-states` dans la même
+  planche que les cartes du monde (us-atlas ISC / Census Bureau domaine
+  public), `by=subdivision` et `subdivision=` dans la grammaire — le
+  benchmark composable en hérite.
+- **Lot E — l'honnêteté de couverture : LIVRÉ.** Registre DÉRIVÉ
+  (funders | participations | none), texture « non couvert » avec sa
+  légende, phrase automatique sur les vues mixtes, classe au tooltip, au
+  panneau du globe et sur la fiche pays, assiette sous le hero, badge
+  « partiel » au benchmark. Règle gravée : **plus jamais un écran où
+  l'absence de données se fait passer pour un zéro.**
+- **Lot F — les régions européennes (NUTS) : DONNÉE acquise, SURFACE
+  bloquée.** Le `nuts_code` de CORDIS (CC BY 4.0) est posé par le même
+  backfill. Mais la géométrie NUTS et la table des NOMS de régions
+  viennent de GISCO/Eurostat, dont je n'ai pas pu VÉRIFIER les
+  conditions depuis ici (page de licences en 404, pages Eurostat
+  muettes sur leurs termes). Règle maison appliquée sans exception :
+  **zone grise = pas de carte**. Deux questions à trancher avec les
+  conditions réelles sous les yeux — la géométrie, et les noms. Sans
+  elles, une V1 « régions UE » reste possible en liste classée sur les
+  codes bruts (utile mais aride) : non livrée sans arbitrage.
+
 ## Puis — phase 5 : les appels (calls)
 
 Cahier des charges enrichi par l'[analyse fonctionnelle de la concurrence]
