@@ -20,6 +20,7 @@ import { ProgrammeHubPage } from "@/pages/programme-hub";
 import { ComparePage } from "@/pages/compare";
 import { DossierPage } from "@/pages/dossier";
 import { ExplorerPage } from "@/pages/explorer";
+import { RegionHubPage } from "@/pages/region-hub";
 import { ProjectDetailPage } from "@/pages/project-detail";
 import { OrganisationsSearchPage, ProjectsSearchPage } from "@/pages/search";
 import { WorkspacePage } from "@/pages/workspace";
@@ -57,6 +58,7 @@ export function AppRoutes() {
           <Route path="/workspace" element={<WorkspacePage />} />
           <Route path="/explore" element={<ExplorerPage />} />
           <Route path="/explore/countries" element={<ExploreCountriesPage />} />
+          <Route path="/explore/regions/:slug" element={<RegionHubPage />} />
           <Route path="/explore/countries/:code" element={<CountryHubPage />} />
           <Route path="/explore/programmes" element={<ExploreProgrammesPage />} />
           <Route path="/explore/themes" element={<ExploreThemesPage />} />

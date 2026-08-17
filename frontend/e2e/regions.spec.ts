@@ -60,20 +60,26 @@ test("first activation selects the US, second leaves for its file (map rule)", a
   await expect(page).toHaveURL(/\/explore\/countries\/US/, { timeout: 10_000 });
 });
 
-test("the scope lives in the URL and frames the map to the region", async ({ page }) => {
+test("the legacy scope URL redirects to the region page, which frames the map", async ({
+  page,
+}) => {
+  // Depuis la symétrie (2026-08-17), chaque région est une VRAIE page :
+  // l'ancien ?scope= n'est plus qu'une redirection — les liens et les
+  // dossiers épinglés survivent, il n'existe plus deux écritures du
+  // même lieu.
   await page.goto("/explore/countries?scope=europe");
-  // La chip Europe est pressée, l'URL porte le scope.
-  await expect(page.getByRole("button", { name: "Europe", exact: true })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  await expect(page).toHaveURL(/\/explore\/regions\/europe/, { timeout: 15_000 });
+
   const map = page.getByRole("group", { name: /World map/ });
   await expect(map.locator('path[data-code="FR"]')).toHaveCount(1, { timeout: 15_000 });
-  // Le cadre Europe ne contient pas les États-Unis — le scope cadre.
+  // Le cadre Europe ne contient pas les États-Unis — la page cadre.
   await expect(map.locator('[data-code="US"]')).toHaveCount(0);
 
-  // Retour au monde : les États-Unis réapparaissent, l'URL se nettoie.
-  await page.getByRole("button", { name: /World|Monde/ }).click();
+  // Retour au monde : une pilule, une vraie adresse, les USA reviennent.
+  await page
+    .getByRole("group", { name: /Geographic scope|Périmètre géographique/ })
+    .getByRole("link", { name: /^(World|Monde)$/ })
+    .click();
+  await expect(page).toHaveURL(/\/explore\/countries$/);
   await expect(map.locator('[data-code="US"]')).toHaveCount(1, { timeout: 15_000 });
-  await expect(page).not.toHaveURL(/scope=/);
 });

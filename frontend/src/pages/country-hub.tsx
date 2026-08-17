@@ -28,7 +28,11 @@ export function CountryHubPage() {
   });
   const selectedMesh = data?.subdivisions.find((entry) => entry.code === mesh) ?? null;
   const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
-  const coverageClass = countryIndex?.find((entry) => entry.code === code.toUpperCase())?.coverage;
+  const indexEntry = countryIndex?.find((entry) => entry.code === code.toUpperCase());
+  const coverageClass = indexEntry?.coverage;
+  // Le segment région du fil d'Ariane (symétrie, 2026-08-17) — du
+  // référentiel, jamais déduit côté client.
+  const region = indexEntry?.region ?? null;
 
   if (isPending) {
     return (
@@ -45,11 +49,25 @@ export function CountryHubPage() {
 
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
+      {/* Monde › Région › Pays — chaque segment est un lieu réel
+          (symétrie, 2026-08-17), le dernier en encre pleine. */}
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
         <Link to="/explore/countries" className="transition-colors hover:text-foreground">
-          {t("explore.countriesTitle")}
-        </Link>{" "}
-        › <span>{data.name}</span>
+          {t("regions.world")}
+        </Link>
+        {region ? (
+          <>
+            {" "}
+            ›{" "}
+            <Link
+              to={`/explore/regions/${region}`}
+              className="transition-colors hover:text-foreground"
+            >
+              {t(`regions.${region}`)}
+            </Link>
+          </>
+        ) : null}{" "}
+        › <span className="text-foreground">{data.name}</span>
       </nav>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -99,33 +117,101 @@ export function CountryHubPage() {
               filtrée). La carte du monde la rend telle quelle : un scope
               de plus, zéro composant nouveau. */}
           {data.subdivisions.length > 0 ? (
-            <section aria-label={t("country.byMesh")}>
+            <section aria-label={t([`country.mesh.${data.code}`, "country.mesh.default"])}>
               <h2 className="mb-1 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-                {t("country.byMesh")}
+                {t([`country.mesh.${data.code}`, "country.mesh.default"])}
               </h2>
               <p className="mb-3 max-w-[62ch] text-[13px] text-muted-foreground">
-                {t("country.byMeshPhrase")}
+                {data.code === "US" ? t("country.byMeshPhrase") : t("country.byMeshBars")}
               </p>
-              <WorldMap
-                scope="us-states"
-                countries={data.subdivisions.map((mesh) => ({
-                  code: mesh.code,
-                  name: mesh.name,
-                  eu_member: false,
-                  region: "north-america",
-                  projects_count: mesh.projects_count,
-                  funding_eur: mesh.funding_eur,
-                }))}
-                flows={[]}
-                legendLabel={t("country.meshLegend")}
-                selected={mesh}
-                onSelect={setMesh}
-                onOpen={(code) =>
-                  navigate(
-                    `/explore?by=organisation&split=0&country=${data.code}&subdivision=${code}`,
-                  )
-                }
-              />
+              {data.code === "US" ? (
+                // La choroplèthe — la seule géométrie de maille LICITE
+                // (us-atlas, domaine public). Les mailles européennes
+                // sont NOMMÉES, jamais dessinées : GISCO est exclue au
+                // registre, la nomenclature Eurostat passe.
+                <WorldMap
+                  scope="us-states"
+                  countries={data.subdivisions.map((mesh) => ({
+                    code: mesh.code,
+                    name: mesh.name,
+                    eu_member: false,
+                    region: "north-america",
+                    projects_count: mesh.projects_count,
+                    funding_eur: mesh.funding_eur,
+                  }))}
+                  flows={[]}
+                  legendLabel={t("country.meshLegend")}
+                  selected={mesh}
+                  onSelect={setMesh}
+                  onOpen={(code) =>
+                    navigate(
+                      `/explore?by=organisation&split=0&country=${data.code}&subdivision=${code}`,
+                    )
+                  }
+                />
+              ) : (
+                // Les barres — MÊME geste que la carte (symétrie,
+                // 2026-08-17) : premier clic, la maille se sélectionne
+                // et sa ligne de synthèse s'ouvre ; second clic sur la
+                // même, on descend vers la vue filtrée. Seules les
+                // mailles financées sortent en barres ; le résidu parle
+                // plus bas.
+                <div role="list">
+                  {data.subdivisions
+                    .filter((entry) => entry.funding_eur > 0)
+                    .map((entry, index, shown) => {
+                      const max = shown[0]?.funding_eur || 1;
+                      const isSelected = mesh === entry.code;
+                      return (
+                        <button
+                          key={entry.code}
+                          type="button"
+                          role="listitem"
+                          data-mesh={entry.code}
+                          aria-pressed={isSelected}
+                          onClick={() =>
+                            isSelected
+                              ? navigate(
+                                  `/explore?by=organisation&split=0&country=${data.code}&subdivision=${entry.code}`,
+                                )
+                              : setMesh(entry.code)
+                          }
+                          className={
+                            "group grid w-full grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-3 border-b border-border-soft py-2.5 text-left text-sm transition-colors " +
+                            (isSelected ? "bg-surface/60" : "hover:bg-surface/40")
+                          }
+                        >
+                          <span className="display-tight tnum text-right text-[17px] font-semibold text-muted-foreground/45">
+                            {index + 1}
+                          </span>
+                          <span className="min-w-0">
+                            <span
+                              className={
+                                "leading-snug transition-colors " +
+                                (isSelected ? "font-semibold text-accent" : "group-hover:text-accent")
+                              }
+                            >
+                              {entry.name}
+                            </span>
+                            <span
+                              aria-hidden="true"
+                              className="mt-1.5 block h-1 rounded-full bg-accent/70"
+                              style={{ width: `${Math.max((entry.funding_eur / max) * 100, 1.5)}%` }}
+                            />
+                          </span>
+                          <span className="text-right">
+                            <span className="display-tight tnum block whitespace-nowrap text-[15px] font-semibold">
+                              {formatCompactEur(entry.funding_eur, i18n.language)}
+                            </span>
+                            <span className="tnum block text-[11px] text-muted-foreground">
+                              {t("search.projectsCount", { count: entry.projects_count })}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
               {selectedMesh ? (
                 <p className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[13.5px]">
                   <b className="font-semibold">{selectedMesh.name}</b>
@@ -138,10 +224,23 @@ export function CountryHubPage() {
                     to={`/explore?by=organisation&split=0&country=${data.code}&subdivision=${selectedMesh.code}`}
                     className="text-accent underline-offset-2 hover:underline"
                   >
-                    {t("country.meshOpen")} →
+                    {t([`country.meshOpen.${data.code}`, "country.meshOpen.default"])} →
                   </Link>
                 </p>
               ) : null}
+              {/* Le résidu, affiché — jamais fondu (règle du lot E) : la
+                  part du pays qu'aucune maille ne porte (source sans
+                  subdivision, code trop court, millésime inconnu). */}
+              {(() => {
+                const meshed = data.subdivisions.reduce((sum, entry) => sum + entry.funding_eur, 0);
+                const residue = data.kpis.funding_eur - meshed;
+                return residue > data.kpis.funding_eur * 0.001 ? (
+                  <p className="mt-3 text-[12.5px] text-muted-foreground">
+                    {t("country.meshResidue")}{" "}
+                    <span className="tnum">{formatCompactEur(residue, i18n.language)}</span>
+                  </p>
+                ) : null;
+              })()}
             </section>
           ) : null}
 

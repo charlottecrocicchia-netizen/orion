@@ -72,6 +72,8 @@ const resources = {
         badgeFunders: "covered",
         badgePartial: "partial",
         mixedTitle: "Uneven coverage",
+        regionAllPartial:
+          "No domestic funder of this zone is loaded yet: everything shown here comes from the consortiums it joins \u2014 its own budgets are invisible here, not zero.",
         mixedPhrase:
           "This view mixes coverages: {{funders}} are loaded, so their countries show their domestic funding. The others appear only through the consortiums they join — their own budgets are invisible here, not zero.",
         heroBasis: "across {{count}} official sources — Europe (EU framework programmes), United States (NIH, NSF)",
@@ -244,6 +246,8 @@ const resources = {
         "middle-east-africa": "Middle East & Africa",
         world: "World",
         scopeLabel: "Geographic scope",
+        countriesRank: "Countries, ranked",
+        countriesCount: "Countries",
       },
       explore: {
         title: "Explore",
@@ -481,11 +485,29 @@ const resources = {
       country: {
         organisations: "Organisations",
         coordinations: "Coordinations",
-        byMesh: "By state",
+        // La maille porte son nom NATIF par pays (symétrie, 2026-08-17)
+        // — jamais un « subdivisions » générique à l'écran.
+        mesh: {
+          US: "By state",
+          FR: "By region",
+          DE: "By Land",
+          AT: "By Land",
+          BE: "By region",
+          GB: "By nation and region",
+          ES: "By comunidad",
+          IT: "By regione",
+          NL: "By province",
+          PL: "By voivodeship",
+          SE: "By län",
+          default: "By region",
+        },
         byMeshPhrase:
           "Each state tinted by the funding its beneficiaries receive — click to select, click again to open the view.",
+        byMeshBars:
+          "Each region ranked by the funding its beneficiaries receive — click to select, click again to open the view. Named, not drawn: official Eurostat nomenclature, no map by licence.",
         meshLegend: "Funding by state",
-        meshOpen: "Open this state's view",
+        meshOpen: { US: "Open this state's view", default: "Open this view" },
+        meshResidue: "Not attached to any region:",
         topOrganisations: "Top organisations",
         topProjects: "Top projects",
         euMember: "EU member",
@@ -597,7 +619,7 @@ const resources = {
         emptyView: "No data for this view — loosen the filters.",
         tableKey: "Entry",
         tableValue: "Value",
-        sources: "© European Union, CORDIS (CC BY 4.0) · NIH RePORTER and NSF (public domain)",
+        sources: "© European Union, CORDIS (CC BY 4.0) · NIH RePORTER and NSF (public domain) · Eurostat, NUTS nomenclature (CC BY 4.0)",
       },
       compare: {
         eyebrow: "Benchmark",
@@ -746,6 +768,8 @@ const resources = {
         badgeFunders: "couvert",
         badgePartial: "partiel",
         mixedTitle: "Couvertures inégales",
+        regionAllPartial:
+          "Aucun bailleur domestique de cette zone n\u2019est encore chargé : tout ce qui s\u2019affiche vient des consortiums qu\u2019elle rejoint \u2014 ses budgets propres sont invisibles ici, pas nuls.",
         mixedPhrase:
           "Cette vue mélange des couvertures : {{funders}} sont chargés, leurs pays montrent donc leurs financements domestiques. Les autres n\u2019apparaissent que par les consortiums qu\u2019ils rejoignent — leur budget propre est invisible ici, pas nul.",
         heroBasis: "sur {{count}} sources officielles — Europe (programmes-cadres de l\u2019UE), États-Unis (NIH, NSF)",
@@ -918,6 +942,8 @@ const resources = {
         "middle-east-africa": "Moyen-Orient & Afrique",
         world: "Monde",
         scopeLabel: "Périmètre géographique",
+        countriesRank: "Les pays, classés",
+        countriesCount: "Pays",
       },
       explore: {
         title: "Explorer",
@@ -1155,11 +1181,29 @@ const resources = {
       country: {
         organisations: "Organisations",
         coordinations: "Coordinations",
-        byMesh: "Par État",
+        // La maille porte son nom NATIF par pays (symétrie, 2026-08-17)
+        // — jamais un « subdivisions » générique à l'écran.
+        mesh: {
+          US: "Par État",
+          FR: "Par région",
+          DE: "Par Land",
+          AT: "Par Land",
+          BE: "Par région",
+          GB: "Par nation et région",
+          ES: "Par comunidad",
+          IT: "Par regione",
+          NL: "Par province",
+          PL: "Par voïvodie",
+          SE: "Par län",
+          default: "Par région",
+        },
         byMeshPhrase:
           "Chaque État porte la teinte des financements reçus par ses bénéficiaires — cliquez pour sélectionner, recliquez pour ouvrir la vue.",
+        byMeshBars:
+          "Chaque région classée par les financements reçus par ses bénéficiaires — un clic sélectionne, un second ouvre la vue. Nommées, jamais dessinées : nomenclature officielle Eurostat, pas de carte par licence.",
         meshLegend: "Financements par État",
-        meshOpen: "Ouvrir la vue de cet État",
+        meshOpen: { US: "Ouvrir la vue de cet État", default: "Ouvrir cette vue" },
+        meshResidue: "Non rattaché à une région :",
         topOrganisations: "Principales organisations",
         topProjects: "Principaux projets",
         euMember: "Membre de l'UE",
@@ -1271,7 +1315,7 @@ const resources = {
         emptyView: "Aucune donnée pour cette vue — élargissez les filtres.",
         tableKey: "Entrée",
         tableValue: "Valeur",
-        sources: "© Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER et NSF (domaine public)",
+        sources: "© Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER et NSF (domaine public) · Eurostat, nomenclature NUTS (CC BY 4.0)",
       },
       themes: {
         "/21/33": "sciences de la santé",

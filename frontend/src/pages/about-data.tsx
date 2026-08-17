@@ -114,6 +114,21 @@ export function AboutDataPage() {
               CC0
             </a>
           </li>
+          <li>
+            {/* Les noms des régions européennes — la nomenclature passe
+                notre registre, la géométrie GISCO en est exclue : des
+                régions nommées, jamais dessinées. */}
+            Eurostat — nomenclature NUTS (noms des régions), © Union européenne,{" "}
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              CC BY 4.0
+            </a>{" "}
+            · codes et noms seulement — aucune géométrie
+          </li>
         </ul>
       </section>
 
