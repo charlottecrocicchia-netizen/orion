@@ -48,8 +48,11 @@ test("first click selects France; the second click zooms into its file", async (
   await expect(france).toHaveAttribute("aria-pressed", "true");
 
   // Second activation of the selected shape: the cinematic zoom, then
-  // the file.
-  await clickCountry(page, map, "FR");
+  // the file. dispatchEvent, pas un clic pixel : l'ouverture du panneau
+  // REDIMENSIONNE la carte en animation, et un second clic calculé sur
+  // la boîte en mouvement tombait dans l'océan (flaky CI récidiviste,
+  // 2026-08-17) — la sémantique pointeur est déjà prouvée au premier.
+  await map.locator("path[data-code='FR']").dispatchEvent("click");
   await expect(page).toHaveURL(/\/explore\/countries\/FR/, { timeout: 10_000 });
   await expect(page.getByRole("heading", { level: 1 })).toContainText("France");
 });
