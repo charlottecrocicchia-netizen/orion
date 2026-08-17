@@ -75,7 +75,7 @@ def test_global_stats_shape_and_curve(db_session, seeded):
 def test_global_stats_space_counters_follow_the_lens(db_session, seeded):
     """Le hero spatial (lot 2, validé 2026-08-17) : ses compteurs suivent
     la lentille — le grand chiffre est « direct + habilitant » (cœur +
-    adjacent), les organisations et les groupes se comptent sur les
+    enabling), les organisations et les groupes se comptent sur les
     projets tagués, la courbe se dessine sur les années du SPATIAL."""
     db_session.execute(
         text("INSERT INTO project_lens_tags (project_id, lens, tag) VALUES (:p, 'space', 'core')"),

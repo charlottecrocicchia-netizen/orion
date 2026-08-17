@@ -38,7 +38,7 @@ def global_stats(session: Session) -> dict[str, Any]:
         ).all()
         # Un bloc de compteurs PAR lentille du registre, en ordre de rang
         # (M0) : la forme est le contrat générique d'une verticale — le
-        # grand chiffre reste « direct + habilitant » (cœur + adjacent),
+        # grand chiffre reste « direct + habilitant » (core + enabling),
         # la courbe-constellation se dessine sur les années de LA
         # lentille, jamais celles du corpus entier maquillées.
         lenses = []
@@ -54,7 +54,7 @@ def global_stats(session: Session) -> dict[str, Any]:
                 SELECT (SELECT count(*) FROM project_lens_tags
                         WHERE lens = :slug AND tag = 'core') AS core,
                        (SELECT count(*) FROM project_lens_tags
-                        WHERE lens = :slug AND tag = 'adjacent') AS adjacent,
+                        WHERE lens = :slug AND tag = 'enabling') AS enabling,
                        (SELECT coalesce(sum(p.funding_amount_eur), 0)
                         FROM projects p
                         JOIN project_lens_tags plt ON plt.project_id = p.id
@@ -96,7 +96,7 @@ def global_stats(session: Session) -> dict[str, Any]:
                     "family_key": lens.family_key,
                     "rank": lens.rank,
                     "core": counters.core or 0,
-                    "adjacent": counters.adjacent or 0,
+                    "enabling": counters.enabling or 0,
                     "core_funding_eur": float(counters.core_funding or 0),
                     "funding_eur": float(counters.funding or 0),
                     "organisations": counters.orgs or 0,

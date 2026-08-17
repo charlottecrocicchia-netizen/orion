@@ -1,4 +1,4 @@
-# Conception M1 — la lentille active (À VALIDER, aucun code écrit)
+# Conception M1 — la lentille active (arbitrages TRANCHÉS le 2026-08-18)
 
 *2026-08-18 — cadre : rendre la lentille active **générique** (servie
 par le registre, plus un seul « space » en dur au front) et
@@ -37,10 +37,28 @@ libellés **validés du chantier Space natif font foi, verbatim** :
 la valeur en base (migration 0025 : `UPDATE` + contrainte CHECK), la
 colonne `tag` de `lenses/space.csv`, le chargeur (`TAGS`), la clé de
 payload (`stats.lenses[].enabling`, alias `space` compris), les clés de
-journal (`space_enabling`), les tests. Les mots utilisateur ne bougent
-pas d'un pixel — « + habilitant » était déjà le bon mot. Interdit en
-deux temps : renommer la base sans le payload créerait un troisième
-état (home.tsx:262 lit `stats.space.adjacent`).
+journal (`space_enabling`), les tests. Interdit en deux temps :
+renommer la base sans le payload créerait un troisième état
+(home.tsx:262 lit `stats.space.adjacent`).
+
+**Les LIBELLÉS utilisateur ne bougent pas d'un pixel** — « Spatial
+direct », « Spatial + habilitant », « direct + habilitant » : verbatim
+Space natif. Mais deux textes utilisateur **nommaient le tag
+technique** et deviendraient faux le jour du renommage — ils partent
+donc dans le même geste (relevé sur pièce, sinon troisième terme
+visible, ce qu'I3 interdit) :
+
+- le **hint** du chip, `explorer.sector.enablingHint` (EN + FR) : la
+  glose « (adjacent) » perd son objet — le tag S'APPELLE désormais
+  `enabling`, que le hint dit déjà en toutes lettres (« technologies
+  habilitantes ») ; la parenthèse disparaît, le hint devient exact ;
+- l'**À-propos**, « les technologies habilitantes taguées adjacentes » :
+  décrit la donnée, donc devient factuellement faux — le tag s'y nomme
+  désormais `enabling` (règle maison : une promesse affichée reste vraie
+  le jour où la donnée change).
+
+Ne sont PAS touchés les emplois anglais sans rapport (`explore-view`,
+`partner-graph` : la diapo adjacente, la liste adjacente).
 
 ### M1.1 — le socle générique (rendu strictement identique)
 
@@ -58,7 +76,31 @@ deux temps : renommer la base sans le payload créerait un troisième
   la section d'analyses se généralise (une section par lentille publiée
   qui a des decks, ordre de rang — « Espace » aujourd'hui, identique).
 
-### M1.2 — les surfaces, une à une
+### M1.2 — le refus unifié (arbitrage 3, tranché)
+
+**Un `sector` invalide qui retombe en silence sur 700 000 projets est
+un lien qui ment** — U2 l'interdit. Règle UNIQUE sur toutes les
+surfaces qui comprennent `sector`, dès M1 (et non au basculement
+`lens=`) :
+
+| Cas | Comportement |
+|---|---|
+| Valeur **publiée** | Vue cadrée (inchangé) |
+| Paramètre **absent** | Vue non cadrée (inchangé) |
+| Valeur **inconnue, draft ou retirée** | **Erreur explicite** — jamais de repli silencieux |
+
+Côté **API** : `400` (aujourd'hui l'Explorateur renvoie son refus
+autrement et la recherche ignore en silence — les deux s'alignent).
+Côté **front** : page douce — « Cette lentille n'est pas disponible —
+Orion ne peut pas reproduire cette vue », avec la porte vers la vue non
+cadrée. Le front décide sur le registre publié qu'il a déjà
+(`stats.lenses`), donc il dit la même chose que l'API.
+
+Surfaces concernées : `/explore` (angles de decks compris — ce sont des
+URL d'Explorateur), `/projects`. Nouveaux e2e pour ce comportement ;
+les 71 existants restent verts sans modification.
+
+### M1.3 — les surfaces, une à une
 
 | Surface | Ce qui change | Ce qui ne change pas |
 |---|---|---|
@@ -69,10 +111,10 @@ deux temps : renommer la base sans le payload créerait un troisième
 | **Dossier** | La phrase générique (M1.1) ; les dossiers sauvegardés `sector=space` restent vrais (D2) | Blocs, gestes |
 | **Partage** | Aucune mécanique nouvelle — **l'URL est le partage**. Critère de recette : tout lien copié d'une vue cadrée reproduit exactement le périmètre à l'ouverture | Les gestes de copie/collecte existants |
 | **À-propos** | La section « La lentille spatiale » devient **un bloc méthode par lentille publiée** (le texte spatial actuel, verbatim, devient le bloc `space`) ; le **recouvrement chiffré** (« X projets portent deux lentilles », via `stats.overlap_projects`) n'apparaît qu'à **≥ 2 publiées** — jamais un compteur à zéro fictif | Licences, sources, la promesse d'honnêteté |
-| **Header / contexte** | **Arbitrage ouvert** (§ 4.A) — recommandation : rien | Le jeton « Orion Space Intelligence » (D5) |
-| **Stats** | `overlap_projects` ajouté ; puis M1.3 | La forme du bloc `lenses` |
+| **Header / contexte** | **Rien au header** (arbitrage 1) — mais le **titre du document devient dynamique** : `[Lentille] · [Vue] — Orion` sur une vue cadrée, `[Vue] — Orion` hors lentille. Le mécanisme de métadonnées **reçoit la lentille active** (il est statique aujourd'hui, `index.html:8`) | Le jeton « Orion Space Intelligence » (D5) ; **aucune image OG dynamique** dans ce chantier |
+| **Stats** | `overlap_projects` ajouté ; puis M1.4 | La forme du bloc `lenses` |
 
-### M1.3 — la dépose de l'alias
+### M1.4 — la dépose de l'alias
 
 `stats.space` retiré du payload ; `Stats` (types front), home, mocks de
 tests suivent. Témoins API avant/après : la différence exacte est
@@ -89,66 +131,91 @@ tests suivent. Témoins API avant/après : la différence exacte est
   suit l'URL, jamais l'inverse.
 - **U3 — les valeurs.** `<slug>` (cœur + habilitant) et `<slug>-direct`
   (cœur seul), lentilles **publiées** seulement (I2). Inconnu, draft ou
-  retiré : l'Explorateur refuse (comportement M0 conservé) ; la
-  recherche ignore le cadrage en silence — **aspérité historique
-  conservée en M1**, consignée pour être unifiée au basculement `lens=`
-  (§ 4.C).
+  retiré : **refus explicite partout** (M1.2) — 400 côté API, page
+  douce côté front. Jamais de repli silencieux : un lien qui retombe
+  sur le corpus entier ment sur ce qu'il montre.
 - **U4 — le silence.** L'état non cadré n'écrit rien dans l'URL ; le
   chip disparaît. Jamais un `sector=` vide, jamais un cadrage muet.
 - **U5 — une seule lentille par vue.** Le paramètre est scalaire ;
   aucune liste, aucun opérateur (amendement M0 n° 2).
 
-## 4. Les arbitrages ouverts — à trancher avant exécution
+## 4. Les arbitrages — TRANCHÉS le 2026-08-18
 
-- **A — Header / contexte.** Recommandation : **rien au header en M1**.
-  Le chip par vue est LA vérité unique — un badge d'application
-  dupliquerait l'état, et l'identité de contexte « ORION / SPACE » est
-  actée pour la bascule de marque post-A1 (D5 amendée), pas pour M1.
-  Option légère si tu la veux : le **titre du document** (onglet,
-  favoris, partage) dit le contexte sur les vues cadrées — « Orion —
-  Spatial » ; mécanisme neuf (le titre est statique aujourd'hui,
-  `index.html:8`), une trentaine de lignes. Sinon : consigné avec la
-  bascule ORION / SPACE.
-- **B — la lentille de graine.** Pour PROUVER la généricité sans
-  Aviation, la recette a besoin d'une deuxième lentille publiée quelque
-  part : je propose une lentille **de graine e2e uniquement**
-  (`seed_e2e`, comme ORBITGUARD est un projet inventé — la graine est
-  fictive par nature et ne touche ni `curation/` ni la prod). Elle fait
-  apparaître dans les tests : deux groupes au menu du chip, la ligne
-  verticale de la home, les badges multiples sur un projet des deux
-  mondes. Sans elle, ces surfaces ne seraient recettées qu'à A1. À
-  valider explicitement au regard de « aucune lentille fictive » —
-  l'amendement visait le REGISTRE produit, la graine est un banc
-  d'essai.
-- **C — le refus en recherche.** Unifier « valeur inconnue → refus
-  explicite » (comme l'Explorateur) plutôt que le silence actuel de la
-  recherche : je propose de le CONSIGNER au basculement `lens=` (pas de
-  changement de comportement en M1, loi du chantier).
+- **A — Header / contexte : RIEN au header.** « ORION / SPACE » reste
+  conditionné à A1 (D5 amendée). En revanche le **titre du document
+  devient dynamique** — `[Lentille] · [Vue] — Orion` sur une vue
+  cadrée, `[Vue] — Orion` hors lentille — et le **mécanisme de
+  métadonnées reçoit la lentille active**. Pas d'image OG dynamique
+  dans ce chantier. Exécution : M1.3.
+- **B — la lentille de graine : VALIDÉE, mais SYNTHÉTIQUE.** Son nom
+  est neutre — `test-lens` ou équivalent, **jamais `aviation`** : aucune
+  hypothèse métier sur la vraie lentille à venir. Elle n'existe que
+  dans la graine e2e, **jamais dans `curation/`** — c'est le motif
+  ORBITGUARD (une donnée inventée vit dans la graine, jamais dans le
+  registre de production). Une **assertion garantit qu'elle ne peut pas
+  être produite par le registre de production** : un test lit
+  `curation/lenses/registry.csv` et échoue si un slug de graine y
+  apparaît. Exécution : M1.3 (elle sert la recette des surfaces
+  multi-lentilles).
+- **C — le refus : UNIFIÉ dès M1**, pas au basculement `lens=`. C'est
+  le lot M1.2 ci-dessus. Motif fondateur : *un `sector` invalide qui
+  retombe en silence sur 700 000 projets est un lien qui ment* — U2
+  l'exige.
 
-## 5. La recette M1
+**I3 confirmé, sans amendement** : stockage canonique `core`/`enabling`,
+libellés utilisateur « direct / + habilitant » dans `lens.<slug>.*`,
+verbatim Space natif. La variante « Cœur / Cœur + technologies
+habilitantes » est **écartée** — les libellés sont recettés, enseignés
+par le deck 2, assertés par les e2e, et la généricité est déjà servie
+par les clés i18n par lentille.
 
-1. **Les 71 e2e existants, verts sans modification** — la loi de M0
-   continue : générique ne veut pas dire différent.
-2. **La non-régression des mots** : les e2e existants assertent déjà
-   les libellés validés (« Spatial + habilitant », « Spatial direct »,
-   /direct \+ habilitant/) — ils recettent donc `lens.space.*` par
-   eux-mêmes.
-3. **La généricité prouvée** (si B validé) : nouveaux e2e — deux
-   lentilles publiées en graine ⇒ deux groupes au chip, ligne
-   verticale home, badges des deux mondes sur un projet partagé ;
-   la lentille draft de graine n'apparaît NULLE part.
-4. **Le chevauchement visible** : ORBITGUARD porte « Spatial · cœur »
-   sur sa fiche ; un projet hors lentille n'affiche rien.
-5. **Les témoins API** avant/après M1.3 : différence exactement
-   `{ space absent, adjacent→enabling }` — le reste à l'octet.
-6. **Vitest, lint, CI verts** ; prod reconstruite au tampon, recette
-   fondatrice sur les six surfaces (home, Explorateur, recherche,
-   fiche projet, dossier, À-propos).
+## 5. La recette M1 — lot par lot (arrêt et recette entre chaque)
+
+**Invariant de tous les lots** : les **71 e2e existants verts sans
+modification** — ni assertion retouchée, ni test supprimé, ni couverture
+affaiblie. Générique ne veut pas dire différent.
+
+**M1.0 — le vocabulaire.** Témoins API avant/après dont la **seule**
+différence est `adjacent → enabling` (clé du bloc `lenses` et de l'alias
+`space`) ; tout le reste à l'octet. Le hint du chip et la phrase de
+l'À-propos ne nomment plus un tag qui n'existe pas ; les libellés
+« Spatial direct » / « Spatial + habilitant » sont intacts — les e2e
+existants, qui les assertent, en sont la preuve. Chargeur rejoué en
+prod : mêmes comptes qu'avant, sous le nouveau nom.
+
+**M1.1 — le socle.** Rendu strictement identique à une lentille
+publiée : le chip, le dossier, la section « Espace » des analyses ne
+changent pas d'un pixel alors que plus rien n'est en dur. Preuve
+négative : `grep` de `"space"` dans les composants génériques revient
+vide.
+
+**M1.2 — le refus.** Nouveaux e2e : `?sector=zzz`, `?sector=<draft>` et
+`?sector=<retired>` donnent la page douce sur `/explore` **et**
+`/projects` (jamais le corpus entier en silence) ; l'API répond `400` ;
+`?sector=space` et l'absence de paramètre sont inchangés.
+
+**M1.3 — les surfaces.** Titre de document : `Spatial · Explorateur —
+Orion` sur une vue cadrée, `Explorateur — Orion` sans lentille.
+Généricité prouvée par la lentille de graine synthétique : deux groupes
+au menu du chip, ligne verticale sur la home, badges des deux mondes
+sur un projet partagé — **et l'assertion qu'aucun slug de graine ne
+peut venir du registre de production**. Chevauchement visible :
+ORBITGUARD porte « Spatial · cœur » ; un projet hors lentille n'affiche
+rien. À-propos : blocs méthode par lentille publiée, recouvrement
+chiffré seulement à ≥ 2 publiées.
+
+**M1.4 — l'alias.** Témoins API : différence exactement
+`{ space absent }`.
+
+**À chaque lot** : pytest, vitest, lint, CI verte avec lien, prod
+reconstruite au tampon, puis recette fondatrice.
 
 ## 6. Ce que M1 ne fait pas
 
 Aucun `lens=` émis (I1) ; aucun cadrage sur les fiches org/groupe/pays
-(consigné) ; aucune Aviation, aucune règle aéro ; aucune Lens Room ;
-aucune intersection (grammaire scalaire, U5) ; le jeton de marque
-intact (D5) ; la DA intacte — le chip, les badges et les lignes
-verticales réutilisent les composants et tokens existants.
+(consigné) ; **aucune Aviation, aucune règle aéro, aucun nom de
+verticale future** — la lentille de recette est synthétique ; aucune
+Lens Room ; aucune intersection (grammaire scalaire, U5) ; aucune image
+OG dynamique ; le jeton de marque intact (D5) ; la DA intacte — le
+chip, les badges et les lignes verticales réutilisent les composants et
+tokens existants.

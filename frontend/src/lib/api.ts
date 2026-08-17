@@ -14,10 +14,11 @@ export interface Stats {
   };
   funding_by_year: { year: number; amount_eur: number }[];
   /** La lentille spatiale : les compteurs de preuve de la home, et le
-   *  hero spatial (lot 2) — « direct + habilitant » = cœur + adjacent. */
+   *  hero spatial (lot 2) — « direct + habilitant » = core + enabling
+   *  (le registre technique de la paire unique, I3). */
   space: {
     core: number;
-    adjacent: number;
+    enabling: number;
     core_funding_eur: number;
     funding_eur: number;
     organisations: number;

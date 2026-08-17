@@ -32,7 +32,7 @@ class Lens(Base):
 class ProjectLensTag(Base):
     __tablename__ = "project_lens_tags"
     __table_args__ = (
-        CheckConstraint("tag IN ('core', 'adjacent')", name="ck_project_lens_tags_tag"),
+        CheckConstraint("tag IN ('core', 'enabling')", name="ck_project_lens_tags_tag"),
         Index("ix_project_lens_tags_lens_project", "lens", "project_id"),
     )
 

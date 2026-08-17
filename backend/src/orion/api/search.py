@@ -26,7 +26,7 @@ def search_projects_endpoint(
     scope: Annotated[str | None, Query(description="manager region slug")] = None,
     sector: Annotated[
         str | None,
-        Query(description="registry lens: '<slug>' (core+adjacent) or '<slug>-direct'"),
+        Query(description="registry lens: '<slug>' (core+enabling) or '<slug>-direct'"),
     ] = None,
     year_from: int | None = None,
     year_to: int | None = None,

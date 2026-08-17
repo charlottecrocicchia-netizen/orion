@@ -35,7 +35,7 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
     ] = None,
     sector: Annotated[
         str | None,
-        Query(description="registry lens: '<slug>' (core+adjacent) or '<slug>-direct'"),
+        Query(description="registry lens: '<slug>' (core+enabling) or '<slug>-direct'"),
     ] = None,
     subdivision: Annotated[str | None, Query(description="mesh filter: ISO 3166-2 (US-CA)")] = None,
 ) -> dict[str, Any]:

@@ -114,7 +114,7 @@ RULES = [
     'programme,ZZ-SPACE,core,,"Programme spatial de test",test',
     'theme,/23/43/257,core,,"Sous-arbre astronomie",test',
     'text,in-orbit,core,cordis|nsf,"Services en orbite",test',
-    'text,microgravity,adjacent,cordis|nsf,"Micropesanteur — adjacent",test',
+    'text,microgravity,enabling,cordis|nsf,"Micropesanteur — habilitante",test',
 ]
 
 
@@ -136,14 +136,14 @@ def test_the_lens_tags_by_subtree_prefix_and_framed_text(db_session, tmp_path):
     assert tags["zzsl-2"] == "core"  # préfixe de thème, malgré le programme
     assert tags["zzsl-3"] == "core"  # motif texte, source cordis
     assert tags["zzsl-4"] is None  # même motif, source NIH : jamais tagué
-    assert tags["zzsl-5"] == "adjacent"
+    assert tags["zzsl-5"] == "enabling"
 
 
-def test_core_beats_adjacent_whatever_the_file_order(db_session, tmp_path):
+def test_core_beats_enabling_whatever_the_file_order(db_session, tmp_path):
     ids = _seed(db_session)
     rows = [
         'text,in-orbit,core,cordis|nsf,"Services en orbite",test',
-        'text,servicing,adjacent,cordis|nsf,"Générique — adjacent",test',
+        'text,servicing,enabling,cordis|nsf,"Générique — habilitant",test',
     ]
     load_lens(db_session, RunStats(), "space", _lens(tmp_path, rows))
     assert _tags(db_session, ids)["zzsl-3"] == "core"
@@ -238,13 +238,13 @@ def test_a_project_carries_two_lenses_each_read_full(db_session, tmp_path):
     _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Services en orbite",test'], name="space.csv")
     _lens(
         tmp_path,
-        ['text,servicing,adjacent,cordis|nsf,"Lecture seconde du même monde",test'],
+        ['text,servicing,enabling,cordis|nsf,"Lecture seconde du même monde",test'],
         name="zztest.csv",
     )
     load_all(db_session, RunStats(), base_dir=tmp_path)
 
     assert _tags(db_session, ids, lens="space")["zzsl-3"] == "core"
-    assert _tags(db_session, ids, lens="zztest")["zzsl-3"] == "adjacent"
+    assert _tags(db_session, ids, lens="zztest")["zzsl-3"] == "enabling"
 
     both = db_session.execute(
         text("SELECT count(*) FROM project_lens_tags WHERE project_id = :p"),
@@ -293,7 +293,7 @@ def test_only_published_lenses_exist_for_the_product(db_session, tmp_path):
 
 def test_the_two_perimeters_frame_the_explorer(db_session, tmp_path):
     """Space natif, lot 1 (validé 2026-08-17) : « Spatial direct » = le
-    cœur seul ; « Spatial + habilitant » = cœur + adjacent (le sens
+    cœur seul ; « Spatial + habilitant » = core + enabling (le sens
     historique de sector=space, désormais nommé) ; une valeur inconnue
     est refusée — jamais un cadrage silencieusement ignoré."""
     from orion.search.explore import aggregate
@@ -307,7 +307,7 @@ def test_the_two_perimeters_frame_the_explorer(db_session, tmp_path):
     assert enabling is not None and direct is not None
     total_enabling = sum(s["value"] or 0 for s in enabling["series"])
     total_direct = sum(s["value"] or 0 for s in direct["series"])
-    # La graine : 3 cœurs + 1 adjacent tagués.
+    # La graine : 3 cœurs + 1 habilitant tagués.
     assert total_enabling == total_direct + 1
     assert direct["meta"]["sector"] == "space-direct"
 

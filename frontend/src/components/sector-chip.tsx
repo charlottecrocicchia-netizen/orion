@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  *  dans une session : deux onglets peuvent lire deux périmètres.
  *
  *  Trois états : « Spatial direct » (cœur seul, sector=space-direct),
- *  « Spatial + habilitant » (cœur + adjacent, sector=space — son sens
+ *  « Spatial + habilitant » (core + enabling, sector=space — son sens
  *  historique, désormais nommé), « Toute la R&D » (pas de paramètre). */
 export const SECTOR_VALUES = ["space-direct", "space", ""] as const;
 

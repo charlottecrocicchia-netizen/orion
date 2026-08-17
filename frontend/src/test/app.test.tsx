@@ -20,7 +20,7 @@ const STATS = {
   ],
   space: {
     core: 812,
-    adjacent: 2140,
+    enabling: 2140,
     core_funding_eur: 3.1e9,
     funding_eur: 5.2e9,
     organisations: 1450,

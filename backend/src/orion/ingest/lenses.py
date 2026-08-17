@@ -22,10 +22,14 @@ familles de règles, chacune sourcée :
 - `text`      : un motif FERMÉ validé à la main sur titres et résumés,
   CADRÉ par source — jamais NIH, où « satellite cell » est un muscle.
 
-Le tag est `core` (au cœur) ou `adjacent` (technologie habilitante) ;
-core gagne, structurellement. Refus délibérés, documentés ici : HORIZON.2.4
-entier (Digital+Industry+Space mêlés), tout match par libellé, tout motif
-d'un seul mot ambigu (« satellite » nu).
+Le tag est `core` (au cœur) ou `enabling` (technologie habilitante) ;
+core gagne, structurellement. Ces deux mots sont le registre TECHNIQUE
+d'une paire unique (I3) — le registre utilisateur (« X direct » /
+« X + habilitant ») vit en i18n, et il n'existe pas de troisième terme.
+
+Refus délibérés, documentés ici : HORIZON.2.4 entier (Digital+Industry+
+Space mêlés), tout match par libellé, tout motif d'un seul mot ambigu
+(« satellite » nu).
 
 Validation TOUT OU RIEN sur la FORME (registre et règles) ; résolution
 SOUPLE sur le corpus : une règle dont le programme n'existe pas dans
@@ -55,7 +59,7 @@ REGISTRY_FILE = LENSES_DIR / "registry.csv"
 REGISTRY_COLUMNS = ["family_key", "slug", "rank", "status"]
 COLUMNS = ["rule_type", "value", "tag", "sources", "evidence", "source"]
 RULE_TYPES = ("programme", "theme", "text")
-TAGS = ("core", "adjacent")
+TAGS = ("core", "enabling")
 # I2 : draft se charge sans être exposée, published est le produit,
 # retired n'est plus rechargée — ses tags restent gelés en base.
 STATUSES = ("draft", "published", "retired")
@@ -118,7 +122,7 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
             if rule["rule_type"] not in RULE_TYPES:
                 _fail(path.name, index, f"rule_type « {rule['rule_type']} » (programme|theme|text)")
             if rule["tag"] not in TAGS:
-                _fail(path.name, index, f"tag « {rule['tag']} » (core|adjacent)")
+                _fail(path.name, index, f"tag « {rule['tag']} » (core|enabling)")
             if not rule["value"]:
                 _fail(path.name, index, "value est obligatoire")
             if not rule["evidence"] or not rule["source"]:
@@ -188,7 +192,7 @@ def _programme_subtree(session: Session, code: str) -> list[int]:
 
 
 def _apply_rule(session: Session, slug: str, tag: str, where: str, params: dict[str, Any]) -> int:
-    # La lentille vient d'être vidée : adjacent s'insère sans jamais
+    # La lentille vient d'être vidée : enabling s'insère sans jamais
     # écraser (DO NOTHING), core passe après et écrase (DO UPDATE) — la
     # priorité reste structurelle, pas dépendante de l'ordre du fichier.
     conflict = (
@@ -215,8 +219,8 @@ def load_lens(session: Session, stats: RunStats, slug: str, path: Path) -> None:
 
     session.execute(text("DELETE FROM project_lens_tags WHERE lens = :lens"), {"lens": slug})
 
-    # adjacent d'abord, core ensuite : voir _apply_rule.
-    for wanted in ("adjacent", "core"):
+    # enabling d'abord, core ensuite : voir _apply_rule.
+    for wanted in ("enabling", "core"):
         for rule in rules:
             if rule["tag"] != wanted:
                 continue
@@ -264,8 +268,8 @@ def load_lens(session: Session, stats: RunStats, slug: str, path: Path) -> None:
             text("SELECT count(*) FROM project_lens_tags WHERE lens = :lens AND tag = :tag"),
             {"lens": slug, "tag": tag},
         ).scalar()
-        # Pour le spatial, les clés restent `space_core`/`space_adjacent` —
-        # le journal ne change pas de langage.
+        # Pour le spatial : `space_core` / `space_enabling` — le journal
+        # parle le registre technique, comme la base et le payload.
         stats.add(f"{slug}_{tag}", count or 0)
 
 

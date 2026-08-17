@@ -259,7 +259,7 @@ export function HomePage() {
                 sub={spaceFrom && spaceTo ? t("hero.subSpace", { from: spaceFrom, to: spaceTo }) : " "}
                 kpis={[
                   {
-                    value: stats.space.core + stats.space.adjacent,
+                    value: stats.space.core + stats.space.enabling,
                     label: t("hero.spaceProjects"),
                   },
                   { value: stats.space.organisations, label: t("hero.spaceOrgs") },
