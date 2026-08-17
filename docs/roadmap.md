@@ -324,8 +324,16 @@ même : [conception-drill-etats.md](conception-drill-etats.md) et
   Conséquence : lot F livrable **sans carte** (classement, barres,
   comparaison, noms officiels), et c'est la seule forme propre. Réexamen
   de la carte seulement si nous achetons une licence EuroGeographics :
-  décision commerciale, pas technique. Prérequis inchangé : le backfill
-  NUTS (0/463 147) attend une image API reconstruite.
+  décision commerciale, pas technique.
+  **Avancement (2026-08-17)** : **F1 — la donnée — FAIT.** Backfill NUTS
+  exécuté en prod (431 798/463 147, 93,2 %, 125 s — ligne de perfs au
+  registre), nomenclature Eurostat chargée (3 348 codes, canal SDMX hors
+  GISCO, attribution consignée). **F2 — les surfaces — attend la
+  validation de la [conception symétrie géographique]
+  (conception-symetrie-geo.md)** (commande fondatrice intégrée au lot :
+  pages régions, geste uniforme, sort de `?scope=`, niveaux NUTS par
+  pays — six décisions numérotées). **F3 — option** : le benchmark
+  géographique (l'Europe face aux États-Unis dans `/compare`).
 
 ## Puis — phase 5 : les appels (calls)
 
