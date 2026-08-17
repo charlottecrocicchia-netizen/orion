@@ -30,6 +30,22 @@ test("la carte du monde texture les pays non couverts et le dit en légende", as
   await expect(page.getByText("financements domestiques non couverts")).toBeVisible();
 });
 
+test("le globe porte la même texture — c'est LUI que l'on voit en premier", async ({ page }) => {
+  // Recette fondatrice du 2026-08-17 : la texture avait été livrée sur
+  // la carte plate seulement. Or le globe est la vue par DÉFAUT — le
+  // seul écran que tout le monde voit taisait donc son assiette. Ce
+  // test existe pour que ça ne puisse pas revenir en silence.
+  await page.addInitScript(() => window.localStorage.setItem("orion.geoview", "globe"));
+  await page.goto("/explore/countries");
+  const globe = page.getByRole("img", { name: /Globe/ });
+  await expect(globe).toBeVisible({ timeout: 15_000 });
+
+  await expect(globe.locator("[data-not-covered]").first()).toBeAttached({ timeout: 10_000 });
+  // Jamais sur un pays à bailleur chargé — la France est couverte.
+  await expect(globe.locator("[data-not-covered='FR']")).toHaveCount(0);
+  await expect(page.getByText("financements domestiques non couverts")).toBeVisible();
+});
+
 test("une vue qui mélange les couvertures le confesse ; une vue homogène se tait", async ({
   page,
 }) => {

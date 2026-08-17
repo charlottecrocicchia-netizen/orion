@@ -284,6 +284,29 @@ export function WorldGlobe({
 
   const focusEntry = focus ? byCode.get(focus) : null;
 
+  // Le globe devient « conscient de la couverture » exactement comme la
+  // carte plate : dès que ses entrées en portent une (recette du
+  // 2026-08-17 — la texture avait été livrée sur la carte SEULE, alors
+  // que le globe est la vue par défaut ; l'écran le plus vu était donc
+  // le seul à taire l'assiette).
+  const coverageAware = countries.some((entry) => entry.coverage != null);
+
+  // Les tracés sont calculés UNE fois et servis aux deux couches. Sur un
+  // globe qui tourne, reprojeter chaque pays deux fois par image se
+  // paierait comptant sur cette machine.
+  const drawn = (geo?.countries ?? []).flatMap((country) => {
+    const d = country.rings
+      .map((ring) => {
+        const path = ringToPath(ring, project);
+        return path ? `${path}Z` : "";
+      })
+      .join("");
+    return d ? [{ country, d }] : [];
+  });
+  const uncovered = coverageAware
+    ? drawn.filter(({ country }) => (byCode.get(country.code)?.coverage ?? "none") !== "funders")
+    : [];
+
   return (
     <div ref={rootRef} className="relative">
       <svg
@@ -324,6 +347,29 @@ export function WorldGlobe({
           resumeSpin();
         }}
       >
+        <defs>
+          {/* « Pas encore couvert » — la texture du lot E, reprise au
+              trait près de world-map.tsx. Un id distinct parce que les
+              deux SVG coexistent le temps du morphing ; la géométrie,
+              elle, ne bouge pas d'un pixel. */}
+          <pattern
+            id="orion-not-covered-globe"
+            width="7"
+            height="7"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
+            <line
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="7"
+              stroke="var(--color-foreground)"
+              strokeOpacity="0.22"
+              strokeWidth="1.4"
+            />
+          </pattern>
+        </defs>
         {morphT == null || morphT < 1 ? (
           <circle
             cx={CX}
@@ -346,16 +392,9 @@ export function WorldGlobe({
             return d ? <path key={index} d={d} /> : null;
           })}
         </g>
-        {geo?.countries.map((country) => {
+        {drawn.map(({ country, d }) => {
           const isCovered = covered.has(country.code);
           const isSelected = mode === "select" && selected === country.code;
-          const d = country.rings
-            .map((ring) => {
-              const path = ringToPath(ring, project);
-              return path ? `${path}Z` : "";
-            })
-            .join("");
-          if (!d) return null;
           const entry = byCode.get(country.code);
           const interactive = isCovered && morphT == null;
           // Map rule (fondatrice, 2026-08-02): the first activation
@@ -438,6 +477,25 @@ export function WorldGlobe({
             />
           );
         })}
+        {/* La couche d'honnêteté, par-dessus les teintes — MÊME texture
+            que la carte plate, à dessein : un signal qui change de forme
+            d'un écran à l'autre se réapprend à chaque fois. Tout pays
+            dont les financements domestiques ne sont pas couverts la
+            porte, qu'il ait des chiffres (participations) ou aucun.
+            Sans interaction : elle n'attrape jamais le clic du pays, et
+            elle disparaît pendant le morphing vers la carte, qui pose
+            la sienne à l'arrivée. */}
+        {morphT == null
+          ? uncovered.map(({ country, d }) => (
+              <path
+                key={`nc-${country.code}`}
+                d={d}
+                fill="url(#orion-not-covered-globe)"
+                pointerEvents="none"
+                data-not-covered={country.code}
+              />
+            ))
+          : null}
         {geo?.points.map((point) => {
           const entry = byCode.get(point.code);
           if (!entry) return null; // no data: a micro-territory stays silent
@@ -565,6 +623,16 @@ export function WorldGlobe({
         >
           <span className="font-semibold">{focusEntry.name}</span>
           <span className="tnum"> · {formatCompactEur(focusEntry.funding_eur, i18n.language)}</span>
+          {/* La classe au point de contact : c'est ICI que « l'Asie ne
+              finance rien » meurt — le pays survolé dit POURQUOI son
+              chiffre est petit, au lieu de laisser conclure. */}
+          {focusEntry.coverage === "participations" || focusEntry.coverage === "none" ? (
+            <span className="block opacity-75">
+              {focusEntry.coverage === "participations"
+                ? t("coverage.tipParticipations")
+                : t("coverage.tipNone")}
+            </span>
+          ) : null}
           <span className="block opacity-75">{t("home.globeFlowsHint")}</span>
         </div>
       ) : null}
@@ -583,6 +651,29 @@ export function WorldGlobe({
           <i className="inline-block h-2.5 w-2.5 rounded-[3px] bg-surface ring-1 ring-border" />
           {t("explore.coverageSoon")}
         </span>
+        {/* La texture a SA légende ici aussi — même pastille, mêmes mots
+            que sur la carte plate. */}
+        {uncovered.length > 0 ? (
+          <span className="flex items-center gap-1.5">
+            <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true">
+              <rect
+                width="14"
+                height="10"
+                rx="1.5"
+                fill="var(--color-surface)"
+                stroke="var(--color-border)"
+                strokeWidth="0.75"
+              />
+              <path
+                d="M-2,4 L4,-2 M0,10 L10,0 M4,12 L14,2 M10,12 L16,6"
+                stroke="var(--color-foreground)"
+                strokeOpacity="0.32"
+                strokeWidth="1.2"
+              />
+            </svg>
+            {t("coverage.legend")}
+          </span>
+        ) : null}
         <span>{t("explore.globeHint")}</span>
         <span className="ml-auto">
           <b className="font-semibold text-foreground">{t("explore.coverageNote")}</b>{" "}
