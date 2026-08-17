@@ -325,15 +325,20 @@ même : [conception-drill-etats.md](conception-drill-etats.md) et
   comparaison, noms officiels), et c'est la seule forme propre. Réexamen
   de la carte seulement si nous achetons une licence EuroGeographics :
   décision commerciale, pas technique.
-  **Avancement (2026-08-17)** : **F1 — la donnée — FAIT.** Backfill NUTS
-  exécuté en prod (431 798/463 147, 93,2 %, 125 s — ligne de perfs au
-  registre), nomenclature Eurostat chargée (3 348 codes, canal SDMX hors
-  GISCO, attribution consignée). **F2 — les surfaces — attend la
-  validation de la [conception symétrie géographique]
-  (conception-symetrie-geo.md)** (commande fondatrice intégrée au lot :
-  pages régions, geste uniforme, sort de `?scope=`, niveaux NUTS par
-  pays — six décisions numérotées). **F3 — option** : le benchmark
-  géographique (l'Europe face aux États-Unis dans `/compare`).
+  **Avancement (2026-08-17)** : **F1 — la donnée — FAIT** (backfill NUTS
+  431 798/463 147 en 125 s, nomenclature Eurostat 3 348 codes, canal
+  SDMX hors GISCO, attribution au registre). **F2 — les surfaces —
+  FAIT, conception validée le jour même** : les cinq pages régions,
+  `?scope=` redirigé, la maille européenne en barres nommées au niveau
+  curé ([nuts-levels.csv](../backend/curation/nuts-levels.csv) — 27
+  pays, dont GB/CH/NO ajoutés au-delà de la table validée, à recetter),
+  fils d'Ariane Monde › Région › Pays, libellés natifs, résidu « non
+  rattaché » affiché, crédit Eurostat posé. En prod : 491 mailles,
+  385 485 participations européennes rattachées. Trouvaille du test :
+  une région vue UNIQUEMENT par participations (Asie-Pacifique) ne
+  déclenchait pas la note « mixte » — elle confesse désormais plus fort.
+  **F3 — option ouverte** : le benchmark géographique (l'Europe face aux
+  États-Unis dans `/compare`).
 
 ## Puis — phase 5 : les appels (calls)
 

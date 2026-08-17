@@ -148,7 +148,15 @@ libellé FR/EN), jamais un « subdivisions » générique à l'écran.
   benchmark composable (`/compare` : l'Europe face aux États-Unis en
   deck, dossier compris).
 
-## 10. Décisions demandées
+## 10. Décisions demandées — VALIDÉES le 2026-08-17
+
+*Validation fondatrice reçue (« le voyage monde → région → pays →
+subdivision est exactement ce que je voulais, le geste est le même
+partout »). Exécuté le jour même — F2 livré tel que proposé, avec un
+écart déclaré : GB, CH et NO ajoutés au fichier des niveaux au-delà de
+la table du §6 (le Royaume-Uni est le 4e pays du corpus — le laisser
+sans maille aurait troué « la géographie est complète ») ; à recetter,
+retrait en une ligne de fichier si refusés.*
 
 1. **URLs** : `/explore/regions/europe` pour les 5 régions du monde — ok ?
 2. **`?scope=` géographique** : redirection vers les pages régions — ok ?
