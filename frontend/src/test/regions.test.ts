@@ -46,10 +46,16 @@ describe("la géométrie mondiale", () => {
   });
 
   it("chaque scope plat existe avec le monde en défaut", () => {
+    // « us-states » (lot D, 2026-08-17) est la maille SOUS le pays : un
+    // scope de plus dans la même planche, pas une région manager.
     expect(Object.keys(FLAT.scopes).sort()).toEqual(
-      ["world", ...REGION_ORDER].sort(),
+      ["world", "us-states", ...REGION_ORDER].sort(),
     );
     expect(FLAT.scopes.world.countries.length).toBeGreaterThan(150);
+    // Les 50 États + DC dessinés, les territoires en pastilles — la
+    // règle gravée vaut à l'échelle de la maille.
+    expect(FLAT.scopes["us-states"].countries).toHaveLength(51);
+    expect(FLAT.scopes["us-states"].points.map((p) => p.code)).toContain("US-PR");
     // L'Europe garde MT en pastille — elle était invisible avant.
     expect(FLAT.scopes.europe.points.some((p) => p.code === "MT")).toBe(true);
     // La fenêtre de morph du globe vise le monde.

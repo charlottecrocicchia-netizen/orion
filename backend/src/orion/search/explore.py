@@ -29,7 +29,7 @@ METRICS = ("funding", "projects", "organisations", "avg", "coordination")
 from orion.ingest.reference import REGIONS as _REGIONS  # noqa: E402
 
 MANAGER_REGIONS: frozenset[str] = frozenset(_REGIONS)
-PARTICIPATION_DIMS = {"country", "region", "organisation", "orgtype"}
+PARTICIPATION_DIMS = {"country", "region", "subdivision", "organisation", "orgtype"}
 
 # (metric, dimension) pairs served in V1. Deliberately absent:
 # organisations×programme and coordination×programme/funder — the programme
@@ -44,6 +44,7 @@ VALID: frozenset[tuple[str, str]] = frozenset(
                 "year",
                 "country",
                 "region",
+                "subdivision",
                 "programme",
                 "organisation",
                 "funder",
@@ -53,7 +54,7 @@ VALID: frozenset[tuple[str, str]] = frozenset(
         ),
         *(
             ("organisations", d)
-            for d in ("year", "country", "region", "funder", "orgtype", "theme")
+            for d in ("year", "country", "region", "subdivision", "funder", "orgtype", "theme")
         ),
         *(("coordination", d) for d in ("year", "country", "region", "organisation", "orgtype")),
     ]
@@ -154,6 +155,15 @@ def _dimension(by: str, participation: bool, params: dict[str, Any]) -> dict[str
             "joins": "LEFT JOIN countries c ON c.code = pa.country_code",
             "label": "max(c.name_en)",
             "clause": "pa.country_code IS NOT NULL",
+        }
+    if by == "subdivision":
+        # La maille sous le pays (lot D, 2026-08-17) : le nom vient du
+        # référentiel `subdivisions`, jamais d'une liste côté client.
+        return {
+            "key": "pa.subdivision_code",
+            "joins": "JOIN subdivisions sd ON sd.code = pa.subdivision_code",
+            "label": "max(sd.name)",
+            "clause": "pa.subdivision_code IS NOT NULL",
         }
     if by == "region":
         # The five manager regions (chantier régions, 2026-08-04): the
@@ -375,11 +385,19 @@ def aggregate(
     programme: int | None = None,
     organisation: str | None = None,
     sector: str | None = None,
+    subdivision: str | None = None,
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
         return None
     if sector is not None and sector != "space":
         return None
+    # La maille cadre, la dimension distribue : se filtrer sur la maille
+    # qu'on distribue n'a pas de sens (même règle que region × scope).
+    if subdivision is not None:
+        if not re.fullmatch(r"[A-Z]{2}-[A-Z0-9]{1,3}", subdivision):
+            return None
+        if by == "subdivision":
+            return None
     # Le filtre entité : une organisation ou un groupe (« g<id> ») — le
     # benchmark composable s'appuie dessus. Se filtrer sur la dimension
     # qu'on distribue n'a pas de sens (même règle que region×scope).
@@ -408,7 +426,7 @@ def aggregate(
 
     key = (
         f"explore:{metric}:{by}:{split}:{compare}:{year_from}:{year_to}:{q}:{country}:"
-        f"{scope}:{limit}:{programme}:{organisation}:{sector}"
+        f"{scope}:{limit}:{programme}:{organisation}:{sector}:{subdivision}"
     )
 
     def build() -> dict[str, Any]:
@@ -427,6 +445,7 @@ def aggregate(
             programme=programme,
             organisation=organisation,
             sector=sector,
+            subdivision=subdivision,
         )
 
     if q:
@@ -450,6 +469,7 @@ def _build(
     programme: int | None = None,
     organisation: str | None = None,
     sector: str | None = None,
+    subdivision: str | None = None,
 ) -> dict[str, Any]:
     # Le filtre entité force la base participations : l'argent COMPTÉ est
     # celui des participations de l'entité, jamais les totaux projets.
@@ -519,6 +539,9 @@ def _build(
     if sector == "space":
         # La lentille spatiale cadre la vue — le tag vit sur le projet.
         clauses.append("p.space_tag IS NOT NULL")
+    if subdivision is not None:
+        params["subdivision"] = subdivision
+        clauses.append("pa.subdivision_code = :subdivision")
     if split:
         clauses.append(
             "p.start_date IS NOT NULL AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035"
@@ -655,5 +678,6 @@ def _build(
             "programme_label": (tree_info[programme]["label"] if programme in tree_info else None),
             "organisation": organisation,
             "sector": sector,
+            "subdivision": subdivision,
         },
     }

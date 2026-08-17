@@ -5,7 +5,8 @@
  * while 74 % of the corpus in euros had become American.
  *
  *   curl -sL -o /tmp/countries-110m.json https://unpkg.com/world-atlas@2.0.2/countries-110m.json
- *   node scripts/build-geo.mjs /tmp/countries-110m.json
+ *   curl -sL -o /tmp/us-states-albers.json https://unpkg.com/us-atlas@3.0.1/states-albers-10m.json
+ *   node scripts/build-geo.mjs /tmp/countries-110m.json /tmp/us-states-albers.json
  *
  * Produces:
  *   src/lib/world-geo.json  — raw lon/lat rings for the globe (runtime
@@ -32,6 +33,11 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const NUM2A2 = JSON.parse(readFileSync(join(HERE, "geo", "iso-numeric.json"), "utf8"));
 const MICRO = JSON.parse(readFileSync(join(HERE, "geo", "micro-territories.json"), "utf8"));
+// La maille sous le pays (lot D, 2026-08-17) : les États américains
+// entrent comme un SCOPE de plus — la carte du monde les rend sans une
+// ligne de plus (même bucket LOG, même règle du premier clic).
+const FIPS = JSON.parse(readFileSync(join(HERE, "geo", "fips-usps.json"), "utf8"));
+const US_MICRO = JSON.parse(readFileSync(join(HERE, "geo", "us-micro.json"), "utf8"));
 
 // The five manager regions' flat windows [lonMin, latMin, lonMax, latMax]
 // + vertical stretch. Europe keeps the EXACT parameters of the validated
@@ -218,8 +224,108 @@ for (const [slug, scope] of Object.entries(SCOPES)) {
   };
 }
 
+// ------------------------------------------------ la maille américaine
+// us-atlas livre les États DÉJÀ projetés en Albers USA (Alaska et Hawaï
+// en médaillons, le standard) : il n'y a donc rien à projeter — on
+// remet simplement la planche à notre échelle 900×675. Les codes sont
+// ISO 3166-2 (« US-NV ») pour que la carte, l'API et l'URL parlent la
+// même langue. Territoires hors planche : pastilles, comme Malte.
+const usSource = process.argv[3];
+if (usSource) {
+  const usTopo = JSON.parse(readFileSync(usSource, "utf8"));
+  const usScale = usTopo.transform.scale;
+  const usTranslate = usTopo.transform.translate;
+  const usArcs = usTopo.arcs.map((arc) => {
+    let x = 0;
+    let y = 0;
+    return arc.map(([dx, dy]) => {
+      x += dx;
+      y += dy;
+      return [x * usScale[0] + usTranslate[0], y * usScale[1] + usTranslate[1]];
+    });
+  });
+  const usRing = (arcRefs) => {
+    const points = [];
+    for (const ref of arcRefs) {
+      const reversed = ref < 0;
+      const arc = usArcs[reversed ? ~ref : ref];
+      const oriented = reversed ? [...arc].reverse() : arc;
+      points.push(...(points.length > 0 ? oriented.slice(1) : oriented));
+    }
+    return points;
+  };
+
+  const [bx0, by0, bx1, by1] = usTopo.bbox;
+  const usK = Math.min(STAGE.w / (bx1 - bx0), STAGE.h / (by1 - by0)) * 0.96;
+  const usOffX = (STAGE.w - (bx1 - bx0) * usK) / 2;
+  const usOffY = (STAGE.h - (by1 - by0) * usK) / 2;
+  const usProject = ([x, y]) => [
+    Math.round((usOffX + (x - bx0) * usK) * 100) / 100,
+    Math.round((usOffY + (y - by0) * usK) * 100) / 100,
+  ];
+
+  const usEntries = [];
+  for (const geometry of usTopo.objects.states.geometries) {
+    const usps = FIPS[String(geometry.id).padStart(2, "0")];
+    if (!usps) {
+      console.error(`FIPS sans code postal : ${geometry.id}`);
+      process.exit(1);
+    }
+    const paths = [];
+    let best = { area: 0, sx: 0, sy: 0 };
+    for (const polygon of polygons(geometry)) {
+      for (const ring of polygon) {
+        const projected = usRing(ring).map(usProject);
+        paths.push(`M${projected.map(([x, y]) => `${x},${y}`).join("L")}Z`);
+        let area = 0;
+        let sx = 0;
+        let sy = 0;
+        for (let i = 0; i < projected.length; i++) {
+          const [x1, y1] = projected[i];
+          const [x2, y2] = projected[(i + 1) % projected.length];
+          const cross = x1 * y2 - x2 * y1;
+          area += cross;
+          sx += (x1 + x2) * cross;
+          sy += (y1 + y2) * cross;
+        }
+        area /= 2;
+        if (Math.abs(area) > Math.abs(best.area)) {
+          best = { area, sx: sx / (6 * area), sy: sy / (6 * area) };
+        }
+      }
+    }
+    usEntries.push({
+      code: `US-${usps}`,
+      path: paths.join(""),
+      cx: Math.round(best.sx * 10) / 10,
+      cy: Math.round(best.sy * 10) / 10,
+    });
+  }
+
+  // La règle gravée, appliquée à la maille : tout code du référentiel a
+  // son polygone ou sa pastille, sinon le build échoue.
+  const usPolygons = new Set(usEntries.map((entry) => entry.code));
+  const usPoints = Object.entries(US_MICRO)
+    .filter(([code]) => !usPolygons.has(code))
+    .map(([code, [x, y]]) => ({ code, cx: x, cy: y }))
+    .sort((a, b) => a.code.localeCompare(b.code));
+  const expected = Object.values(FIPS).map((usps) => `US-${usps}`);
+  const missing = expected.filter(
+    (code) => !usPolygons.has(code) && !usPoints.some((point) => point.code === code),
+  );
+  if (missing.length > 0) {
+    console.error(`mailles US sans polygone ni pastille : ${missing.sort().join(" ")}`);
+    process.exit(1);
+  }
+
+  flatScopes["us-states"] = {
+    countries: usEntries.sort((a, b) => a.code.localeCompare(b.code)),
+    points: usPoints,
+  };
+}
+
 const flatMaps = {
-  attribution: "world-atlas (ISC) / Natural Earth (public domain)",
+  attribution: "world-atlas (ISC) / Natural Earth (public domain) · us-atlas (ISC) / U.S. Census Bureau (public domain)",
   width: STAGE.w,
   height: STAGE.h,
   scopes: flatScopes,

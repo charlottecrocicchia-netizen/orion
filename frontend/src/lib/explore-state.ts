@@ -18,6 +18,8 @@ export interface ExplorerState {
   organisation: string;
   /** La lentille spatiale : « space » cadre aux projets tagués. */
   sector: string;
+  /** La maille sous le pays (lot D) : « US-CA » cadre la vue. */
+  subdivision: string;
   limit: number;
   view: string;
 }
@@ -36,6 +38,7 @@ export function readState(params: URLSearchParams): ExplorerState {
     programme: params.get("programme") ?? "",
     organisation: params.get("organisation") ?? "",
     sector: params.get("sector") ?? "",
+    subdivision: params.get("subdivision") ?? "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
   };
@@ -56,6 +59,7 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   if (state.programme && state.by === "programme") apiParams.set("programme", state.programme);
   if (state.organisation) apiParams.set("organisation", state.organisation);
   if (state.sector) apiParams.set("sector", state.sector);
+  if (state.subdivision) apiParams.set("subdivision", state.subdivision);
   return apiParams;
 }
 

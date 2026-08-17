@@ -374,9 +374,22 @@ def main() -> None:
     # même fichier, même chargeur (ORBITGUARD doit sortir core).
     from orion.ingest.runlog import RunStats as _RunStats
     from orion.ingest.space_lens import load_space_lens
+    from orion.ingest.subdivisions import seed_subdivisions
 
     with Session(engine) as session:
         load_space_lens(session, _RunStats())
+        # La maille sous le pays : le référentiel complet, et le MIT posé
+        # dans son État (les caches ne sont pas là en CI — la graine dit
+        # la maille comme le backfill la dirait).
+        seed_subdivisions(session, _RunStats())
+        session.execute(
+            text(
+                "UPDATE participations pa SET subdivision_code = 'US-MA' "
+                "FROM organisations o WHERE o.id = pa.organisation_id "
+                "AND o.name LIKE 'MASSACHUSETTS%'"
+            )
+        )
+        session.commit()
 
     print(f"Seeded {len(PROJECTS)} projects, {len(ORGS)} organisations, 5 countries.")
 

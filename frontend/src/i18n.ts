@@ -470,6 +470,11 @@ const resources = {
       country: {
         organisations: "Organisations",
         coordinations: "Coordinations",
+        byMesh: "By state",
+        byMeshPhrase:
+          "Each state tinted by the funding its beneficiaries receive — click to select, click again to open the view.",
+        meshLegend: "Funding by state",
+        meshOpen: "Open this state's view",
         topOrganisations: "Top organisations",
         topProjects: "Top projects",
         euMember: "EU member",
@@ -508,6 +513,7 @@ const resources = {
           programme: "programme",
           theme: "theme",
           organisation: "organisation",
+          subdivision: "state",
           funder: "funder",
           orgtype: "organisation type",
           region: "region",
@@ -1127,6 +1133,11 @@ const resources = {
       country: {
         organisations: "Organisations",
         coordinations: "Coordinations",
+        byMesh: "Par État",
+        byMeshPhrase:
+          "Chaque État porte la teinte des financements reçus par ses bénéficiaires — cliquez pour sélectionner, recliquez pour ouvrir la vue.",
+        meshLegend: "Financements par État",
+        meshOpen: "Ouvrir la vue de cet État",
         topOrganisations: "Principales organisations",
         topProjects: "Principaux projets",
         euMember: "Membre de l'UE",
@@ -1165,6 +1176,7 @@ const resources = {
           programme: "programme",
           theme: "thème",
           organisation: "organisation",
+          subdivision: "État",
           funder: "bailleur",
           orgtype: "type d'organisation",
           region: "région",

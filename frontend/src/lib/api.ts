@@ -348,6 +348,14 @@ export interface CountryHub {
   code: string;
   name: string;
   eu_member: boolean;
+  /** La maille sous le pays (lot D) : vide quand le référentiel n'en
+   *  tient pas — la fiche décide alors de ne pas ouvrir de carte. */
+  subdivisions: {
+    code: string;
+    name: string;
+    projects_count: number;
+    funding_eur: number;
+  }[];
   kpis: {
     projects_count: number;
     organisations_count: number;

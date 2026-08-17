@@ -40,6 +40,7 @@ export function WorldMap({
   countLabel,
   selected = null,
   onSelect,
+  onOpen,
   scope = "world",
 }: {
   countries: CountryIndexEntry[];
@@ -54,8 +55,14 @@ export function WorldMap({
   /** First activation selects; a second activation of the selected
    *  country zooms into its file. */
   onSelect?: (code: string) => void;
+  /** Détourne la SECONDE activation : l'appelant décide où elle mène
+   *  (une maille n'a pas de fiche pays). Absent = le zoom cinématique
+   *  vers la fiche pays, comportement d'origine. */
+  onOpen?: (code: string) => void;
   /** Geographic frame: the world, or one manager region. */
-  scope?: RegionSlug | "world";
+  /** Le cadre : le monde, une région manager, ou la maille sous un pays
+   *  (« us-states » — lot D : un scope de plus, aucun composant neuf). */
+  scope?: RegionSlug | "world" | "us-states";
 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -129,6 +136,14 @@ export function WorldMap({
     if (onSelect && code !== selected) {
       setTip(null);
       onSelect(code);
+      return;
+    }
+    // La sortie appartient à l'appelant quand il la revendique : une
+    // MAILLE (« US-MA ») n'a pas de fiche pays — sans cette prise, la
+    // carte l'y enverrait quand même (lot D, 2026-08-17).
+    if (onOpen) {
+      setTip(null);
+      onOpen(code);
       return;
     }
     openCountry(code, target);

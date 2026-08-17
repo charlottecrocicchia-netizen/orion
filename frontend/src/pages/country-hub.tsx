@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
+
+import { WorldMap } from "@/components/world-map";
 
 import { CollectButton } from "@/components/collect-button";
 import { ExploreExits } from "@/components/explore-exits";
@@ -14,10 +17,16 @@ import { countryFlag, formatCompactEur, formatInt, formatOrgName } from "@/lib/f
 export function CountryHubPage() {
   const { code = "" } = useParams();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  // La maille sélectionnée (lot D) : premier clic sélectionne et ouvre
+  // la ligne de résumé, second clic sur la même maille part vers la vue
+  // filtrée — la règle de la carte, à l'échelle de l'État.
+  const [mesh, setMesh] = useState<string | null>(null);
   const { data, isPending } = useQuery({
     queryKey: ["country", code],
     queryFn: () => api.country(code),
   });
+  const selectedMesh = data?.subdivisions.find((entry) => entry.code === mesh) ?? null;
 
   if (isPending) {
     return (
@@ -72,6 +81,59 @@ export function CountryHubPage() {
 
       <div className="mt-14 grid gap-14 lg:grid-cols-[minmax(0,1fr)_264px]">
         <div className="min-w-0 space-y-14">
+          {/* La maille sous le pays (lot D, 2026-08-17) : quand le
+              référentiel en tient une, la fiche l'ouvre en choroplèthe —
+              MÊME grammaire que l'Europe par pays (teinte de région,
+              buckets LOG, premier clic sélectionne, second ouvre la vue
+              filtrée). La carte du monde la rend telle quelle : un scope
+              de plus, zéro composant nouveau. */}
+          {data.subdivisions.length > 0 ? (
+            <section aria-label={t("country.byMesh")}>
+              <h2 className="mb-1 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+                {t("country.byMesh")}
+              </h2>
+              <p className="mb-3 max-w-[62ch] text-[13px] text-muted-foreground">
+                {t("country.byMeshPhrase")}
+              </p>
+              <WorldMap
+                scope="us-states"
+                countries={data.subdivisions.map((mesh) => ({
+                  code: mesh.code,
+                  name: mesh.name,
+                  eu_member: false,
+                  region: "north-america",
+                  projects_count: mesh.projects_count,
+                  funding_eur: mesh.funding_eur,
+                }))}
+                flows={[]}
+                legendLabel={t("country.meshLegend")}
+                selected={mesh}
+                onSelect={setMesh}
+                onOpen={(code) =>
+                  navigate(
+                    `/explore?by=organisation&split=0&country=${data.code}&subdivision=${code}`,
+                  )
+                }
+              />
+              {selectedMesh ? (
+                <p className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[13.5px]">
+                  <b className="font-semibold">{selectedMesh.name}</b>
+                  <span className="tnum text-muted-foreground">
+                    {formatCompactEur(selectedMesh.funding_eur, i18n.language)}
+                    {" · "}
+                    {t("search.projectsCount", { count: selectedMesh.projects_count })}
+                  </span>
+                  <Link
+                    to={`/explore?by=organisation&split=0&country=${data.code}&subdivision=${selectedMesh.code}`}
+                    className="text-accent underline-offset-2 hover:underline"
+                  >
+                    {t("country.meshOpen")} →
+                  </Link>
+                </p>
+              ) : null}
+            </section>
+          ) : null}
+
           <section>
             <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
               {t("org.fundingByYear")} · M€

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from orion.core.db import get_db
+from orion.ingest import subdivisions
 from orion.search import aggregates, explore, groups_hub
 
 router = APIRouter()
@@ -33,6 +34,7 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         Query(description="entity filter: organisation id or group ref (g<id>)"),
     ] = None,
     sector: Annotated[str | None, Query(description="space lens: 'space'")] = None,
+    subdivision: Annotated[str | None, Query(description="mesh filter: ISO 3166-2 (US-CA)")] = None,
 ) -> dict[str, Any]:
     result = explore.aggregate(
         db,
@@ -49,6 +51,7 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         programme=programme,
         organisation=organisation or None,
         sector=sector or None,
+        subdivision=subdivision or None,
     )
     if result is None:
         raise HTTPException(status_code=400, detail="Unsupported metric/dimension combination")
@@ -116,6 +119,10 @@ def country(code: str, db: Annotated[Session, Depends(get_db)]) -> dict[str, Any
     hub = aggregates.country_hub(db, code)
     if hub is None:
         raise HTTPException(status_code=404, detail="Country not found")
+    # La maille sous le pays (lot D) : présente quand le référentiel en
+    # tient une pour ce pays — la fiche décide seule d'ouvrir sa carte
+    # d'États, jamais une liste en dur côté client.
+    hub["subdivisions"] = subdivisions.subdivision_index(db, code.upper())
     return hub
 
 
