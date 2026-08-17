@@ -86,6 +86,8 @@ test("le hero dit son assiette — 734 Md€ ne veut pas dire « tout l'argent p
   page,
 }) => {
   await page.goto("/");
-  await expect(page.getByText(/sur 4 sources officielles/)).toBeVisible({ timeout: 15_000 });
+  // Lot 0 Space natif (2026-08-17) : le « 4 » était faux (3 bailleurs,
+  // 5 flux) — la phrase nomme les sources sans compter.
+  await expect(page.getByText(/sur des sources officielles/)).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(/programmes-cadres de l’UE/)).toBeVisible();
 });

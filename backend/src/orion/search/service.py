@@ -223,6 +223,8 @@ def _project_where(f: ProjectFilters, params: dict[str, Any]) -> str:
         params["scope"] = f.scope
     if f.sector == "space":
         clauses.append("p.space_tag IS NOT NULL")
+    elif f.sector == "space-direct":
+        clauses.append("p.space_tag = 'core'")
     if f.year_from is not None:
         clauses.append("extract(year FROM p.start_date) >= :year_from")
         params["year_from"] = f.year_from

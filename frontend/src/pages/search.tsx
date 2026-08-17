@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
 import { SearchComposer } from "@/components/search-composer";
+import { SectorChip } from "@/components/sector-chip";
 import { Sparkline } from "@/components/sparkline";
 import { TrendDelta } from "@/components/trend-delta";
 import { Button } from "@/components/ui/button";
@@ -287,8 +288,9 @@ export function ProjectsSearchPage() {
     params.get("year_from") != null ||
     params.get("year_to") != null ||
     // La lentille spatiale est un filtre à part entière : une URL
-    // ?sector=space encadre une vraie liste, jamais l'invite.
-    params.get("sector") === "space";
+    // ?sector=space (ou space-direct) encadre une vraie liste, jamais
+    // l'invite.
+    ["space", "space-direct"].includes(params.get("sector") ?? "");
   const composed = Boolean(q) || hasFilters;
 
   return (
@@ -320,13 +322,23 @@ export function ProjectsSearchPage() {
         {!composed ? <ComposerExamples kind="projects" replaceAll={replaceAll} /> : null}
       </div>
 
-      <div className="mt-5 flex items-baseline gap-3">
+      <div className="mt-5 flex flex-wrap items-baseline gap-3">
         <h1 className="display-tight tnum text-[26px] font-semibold">
           {isPending ? "…" : t("search.results", { count: data?.total ?? 0 })}
         </h1>
         {q ? (
           <span className="text-sm text-muted-foreground">{t("search.resultsFor", { q })}</span>
         ) : null}
+        {/* Le périmètre spatial, nommé sur la liste cadrée (Space natif,
+            lot 1) — trois états, l'URL comme seule vérité. */}
+        <SectorChip
+          sector={
+            ["space", "space-direct"].includes(params.get("sector") ?? "")
+              ? (params.get("sector") as string)
+              : ""
+          }
+          onChange={(next) => update({ sector: next || null })}
+        />
       </div>
 
       {composed ? (

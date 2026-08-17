@@ -10,6 +10,7 @@ import { BumpChart } from "@/components/bump-chart";
 import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
 import { CoverageNote } from "@/components/coverage-note";
+import { SectorChip } from "@/components/sector-chip";
 import { ExploreTable } from "@/components/explore-table";
 import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,6 +28,7 @@ const METRICS = ["funding", "projects", "organisations", "avg", "coordination"] 
 const DIMENSIONS = [
   "country",
   "region",
+  "subdivision",
   "programme",
   "theme",
   "organisation",
@@ -200,6 +202,11 @@ export function ExplorerPage() {
     if (next.programme && next.by === "programme") out.set("programme", next.programme);
     if (next.limit !== 5) out.set("limit", String(next.limit));
     if (next.view !== "auto") out.set("view", next.view);
+    // Les cadrages traversent l'interaction (Space natif, lot 0) : les
+    // perdre en silence était l'aspérité relevée au mémo produit.
+    if (next.sector) out.set("sector", next.sector);
+    if (next.subdivision) out.set("subdivision", next.subdivision);
+    if (next.organisation) out.set("organisation", next.organisation);
     setParams(out, { preventScrollReset: true });
   };
 
@@ -577,6 +584,11 @@ export function ExplorerPage() {
             <span className="opacity-55">×</span>
           </button>
         ) : null}
+        {/* Le périmètre spatial, NOMMÉ dans la phrase même (Space natif,
+            lot 1) : trois états, l'URL comme seule vérité. */}
+        <span className="align-middle text-[0.55em] font-normal tracking-normal">
+          <SectorChip sector={state.sector} onChange={(next) => patch({ sector: next })} />
+        </span>
         <Segment chip menuLabel={t("explorer.addFilter")} display={t("explorer.addFilter")}>
           {(close) => (
             <form

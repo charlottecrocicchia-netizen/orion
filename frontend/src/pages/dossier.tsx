@@ -33,7 +33,7 @@ function requestPhrase(
     state.q ? `« ${state.q} »` : null,
     state.country ? state.country : null,
     state.organisation ? t("explorer.entityScoped") : null,
-    state.sector === "space" ? t("explorer.sectorSpace") : null,
+    state.sector ? t(`explorer.sector.${state.sector === "space" ? "enabling" : "direct"}`) : null,
     state.from != null || state.to != null ? `${state.from ?? ""} → ${state.to ?? ""}` : null,
   ]
     .filter(Boolean)

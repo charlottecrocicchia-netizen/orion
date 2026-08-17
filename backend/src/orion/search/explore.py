@@ -429,7 +429,7 @@ def aggregate(
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
         return None
-    if sector is not None and sector != "space":
+    if sector is not None and sector not in ("space", "space-direct"):
         return None
     # La maille cadre, la dimension distribue : se filtrer sur la maille
     # qu'on distribue n'a pas de sens (même règle que region × scope).
@@ -602,7 +602,12 @@ def _build(
         clauses.append("pa.organisation_id = ANY(:organisation_ids)")
     if sector == "space":
         # La lentille spatiale cadre la vue — le tag vit sur le projet.
+        # « space » = Spatial + habilitant (cœur + adjacent), son sens
+        # historique, désormais NOMMÉ à l'écran (audit, 2026-08-17).
         clauses.append("p.space_tag IS NOT NULL")
+    elif sector == "space-direct":
+        # « Spatial direct » : le cœur seul.
+        clauses.append("p.space_tag = 'core'")
     if subdivision is not None:
         params["subdivision"] = subdivision
         clauses.append("pa.subdivision_code = :subdivision")

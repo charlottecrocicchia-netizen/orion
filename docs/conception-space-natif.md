@@ -94,11 +94,25 @@ La porte « Analyser » de la home pointe vers le deck 1 en mode spatial.
 - **Lot 1 — les trois périmètres** : `sector=space-direct` au backend,
   le chip complet à trois états, e2e du geste.
 - **Lot 2 — le hero spatial** : compteurs `/api/stats`, inversion
-  hero/bande, ligne corpus discrète.
+  hero/bande, ligne corpus discrète. **Exigence fondatrice ① (validée
+  2026-08-17)** : le grand chiffre dit son périmètre dans la phrase
+  même — « X Md€ de financements spatiaux publics (direct + habilitant),
+  cartographiés ».
 - **Lot 3 — les analyses spatiales** : les trois decks + la section
   « Espace » en tête de la bibliothèque + la porte de la home.
 
-## 6. Décisions demandées
+## 6. Décisions demandées — VALIDÉES le 2026-08-17
+
+*Les cinq, telles quelles. Deux exigences fondatrice s'ajoutent :
+① le grand chiffre du hero spatial dit son périmètre DANS la phrase
+même (« direct + habilitant ») — intégrée au cahier du lot 2 ;
+② la définition des deux lentilles figure en clair sur la page À
+propos — FAITE avec les lots 0-1. Lots 0 et 1 lancés ensemble le jour
+même ; recette du chip avant d'ouvrir les lots 2-3. La quatrième
+correction d'honnêteté reste à lire au PDF (toujours absent du dépôt
+au moment de l'exécution — docs/audit/ vide).*
+
+## 6 bis. Décisions (référence)
 
 1. `sector=space` conserve « cœur + habilitant » (compatibilité), le
    Direct s'écrit `space-direct` — ok ?

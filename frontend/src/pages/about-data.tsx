@@ -134,6 +134,38 @@ export function AboutDataPage() {
 
       <section className="mt-10">
         <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+          La lentille spatiale
+        </h2>
+        {/* Exigence fondatrice (2026-08-17) : la définition des deux
+            périmètres figure en clair ici, pas seulement en code. */}
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            Le secteur spatial est identifié projet par projet par une
+            lentille <b className="font-medium text-foreground/80">versionnée et auditable</b> —
+            23 règles, chacune avec sa preuve : 4 règles de programme
+            (FP7-SPACE, le volet spatial d&rsquo;H2020, l&rsquo;astronomie NSF…),
+            5 règles de thème (par code euroSciVoc, jamais par libellé) et
+            14 motifs de texte validés à la main et cadrés par source.
+            Rien de gonflé, rien de supprimé : chaque exécution retague le
+            corpus entier depuis le fichier de règles.
+          </p>
+          <p>
+            Deux périmètres en découlent, toujours nommés à l&rsquo;écran :{" "}
+            <b className="font-medium text-foreground/80">« Spatial direct »</b> —
+            les projets au cœur du spatial (lanceurs, satellites, débris,
+            observation de la Terre…) ; et{" "}
+            <b className="font-medium text-foreground/80">« Spatial + habilitant »</b> —
+            le cœur plus les technologies habilitantes taguées adjacentes
+            (ingénierie aérospatiale au sens large, microgravité,
+            géospatial-atmosphérique). Une vue cadrée porte son périmètre
+            en chip, et l&rsquo;URL le dit (« sector=space-direct » /
+            « sector=space »).
+          </p>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
           {t("about.systemStatus")}
         </h2>
         <div className="flex flex-wrap gap-6 text-sm">

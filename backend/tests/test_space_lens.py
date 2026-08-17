@@ -169,3 +169,26 @@ def test_malformed_rules_refuse_to_tag(tmp_path):
     for row in bad:
         with pytest.raises(SpaceLensError):
             parse_rules(_lens(tmp_path, [row]))
+
+
+def test_the_two_perimeters_frame_the_explorer(db_session, tmp_path):
+    """Space natif, lot 1 (validé 2026-08-17) : « Spatial direct » = le
+    cœur seul ; « Spatial + habilitant » = cœur + adjacent (le sens
+    historique de sector=space, désormais nommé) ; une valeur inconnue
+    est refusée — jamais un cadrage silencieusement ignoré."""
+    from orion.search.explore import aggregate
+
+    ids = _seed(db_session)
+    load_space_lens(db_session, RunStats(), path=_lens(tmp_path, RULES))
+    del ids
+
+    enabling = aggregate(db_session, metric="projects", by="funder", sector="space")
+    direct = aggregate(db_session, metric="projects", by="funder", sector="space-direct")
+    assert enabling is not None and direct is not None
+    total_enabling = sum(s["value"] or 0 for s in enabling["series"])
+    total_direct = sum(s["value"] or 0 for s in direct["series"])
+    # La graine : 3 cœurs + 1 adjacent tagués.
+    assert total_enabling == total_direct + 1
+    assert direct["meta"]["sector"] == "space-direct"
+
+    assert aggregate(db_session, metric="projects", by="funder", sector="martien") is None

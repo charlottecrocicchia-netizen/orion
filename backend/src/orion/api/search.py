@@ -23,7 +23,9 @@ def search_projects_endpoint(
     programme: Annotated[list[str] | None, Query()] = None,
     country: Annotated[list[str] | None, Query()] = None,
     scope: Annotated[str | None, Query(description="manager region slug")] = None,
-    sector: Annotated[str | None, Query(description="space lens: 'space'")] = None,
+    sector: Annotated[
+        str | None, Query(description="space lens: 'space' (core+adjacent) or 'space-direct'")
+    ] = None,
     year_from: int | None = None,
     year_to: int | None = None,
     amount_min: float | None = None,
@@ -39,7 +41,7 @@ def search_projects_endpoint(
         programmes=programme or [],
         countries=country or [],
         scope=scope or None,
-        sector=sector if sector == "space" else None,
+        sector=sector if sector in ("space", "space-direct") else None,
         year_from=year_from,
         year_to=year_to,
         amount_min=amount_min,

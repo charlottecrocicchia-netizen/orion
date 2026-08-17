@@ -76,7 +76,7 @@ const resources = {
           "No domestic funder of this zone is loaded yet: everything shown here comes from the consortiums it joins \u2014 its own budgets are invisible here, not zero.",
         mixedPhrase:
           "This view mixes coverages: {{funders}} are loaded, so their countries show their domestic funding. The others appear only through the consortiums they join — their own budgets are invisible here, not zero.",
-        heroBasis: "across {{count}} official sources — Europe (EU framework programmes), United States (NIH, NSF)",
+        heroBasis: "from official sources — Europe (EU framework programmes), United States (NIH, NSF)",
       },
       hero: {
         eyebrow: "Orion Space Intelligence",
@@ -387,7 +387,7 @@ const resources = {
         lei: "LEI",
         totalFunding: "Consolidated public R&D funding of the attached perimeter",
         doubleMeasure:
-          "{{attributed}} attributed to the legal entities · {{exposure}} exposure by participation.",
+          "{{attributed}} attributed to the legal entities · {{exposure}} exposure by participation. Attributed figures summed across groups count joint ventures twice — that is the nature of this reading.",
         jvWeighted:
           "Joint-venture amounts are weighted by their pact — a 67/33 counts 67 and 33, never twice 100.",
         coverageBasis: "Memberships built from public registries (GLEIF, Wikidata) and manual curation.",
@@ -531,7 +531,14 @@ const resources = {
         overTime: "over time",
         entityScoped: "scoped to one entity",
         // Même vocabulaire que la bande d'accueil (home.spaceKicker).
-        sectorSpace: "the space lens",
+        sector: {
+          chipLabel: "Space perimeter of this view",
+          direct: "Space direct",
+          directHint: "core projects only, by the versioned lens",
+          enabling: "Space + enabling",
+          enablingHint: "core + enabling technologies (adjacent)",
+          all: "All R&D",
+        },
         top: "top {{count}}",
         addFilter: "+ filter",
         theme: "Theme",
@@ -552,7 +559,7 @@ const resources = {
           programme: "programme",
           theme: "theme",
           organisation: "organisation",
-          subdivision: "state",
+          subdivision: "state / region",
           funder: "funder",
           orgtype: "organisation type",
           region: "region",
@@ -779,7 +786,7 @@ const resources = {
           "Aucun bailleur domestique de cette zone n\u2019est encore chargé : tout ce qui s\u2019affiche vient des consortiums qu\u2019elle rejoint \u2014 ses budgets propres sont invisibles ici, pas nuls.",
         mixedPhrase:
           "Cette vue mélange des couvertures : {{funders}} sont chargés, leurs pays montrent donc leurs financements domestiques. Les autres n\u2019apparaissent que par les consortiums qu\u2019ils rejoignent — leur budget propre est invisible ici, pas nul.",
-        heroBasis: "sur {{count}} sources officielles — Europe (programmes-cadres de l\u2019UE), États-Unis (NIH, NSF)",
+        heroBasis: "sur des sources officielles — Europe (programmes-cadres de l\u2019UE), États-Unis (NIH, NSF)",
       },
       hero: {
         eyebrow: "Orion Space Intelligence",
@@ -1090,7 +1097,7 @@ const resources = {
         lei: "LEI",
         totalFunding: "Financements publics R&D consolidés du périmètre rattaché",
         doubleMeasure:
-          "{{attributed}} attribués aux entités légales · {{exposure}} d\u2019exposition par participation.",
+          "{{attributed}} attribués aux entités légales · {{exposure}} d\u2019exposition par participation. L\u2019attribué, additionné entre groupes, compte deux fois les coentreprises — c\u2019est la nature de cette lecture.",
         jvWeighted:
           "Les montants des coentreprises sont pondérés par leur pacte — un 67/33 compte 67 et 33, jamais deux fois 100.",
         coverageBasis: "Rattachements fondés sur les registres publics (GLEIF, Wikidata) et la curation manuelle.",
@@ -1234,7 +1241,14 @@ const resources = {
         overTime: "dans le temps",
         entityScoped: "cadré sur une entité",
         // Même vocabulaire que la bande d'accueil (home.spaceKicker).
-        sectorSpace: "la lentille spatiale",
+        sector: {
+          chipLabel: "Périmètre spatial de cette vue",
+          direct: "Spatial direct",
+          directHint: "les projets cœur seuls, par la lentille versionnée",
+          enabling: "Spatial + habilitant",
+          enablingHint: "cœur + technologies habilitantes (adjacent)",
+          all: "Toute la R&D",
+        },
         top: "top {{count}}",
         addFilter: "+ filtre",
         theme: "Thème",
@@ -1255,7 +1269,7 @@ const resources = {
           programme: "programme",
           theme: "thème",
           organisation: "organisation",
-          subdivision: "État",
+          subdivision: "État / région",
           funder: "bailleur",
           orgtype: "type d'organisation",
           region: "région",
