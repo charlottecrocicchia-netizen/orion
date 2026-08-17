@@ -142,7 +142,7 @@ test("home leads with the hero, acts follow below", async () => {
   ).toBeInTheDocument();
   // Lot D: the doors say the verbs, with living content behind them.
   expect(screen.getByRole("link", { name: /Discover/ })).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Analyse.*hydrogen/ })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Analyse.*space money/ })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Build/ })).toBeInTheDocument();
   expect(screen.getByText(/alerts and follows/)).toBeInTheDocument();
   expect(screen.getByText("Phase 5 · autumn 2026")).toBeInTheDocument();

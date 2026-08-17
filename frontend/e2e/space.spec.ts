@@ -103,3 +103,36 @@ test("la recherche projets porte le même chip, et la dimension État / région 
   await page.getByRole("button", { name: "par", exact: true }).click();
   await expect(page.getByRole("menuitemradio", { name: "État / région" })).toBeVisible();
 });
+
+test("les decks spatiaux : la section Espace mène, le deck 2 enseigne la distinction", async ({
+  page,
+}) => {
+  // Lot 3 (validé 2026-08-17) : trois decks 100 % spatiaux EN TÊTE de la
+  // bibliothèque — les généralistes restent dessous, jamais retirés.
+  await page.goto("/analyses");
+  const space = page.getByRole("region", { name: "Espace" });
+  await expect(space).toBeVisible({ timeout: 10_000 });
+  await expect(space.getByText("Où va l’argent spatial ?")).toBeVisible();
+  await expect(space.getByText("Direct ou habilitant ?")).toBeVisible();
+  await expect(space.getByText("Qui monte dans le spatial ?")).toBeVisible();
+  await expect(page.getByText(/hydrogène/).first()).toBeVisible();
+
+  // Le deck 2 — sa raison d'être : chaque angle porte SON périmètre dans
+  // l'adresse, et le chip le dit à l'écran, deck compris.
+  await space.getByText("Direct ou habilitant ?").click();
+  await expect(page).toHaveURL(/angles=spaceDirect/);
+  const chip = page.getByRole("button", { name: /Périmètre spatial de cette vue/ });
+  await expect(chip).toContainText("Spatial + habilitant", { timeout: 15_000 });
+  // L'angle 2 est le cœur seul : le chip suit l'angle actif.
+  await page.getByRole("tab", { name: /Le cœur seul/ }).click();
+  await expect(chip).toContainText("Spatial direct");
+});
+
+test("la porte Analyser de la home ouvre le deck spatial", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: /Où va l.argent spatial/ }).click();
+  await expect(page).toHaveURL(/angles=spaceMoney/);
+  await expect(page.getByText("La trajectoire (direct + habilitant)")).toBeVisible({
+    timeout: 15_000,
+  });
+});

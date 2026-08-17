@@ -481,7 +481,7 @@ export function HomePage() {
               })}
             />
             <EditorialEntry
-              to="/explore?angles=hydrogen"
+              to="/explore?angles=spaceMoney"
               title={t("nav.analyse")}
               desc={t("home.doorAnalyseDesc")}
               figure={t("home.doorAnalyseFigure", { count: STORIES.length })}

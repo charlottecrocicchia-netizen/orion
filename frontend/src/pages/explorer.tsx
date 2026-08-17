@@ -647,14 +647,33 @@ export function ExplorerPage() {
 
       {/* The view — or, for a story with a deck, its Angles */}
       {anglesStory ? (
-        <AnglesDeck
-          slides={anglesStory.deck!.map((slide) => ({
-            query: slide.params,
-            title: t(slide.titleKey),
-          }))}
-          active={angleIndex}
-          onActive={setAngle}
-        />
+        <>
+          {/* La loi du chip vaut aussi dans les decks (lot 3) : l'angle
+              actif porte son périmètre à l'écran ; le changer sort vers
+              le composeur — le deck est un point de départ, jamais une
+              cage. */}
+          {state.sector ? (
+            <p className="mb-4">
+              <SectorChip
+                sector={state.sector}
+                onChange={(next) => {
+                  const out = new URLSearchParams(activeSlide?.params ?? "");
+                  if (next) out.set("sector", next);
+                  else out.delete("sector");
+                  openInComposer(out.toString());
+                }}
+              />
+            </p>
+          ) : null}
+          <AnglesDeck
+            slides={anglesStory.deck!.map((slide) => ({
+              query: slide.params,
+              title: t(slide.titleKey),
+            }))}
+            active={angleIndex}
+            onActive={setAngle}
+          />
+        </>
       ) : (
       <section className="mt-9 rounded-[20px] border p-7 pb-5">
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">

@@ -14,9 +14,85 @@ export interface Story {
   key: string;
   params: string;
   deck?: AngleSlide[];
+  /** Les decks 100 % spatiaux (lot 3, validé 2026-08-17) : la section
+   *  « Espace » les met en tête de la bibliothèque — les généralistes
+   *  restent dessous, jamais retirés. */
+  space?: boolean;
 }
 
 export const STORIES: Story[] = [
+  // ——— Les decks spatiaux (lot 3) — chaque angle porte son périmètre
+  // dans l'adresse : la loi du chip vaut aussi pour les decks.
+  {
+    key: "spaceMoney",
+    space: true,
+    params: "metric=funding&by=year&sector=space",
+    deck: [
+      { params: "metric=funding&by=year&sector=space", titleKey: "explorer.stories.spaceMoney.a1" },
+      {
+        params: "metric=funding&by=programme&sector=space&view=donut&limit=6",
+        titleKey: "explorer.stories.spaceMoney.a2",
+      },
+      {
+        params: "metric=funding&by=country&split=0&sector=space&limit=8",
+        titleKey: "explorer.stories.spaceMoney.a3",
+      },
+      {
+        params: "metric=funding&by=organisation&split=1&sector=space&limit=6",
+        titleKey: "explorer.stories.spaceMoney.a4",
+      },
+    ],
+  },
+  {
+    // Le deck qui ENSEIGNE la distinction : mêmes vues, deux périmètres.
+    // Les courbes se lisent en séquence ; les cartes jumelles sont la
+    // vraie comparaison — leurs paliers log NOMMÉS sont fixes, donc les
+    // deux vues partagent la même échelle (l'écart comme récit).
+    key: "spaceDirect",
+    space: true,
+    params: "metric=funding&by=year&sector=space",
+    deck: [
+      {
+        params: "metric=funding&by=year&sector=space",
+        titleKey: "explorer.stories.spaceDirect.a1",
+      },
+      {
+        params: "metric=funding&by=year&sector=space-direct",
+        titleKey: "explorer.stories.spaceDirect.a2",
+      },
+      {
+        params: "metric=funding&by=country&split=0&sector=space&limit=8",
+        titleKey: "explorer.stories.spaceDirect.a3",
+      },
+      {
+        params: "metric=funding&by=country&split=0&sector=space-direct&limit=8",
+        titleKey: "explorer.stories.spaceDirect.a4",
+      },
+      {
+        params: "metric=funding&by=theme&split=0&sector=space&limit=7",
+        titleKey: "explorer.stories.spaceDirect.a5",
+      },
+    ],
+  },
+  {
+    key: "spaceRising",
+    space: true,
+    params: "metric=funding&by=organisation&split=1&sector=space&limit=5&view=bump",
+    deck: [
+      {
+        params: "metric=funding&by=organisation&split=1&sector=space&limit=5&view=bump",
+        titleKey: "explorer.stories.spaceRising.a1",
+      },
+      {
+        params: "metric=funding&by=organisation&split=1&sector=space&limit=7&view=delta",
+        titleKey: "explorer.stories.spaceRising.a2",
+      },
+      {
+        params: "metric=funding&by=country&split=1&sector=space&limit=5&view=bump",
+        titleKey: "explorer.stories.spaceRising.a3",
+      },
+    ],
+  },
   {
     key: "hydrogen",
     params: "metric=funding&by=programme&q=hydrogen&view=donut&limit=6",

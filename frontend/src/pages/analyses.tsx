@@ -9,7 +9,10 @@ import { STORIES } from "@/lib/stories";
  *  as always, an Explorer URL. The Explorer keeps a short renvoi. */
 export function AnalysesPage() {
   const { t } = useTranslation();
-  const decks = STORIES.filter((story) => story.deck);
+  // La section « Espace » mène (lot 3, validé 2026-08-17) — les decks
+  // généralistes restent dessous, jamais retirés.
+  const spaceDecks = STORIES.filter((story) => story.deck && story.space);
+  const decks = STORIES.filter((story) => story.deck && !story.space);
   const simple = STORIES.filter((story) => !story.deck);
 
   return (
@@ -24,7 +27,40 @@ export function AnalysesPage() {
         {t("analyses.lead")}
       </p>
 
-      <section className="mt-14" aria-label={t("analyses.decksTitle")}>
+      <section className="mt-14" aria-label={t("analyses.spaceTitle")}>
+        <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+          {t("analyses.spaceTitle")}
+        </h2>
+        {spaceDecks.map((story) => (
+          <Link
+            key={story.key}
+            to={`/explore?angles=${story.key}`}
+            className="group flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t border-border-soft py-6 first:border-t-0 first:pt-4"
+          >
+            <span className="min-w-0">
+              <span className="block text-[21px] font-semibold leading-snug transition-colors group-hover:text-accent">
+                {t(`explorer.stories.${story.key}.title`)}
+              </span>
+              <span className="mt-1 block max-w-[56ch] text-[13.5px] leading-relaxed text-muted-foreground">
+                {t(`explorer.stories.${story.key}.desc`)}
+              </span>
+            </span>
+            <span className="ml-auto flex items-center gap-3 whitespace-nowrap">
+              <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] text-muted-foreground">
+                {t("explorer.angles.badge", { count: story.deck!.length })}
+              </span>
+              <span aria-hidden="true" className="text-accent">
+                →
+              </span>
+            </span>
+          </Link>
+        ))}
+      </section>
+
+      <section className="mt-16" aria-label={t("analyses.decksTitle")}>
+        <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+          {t("analyses.decksTitle")}
+        </h2>
         {decks.map((story) => (
           <Link
             key={story.key}

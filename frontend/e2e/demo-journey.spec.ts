@@ -36,7 +36,7 @@ test("home leads with the pinned hero, then the acts follow", async ({ page }) =
     .toBeGreaterThan(before);
   // Act 2 (the ink tile) and its editorial entries; act 3's staged map.
   await expect(page.getByRole("heading", { name: "What are you looking for?" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Analyse.*hydrogen/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Analyse.*space money/ })).toBeVisible();
   await expect(page.getByText("Phase 5 · autumn 2026")).toBeVisible();
   await expect(page.getByRole("heading", { name: "The world of funding" })).toBeVisible();
 });
