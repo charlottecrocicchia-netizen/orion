@@ -386,6 +386,8 @@ const resources = {
         headerLine_other: "Group of {{count, number}} legal entities",
         lei: "LEI",
         totalFunding: "Consolidated public R&D funding of the attached perimeter",
+        doubleMeasure:
+          "{{attributed}} attributed to the legal entities · {{exposure}} exposure by participation.",
         jvWeighted:
           "Joint-venture amounts are weighted by their pact — a 67/33 counts 67 and 33, never twice 100.",
         coverageBasis: "Memberships built from public registries (GLEIF, Wikidata) and manual curation.",
@@ -649,6 +651,7 @@ const resources = {
         formLabel: "Form",
         formDonuts: "Donuts",
         formBars: "Bars",
+        attributedShort: "({{amount}} attributed)",
         collectAll: "Add the {{count}} views to the dossier",
         collectedAll: "In the dossier · remove",
         trajectoriesTitle: "Trajectories — {{names}}",
@@ -1086,6 +1089,8 @@ const resources = {
         headerLine_other: "Groupe de {{count, number}} entités légales",
         lei: "LEI",
         totalFunding: "Financements publics R&D consolidés du périmètre rattaché",
+        doubleMeasure:
+          "{{attributed}} attribués aux entités légales · {{exposure}} d\u2019exposition par participation.",
         jvWeighted:
           "Les montants des coentreprises sont pondérés par leur pacte — un 67/33 compte 67 et 33, jamais deux fois 100.",
         coverageBasis: "Rattachements fondés sur les registres publics (GLEIF, Wikidata) et la curation manuelle.",
@@ -1392,6 +1397,7 @@ const resources = {
         formLabel: "Forme",
         formDonuts: "Donuts",
         formBars: "Barres",
+        attributedShort: "({{amount}} attribués)",
         collectAll: "Ajouter les {{count}} vues au dossier",
         collectedAll: "Au dossier · retirer",
         trajectoriesTitle: "Trajectoires — {{names}}",

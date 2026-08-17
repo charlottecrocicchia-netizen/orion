@@ -292,7 +292,17 @@ export function ComparePage() {
   const kpiRows: { label: string; render: (entry: (typeof entries)[number]) => string }[] = [
     {
       label: t("org.totalFunding"),
-      render: (entry) => formatCompactEur(entry.kpis.total_funding_eur, i18n.language),
+      // La double mesure (audit, 2026-08-17) : pour un groupe à
+      // coentreprises, l'exposition pondérée s'affiche, et l'attribué
+      // aux entités légales se dit à côté — deux lectures, toutes vraies.
+      render: (entry) =>
+        entry.kpis.attributed_funding_eur != null &&
+        entry.kpis.attributed_funding_eur > entry.kpis.total_funding_eur
+          ? `${formatCompactEur(entry.kpis.total_funding_eur, i18n.language)} ${t(
+              "compare.attributedShort",
+              { amount: formatCompactEur(entry.kpis.attributed_funding_eur, i18n.language) },
+            )}`
+          : formatCompactEur(entry.kpis.total_funding_eur, i18n.language),
     },
     {
       label: t("org.projects"),

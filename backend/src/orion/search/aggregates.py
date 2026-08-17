@@ -888,6 +888,7 @@ def group_compare_entry(session: Session, group_id: int) -> dict[str, Any] | Non
             text("""
             SELECT count(DISTINCT pa.project_id) AS projects,
                    coalesce(sum(pa.amount_eur * coalesce(m.share, 100) / 100.0), 0) AS funding,
+                   coalesce(sum(pa.amount_eur), 0) AS attributed,
                    count(DISTINCT pa.project_id)
                      FILTER (WHERE pa.role = 'coordinator') AS coordinated,
                    min(extract(year FROM p.start_date))::int AS first_year,
@@ -939,6 +940,9 @@ def group_compare_entry(session: Session, group_id: int) -> dict[str, Any] | Non
             "kpis": {
                 "projects_count": kpis.projects or 0,
                 "total_funding_eur": float(kpis.funding or 0),
+                # La double mesure (audit, 2026-08-17) : le fait
+                # juridique à côté de l'exposition pondérée.
+                "attributed_funding_eur": float(kpis.attributed or 0),
                 "coordinator_count": kpis.coordinated or 0,
                 "first_year": kpis.first_year,
                 "last_year": kpis.last_year,

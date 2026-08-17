@@ -174,9 +174,18 @@ export function GroupHubPage() {
               </span>
             </>
           ) : null}
-          {hub.entities.some((entity) => entity.is_jv) ? (
+          {hub.totals.attributed_funding_eur > hub.totals.funding_eur ? (
             <>
               {" "}
+              <span className="text-foreground/80">
+                {t("group.doubleMeasure", {
+                  attributed: formatCompactEur(
+                    hub.totals.attributed_funding_eur,
+                    i18n.language,
+                  ),
+                  exposure: formatCompactEur(hub.totals.funding_eur, i18n.language),
+                })}
+              </span>{" "}
               <span>{t("group.jvWeighted")}</span>
             </>
           ) : null}

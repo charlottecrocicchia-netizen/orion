@@ -155,6 +155,9 @@ def test_the_consolidated_view_counts_a_co_signed_project_once(db_session):
         "entities": 2,
         "projects": 2,
         "funding_eur": pytest.approx(8_000_000),
+        # Sans coentreprise, les deux lectures coïncident — et une
+        # adhésion annoncée ne pèse dans AUCUNE des deux.
+        "attributed_funding_eur": pytest.approx(8_000_000),
         "countries": 2,
     }
     # La trajectoire suit les années calendaires des projets.
@@ -389,6 +392,9 @@ def test_announced_membership_is_listed_never_consolidated(db_session, tmp_path)
         "entities": 2,
         "projects": 2,
         "funding_eur": pytest.approx(8_000_000),
+        # Sans coentreprise, les deux lectures coïncident — et une
+        # adhésion annoncée ne pèse dans AUCUNE des deux.
+        "attributed_funding_eur": pytest.approx(8_000_000),
         "countries": 2,
     }
     # …mais la fiche le LISTE, marqué, en fin de liste.
@@ -614,14 +620,20 @@ def test_jv_amounts_carry_the_pact_weight_everywhere(db_session):
 
     hub = group_hub(db_session, group_id)
     assert hub["totals"]["funding_eur"] == pytest.approx(9_000_000)
+    # La DOUBLE MESURE (audit, 2026-08-17) : le fait juridique voyage à
+    # côté de l'exposition — 10 M€ attribués aux entités légales.
+    assert hub["totals"]["attributed_funding_eur"] == pytest.approx(10_000_000)
     row = next(e for e in hub["entities"] if e["name"] == "ZZJV SPACE")
     assert row["is_jv"] is True and row["share"] == pytest.approx(50.0)
-    # La CONTRIBUTION affichée est pondérée ; le projet compte entier.
+    # La CONTRIBUTION affichée est pondérée ; le projet compte entier ;
+    # l'attribué de l'entité dit ce qu'elle a REÇU.
     assert row["funding_eur"] == pytest.approx(1_000_000)
+    assert row["attributed_eur"] == pytest.approx(2_000_000)
     assert row["projects"] == 1
 
     entry = aggregates.group_compare_entry(db_session, group_id)
     assert entry["kpis"]["total_funding_eur"] == pytest.approx(9_000_000)
+    assert entry["kpis"]["attributed_funding_eur"] == pytest.approx(10_000_000)
 
     db_session.execute(text("SELECT set_config('pg_trgm.similarity_threshold', '0.25', true)"))
     strate = search_organisations(db_session, OrganisationFilters(q="zzgroupe aero"))

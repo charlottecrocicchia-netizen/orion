@@ -146,6 +146,8 @@ export interface CompareEntry {
   kpis: {
     projects_count: number;
     total_funding_eur: number;
+    /** Groupes : l'attribué aux entités légales (fait juridique). */
+    attributed_funding_eur?: number;
     coordinator_count: number;
     first_year: number | null;
     last_year: number | null;
@@ -188,7 +190,15 @@ export interface GroupHub {
   name: string;
   country: string | null;
   lei: string | null;
-  totals: { entities: number; projects: number; funding_eur: number; countries: number };
+  totals: {
+    entities: number;
+    projects: number;
+    /** L'EXPOSITION par participation — pactes JV appliqués (67/33). */
+    funding_eur: number;
+    /** L'ATTRIBUÉ aux entités légales — le fait juridique, non pondéré. */
+    attributed_funding_eur: number;
+    countries: number;
+  };
   /** La note d'honnêteté : les homonymes du corpus hors périmètre. */
   coverage: { unattached_count: number; unattached_funding_eur: number };
   trajectory: { year: number; funding_eur: number }[];
@@ -224,6 +234,8 @@ export interface GroupHub {
     projects: number;
     /** La CONTRIBUTION pondérée de l'entité au consolidé du groupe. */
     funding_eur: number;
+    /** Ce que l'entité a REÇU (fait juridique, non pondéré). */
+    attributed_eur: number;
     share_pct: number;
   }[];
   countries: { code: string; region: string | null; entities: number; funding_eur: number }[];

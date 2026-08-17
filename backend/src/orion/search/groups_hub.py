@@ -59,10 +59,16 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         {"id": group_id},
     ).all()
 
+    # La DOUBLE MESURE (audit produit, 2026-08-17) : deux lectures du
+    # même argent, toutes deux vraies. « Attribué aux entités légales »
+    # est le fait juridique — TAS a reçu 100 % de ses participations ;
+    # « exposition par participation » porte le pacte (67/33). Le hero
+    # affiche l'exposition, la fiche DIT les deux.
     totals = session.execute(
         text("""
         SELECT count(DISTINCT pa.project_id) AS projects,
-               coalesce(sum(pa.amount_eur * coalesce(m.share, 100) / 100.0), 0) AS funding
+               coalesce(sum(pa.amount_eur * coalesce(m.share, 100) / 100.0), 0) AS funding,
+               coalesce(sum(pa.amount_eur), 0) AS attributed
         FROM entity_group_map m
         JOIN participations pa ON pa.organisation_id = m.organisation_id
         WHERE m.group_id = :id AND m.status = 'active'
@@ -119,10 +125,11 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
             "share": float(row.share) if row.share is not None else None,
             "status": row.status,
             "projects": row.projects,
-            # La CONTRIBUTION au consolidé : pondérée par le pacte. La
-            # participation brute de l'entité reste lisible sur SA fiche
-            # d'organisation — ici, on lit le groupe.
+            # La CONTRIBUTION au consolidé : pondérée par le pacte. Le
+            # fait juridique (l'entité a reçu 100 % de ses participations)
+            # voyage à côté — la double mesure de l'audit.
             "funding_eur": float(row.weighted or 0),
+            "attributed_eur": float(row.funding or 0),
             # The share is stated on the group's own consolidated total —
             # sums of shares can EXCEED 100 % when entities co-sign the
             # same project (each holds its own participation): honest,
@@ -203,6 +210,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
             "entities": len(active_rows),
             "projects": totals.projects,
             "funding_eur": group_funding,
+            "attributed_funding_eur": float(totals.attributed or 0),
             "countries": len(countries),
         },
         "coverage": coverage,
