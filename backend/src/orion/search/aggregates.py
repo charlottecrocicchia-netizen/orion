@@ -9,6 +9,7 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from orion.search import coverage
 from orion.search.service import _cached, _cached_bounded, _programme_roots
 
 PARTNERS_CACHE_MAX = 256
@@ -75,6 +76,13 @@ def countries_index(session: Session) -> list[dict[str, Any]]:
             ORDER BY s.funding_eur DESC NULLS LAST
             """)
         ).all()
+        # La classe de couverture (lot E, 2026-08-17) voyage avec le pays :
+        # les cartes, le globe et les vues comparatives disent TOUS la
+        # même vérité, parce qu'elle vient d'ici. Un pays « participations »
+        # a des chiffres VRAIS mais partiels ; « none » n'a rien du tout —
+        # et ce n'est jamais un zéro.
+        classes = coverage.coverage_map(session)
+        funders = coverage.funders_by_country(session)
         return [
             {
                 "code": r.code,
@@ -83,6 +91,8 @@ def countries_index(session: Session) -> list[dict[str, Any]]:
                 "region": r.region,
                 "projects_count": r.projects,
                 "funding_eur": float(r.funding or 0),
+                "coverage": classes.get(r.code, "none"),
+                "coverage_funders": funders.get(r.code, []),
             }
             for r in rows
         ]

@@ -27,6 +27,8 @@ export function CountryHubPage() {
     queryFn: () => api.country(code),
   });
   const selectedMesh = data?.subdivisions.find((entry) => entry.code === mesh) ?? null;
+  const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
+  const coverageClass = countryIndex?.find((entry) => entry.code === code.toUpperCase())?.coverage;
 
   if (isPending) {
     return (
@@ -74,6 +76,15 @@ export function CountryHubPage() {
           {formatCompactEur(data.kpis.funding_eur, i18n.language)}
         </div>
         <div className="mt-1.5 text-[13px] text-muted-foreground">{t("org.totalFunding")}</div>
+        {/* L'assiette du pays (lot E) : un chiffre partiel le dit ici,
+            au moment où on le lit. */}
+        {coverageClass && coverageClass !== "funders" ? (
+          <p className="mt-3 max-w-[62ch] border-l-2 border-border pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+            {coverageClass === "participations"
+              ? t("coverage.tipParticipations")
+              : t("coverage.tipNone")}
+          </p>
+        ) : null}
         <div className="mt-6">
           <TrajectorySpark data={years} />
         </div>

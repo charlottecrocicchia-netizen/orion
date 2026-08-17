@@ -205,43 +205,71 @@ def backfill_nih(session: Session, stats: RunStats) -> None:
 
 
 def backfill_cordis(session: Session, stats: RunStats) -> None:
-    """CORDIS — le NUTS brut, posé par PRÉFIXE d'uid (`projet:pic:`)."""
+    """CORDIS — le NUTS brut, apparié sur les DEUX premiers segments de
+    l'uid (`projet:pic:`).
+
+    Le motif LIKE par préfixe était intenable (mesuré en prod le
+    2026-08-17 : chaque lot de 5 000 relançait un balayage des 842 k
+    participations, la passe n'en finissait pas). On charge les paires
+    dans une table temporaire, on les indexe, et UNE jointure sur
+    `split_part` fait tout le travail en une passe — la même leçon que
+    le chantier performance : ne jamais faire boucler la base sur ce
+    qu'une jointure sait faire d'un coup."""
     total = 0
+    session.execute(text("DROP TABLE IF EXISTS tmp_cordis_nuts"))
+    session.execute(text("CREATE TEMP TABLE tmp_cordis_nuts (project text, pic text, nuts text)"))
+    loaded = 0
     for path in sorted(cache_dir().glob("cordis-*.zip")):
-        rows: list[dict[str, str]] = []
         with zipfile.ZipFile(path) as archive:
             if "organization.csv" not in archive.namelist():
                 continue
             with archive.open("organization.csv") as raw:
-                reader = csv.DictReader(
-                    io.TextIOWrapper(raw, encoding="utf-8-sig", errors="replace"), delimiter=";"
-                )
+                stream = io.TextIOWrapper(raw, encoding="utf-8-sig", errors="replace")
+                reader = csv.DictReader(stream, delimiter=";")
+                batch: list[dict[str, str]] = []
                 for row in reader:
                     nuts = (row.get("nutsCode") or "").strip()
                     project = (row.get("projectID") or "").strip()
                     pic = (row.get("organisationID") or "").strip()
-                    if nuts and project and pic:
-                        rows.append({"prefix": f"{project}:{pic}:", "nuts": nuts[:8]})
-        if not rows:
-            continue
-        for start in range(0, len(rows), CHUNK):
-            chunk = rows[start : start + CHUNK]
-            result = session.execute(
-                text("""
-                UPDATE participations pa SET nuts_code = v.nuts
-                FROM (SELECT unnest(CAST(:prefixes AS text[])) AS prefix,
-                             unnest(CAST(:nuts AS text[])) AS nuts) v
-                WHERE pa.source LIKE 'cordis%' AND pa.source_uid LIKE v.prefix || '%'
-                """),
-                {
-                    "prefixes": [row["prefix"] for row in chunk],
-                    "nuts": [row["nuts"] for row in chunk],
-                },
-            )
-            total += result.rowcount or 0
-        session.commit()
-    if total == 0:
+                    if not (nuts and project and pic):
+                        continue
+                    batch.append({"project": project, "pic": pic, "nuts": nuts[:8]})
+                    if len(batch) >= CHUNK:
+                        session.execute(
+                            text(
+                                "INSERT INTO tmp_cordis_nuts (project, pic, nuts) "
+                                "VALUES (:project, :pic, :nuts)"
+                            ),
+                            batch,
+                        )
+                        loaded += len(batch)
+                        batch = []
+                if batch:
+                    session.execute(
+                        text(
+                            "INSERT INTO tmp_cordis_nuts (project, pic, nuts) "
+                            "VALUES (:project, :pic, :nuts)"
+                        ),
+                        batch,
+                    )
+                    loaded += len(batch)
+    if loaded == 0:
         stats.add("cordis_cache_missing")
+        return
+    session.execute(text("CREATE INDEX ON tmp_cordis_nuts (project, pic)"))
+    session.execute(text("ANALYZE tmp_cordis_nuts"))
+    result = session.execute(
+        text("""
+        UPDATE participations pa SET nuts_code = v.nuts
+        FROM tmp_cordis_nuts v
+        WHERE pa.source LIKE 'cordis%'
+          AND split_part(pa.source_uid, ':', 1) = v.project
+          AND split_part(pa.source_uid, ':', 2) = v.pic
+        """)
+    )
+    total = result.rowcount or 0
+    session.execute(text("DROP TABLE IF EXISTS tmp_cordis_nuts"))
+    session.commit()
     stats.add("cordis_nuts", total)
 
 

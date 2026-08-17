@@ -93,6 +93,43 @@ EXPLORE_CACHE_MAX = 128
 MIN_COORDINATION_SAMPLE = 100
 
 
+def _view_coverage(
+    session: Session, by: str, series: list[dict[str, Any]]
+) -> dict[str, Any] | None:
+    """La couverture d'une vue géographique — None ailleurs (une vue par
+    thème ou par programme ne parle pas de couverture de pays)."""
+    from orion.search import coverage as coverage_mod
+
+    if by == "country":
+        codes = [str(serie["key"]) for serie in series if serie.get("key")]
+    elif by == "region":
+        region_of = {
+            row[0]: row[1]
+            for row in session.execute(
+                text("SELECT code, region FROM countries WHERE region IS NOT NULL")
+            )
+        }
+        wanted = {str(serie["key"]) for serie in series if serie.get("key")}
+        codes = [code for code, region in region_of.items() if region in wanted]
+    else:
+        return None
+    if not codes:
+        return None
+    mix = coverage_mod.coverage_mix(session, codes)
+    if not mix["mixed"]:
+        return None
+    funders = coverage_mod.funders_by_country(session)
+    classes = coverage_mod.coverage_map(session)
+    # Les bailleurs concrets, dédupliqués : « NIH, NSF » plutôt qu'un
+    # vague « partiellement couvert ».
+    named = sorted({name for code in codes for name in funders.get(code, [])})
+    return {
+        "classes": mix["classes"],
+        "funders": named,
+        "uncovered": sorted({code for code in codes if classes.get(code) != "funders"})[:12],
+    }
+
+
 def _entity_ref_ids(session: Session, refs: list[str]) -> dict[str, list[int]]:
     """« 123 » → [123] ; « g45 » → les organisations ACTIVES du groupe 45.
     Le benchmark composable parle les deux langues (recette 2026-08-05)."""
@@ -679,5 +716,9 @@ def _build(
             "organisation": organisation,
             "sector": sector,
             "subdivision": subdivision,
+            # La couverture de la VUE (lot E) : quand une vue comparative
+            # mélange les classes, la surface compose sa phrase — une vue
+            # homogène n'a rien à confesser, et rien ne s'affiche.
+            "coverage": _view_coverage(session, by, series),
         },
     }

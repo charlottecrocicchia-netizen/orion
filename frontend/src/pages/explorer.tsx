@@ -9,6 +9,7 @@ import { BarsChart, LinesChart } from "@/components/charts";
 import { BumpChart } from "@/components/bump-chart";
 import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
+import { CoverageNote } from "@/components/coverage-note";
 import { ExploreTable } from "@/components/explore-table";
 import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -777,6 +778,10 @@ export function ExplorerPage() {
             <ExploreTable data={data} temporal={temporal} />
           )}
         </div>
+
+        {/* L'honnêteté au POINT DE COMPARAISON (lot E) : la phrase naît
+            quand la vue mélange des couvertures, et seulement là. */}
+        {data ? <CoverageNote meta={data.meta} /> : null}
 
         <div className="mt-4 flex items-center gap-1.5 border-t border-border-soft pt-3.5">
           {availableViews.map((candidate) => (

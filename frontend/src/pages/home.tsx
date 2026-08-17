@@ -251,6 +251,12 @@ export function HomePage() {
               ]}
               years={years}
               progress={scrub}
+              /* L'assiette du grand total (lot E, 2026-08-17) : le
+                 chiffre du hero dit sur QUOI il porte — quatre sources
+                 officielles, l'Europe par ses programmes-cadres, les
+                 États-Unis par NIH et NSF. Sans cette ligne, 734 Md€ se
+                 lit comme « tout l'argent public de la recherche ». */
+              basis={t("coverage.heroBasis", { count: 4 })}
             />
           ) : (
             <>

@@ -99,6 +99,13 @@ export interface ExploreResponse {
     country: string | null;
     programme?: number | null;
     programme_label?: string | null;
+    /** La couverture de la VUE (lot E) : présente SEULEMENT quand la vue
+     *  mélange des classes — la surface compose alors sa phrase. */
+    coverage?: {
+      classes: string[];
+      funders: string[];
+      uncovered: string[];
+    } | null;
   };
 }
 
@@ -330,6 +337,12 @@ export interface CountryIndexEntry {
   code: string;
   name: string;
   eu_member: boolean;
+  /** La classe de couverture (lot E) : « funders » (un bailleur chargé
+   *  finance ce pays en propre), « participations » (visible seulement
+   *  par ses consortiums — budget domestique INVISIBLE, pas nul), ou
+   *  « none ». Absente sur les mailles sous le pays. */
+  coverage?: "funders" | "participations" | "none";
+  coverage_funders?: string[];
   /** Manager region slug — served by the backend referential, the
    *  front never hardcodes geography (chantier régions, 2026-08-04). */
   region: string | null;

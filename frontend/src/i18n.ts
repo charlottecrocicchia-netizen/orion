@@ -65,6 +65,17 @@ const resources = {
         suggestCount_one: "{{count}} suggestion",
         suggestCount_other: "{{count}} suggestions",
       },
+      coverage: {
+        legend: "domestic funding not covered",
+        tipParticipations: "Seen through European consortiums only",
+        tipNone: "No data in Orion yet",
+        badgeFunders: "covered",
+        badgePartial: "partial",
+        mixedTitle: "Uneven coverage",
+        mixedPhrase:
+          "This view mixes coverages: {{funders}} are loaded, so their countries show their domestic funding. The others appear only through the consortiums they join — their own budgets are invisible here, not zero.",
+        heroBasis: "across {{count}} official sources — Europe (EU framework programmes), United States (NIH, NSF)",
+      },
       hero: {
         eyebrow: "Orion Space Intelligence",
         sub: "of public R&D funding, mapped. {{from}} → {{to}}.",
@@ -727,6 +738,17 @@ const resources = {
         groupCountries: "Pays",
         suggestCount_one: "{{count}} suggestion",
         suggestCount_other: "{{count}} suggestions",
+      },
+      coverage: {
+        legend: "financements domestiques non couverts",
+        tipParticipations: "Vu par ses seules participations européennes",
+        tipNone: "Aucune donnée dans Orion à ce jour",
+        badgeFunders: "couvert",
+        badgePartial: "partiel",
+        mixedTitle: "Couvertures inégales",
+        mixedPhrase:
+          "Cette vue mélange des couvertures : {{funders}} sont chargés, leurs pays montrent donc leurs financements domestiques. Les autres n\u2019apparaissent que par les consortiums qu\u2019ils rejoignent — leur budget propre est invisible ici, pas nul.",
+        heroBasis: "sur {{count}} sources officielles — Europe (programmes-cadres de l\u2019UE), États-Unis (NIH, NSF)",
       },
       hero: {
         eyebrow: "Orion Space Intelligence",

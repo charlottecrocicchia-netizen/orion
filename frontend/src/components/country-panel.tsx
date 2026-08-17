@@ -229,6 +229,17 @@ export function CountryPanel({
           </>
         ) : null}
 
+        {/* La classe de couverture au panneau (lot E, 2026-08-17) :
+            c'est ici que « l'Asie ne finance rien » meurt — le panneau
+            du Japon dit POURQUOI son chiffre est petit. */}
+        {entry.coverage && entry.coverage !== "funders" ? (
+          <p className="mt-5 border-l-2 border-white/30 pl-3 text-[12.5px] leading-relaxed text-white/70">
+            {entry.coverage === "participations"
+              ? t("coverage.tipParticipations")
+              : t("coverage.tipNone")}
+          </p>
+        ) : null}
+
         <Link
           to={`/explore/countries/${code}`}
           className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5.5 py-3 text-[15px] font-medium text-[#1d1d1f] transition-transform hover:translate-x-0.5"

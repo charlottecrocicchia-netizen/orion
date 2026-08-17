@@ -13,6 +13,9 @@ import { useRevealProgress } from "@/hooks/use-reveal-progress";
 interface StatHeroProps {
   funding: number | null;
   sub: string;
+  /** L'assiette du chiffre (lot E) : sur quelles sources il porte —
+   *  une ligne discrète sous la promesse, jamais un astérisque. */
+  basis?: string;
   kpis: { value: number | null; label: string }[];
   years: { year: number; amount_eur: number }[];
   /** External progress (the home's GSAP pin+scrub). When set, the built-in
@@ -20,7 +23,14 @@ interface StatHeroProps {
   progress?: number | null;
 }
 
-export function StatHero({ funding, sub, kpis, years, progress: external }: StatHeroProps) {
+export function StatHero({
+  funding,
+  sub,
+  basis,
+  kpis,
+  years,
+  progress: external,
+}: StatHeroProps) {
   const { i18n } = useTranslation();
   const { ref, progress: internal } = useRevealProgress(external == null && funding != null);
   const progress = external ?? internal;
@@ -35,6 +45,11 @@ export function StatHero({ funding, sub, kpis, years, progress: external }: Stat
     <div ref={ref}>
       <div className="font-display text-hero hero-gradient tnum">{figure}</div>
       <p className="mt-4 text-lead text-muted-foreground">{sub}</p>
+      {basis ? (
+        <p className="mx-auto mt-2 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground/80">
+          {basis}
+        </p>
+      ) : null}
       <div className="mt-8 flex justify-center gap-11">
         {kpis.map((kpi) => (
           <Kpi key={kpi.label} value={kpi.value} label={kpi.label} hero progress={progress} />

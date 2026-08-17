@@ -211,6 +211,11 @@ function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (ref: s
 export function ComparePage() {
   const { t, i18n } = useTranslation();
   const countryName = useCountryName();
+  // La couverture par pays vient de l'index — une seule vérité, servie
+  // par l'API (lot E, 2026-08-17).
+  const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
+  const coverageOf = (code: string) =>
+    countryIndex?.find((entry) => entry.code === code)?.coverage ?? "funders";
   const [params, setParams] = useSearchParams();
   const ids = (params.get("orgs") ?? "").split("~").filter(Boolean).slice(0, MAX_ORGS);
   const find = params.get("find");
@@ -397,6 +402,18 @@ export function ComparePage() {
                               </span>
                             ) : null}
                             {entry.country ? <CountryFlags codes={[entry.country]} /> : null}
+                            {/* Le badge de couverture (lot E) : une
+                                entité d'un pays non couvert par un
+                                bailleur chargé porte sa mention — on
+                                compare alors des assiettes inégales. */}
+                            {entry.country && coverageOf(entry.country) !== "funders" ? (
+                              <span
+                                title={t("coverage.tipParticipations")}
+                                className="ml-1.5 rounded-full border border-dashed px-1.5 py-px text-[9.5px] font-medium uppercase tracking-[0.06em]"
+                              >
+                                {t("coverage.badgePartial")}
+                              </span>
+                            ) : null}
                             {entry.kind === "group" && entry.entities != null
                               ? ` ${t("ck.groupEntities", { count: entry.entities })}`
                               : orgTypeKey(entry.org_type)

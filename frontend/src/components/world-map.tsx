@@ -155,9 +155,17 @@ export function WorldMap({
     setTip({
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,
-      lines: entry
+      lines: (entry
         ? [
             entry.name,
+            // La classe de couverture au point de contact (lot E) :
+            // c'est ICI que « l'Asie ne finance rien » meurt — le
+            // Japon dit POURQUOI son chiffre est petit.
+            entry.coverage === "participations"
+              ? t("coverage.tipParticipations")
+              : entry.coverage === "none"
+                ? t("coverage.tipNone")
+                : null,
             entry.projects_count > 0
               ? `${formatCompactEur(entry.funding_eur, i18n.language)} · ${
                   countLabel
@@ -166,7 +174,8 @@ export function WorldMap({
                 }`
               : formatCompactEur(entry.funding_eur, i18n.language),
           ]
-        : [code],
+        : [code]
+      ).filter(Boolean) as string[],
     });
   };
 
@@ -200,10 +209,43 @@ export function WorldMap({
   });
 
   const buckets = bucketLabels(i18n.language);
+  // La carte devient « consciente de la couverture » dès que ses entrées
+  // en portent une : les cartes de PAYS l'ont (l'API la sert), la maille
+  // sous le pays non — un État du Massachusetts n'a pas de couverture à
+  // lui, c'est celle des États-Unis. Aucune prop à penser à passer.
+  const coverageAware = countries.some((entry) => entry.coverage != null);
+  const uncoveredCount = coverageAware
+    ? countries.filter((entry) => entry.coverage !== "funders").length
+    : 0;
 
   return (
     <div ref={wrapRef} className="relative">
       <svg viewBox={viewBox} className="w-full" role="group" aria-label={t("explore.mapLabel")}>
+        <defs>
+          {/* « Pas encore couvert » (lot E, 2026-08-17) : une TEXTURE, pas
+              une couleur — elle se lit en daltonisme comme en niveaux de
+              gris, et elle se superpose sans voler la teinte de région.
+              Elle dit une seule chose, partout : Orion ne couvre pas les
+              financements DOMESTIQUES de ce pays. Le chiffre affiché reste
+              vrai ; c'est son assiette qui est partielle. */}
+          <pattern
+            id="orion-not-covered"
+            width="7"
+            height="7"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
+            <line
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="7"
+              stroke="var(--color-foreground)"
+              strokeOpacity="0.22"
+              strokeWidth="1.4"
+            />
+          </pattern>
+        </defs>
         {geo.countries.map((country) => {
           const entry = byCode.get(country.code);
           const opacity = entry ? amountStep(entry.funding_eur) : 0;
@@ -224,6 +266,26 @@ export function WorldMap({
               {...(entry
                 ? interactionProps(country.code, entry)
                 : { "data-code": country.code })}
+            />
+          );
+        })}
+        {/* La couche d'honnêteté, par-dessus les teintes : tout pays dont
+            les financements domestiques ne sont PAS couverts porte sa
+            texture — qu'il ait des chiffres (participations) ou aucun.
+            Sans interaction : elle n'attrape jamais le clic du pays. */}
+        {geo.countries.map((country) => {
+          if (!coverageAware) return null;
+          const entry = byCode.get(country.code);
+          // Sans entrée : aucune donnée du tout — la texture le dit
+          // aussi, parce que « rien » n'est pas « zéro ».
+          if ((entry?.coverage ?? "none") === "funders") return null;
+          return (
+            <path
+              key={`nc-${country.code}`}
+              d={country.path}
+              fill="url(#orion-not-covered)"
+              pointerEvents="none"
+              data-not-covered={country.code}
             />
           );
         })}
@@ -301,7 +363,30 @@ export function WorldMap({
         <span className="tnum">
           {buckets[0]} → {buckets[buckets.length - 1]}
         </span>
-        <span className="ml-5 flex items-center gap-1.5">
+        {/* La texture a SA légende — sans elle, une hachure est une
+            énigme (lot E, 2026-08-17). */}
+        {uncoveredCount > 0 ? (
+          <span className="ml-4 flex items-center gap-1.5">
+            <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true">
+              <rect
+                width="14"
+                height="10"
+                rx="1.5"
+                fill="var(--color-surface)"
+                stroke="var(--color-border)"
+                strokeWidth="0.75"
+              />
+              <path
+                d="M-2,4 L4,-2 M0,10 L10,0 M4,12 L14,2 M10,12 L16,6"
+                stroke="var(--color-foreground)"
+                strokeOpacity="0.32"
+                strokeWidth="1.2"
+              />
+            </svg>
+            {t("coverage.legend")}
+          </span>
+        ) : null}
+        <span className="ml-4 flex items-center gap-1.5">
           <svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true">
             <path
               d="M1,9 Q11,-3 21,9"
