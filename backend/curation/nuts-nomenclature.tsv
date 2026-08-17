@@ -1,0 +1,3349 @@
+code	level	name
+AL0	1	Shqipëria
+AL01	2	Veri
+AL011	3	Dibër
+AL012	3	Durrës
+AL013	3	Kukës
+AL014	3	Lezhë
+AL015	3	Shkodër
+AL02	2	Qender
+AL021	3	Elbasan
+AL022	3	Tiranë
+AL03	2	Jug
+AL031	3	Berat
+AL032	3	Fier
+AL033	3	Gjirokastër
+AL034	3	Korçë
+AL035	3	Vlorë
+ALA	1	Partner Countries in Asia and Latin America
+ALX	1	Not regionalised/Unknown level 1
+ALXX	2	Not regionalised/Unknown level 2
+ALXXX	3	Not regionalised/Unknown level 3
+ALZ	1	Extra-Regio level 1
+ALZZ	2	Extra-Regio level 2
+ALZZZ	3	Extra-Regio level 3
+AT1	1	Ostösterreich
+AT11	2	Burgenland
+AT111	3	Mittelburgenland
+AT112	3	Nordburgenland
+AT113	3	Südburgenland
+AT12	2	Niederösterreich
+AT121	3	Mostviertel-Eisenwurzen
+AT122	3	Niederösterreich-Süd
+AT123	3	Sankt Pölten
+AT124	3	Waldviertel
+AT125	3	Weinviertel
+AT126	3	Wiener Umland/Nordteil
+AT127	3	Wiener Umland/Südteil
+AT13	2	Wien
+AT130	3	Wien
+AT2	1	Südösterreich
+AT21	2	Kärnten
+AT211	3	Klagenfurt-Villach
+AT212	3	Oberkärnten
+AT213	3	Unterkärnten
+AT22	2	Steiermark
+AT221	3	Graz
+AT222	3	Liezen
+AT223	3	Östliche Obersteiermark
+AT224	3	Oststeiermark
+AT225	3	West- und Südsteiermark
+AT226	3	Westliche Obersteiermark
+AT3	1	Westösterreich
+AT31	2	Oberösterreich
+AT311	3	Innviertel
+AT312	3	Linz-Wels
+AT313	3	Mühlviertel
+AT314	3	Steyr-Kirchdorf
+AT315	3	Traunviertel
+AT32	2	Salzburg
+AT321	3	Lungau
+AT322	3	Pinzgau-Pongau
+AT323	3	Salzburg und Umgebung
+AT33	2	Tirol
+AT331	3	Außerfern
+AT332	3	Innsbruck
+AT333	3	Osttirol
+AT334	3	Tiroler Oberland
+AT335	3	Tiroler Unterland
+AT34	2	Vorarlberg
+AT341	3	Bludenz-Bregenzer Wald
+AT342	3	Rheintal-Bodenseegebiet
+ATX	1	Not regionalised/Unknown NUTS 1
+ATXX	2	Not regionalised/Unknown NUTS 2
+ATXXX	3	Not regionalised/Unknown NUTS 3
+ATZ	1	Extra-Regio NUTS 1
+ATZZ	2	Extra-Regio NUTS 2
+ATZZZ	3	Extra-Regio NUTS 3
+BA0	1	Bosna i Hercegovina
+BA01	2	Federacija Bosne i Hercegovine
+BA02	2	Republika Srpska
+BA03	2	Brčko District BiH
+BAL	1	Baltic countries
+BAZ	1	Extra-Regio level 1
+BAZZ	2	Extra-Regio level 2
+BE1	1	Région de Bruxelles-Capitale/Brussels Hoofdstedelijk Gewest
+BE10	2	Région de Bruxelles-Capitale/Brussels Hoofdstedelijk Gewest
+BE100	3	Arr. de Bruxelles-Capitale/Arr. Brussel-Hoofdstad
+BE2	1	Vlaams Gewest
+BE21	2	Prov. Antwerpen
+BE211	3	Arr. Antwerpen
+BE212	3	Arr. Mechelen
+BE213	3	Arr. Turnhout
+BE22	2	Prov. Limburg (BE)
+BE221	3	Arr. Hasselt
+BE222	3	Arr. Maaseik
+BE223	3	Arr. Tongeren
+BE224	3	Arr. Hasselt
+BE225	3	Arr. Maaseik
+BE23	2	Prov. Oost-Vlaanderen
+BE231	3	Arr. Aalst
+BE232	3	Arr. Dendermonde
+BE233	3	Arr. Eeklo
+BE234	3	Arr. Gent
+BE235	3	Arr. Oudenaarde
+BE236	3	Arr. Sint-Niklaas
+BE24	2	Prov. Vlaams-Brabant
+BE241	3	Arr. Halle-Vilvoorde
+BE242	3	Arr. Leuven
+BE25	2	Prov. West-Vlaanderen
+BE251	3	Arr. Brugge
+BE252	3	Arr. Diksmuide
+BE253	3	Arr. Ieper
+BE254	3	Arr. Kortrijk
+BE255	3	Arr. Oostende
+BE256	3	Arr. Roeselare
+BE257	3	Arr. Tielt
+BE258	3	Arr. Veurne
+BE3	1	Région wallonne
+BE31	2	Prov. Brabant wallon
+BE310	3	Arr. Nivelles
+BE32	2	Prov. Hainaut
+BE321	3	Arr. Ath
+BE322	3	Arr. Charleroi
+BE323	3	Arr. Mons
+BE324	3	Arr. Mouscron
+BE325	3	Arr. Soignies
+BE326	3	Arr. Thuin
+BE327	3	Arr. Tournai
+BE328	3	Arr. Tournai-Mouscron
+BE329	3	Arr. La Louvière
+BE32A	3	Arr. Ath
+BE32B	3	Arr. Charleroi
+BE32C	3	Arr. Soignies
+BE32D	3	Arr. Thuin
+BE33	2	Prov. Liège
+BE331	3	Arr. Huy
+BE332	3	Arr. Liège
+BE334	3	Arr. Waremme
+BE335	3	Arr. Verviers — communes francophones
+BE336	3	Bezirk Verviers — Deutschsprachige Gemeinschaft
+BE34	2	Prov. Luxembourg (BE)
+BE341	3	Arr. Arlon
+BE342	3	Arr. Bastogne
+BE343	3	Arr. Marche-en-Famenne
+BE344	3	Arr. Neufchâteau
+BE345	3	Arr. Virton
+BE35	2	Prov. Namur
+BE351	3	Arr. Dinant
+BE352	3	Arr. Namur
+BE353	3	Arr. Philippeville
+BEX	1	Not regionalised/Unknown NUTS 1
+BEXX	2	Not regionalised/Unknown NUTS 2
+BEXXX	3	Not regionalised/Unknown NUTS 3
+BEZ	1	Extra-Regio NUTS 1
+BEZZ	2	Extra-Regio NUTS 2
+BEZZZ	3	Extra-Regio NUTS 3
+BG1	1	Severna Bulgaria (statistical region 2005)
+BG11	2	Severozapaden (statistical region 2005)
+BG111	3	Vidin (statistical region 2005)
+BG112	3	Montana (statistical region 2005)
+BG113	3	Vratsa (statistical region 2005)
+BG12	2	Severen tsentralen (statistical region 2005)
+BG121	3	Pleven (statistical region 2005)
+BG122	3	Lovech (statistical region 2005)
+BG123	3	Veliko Tarnovo (statistical region 2005)
+BG124	3	Gabrovo (statistical region 2005)
+BG125	3	Ruse (statistical region 2005)
+BG13	2	Severoiztochen (statistical region 2005)
+BG131	3	Varna (statistical region 2005)
+BG132	3	Dobrich (statistical region 2005)
+BG133	3	Shumen (statistical region 2005)
+BG134	3	Targovishte (statistical region 2005)
+BG135	3	Razgrad (statistical region 2005)
+BG136	3	Silistra (statistical region 2005)
+BG2	1	Yuzhna Bulgaria (statistical region 2005)
+BG21	2	Yugozapaden (statistical region 2005)
+BG211	3	Sofia (stolitsa) (statistical region 2005)
+BG212	3	Sofia (statistical region 2005)
+BG213	3	Blagoevgrad (statistical region 2005)
+BG214	3	Pernik (statistical region 2005)
+BG215	3	Kyustendil (statistical region 2005)
+BG22	2	Yuzhen tsentralen (statistical region 2005)
+BG221	3	Plovdiv (statistical region 2005)
+BG222	3	Stara Zagora (statistical region 2005)
+BG223	3	Haskovo (statistical region 2005)
+BG224	3	Pazardzhik (statistical region 2005)
+BG225	3	Smolyan (statistical region 2005)
+BG226	3	Kardzhali (statistical region 2005)
+BG23	2	Yugoiztochen (statistical region 2005)
+BG231	3	Burgas (statistical region 2005)
+BG232	3	Sliven (statistical region 2005)
+BG233	3	Yambol (statistical region 2005)
+BG3	1	Severna i Yugoiztochna Bulgaria
+BG31	2	Severozapaden
+BG311	3	Vidin
+BG312	3	Montana
+BG313	3	Vratsa
+BG314	3	Pleven
+BG315	3	Lovech
+BG32	2	Severen tsentralen
+BG321	3	Veliko Tarnovo
+BG322	3	Gabrovo
+BG323	3	Ruse
+BG324	3	Razgrad
+BG325	3	Silistra
+BG33	2	Severoiztochen
+BG331	3	Varna
+BG332	3	Dobrich
+BG333	3	Shumen
+BG334	3	Targovishte
+BG34	2	Yugoiztochen
+BG341	3	Burgas
+BG342	3	Sliven
+BG343	3	Yambol
+BG344	3	Stara Zagora
+BG4	1	Yugozapadna i Yuzhna tsentralna Bulgaria
+BG41	2	Yugozapaden
+BG411	3	Sofia (stolitsa)
+BG412	3	Sofia
+BG413	3	Blagoevgrad
+BG414	3	Pernik
+BG415	3	Kyustendil
+BG42	2	Yuzhen tsentralen
+BG421	3	Plovdiv
+BG422	3	Haskovo
+BG423	3	Pazardzhik
+BG424	3	Smolyan
+BG425	3	Kardzhali
+BGX	1	Not regionalised/Unknown NUTS 1
+BGXX	2	Not regionalised/Unknown NUTS 2
+BGXXX	3	Not regionalised/Unknown NUTS 3
+BGZ	1	Extra-Regio NUTS 1
+BGZZ	2	Extra-Regio NUTS 2
+BGZZZ	3	Extra-Regio NUTS 3
+CH0	1	Schweiz/Suisse/Svizzera
+CH01	2	Région lémanique
+CH011	3	Vaud
+CH012	3	Valais / Wallis
+CH013	3	Genève
+CH02	2	Espace Mittelland
+CH021	3	Bern / Berne
+CH022	3	Fribourg / Freiburg
+CH023	3	Solothurn
+CH024	3	Neuchâtel
+CH025	3	Jura
+CH03	2	Nordwestschweiz
+CH031	3	Basel-Stadt
+CH032	3	Basel-Landschaft
+CH033	3	Aargau
+CH04	2	Zürich
+CH040	3	Zürich
+CH05	2	Ostschweiz
+CH051	3	Glarus
+CH052	3	Schaffhausen
+CH053	3	Appenzell Ausserrhoden
+CH054	3	Appenzell Innerrhoden
+CH055	3	St. Gallen
+CH056	3	Graubünden / Grigioni / Grischun
+CH057	3	Thurgau
+CH06	2	Zentralschweiz
+CH061	3	Luzern
+CH062	3	Uri
+CH063	3	Schwyz
+CH064	3	Obwalden
+CH065	3	Nidwalden
+CH066	3	Zug
+CH07	2	Ticino
+CH070	3	Ticino
+CHX	1	Not regionalised/Unknown level 1
+CHXX	2	Not regionalised/Unknown level 2
+CHXXX	3	Not regionalised/Unknown level 3
+CHZ	1	Extra-Regio level 1
+CHZZ	2	Extra-Regio level 2
+CHZZZ	3	Extra-Regio level 3
+CY0	1	Kýpros
+CY00	2	Kýpros
+CY000	3	Kýpros
+CYX	1	Not regionalised/Unknown NUTS 1
+CYXX	2	Not regionalised/Unknown NUTS 2
+CYXXX	3	Not regionalised/Unknown NUTS 3
+CYZ	1	Extra-Regio NUTS 1
+CYZZ	2	Extra-Regio NUTS 2
+CYZZZ	3	Extra-Regio NUTS 3
+CZ0	1	Česko
+CZ01	2	Praha
+CZ010	3	Hlavní město Praha
+CZ02	2	Střední Čechy
+CZ020	3	Středočeský kraj
+CZ03	2	Jihozápad
+CZ031	3	Jihočeský kraj
+CZ032	3	Plzeňský kraj
+CZ04	2	Severozápad
+CZ041	3	Karlovarský kraj
+CZ042	3	Ústecký kraj
+CZ05	2	Severovýchod
+CZ051	3	Liberecký kraj
+CZ052	3	Královéhradecký kraj
+CZ053	3	Pardubický kraj
+CZ06	2	Jihovýchod
+CZ061	3	Vysocina
+CZ062	3	Jihomoravský
+CZ063	3	Kraj Vysočina
+CZ064	3	Jihomoravský kraj
+CZ07	2	Střední Morava
+CZ071	3	Olomoucký kraj
+CZ072	3	Zlínský kraj
+CZ08	2	Moravskoslezsko
+CZ080	3	Moravskoslezský kraj
+CZX	1	Not regionalised/Unknown NUTS 1
+CZXX	2	Not regionalised/Unknown NUTS 2
+CZXXX	3	Not regionalised/Unknown NUTS 3
+CZZ	1	Extra-Regio NUTS 1
+CZZZ	2	Extra-Regio NUTS 2
+CZZZZ	3	Extra-Regio NUTS 3
+DE1	1	Baden-Württemberg
+DE11	2	Stuttgart
+DE111	3	Stuttgart, Stadtkreis
+DE112	3	Böblingen
+DE113	3	Esslingen
+DE114	3	Göppingen
+DE115	3	Ludwigsburg
+DE116	3	Rems-Murr-Kreis
+DE117	3	Heilbronn, Stadtkreis
+DE118	3	Heilbronn, Landkreis
+DE119	3	Hohenlohekreis
+DE11A	3	Schwäbisch Hall
+DE11B	3	Main-Tauber-Kreis
+DE11C	3	Heidenheim
+DE11D	3	Ostalbkreis
+DE12	2	Karlsruhe
+DE121	3	Baden-Baden, Stadtkreis
+DE122	3	Karlsruhe, Stadtkreis
+DE123	3	Karlsruhe, Landkreis
+DE124	3	Rastatt
+DE125	3	Heidelberg, Stadtkreis
+DE126	3	Mannheim, Stadtkreis
+DE127	3	Neckar-Odenwald-Kreis
+DE128	3	Rhein-Neckar-Kreis
+DE129	3	Pforzheim, Stadtkreis
+DE12A	3	Calw
+DE12B	3	Enzkreis
+DE12C	3	Freudenstadt
+DE13	2	Freiburg
+DE131	3	Freiburg im Breisgau, Stadtkreis
+DE132	3	Breisgau-Hochschwarzwald
+DE133	3	Emmendingen
+DE134	3	Ortenaukreis
+DE135	3	Rottweil
+DE136	3	Schwarzwald-Baar-Kreis
+DE137	3	Tuttlingen
+DE138	3	Konstanz
+DE139	3	Lörrach
+DE13A	3	Waldshut
+DE14	2	Tübingen
+DE141	3	Reutlingen
+DE142	3	Tübingen, Landkreis
+DE143	3	Zollernalbkreis
+DE144	3	Ulm, Stadtkreis
+DE145	3	Alb-Donau-Kreis
+DE146	3	Biberach
+DE147	3	Bodenseekreis
+DE148	3	Ravensburg
+DE149	3	Sigmaringen
+DE1BA	3	Baden
+DE1WU	3	Württemberg
+DE2	1	Bayern
+DE21	2	Oberbayern
+DE211	3	Ingolstadt, Kreisfreie Stadt
+DE212	3	München, Kreisfreie Stadt
+DE213	3	Rosenheim, Kreisfreie Stadt
+DE214	3	Altötting
+DE215	3	Berchtesgadener Land
+DE216	3	Bad Tölz-Wolfratshausen
+DE217	3	Dachau
+DE218	3	Ebersberg
+DE219	3	Eichstätt
+DE21A	3	Erding
+DE21B	3	Freising
+DE21C	3	Fürstenfeldbruck
+DE21D	3	Garmisch-Partenkirchen
+DE21E	3	Landsberg am Lech
+DE21F	3	Miesbach
+DE21G	3	Mühldorf a. Inn
+DE21H	3	München, Landkreis
+DE21I	3	Neuburg-Schrobenhausen
+DE21J	3	Pfaffenhofen a. d. Ilm
+DE21K	3	Rosenheim, Landkreis
+DE21L	3	Starnberg
+DE21M	3	Traunstein
+DE21N	3	Weilheim-Schongau
+DE22	2	Niederbayern
+DE221	3	Landshut, Kreisfreie Stadt
+DE222	3	Passau, Kreisfreie Stadt
+DE223	3	Straubing, Kreisfreie Stadt
+DE224	3	Deggendorf
+DE225	3	Freyung-Grafenau
+DE226	3	Kelheim
+DE227	3	Landshut, Landkreis
+DE228	3	Passau, Landkreis
+DE229	3	Regen
+DE22A	3	Rottal-Inn
+DE22B	3	Straubing-Bogen
+DE22C	3	Dingolfing-Landau
+DE23	2	Oberpfalz
+DE231	3	Amberg, Kreisfreie Stadt
+DE232	3	Regensburg, Kreisfreie Stadt
+DE233	3	Weiden i. d. Opf, Kreisfreie Stadt
+DE234	3	Amberg-Sulzbach
+DE235	3	Cham
+DE236	3	Neumarkt i. d. OPf.
+DE237	3	Neustadt a. d. Waldnaab
+DE238	3	Regensburg, Landkreis
+DE239	3	Schwandorf
+DE23A	3	Tirschenreuth
+DE24	2	Oberfranken
+DE241	3	Bamberg, Kreisfreie Stadt
+DE242	3	Bayreuth, Kreisfreie Stadt
+DE243	3	Coburg, Kreisfreie Stadt
+DE244	3	Hof, Kreisfreie Stadt
+DE245	3	Bamberg, Landkreis
+DE246	3	Bayreuth, Landkreis
+DE247	3	Coburg, Landkreis
+DE248	3	Forchheim
+DE249	3	Hof, Landkreis
+DE24A	3	Kronach
+DE24B	3	Kulmbach
+DE24C	3	Lichtenfels
+DE24D	3	Wunsiedel i. Fichtelgebirge
+DE25	2	Mittelfranken
+DE251	3	Ansbach, Kreisfreie Stadt
+DE252	3	Erlangen, Kreisfreie Stadt
+DE253	3	Fürth, Kreisfreie Stadt
+DE254	3	Nürnberg, Kreisfreie Stadt
+DE255	3	Schwabach, Kreisfreie Stadt
+DE256	3	Ansbach, Landkreis
+DE257	3	Erlangen-Höchstadt
+DE258	3	Fürth, Landkreis
+DE259	3	Nürnberger Land
+DE25A	3	Neustadt a. d. Aisch-Bad Windsheim
+DE25B	3	Roth
+DE25C	3	Weißenburg-Gunzenhausen
+DE26	2	Unterfranken
+DE261	3	Aschaffenburg, Kreisfreie Stadt
+DE262	3	Schweinfurt, Kreisfreie Stadt
+DE263	3	Würzburg, Kreisfreie Stadt
+DE264	3	Aschaffenburg, Landkreis
+DE265	3	Bad Kissingen
+DE266	3	Rhön-Grabfeld
+DE267	3	Haßberge
+DE268	3	Kitzingen
+DE269	3	Miltenberg
+DE26A	3	Main-Spessart
+DE26B	3	Schweinfurt, Landkreis
+DE26C	3	Würzburg, Landkreis
+DE27	2	Schwaben
+DE271	3	Augsburg, Kreisfreie Stadt
+DE272	3	Kaufbeuren, Kreisfreie Stadt
+DE273	3	Kempten (Allgäu), Kreisfreie Stadt
+DE274	3	Memmingen, Kreisfreie Stadt
+DE275	3	Aichach-Friedberg
+DE276	3	Augsburg, Landkreis
+DE277	3	Dillingen a.d. Donau
+DE278	3	Günzburg
+DE279	3	Neu-Ulm
+DE27A	3	Lindau (Bodensee)
+DE27B	3	Ostallgäu
+DE27C	3	Unterallgäu
+DE27D	3	Donau-Ries
+DE27E	3	Oberallgäu
+DE3	1	Berlin
+DE30	2	Berlin
+DE300	3	Berlin
+DE301	3	Berlin-West, Stadt
+DE302	3	Berlin-Ost, Stadt
+DE4	1	Brandenburg
+DE40	2	Brandenburg
+DE401	3	Brandenburg an der Havel, Kreisfreie Stadt
+DE402	3	Cottbus, Kreisfreie Stadt
+DE403	3	Frankfurt (Oder), Kreisfreie Stadt
+DE404	3	Potsdam, Kreisfreie Stadt
+DE405	3	Barnim
+DE406	3	Dahme-Spreewald
+DE407	3	Elbe-Elster
+DE408	3	Havelland
+DE409	3	Märkisch-Oderland
+DE40A	3	Oberhavel
+DE40B	3	Oberspreewald-Lausitz
+DE40C	3	Oder-Spree
+DE40D	3	Ostprignitz-Ruppin
+DE40E	3	Potsdam-Mittelmark
+DE40F	3	Prignitz
+DE40G	3	Spree-Neiße
+DE40H	3	Teltow-Fläming
+DE40I	3	Uckermark
+DE41	2	Brandenburg - Nordost
+DE411	3	Frankfurt (Oder), Kreisfreie Stadt
+DE412	3	Barnim
+DE413	3	Märkisch-Oderland
+DE414	3	Oberhavel
+DE415	3	Oder-Spree
+DE416	3	Ostprignitz-Ruppin
+DE417	3	Prignitz
+DE418	3	Uckermark
+DE42	2	Brandenburg - Südwest
+DE421	3	Brandenburg an der Havel, Kreisfreie Stadt
+DE422	3	Cottbus, Kreisfreie Stadt
+DE423	3	Potsdam, Kreisfreie Stadt
+DE424	3	Dahme-Spreewald
+DE425	3	Elbe-Elster
+DE426	3	Havelland
+DE427	3	Oberspreewald-Lausitz
+DE428	3	Potsdam-Mittelmark
+DE429	3	Spree-Neiße
+DE42A	3	Teltow-Fläming
+DE5	1	Bremen
+DE50	2	Bremen
+DE501	3	Bremen, Kreisfreie Stadt
+DE502	3	Bremerhaven, Kreisfreie Stadt
+DE6	1	Hamburg
+DE60	2	Hamburg
+DE600	3	Hamburg
+DE7	1	Hessen
+DE71	2	Darmstadt
+DE711	3	Darmstadt, Kreisfreie Stadt
+DE712	3	Frankfurt am Main, Kreisfreie Stadt
+DE713	3	Offenbach am Main, Kreisfreie Stadt
+DE714	3	Wiesbaden, Kreisfreie Stadt
+DE715	3	Bergstraße
+DE716	3	Darmstadt-Dieburg
+DE717	3	Groß-Gerau
+DE718	3	Hochtaunuskreis
+DE719	3	Main-Kinzig-Kreis
+DE71A	3	Main-Taunus-Kreis
+DE71B	3	Odenwaldkreis
+DE71C	3	Offenbach, Landkreis
+DE71D	3	Rheingau-Taunus-Kreis
+DE71E	3	Wetteraukreis
+DE72	2	Gießen
+DE721	3	Gießen, Landkreis
+DE722	3	Lahn-Dill-Kreis
+DE723	3	Limburg-Weilburg
+DE724	3	Marburg-Biedenkopf
+DE725	3	Vogelsbergkreis
+DE73	2	Kassel
+DE731	3	Kassel, Kreisfreie Stadt
+DE732	3	Fulda
+DE733	3	Hersfeld-Rotenburg
+DE734	3	Kassel, Landkreis
+DE735	3	Schwalm-Eder-Kreis
+DE736	3	Waldeck-Frankenberg
+DE737	3	Werra-Meißner-Kreis
+DE8	1	Mecklenburg-Vorpommern
+DE80	2	Mecklenburg-Vorpommern
+DE801	3	Greifswald, Kreisfreie Stadt
+DE802	3	Neubrandenburg, Kreisfreie Stadt
+DE803	3	Rostock, Kreisfreie Stadt
+DE804	3	Schwerin, Kreisfreie Stadt
+DE805	3	Stralsund, Kreisfreie Stadt
+DE806	3	Wismar, Kreisfreie Stadt
+DE807	3	Bad Doberan
+DE808	3	Demmin
+DE809	3	Güstrow
+DE80A	3	Ludwigslust
+DE80B	3	Mecklenburg-Strelitz
+DE80C	3	Müritz
+DE80D	3	Nordvorpommern
+DE80E	3	Nordwestmecklenburg
+DE80F	3	Ostvorpommern
+DE80G	3	Parchim
+DE80H	3	Rügen
+DE80I	3	Uecker-Randow
+DE80J	3	Mecklenburgische Seenplatte
+DE80K	3	Landkreis Rostock
+DE80L	3	Vorpommern-Rügen
+DE80M	3	Nordwestmecklenburg
+DE80N	3	Vorpommern-Greifswald
+DE80O	3	Ludwigslust-Parchim
+DE9	1	Niedersachsen
+DE91	2	Braunschweig
+DE911	3	Braunschweig, Kreisfreie Stadt
+DE912	3	Salzgitter, Kreisfreie Stadt
+DE913	3	Wolfsburg, Kreisfreie Stadt
+DE914	3	Gifhorn
+DE915	3	Göttingen
+DE916	3	Goslar
+DE917	3	Helmstedt
+DE918	3	Northeim
+DE919	3	Osterode am Harz
+DE91A	3	Peine
+DE91B	3	Wolfenbüttel
+DE91C	3	Göttingen
+DE92	2	Hannover
+DE921	3	Hannover, Kreisfreie Stadt
+DE922	3	Diepholz
+DE923	3	Hameln-Pyrmont
+DE924	3	Hannover, Landkreis
+DE925	3	Hildesheim
+DE926	3	Holzminden
+DE927	3	Nienburg (Weser)
+DE928	3	Schaumburg
+DE929	3	Region Hannover
+DE93	2	Lüneburg
+DE931	3	Celle
+DE932	3	Cuxhaven
+DE933	3	Harburg
+DE934	3	Lüchow-Dannenberg
+DE935	3	Lüneburg, Landkreis
+DE936	3	Osterholz
+DE937	3	Rotenburg (Wümme)
+DE938	3	Heidekreis
+DE939	3	Stade
+DE93A	3	Uelzen
+DE93B	3	Verden
+DE94	2	Weser-Ems
+DE941	3	Delmenhorst, Kreisfreie Stadt
+DE942	3	Emden, Kreisfreie Stadt
+DE943	3	Oldenburg (Oldenburg), Kreisfreie Stadt
+DE944	3	Osnabrück, Kreisfreie Stadt
+DE945	3	Wilhelmshaven, Kreisfreie Stadt
+DE946	3	Ammerland
+DE947	3	Aurich
+DE948	3	Cloppenburg
+DE949	3	Emsland
+DE94A	3	Friesland (DE)
+DE94B	3	Grafschaft Bentheim
+DE94C	3	Leer
+DE94D	3	Oldenburg, Landkreis
+DE94E	3	Osnabrück, Landkreis
+DE94F	3	Vechta
+DE94G	3	Wesermarsch
+DE94H	3	Wittmund
+DEA	1	Nordrhein-Westfalen
+DEA1	2	Düsseldorf
+DEA11	3	Düsseldorf, Kreisfreie Stadt
+DEA12	3	Duisburg, Kreisfreie Stadt
+DEA13	3	Essen, Kreisfreie Stadt
+DEA14	3	Krefeld, Kreisfreie Stadt
+DEA15	3	Mönchengladbach, Kreisfreie Stadt
+DEA16	3	Mülheim an der Ruhr, Kreisfreie Stadt
+DEA17	3	Oberhausen, Kreisfreie Stadt
+DEA18	3	Remscheid, Kreisfreie Stadt
+DEA19	3	Solingen, Kreisfreie Stadt
+DEA1A	3	Wuppertal, Kreisfreie Stadt
+DEA1B	3	Kleve
+DEA1C	3	Mettmann
+DEA1D	3	Rhein-Kreis Neuss
+DEA1E	3	Viersen
+DEA1F	3	Wesel
+DEA2	2	Köln
+DEA21	3	Aachen, Kreisfreie Stadt
+DEA22	3	Bonn, Kreisfreie Stadt
+DEA23	3	Köln, Kreisfreie Stadt
+DEA24	3	Leverkusen, Kreisfreie Stadt
+DEA25	3	Aachen, Kreis
+DEA26	3	Düren
+DEA27	3	Rhein-Erft-Kreis
+DEA28	3	Euskirchen
+DEA29	3	Heinsberg
+DEA2A	3	Oberbergischer Kreis
+DEA2B	3	Rheinisch-Bergischer Kreis
+DEA2C	3	Rhein-Sieg-Kreis
+DEA2D	3	Städteregion Aachen
+DEA3	2	Münster
+DEA31	3	Bottrop, Kreisfreie Stadt
+DEA32	3	Gelsenkirchen, Kreisfreie Stadt
+DEA33	3	Münster, Kreisfreie Stadt
+DEA34	3	Borken
+DEA35	3	Coesfeld
+DEA36	3	Recklinghausen
+DEA37	3	Steinfurt
+DEA38	3	Warendorf
+DEA4	2	Detmold
+DEA41	3	Bielefeld, Kreisfreie Stadt
+DEA42	3	Gütersloh
+DEA43	3	Herford
+DEA44	3	Höxter
+DEA45	3	Lippe
+DEA46	3	Minden-Lübbecke
+DEA47	3	Paderborn
+DEA5	2	Arnsberg
+DEA51	3	Bochum, Kreisfreie Stadt
+DEA52	3	Dortmund, Kreisfreie Stadt
+DEA53	3	Hagen, Kreisfreie Stadt
+DEA54	3	Hamm, Kreisfreie Stadt
+DEA55	3	Herne, Kreisfreie Stadt
+DEA56	3	Ennepe-Ruhr-Kreis
+DEA57	3	Hochsauerlandkreis
+DEA58	3	Märkischer Kreis
+DEA59	3	Olpe
+DEA5A	3	Siegen-Wittgenstein
+DEA5B	3	Soest
+DEA5C	3	Unna
+DEB	1	Rheinland-Pfalz
+DEB1	2	Koblenz
+DEB11	3	Koblenz, Kreisfreie Stadt
+DEB12	3	Ahrweiler
+DEB13	3	Altenkirchen (Westerwald)
+DEB14	3	Bad Kreuznach
+DEB15	3	Birkenfeld
+DEB16	3	Cochem-Zell
+DEB17	3	Mayen-Koblenz
+DEB18	3	Neuwied
+DEB19	3	Rhein-Hunsrück-Kreis
+DEB1A	3	Rhein-Lahn-Kreis
+DEB1B	3	Westerwaldkreis
+DEB1C	3	Cochem-Zell
+DEB1D	3	Rhein-Hunsrück-Kreis
+DEB2	2	Trier
+DEB21	3	Trier, Kreisfreie Stadt
+DEB22	3	Bernkastel-Wittlich
+DEB23	3	Eifelkreis Bitburg-Prüm
+DEB24	3	Vulkaneifel
+DEB25	3	Trier-Saarburg
+DEB3	2	Rheinhessen-Pfalz
+DEB31	3	Frankenthal (Pfalz), Kreisfreie Stadt
+DEB32	3	Kaiserslautern, Kreisfreie Stadt
+DEB33	3	Landau in der Pfalz, Kreisfreie Stadt
+DEB34	3	Ludwigshafen am Rhein, Kreisfreie Stadt
+DEB35	3	Mainz, Kreisfreie Stadt
+DEB36	3	Neustadt an der Weinstraße, Kreisfreie Stadt
+DEB37	3	Pirmasens, Kreisfreie Stadt
+DEB38	3	Speyer, Kreisfreie Stadt
+DEB39	3	Worms, Kreisfreie Stadt
+DEB3A	3	Zweibrücken, Kreisfreie Stadt
+DEB3B	3	Alzey-Worms
+DEB3C	3	Bad Dürkheim
+DEB3D	3	Donnersbergkreis
+DEB3E	3	Germersheim
+DEB3F	3	Kaiserslautern, Landkreis
+DEB3G	3	Kusel
+DEB3H	3	Südliche Weinstraße
+DEB3I	3	Rhein-Pfalz-Kreis
+DEB3J	3	Mainz-Bingen
+DEB3K	3	Südwestpfalz
+DEC	1	Saarland
+DEC0	2	Saarland
+DEC01	3	Regionalverband Saarbrücken
+DEC02	3	Merzig-Wadern
+DEC03	3	Neunkirchen
+DEC04	3	Saarlouis
+DEC05	3	Saarpfalz-Kreis
+DEC06	3	St. Wendel
+DED	1	Sachsen
+DED1	2	Chemnitz
+DED11	3	Chemnitz, Kreisfreie Stadt
+DED12	3	Plauen, Kreisfreie Stadt
+DED13	3	Zwickau, Kreisfreie Stadt
+DED14	3	Annaberg
+DED15	3	Chemnitzer Land
+DED16	3	Freiberg
+DED17	3	Vogtlandkreis
+DED18	3	Mittlerer Erzgebirgskreis
+DED19	3	Mittweida
+DED1A	3	Stollberg
+DED1B	3	Aue-Schwarzenberg
+DED1C	3	Zwickauer Land
+DED2	2	Dresden
+DED21	3	Dresden, Kreisfreie Stadt
+DED22	3	Görlitz, Kreisfreie Stadt
+DED23	3	Hoyerswerda, Kreisfreie Stadt
+DED24	3	Bautzen
+DED25	3	Meißen
+DED26	3	Niederschlesischer Oberlausitzkreis
+DED27	3	Riesa-Großenhain
+DED28	3	Löbau-Zittau
+DED29	3	Sächsische Schweiz
+DED2A	3	Weißeritzkreis
+DED2B	3	Kamenz
+DED2C	3	Bautzen
+DED2D	3	Görlitz
+DED2E	3	Meißen
+DED2F	3	Sächsische Schweiz-Osterzgebirge
+DED3	2	Leipzig
+DED31	3	Leipzig, Kreisfreie Stadt
+DED32	3	Delitzsch
+DED33	3	Döbeln
+DED34	3	Leipziger Land
+DED35	3	Muldentalkreis
+DED36	3	Torgau-Oschatz
+DED4	2	Chemnitz
+DED41	3	Chemnitz, Kreisfreie Stadt
+DED42	3	Erzgebirgskreis
+DED43	3	Mittelsachsen
+DED44	3	Vogtlandkreis
+DED45	3	Zwickau
+DED5	2	Leipzig
+DED51	3	Leipzig, Kreisfreie Stadt
+DED52	3	Leipzig
+DED53	3	Nordsachsen
+DEE	1	Sachsen-Anhalt
+DEE0	2	Sachsen-Anhalt
+DEE01	3	Dessau-Roßlau, Kreisfreie Stadt
+DEE02	3	Halle (Saale), Kreisfreie Stadt
+DEE03	3	Magdeburg, Kreisfreie Stadt
+DEE04	3	Altmarkkreis Salzwedel
+DEE05	3	Anhalt-Bitterfeld
+DEE06	3	Jerichower Land
+DEE07	3	Börde
+DEE08	3	Burgenlandkreis
+DEE09	3	Harz
+DEE0A	3	Mansfeld-Südharz
+DEE0B	3	Saalekreis
+DEE0C	3	Salzlandkreis
+DEE0D	3	Stendal
+DEE0E	3	Wittenberg
+DEE1	2	Dessau
+DEE11	3	Dessau, Kreisfreie Stadt
+DEE12	3	Anhalt-Zerbst
+DEE13	3	Bernburg
+DEE14	3	Bitterfeld
+DEE15	3	Köthen
+DEE16	3	Wittenberg
+DEE2	2	Halle
+DEE22	3	Burgenlandkreis
+DEE23	3	Mansfelder Land
+DEE24	3	Merseburg-Querfurt
+DEE25	3	Saalkreis
+DEE26	3	Sangerhausen
+DEE27	3	Weißenfels
+DEE3	2	Magdeburg
+DEE32	3	Aschersleben-Staßfurt
+DEE33	3	Bördekreis
+DEE34	3	Halberstadt
+DEE35	3	Jerichower Land
+DEE36	3	Ohrekreis
+DEE37	3	Stendal
+DEE38	3	Quedlinburg
+DEE39	3	Schönebeck
+DEE3A	3	Wernigerode
+DEF	1	Schleswig-Holstein
+DEF0	2	Schleswig-Holstein
+DEF01	3	Flensburg, Kreisfreie Stadt
+DEF02	3	Kiel, Kreisfreie Stadt
+DEF03	3	Lübeck, Kreisfreie Stadt
+DEF04	3	Neumünster, Kreisfreie Stadt
+DEF05	3	Dithmarschen
+DEF06	3	Herzogtum Lauenburg
+DEF07	3	Nordfriesland
+DEF08	3	Ostholstein
+DEF09	3	Pinneberg
+DEF0A	3	Plön
+DEF0B	3	Rendsburg-Eckernförde
+DEF0C	3	Schleswig-Flensburg
+DEF0D	3	Segeberg
+DEF0E	3	Steinburg
+DEF0F	3	Stormarn
+DEG	1	Thüringen
+DEG0	2	Thüringen
+DEG01	3	Erfurt, Kreisfreie Stadt
+DEG02	3	Gera, Kreisfreie Stadt
+DEG03	3	Jena, Kreisfreie Stadt
+DEG04	3	Suhl, Kreisfreie Stadt
+DEG05	3	Weimar, Kreisfreie Stadt
+DEG06	3	Eichsfeld
+DEG07	3	Nordhausen
+DEG09	3	Unstrut-Hainich-Kreis
+DEG0A	3	Kyffhäuserkreis
+DEG0B	3	Schmalkalden-Meiningen
+DEG0C	3	Gotha
+DEG0D	3	Sömmerda
+DEG0E	3	Hildburghausen
+DEG0F	3	Ilm-Kreis
+DEG0G	3	Weimarer Land
+DEG0H	3	Sonneberg
+DEG0I	3	Saalfeld-Rudolstadt
+DEG0J	3	Saale-Holzland-Kreis
+DEG0K	3	Saale-Orla-Kreis
+DEG0L	3	Greiz
+DEG0M	3	Altenburger Land
+DEG0N	3	Eisenach, Kreisfreie Stadt
+DEG0P	3	Wartburgkreis
+DEG0Q	3	Schmalkalden-Meiningen
+DEG0R	3	Wartburgkreis
+DEG0S	3	Suhl, Kreisfreie Stadt
+DEG0T	3	Ilm-Kreis
+DEG0U	3	Saalfeld-Rudolstadt
+DEG0V	3	Sonneberg
+DEW	1	Federal Republic of Germany (former territory of the FRG only)
+DEX	1	Not regionalised/Unknown NUTS 1
+DEXX	2	Not regionalised/Unknown NUTS 2
+DEXXX	3	Not regionalised/Unknown NUTS 3
+DEZ	1	Extra-Regio NUTS 1
+DEZZ	2	Extra-Regio NUTS 2
+DEZZZ	3	Extra-Regio NUTS 3
+DK0	1	Danmark
+DK001	3	København og Frederiksberg Kommuner
+DK002	3	Københavns amt
+DK003	3	Frederiksborg amt
+DK004	3	Roskilde amt
+DK005	3	Vestsjællands amt
+DK006	3	Storstrøms amt
+DK007	3	Bornholms amt
+DK008	3	Fyns amt
+DK009	3	Sønderjyllands amt
+DK00A	3	Ribe amt
+DK00B	3	Vejle amt
+DK00C	3	Ringkøbing amt
+DK00D	3	Århus amt
+DK00E	3	Viborg amt
+DK00F	3	Nordjyllands amt
+DK01	2	Hovedstaden
+DK011	3	Byen København
+DK012	3	Københavns omegn
+DK013	3	Nordsjælland
+DK014	3	Bornholm
+DK02	2	Sjælland
+DK021	3	Østsjælland
+DK022	3	Vest- og Sydsjælland
+DK03	2	Syddanmark
+DK031	3	Fyn
+DK032	3	Sydjylland
+DK04	2	Midtjylland
+DK041	3	Vestjylland
+DK042	3	Østjylland
+DK05	2	Nordjylland
+DK050	3	Nordjylland
+DKX	1	Not regionalised/Unknown NUTS 1
+DKXX	2	Not regionalised/Unknown NUTS 2
+DKXXX	3	Not regionalised/Unknown NUTS 3
+DKZ	1	Extra-Regio NUTS 1
+DKZZ	2	Extra-Regio NUTS 2
+DKZZZ	3	Extra-Regio NUTS 3
+EE0	1	Eesti
+EE00	2	Eesti
+EE001	3	Põhja-Eesti
+EE004	3	Lääne-Eesti
+EE006	3	Kesk-Eesti
+EE007	3	Kirde-Eesti
+EE008	3	Lõuna-Eesti
+EE009	3	Kesk-Eesti
+EE00A	3	Kirde-Eesti
+EEA	1	European Economic Area (EEA18-1995, EEA28-2004, EEA30-2007, EEA31-2013, EEA30-2020)
+EEA18	3	European Economic Area (EU15 - 1995-2004 and IS, LI, NO)
+EEA28	3	European Economic Area (EU25 - 2004-2006 and IS, LI, NO)
+EEA31	3	European Economic Area (EU28 - 2013-2020 and IS, LI, NO)
+EESC	2	European Economic and Social Committee (EESC)
+EEX	1	Not regionalised/Unknown NUTS 1
+EEXX	2	Not regionalised/Unknown NUTS 2
+EEXXX	3	Not regionalised/Unknown NUTS 3
+EEZ	1	Extra-Regio NUTS 1
+EEZZ	2	Extra-Regio NUTS 2
+EEZZZ	3	Extra-Regio NUTS 3
+EL1	1	Voreia Ellada
+EL11	2	Anatoliki Makedonia, Thraki
+EL111	3	Evros
+EL112	3	Xanthi
+EL113	3	Rodopi
+EL114	3	Drama
+EL115	3	Kavala
+EL12	2	Kentriki Makedonia
+EL121	3	Imathia
+EL122	3	Thessaloniki
+EL123	3	Kilkis
+EL124	3	Pella
+EL125	3	Pieria
+EL126	3	Serres
+EL127	3	Chalkidiki
+EL13	2	Dytiki Makedonia
+EL131	3	Grevena
+EL132	3	Kastoria
+EL133	3	Kozani
+EL134	3	Florina
+EL14	2	Thessalia
+EL141	3	Karditsa
+EL142	3	Larisa
+EL143	3	Magnisia
+EL144	3	Trikala
+EL2	1	Kentriki Ellada
+EL21	2	Ipeiros
+EL211	3	Arta
+EL212	3	Thesprotia
+EL213	3	Ioannina
+EL214	3	Preveza
+EL22	2	Ionia Nisia
+EL221	3	Zakynthos
+EL222	3	Kerkyra
+EL223	3	Kefallinia
+EL224	3	Lefkada
+EL23	2	Dytiki Ellada
+EL231	3	Aitoloakarnania
+EL232	3	Achaia
+EL233	3	Ileia
+EL24	2	Sterea Ellada
+EL241	3	Voiotia
+EL242	3	Evvoia
+EL243	3	Evrytania
+EL244	3	Fthiotida
+EL245	3	Fokida
+EL25	2	Peloponnisos
+EL251	3	Argolida
+EL252	3	Arkadia
+EL253	3	Korinthia
+EL254	3	Lakonia
+EL255	3	Messinia
+EL2EV	3	Kentriki Ellada, Evvoia
+EL3	1	Attiki
+EL30	2	Attiki
+EL300	3	Attiki
+EL301	3	Voreios Tomeas Athinon
+EL302	3	Dytikos Tomeas Athinon
+EL303	3	Kentrikos Tomeas Athinon
+EL304	3	Notios Tomeas Athinon
+EL305	3	Anatoliki Attiki
+EL306	3	Dytiki Attiki
+EL307	3	Peiraias, Nisoi
+EL4	1	Nisia Aigaiou, Kriti
+EL41	2	Voreio Aigaio
+EL411	3	Lesvos, Limnos
+EL412	3	Ikaria, Samos
+EL413	3	Chios
+EL42	2	Notio Aigaio
+EL421	3	Kalymnos, Karpathos – Iroiki Nisos Kasos, Kos, Rodos
+EL422	3	Andros, Thira, Kea, Milos, Mykonos, Naxos, Paros, Syros, Tinos
+EL43	2	Kriti
+EL431	3	Irakleio
+EL432	3	Lasithi
+EL433	3	Rethymni
+EL434	3	Chania
+EL5	1	Voreia Elláda
+EL51	2	Anatoliki Makedonia, Thraki
+EL511	3	Evros
+EL512	3	Xanthi
+EL513	3	Rodopi
+EL514	3	Drama
+EL515	3	Thasos, Kavala
+EL52	2	Kentriki Makedonia
+EL521	3	Imathia
+EL522	3	Thessaloniki
+EL523	3	Kilkis
+EL524	3	Pella
+EL525	3	Pieria
+EL526	3	Serres
+EL527	3	Chalkidiki
+EL53	2	Dytiki Makedonia
+EL531	3	Grevena, Kozani
+EL532	3	Kastoria
+EL533	3	Florina
+EL54	2	Ipeiros
+EL541	3	Arta, Preveza
+EL542	3	Thesprotia
+EL543	3	Ioannina
+EL6	1	Kentriki Elláda
+EL61	2	Thessalia
+EL611	3	Karditsa, Trikala
+EL612	3	Larisa
+EL613	3	Magnisia, Sporades
+EL62	2	Ionia Nisia
+EL621	3	Zakynthos
+EL622	3	Kerkyra
+EL623	3	Ithaki, Kefallinia
+EL624	3	Lefkada
+EL63	2	Dytiki Elláda
+EL631	3	Aitoloakarnania
+EL632	3	Achaia
+EL633	3	Ileia
+EL64	2	Sterea Elláda
+EL641	3	Voiotia
+EL642	3	Evvoia
+EL643	3	Evrytania
+EL644	3	Fthiotida
+EL645	3	Fokida
+EL65	2	Peloponnisos
+EL651	3	Argolida, Arkadia
+EL652	3	Korinthia
+EL653	3	Lakonia, Messinia
+ELS	1	Self Governed Region NUTS 1
+ELSS	2	Self Governed Region NUTS 2
+ELSSS	3	Self Governed Region NUTS 3
+ELX	1	Not regionalised/Unknown NUTS 1
+ELXX	2	Not regionalised/Unknown NUTS 2
+ELXXX	3	Not regionalised/Unknown NUTS 3
+ELZ	1	Extra-Regio NUTS 1
+ELZZ	2	Extra-Regio NUTS 2
+ELZZZ	3	Extra-Regio NUTS 3
+ES1	1	Noroeste
+ES11	2	Galicia
+ES111	3	A Coruña
+ES112	3	Lugo
+ES113	3	Ourense
+ES114	3	Pontevedra
+ES12	2	Principado de Asturias
+ES120	3	Asturias
+ES13	2	Cantabria
+ES130	3	Cantabria
+ES2	1	Noreste
+ES21	2	País Vasco
+ES211	3	Araba/Álava
+ES212	3	Gipuzkoa
+ES213	3	Bizkaia
+ES22	2	Comunidad Foral de Navarra
+ES220	3	Navarra
+ES23	2	La Rioja
+ES230	3	La Rioja
+ES24	2	Aragón
+ES241	3	Huesca
+ES242	3	Teruel
+ES243	3	Zaragoza
+ES3	1	Comunidad de Madrid
+ES30	2	Comunidad de Madrid
+ES300	3	Madrid
+ES4	1	Centro (ES)
+ES41	2	Castilla y León
+ES411	3	Ávila
+ES412	3	Burgos
+ES413	3	León
+ES414	3	Palencia
+ES415	3	Salamanca
+ES416	3	Segovia
+ES417	3	Soria
+ES418	3	Valladolid
+ES419	3	Zamora
+ES42	2	Castilla-La Mancha
+ES421	3	Albacete
+ES422	3	Ciudad Real
+ES423	3	Cuenca
+ES424	3	Guadalajara
+ES425	3	Toledo
+ES43	2	Extremadura
+ES431	3	Badajoz
+ES432	3	Cáceres
+ES5	1	Este
+ES51	2	Cataluña
+ES511	3	Barcelona
+ES512	3	Girona
+ES513	3	Lleida
+ES514	3	Tarragona
+ES52	2	Comunitat Valenciana
+ES521	3	Alicante/Alacant
+ES522	3	Castellón/Castelló
+ES523	3	Valencia/València
+ES53	2	Illes Balears
+ES530	3	Illes Balears
+ES531	3	Eivissa y Formentera
+ES532	3	Mallorca
+ES533	3	Menorca
+ES6	1	Sur
+ES61	2	Andalucía
+ES611	3	Almería
+ES612	3	Cádiz
+ES613	3	Córdoba
+ES614	3	Granada
+ES615	3	Huelva
+ES616	3	Jaén
+ES617	3	Málaga
+ES618	3	Sevilla
+ES62	2	Región de Murcia
+ES620	3	Murcia
+ES63	2	Ciudad de Ceuta
+ES630	3	Ceuta
+ES64	2	Ciudad de Melilla
+ES640	3	Melilla
+ES7	1	Canarias
+ES70	2	Canarias
+ES701	3	Las Palmas
+ES702	3	Santa Cruz De Tenerife
+ES703	3	El Hierro
+ES704	3	Fuerteventura
+ES705	3	Gran Canaria
+ES706	3	La Gomera
+ES707	3	La Palma
+ES708	3	Lanzarote
+ES709	3	Tenerife
+ESA	1	European Space Agency
+ESM	1	European Stability Mechanism
+ESTAT	3	Eurostat
+ESX	1	Not regionalised/Unknown NUTS 1
+ESXX	2	Not regionalised/Unknown NUTS 2
+ESXXX	3	Not regionalised/Unknown NUTS 3
+ESZ	1	Extra-Regio NUTS 1
+ESZZ	2	Extra-Regio NUTS 2
+ESZZZ	3	Extra-Regio NUTS 3
+FI1	1	Manner-Suomi
+FI11	2	Uusimaa
+FI12	2	Etelä-Suomi
+FI13	2	Itä-Suomi
+FI131	3	Etelä-Savo
+FI132	3	Pohjois-Savo
+FI133	3	Pohjois-Karjala
+FI134	3	Kainuu
+FI14	2	Väli-Suomi
+FI15	2	Pohjois-Suomi
+FI16	2	Uusimaa (suuralue)
+FI18	2	Etelä-Suomi
+FI181	3	Uusimaa
+FI182	3	Itä-Uusimaa
+FI183	3	Varsinais-Suomi
+FI184	3	Kanta-Häme
+FI185	3	Päijät-Häme
+FI186	3	Kymenlaakso
+FI187	3	Etelä-Karjala
+FI19	2	Länsi-Suomi
+FI191	3	Satakunta
+FI192	3	Pirkanmaa
+FI193	3	Keski-Suomi
+FI194	3	Etelä-Pohjanmaa
+FI195	3	Pohjanmaa
+FI196	3	Satakunta
+FI197	3	Pirkanmaa
+FI198	3	Keski-Suomi
+FI199	3	Etelä-Pohjanmaa
+FI19A	3	Pohjanmaa
+FI19B	3	Pirkanmaa
+FI1A	2	Pohjois-Suomi
+FI1A1	3	Keski-Pohjanmaa
+FI1A2	3	Pohjois-Pohjanmaa
+FI1A3	3	Lappi
+FI1B	2	Helsinki-Uusimaa
+FI1B1	3	Helsinki-Uusimaa
+FI1C	2	Etelä-Suomi
+FI1C1	3	Varsinais-Suomi
+FI1C2	3	Kanta-Häme
+FI1C3	3	Päijät-Häme
+FI1C4	3	Kymenlaakso
+FI1C5	3	Etelä-Karjala
+FI1C6	3	Päijät-Häme
+FI1C7	3	Kymenlaakso
+FI1D	2	Pohjois- ja Itä-Suomi
+FI1D1	3	Etelä-Savo
+FI1D2	3	Pohjois-Savo
+FI1D3	3	Pohjois-Karjala
+FI1D4	3	Kainuu
+FI1D5	3	Keski-Pohjanmaa
+FI1D6	3	Pohjois-Pohjanmaa
+FI1D7	3	Lappi
+FI1D8	3	Kainuu
+FI1D9	3	Pohjois-Pohjanmaa
+FI1DA	3	Etelä-Savo
+FI1DB	3	Pohjois-Savo
+FI1DC	3	Pohjois-Karjala
+FI2	1	Åland
+FI20	2	Åland
+FI200	3	Åland
+FIX	1	Not regionalised/Unknown NUTS 1
+FIXX	2	Not regionalised/Unknown NUTS 2
+FIXXX	3	Not regionalised/Unknown NUTS 3
+FIZ	1	Extra-Regio NUTS 1
+FIZZ	2	Extra-Regio NUTS 2
+FIZZZ	3	Extra-Regio NUTS 3
+FR1	1	Ile de France
+FR10	2	Ile de France
+FR101	3	Paris
+FR102	3	Seine-et-Marne
+FR103	3	Yvelines
+FR104	3	Essonne
+FR105	3	Hauts-de-Seine
+FR106	3	Seine-Saint-Denis
+FR107	3	Val-de-Marne
+FR108	3	Val-d'Oise
+FR2	1	Bassin Parisien
+FR21	2	Champagne-Ardenne
+FR211	3	Ardennes
+FR212	3	Aube
+FR213	3	Marne
+FR214	3	Haute-Marne
+FR22	2	Picardie
+FR221	3	Aisne
+FR222	3	Oise
+FR223	3	Somme
+FR23	2	Haute-Normandie
+FR231	3	Eure
+FR232	3	Seine-Maritime
+FR24	2	Centre (FR)
+FR241	3	Cher
+FR242	3	Eure-et-Loir
+FR243	3	Indre
+FR244	3	Indre-et-Loire
+FR245	3	Loir-et-Cher
+FR246	3	Loiret
+FR25	2	Basse-Normandie
+FR251	3	Calvados
+FR252	3	Manche
+FR253	3	Orne
+FR26	2	Bourgogne
+FR261	3	Côte-d'Or
+FR262	3	Nièvre
+FR263	3	Saône-et-Loire
+FR264	3	Yonne
+FR3	1	Nord-Pas-de-Calais
+FR30	2	Nord-Pas-de-Calais
+FR301	3	Nord (FR)
+FR302	3	Pas-de-Calais
+FR4	1	Est (FR)
+FR41	2	Lorraine
+FR411	3	Meurthe-et-Moselle
+FR412	3	Meuse
+FR413	3	Moselle
+FR414	3	Vosges
+FR42	2	Alsace
+FR421	3	Bas-Rhin
+FR422	3	Haut-Rhin
+FR43	2	Franche-Comté
+FR431	3	Doubs
+FR432	3	Jura
+FR433	3	Haute-Saône
+FR434	3	Territoire de Belfort
+FR5	1	Ouest (FR)
+FR51	2	Pays de la Loire
+FR511	3	Loire-Atlantique
+FR512	3	Maine-et-Loire
+FR513	3	Mayenne
+FR514	3	Sarthe
+FR515	3	Vendée
+FR52	2	Bretagne
+FR521	3	Côtes-d'Armor
+FR522	3	Finistère
+FR523	3	Ille-et-Vilaine
+FR524	3	Morbihan
+FR53	2	Poitou-Charentes
+FR531	3	Charente
+FR532	3	Charente-Maritime
+FR533	3	Deux-Sèvres
+FR534	3	Vienne
+FR6	1	Sud-Ouest (FR)
+FR61	2	Aquitaine
+FR611	3	Dordogne
+FR612	3	Gironde
+FR613	3	Landes
+FR614	3	Lot-et-Garonne
+FR615	3	Pyrénées-Atlantiques
+FR62	2	Midi-Pyrénées
+FR621	3	Ariège
+FR622	3	Aveyron
+FR623	3	Haute-Garonne
+FR624	3	Gers
+FR625	3	Lot
+FR626	3	Hautes-Pyrénées
+FR627	3	Tarn
+FR628	3	Tarn-et-Garonne
+FR63	2	Limousin
+FR631	3	Corrèze
+FR632	3	Creuse
+FR633	3	Haute-Vienne
+FR7	1	Centre-Est (FR)
+FR71	2	Rhône-Alpes
+FR711	3	Ain
+FR712	3	Ardèche
+FR713	3	Drôme
+FR714	3	Isère
+FR715	3	Loire
+FR716	3	Rhône
+FR717	3	Savoie
+FR718	3	Haute-Savoie
+FR72	2	Auvergne
+FR721	3	Allier
+FR722	3	Cantal
+FR723	3	Haute-Loire
+FR724	3	Puy-de-Dôme
+FR8	1	Méditerranée
+FR81	2	Languedoc-Roussillon
+FR811	3	Aude
+FR812	3	Gard
+FR813	3	Hérault
+FR814	3	Lozère
+FR815	3	Pyrénées-Orientales
+FR82	2	Provence-Alpes-Côte d'Azur
+FR821	3	Alpes-de-Haute-Provence
+FR822	3	Hautes-Alpes
+FR823	3	Alpes-Maritimes
+FR824	3	Bouches-du-Rhône
+FR825	3	Var
+FR826	3	Vaucluse
+FR83	2	Corse
+FR831	3	Corse-du-Sud
+FR832	3	Haute-Corse
+FR9	1	Départements d'outre-mer
+FR91	2	Guadeloupe
+FR910	3	Guadeloupe
+FR92	2	Martinique
+FR920	3	Martinique
+FR93	2	Guyane
+FR930	3	Guyane
+FR94	2	Réunion
+FR940	3	Réunion
+FRA	1	Départements d'outre-mer
+FRA1	2	Guadeloupe
+FRA10	3	Guadeloupe
+FRA2	2	Martinique
+FRA20	3	Martinique
+FRA3	2	Guyane
+FRA30	3	Guyane
+FRA4	2	La Réunion
+FRA40	3	La Réunion
+FRA5	2	Mayotte
+FRA50	3	Mayotte
+FRB	1	Centre — Val de Loire
+FRB0	2	Centre — Val de Loire
+FRB01	3	Cher
+FRB02	3	Eure-et-Loir
+FRB03	3	Indre
+FRB04	3	Indre-et-Loire
+FRB05	3	Loir-et-Cher
+FRB06	3	Loiret
+FRC	1	Bourgogne-Franche-Comté
+FRC1	2	Bourgogne
+FRC11	3	Côte-d’Or
+FRC12	3	Nièvre
+FRC13	3	Saône-et-Loire
+FRC14	3	Yonne
+FRC2	2	Franche-Comté
+FRC21	3	Doubs
+FRC22	3	Jura
+FRC23	3	Haute-Saône
+FRC24	3	Territoire de Belfort
+FRD	1	Normandie
+FRD1	2	Basse-Normandie
+FRD11	3	Calvados
+FRD12	3	Manche
+FRD13	3	Orne
+FRD2	2	Haute-Normandie
+FRD21	3	Eure
+FRD22	3	Seine-Maritime
+FRE	1	Hauts-de-France
+FRE1	2	Nord-Pas de Calais
+FRE11	3	Nord
+FRE12	3	Pas-de-Calais
+FRE2	2	Picardie
+FRE21	3	Aisne
+FRE22	3	Oise
+FRE23	3	Somme
+FRF	1	Grand Est
+FRF1	2	Alsace
+FRF11	3	Bas-Rhin
+FRF12	3	Haut-Rhin
+FRF2	2	Champagne-Ardenne
+FRF21	3	Ardennes
+FRF22	3	Aube
+FRF23	3	Marne
+FRF24	3	Haute-Marne
+FRF3	2	Lorraine
+FRF31	3	Meurthe-et-Moselle
+FRF32	3	Meuse
+FRF33	3	Moselle
+FRF34	3	Vosges
+FRG	1	Pays de la Loire
+FRG0	2	Pays de la Loire
+FRG01	3	Loire-Atlantique
+FRG02	3	Maine-et-Loire
+FRG03	3	Mayenne
+FRG04	3	Sarthe
+FRG05	3	Vendée
+FRH	1	Bretagne
+FRH0	2	Bretagne
+FRH01	3	Côtes-d’Armor
+FRH02	3	Finistère
+FRH03	3	Ille-et-Vilaine
+FRH04	3	Morbihan
+FRI	1	Nouvelle-Aquitaine
+FRI1	2	Aquitaine
+FRI11	3	Dordogne
+FRI12	3	Gironde
+FRI13	3	Landes
+FRI14	3	Lot-et-Garonne
+FRI15	3	Pyrénées-Atlantiques
+FRI2	2	Limousin
+FRI21	3	Corrèze
+FRI22	3	Creuse
+FRI23	3	Haute-Vienne
+FRI3	2	Poitou-Charentes
+FRI31	3	Charente
+FRI32	3	Charente-Maritime
+FRI33	3	Deux-Sèvres
+FRI34	3	Vienne
+FRJ	1	Occitanie
+FRJ1	2	Languedoc-Roussillon
+FRJ11	3	Aude
+FRJ12	3	Gard
+FRJ13	3	Hérault
+FRJ14	3	Lozère
+FRJ15	3	Pyrénées-Orientales
+FRJ2	2	Midi-Pyrénées
+FRJ21	3	Ariège
+FRJ22	3	Aveyron
+FRJ23	3	Haute-Garonne
+FRJ24	3	Gers
+FRJ25	3	Lot
+FRJ26	3	Hautes-Pyrénées
+FRJ27	3	Tarn
+FRJ28	3	Tarn-et-Garonne
+FRK	1	Auvergne-Rhône-Alpes
+FRK1	2	Auvergne
+FRK11	3	Allier
+FRK12	3	Cantal
+FRK13	3	Haute-Loire
+FRK14	3	Puy-de-Dôme
+FRK2	2	Rhône-Alpes
+FRK21	3	Ain
+FRK22	3	Ardèche
+FRK23	3	Drôme
+FRK24	3	Isère
+FRK25	3	Loire
+FRK26	3	Rhône
+FRK27	3	Savoie
+FRK28	3	Haute-Savoie
+FRL	1	Provence-Alpes-Côte d’Azur
+FRL0	2	Provence-Alpes-Côte d’Azur
+FRL01	3	Alpes-de-Haute-Provence
+FRL02	3	Hautes-Alpes
+FRL03	3	Alpes-Maritimes
+FRL04	3	Bouches-du-Rhône
+FRL05	3	Var
+FRL06	3	Vaucluse
+FRM	1	Corse
+FRM0	2	Corse
+FRM01	3	Corse-du-Sud
+FRM02	3	Haute-Corse
+FRX	1	Not regionalised/Unknown NUTS 1
+FRXX	2	Not regionalised/Unknown NUTS 2
+FRXXX	3	Not regionalised/Unknown NUTS 3
+FRY	1	RUP FR — Régions Ultrapériphériques Françaises
+FRY1	2	Guadeloupe
+FRY10	3	Guadeloupe
+FRY2	2	Martinique
+FRY20	3	Martinique
+FRY3	2	Guyane
+FRY30	3	Guyane
+FRY4	2	La Réunion
+FRY40	3	La Réunion
+FRY5	2	Mayotte
+FRY50	3	Mayotte
+FRZ	1	Extra-Regio NUTS 1
+FRZZ	2	Extra-Regio NUTS 2
+FRZZZ	3	Extra-Regio NUTS 3
+HR0	1	Hrvatska
+HR01	2	Sjeverozapadna Hrvatska (former statistical region)
+HR011	3	Grad Zagreb (former statistical region)
+HR012	3	Zagrebacka zupanija (former statistical region)
+HR013	3	Krapinsko-zagorska zupanija (former statistical region)
+HR014	3	Varazdinska zupanija (former statistical region)
+HR015	3	Koprivnicko-krizevacka zupanija (former statistical region)
+HR016	3	Medimurska zupanija (former statistical region)
+HR02	2	Panonska Hrvatska
+HR021	3	Bjelovarsko-bilogorska županija
+HR022	3	Virovitičko-podravska županija
+HR023	3	Požeško-slavonska županija
+HR024	3	Brodsko-posavska županija
+HR025	3	Osječko-baranjska županija
+HR026	3	Vukovarsko-srijemska županija
+HR027	3	Karlovačka županija
+HR028	3	Sisačko-moslavačka županija
+HR03	2	Jadranska Hrvatska
+HR031	3	Primorsko-goranska županija
+HR032	3	Ličko-senjska županija
+HR033	3	Zadarska županija
+HR034	3	Šibensko-kninska županija
+HR035	3	Splitsko-dalmatinska županija
+HR036	3	Istarska županija
+HR037	3	Dubrovačko-neretvanska županija
+HR04	2	Kontinentalna Hrvatska
+HR041	3	Grad Zagreb
+HR042	3	Zagrebacka zupanija
+HR043	3	Krapinsko-zagorska zupanija
+HR044	3	Varazdinska zupanija
+HR045	3	Koprivnicko-krizevacka zupanija
+HR046	3	Medimurska zupanija
+HR047	3	Bjelovarsko-bilogorska zupanija
+HR048	3	Viroviticko-podravska zupanija
+HR049	3	Pozesko-slavonska zupanija
+HR04A	3	Brodsko-posavska zupanija
+HR04B	3	Osjecko-baranjska zupanija
+HR04C	3	Vukovarsko-srijemska zupanija
+HR04D	3	Karlovacka zupanija
+HR04E	3	Sisacko-moslavacka zupanija
+HR05	2	Grad Zagreb
+HR050	3	Grad Zagreb
+HR06	2	Sjeverna Hrvatska
+HR061	3	Međimurska županija
+HR062	3	Varaždinska županija
+HR063	3	Koprivničko-križevačka županija
+HR064	3	Krapinsko-zagorska županija
+HR065	3	Zagrebačka županija
+HRX	1	Not regionalised/Unknown NUTS 1
+HRXX	2	Not regionalised/Unknown NUTS 2
+HRXXX	3	Not regionalised/Unknown NUTS 3
+HRZ	1	Extra-Regio NUTS 1
+HRZZ	2	Extra-Regio NUTS 2
+HRZZZ	3	Extra-Regio NUTS 3
+HU1	1	Közép-Magyarország
+HU10	2	Közép-Magyarország
+HU101	3	Budapest
+HU102	3	Pest
+HU11	2	Budapest
+HU110	3	Budapest
+HU12	2	Pest
+HU120	3	Pest
+HU2	1	Dunántúl
+HU21	2	Közép-Dunántúl
+HU211	3	Fejér
+HU212	3	Komárom-Esztergom
+HU213	3	Veszprém
+HU22	2	Nyugat-Dunántúl
+HU221	3	Győr-Moson-Sopron
+HU222	3	Vas
+HU223	3	Zala
+HU23	2	Dél-Dunántúl
+HU231	3	Baranya
+HU232	3	Somogy
+HU233	3	Tolna
+HU3	1	Alföld és Észak
+HU31	2	Észak-Magyarország
+HU311	3	Borsod-Abaúj-Zemplén
+HU312	3	Heves
+HU313	3	Nógrád
+HU32	2	Észak-Alföld
+HU321	3	Hajdú-Bihar
+HU322	3	Jász-Nagykun-Szolnok
+HU323	3	Szabolcs-Szatmár-Bereg
+HU33	2	Dél-Alföld
+HU331	3	Bács-Kiskun
+HU332	3	Békés
+HU333	3	Csongrád-Csanád
+HUX	1	Not regionalised/Unknown NUTS 1
+HUXX	2	Not regionalised/Unknown NUTS 2
+HUXXX	3	Not regionalised/Unknown NUTS 3
+HUZ	1	Extra-Regio NUTS 1
+HUZZ	2	Extra-Regio NUTS 2
+HUZZZ	3	Extra-Regio NUTS 3
+IE0	1	Ireland
+IE01	2	Border, Midland and Western
+IE011	3	Border
+IE012	3	Midland
+IE013	3	West
+IE02	2	Southern and Eastern
+IE021	3	Dublin
+IE022	3	Mid-East
+IE023	3	Mid-West
+IE024	3	South-East
+IE025	3	South-West
+IE04	2	Northern and Western
+IE041	3	Border
+IE042	3	West
+IE05	2	Southern
+IE051	3	Mid-West
+IE052	3	South-East
+IE053	3	South-West
+IE06	2	Eastern and Midland
+IE061	3	Dublin
+IE062	3	Mid-East
+IE063	3	Midland
+IEX	1	Not regionalised/Unknown NUTS 1
+IEXX	2	Not regionalised/Unknown NUTS 2
+IEXXX	3	Not regionalised/Unknown NUTS 3
+IEZ	1	Extra-Regio NUTS 1
+IEZZ	2	Extra-Regio NUTS 2
+IEZZZ	3	Extra-Regio NUTS 3
+IS0	1	Ísland
+IS00	2	Ísland
+IS001	3	Höfuðborgarsvæði
+IS002	3	Landsbyggð
+ISX	1	Not regionalised/Unknown level 1
+ISXX	2	Not regionalised/Unknown level 2
+ISXXX	3	Not regionalised/Unknown level 3
+ISZ	1	Extra-Regio level 1
+ISZZ	2	Extra-Regio level 2
+ISZZZ	3	Extra-Regio level 3
+ITC	1	Nord-Ovest
+ITC1	2	Piemonte
+ITC11	3	Torino
+ITC12	3	Vercelli
+ITC13	3	Biella
+ITC14	3	Verbano-Cusio-Ossola
+ITC15	3	Novara
+ITC16	3	Cuneo
+ITC17	3	Asti
+ITC18	3	Alessandria
+ITC2	2	Valle d’Aosta/Vallée d’Aoste
+ITC20	3	Valle d’Aosta/Vallée d’Aoste
+ITC3	2	Liguria
+ITC31	3	Imperia
+ITC32	3	Savona
+ITC33	3	Genova
+ITC34	3	La Spezia
+ITC4	2	Lombardia
+ITC41	3	Varese
+ITC42	3	Como
+ITC43	3	Lecco
+ITC44	3	Sondrio
+ITC45	3	Milano
+ITC46	3	Bergamo
+ITC47	3	Brescia
+ITC48	3	Pavia
+ITC49	3	Lodi
+ITC4A	3	Cremona
+ITC4B	3	Mantova
+ITC4C	3	Milano
+ITC4D	3	Monza e della Brianza
+ITD	1	Nord-Est
+ITD1	2	Provincia Autonoma Bolzano/Bozen
+ITD10	3	Bolzano-Bozen
+ITD2	2	Provincia Autonoma Trento
+ITD20	3	Trento
+ITD3	2	Veneto
+ITD31	3	Verona
+ITD32	3	Vicenza
+ITD33	3	Belluno
+ITD34	3	Treviso
+ITD35	3	Venezia
+ITD36	3	Padova
+ITD37	3	Rovigo
+ITD4	2	Friuli-Venezia Giulia
+ITD41	3	Pordenone
+ITD42	3	Udine
+ITD43	3	Gorizia
+ITD44	3	Trieste
+ITD5	2	Emilia-Romagna
+ITD51	3	Piacenza
+ITD52	3	Parma
+ITD53	3	Reggio nell'Emilia
+ITD54	3	Modena
+ITD55	3	Bologna
+ITD56	3	Ferrara
+ITD57	3	Ravenna
+ITD58	3	Forlì-Cesena
+ITD59	3	Rimini
+ITE	1	Centro (I)
+ITE1	2	Toscana
+ITE11	3	Massa-Carrara
+ITE12	3	Lucca
+ITE13	3	Pistoia
+ITE14	3	Firenze
+ITE15	3	Prato
+ITE16	3	Livorno
+ITE17	3	Pisa
+ITE18	3	Arezzo
+ITE19	3	Siena
+ITE1A	3	Grosseto
+ITE2	2	Umbria
+ITE21	3	Perugia
+ITE22	3	Terni
+ITE3	2	Marche
+ITE31	3	Pesaro e Urbino
+ITE32	3	Ancona
+ITE33	3	Macerata
+ITE34	3	Ascoli Piceno
+ITE4	2	Lazio
+ITE41	3	Viterbo
+ITE42	3	Rieti
+ITE43	3	Roma
+ITE44	3	Latina
+ITE45	3	Frosinone
+ITF	1	Sud
+ITF1	2	Abruzzo
+ITF11	3	L’Aquila
+ITF12	3	Teramo
+ITF13	3	Pescara
+ITF14	3	Chieti
+ITF2	2	Molise
+ITF21	3	Isernia
+ITF22	3	Campobasso
+ITF3	2	Campania
+ITF31	3	Caserta
+ITF32	3	Benevento
+ITF33	3	Napoli
+ITF34	3	Avellino
+ITF35	3	Salerno
+ITF4	2	Puglia
+ITF41	3	Foggia
+ITF42	3	Bari
+ITF43	3	Taranto
+ITF44	3	Brindisi
+ITF45	3	Lecce
+ITF46	3	Foggia
+ITF47	3	Bari
+ITF48	3	Barletta-Andria-Trani
+ITF5	2	Basilicata
+ITF51	3	Potenza
+ITF52	3	Matera
+ITF6	2	Calabria
+ITF61	3	Cosenza
+ITF62	3	Crotone
+ITF63	3	Catanzaro
+ITF64	3	Vibo Valentia
+ITF65	3	Reggio Calabria
+ITG	1	Isole
+ITG1	2	Sicilia
+ITG11	3	Trapani
+ITG12	3	Palermo
+ITG13	3	Messina
+ITG14	3	Agrigento
+ITG15	3	Caltanissetta
+ITG16	3	Enna
+ITG17	3	Catania
+ITG18	3	Ragusa
+ITG19	3	Siracusa
+ITG2	2	Sardegna
+ITG21	3	Sassari
+ITG22	3	Nuoro
+ITG23	3	Oristano
+ITG24	3	Cagliari
+ITG25	3	Sassari
+ITG26	3	Nuoro
+ITG27	3	Cagliari
+ITG28	3	Oristano
+ITG29	3	Olbia-Tempio
+ITG2A	3	Ogliastra
+ITG2B	3	Medio Campidano
+ITG2C	3	Carbonia-Iglesias
+ITG2D	3	Sassari
+ITG2E	3	Nuoro
+ITG2F	3	Cagliari
+ITG2G	3	Oristano
+ITG2H	3	Sud Sardegna
+ITH	1	Nord-Est
+ITH1	2	Provincia Autonoma di Bolzano/Bozen
+ITH10	3	Bolzano-Bozen
+ITH2	2	Provincia Autonoma di Trento
+ITH20	3	Trento
+ITH3	2	Veneto
+ITH31	3	Verona
+ITH32	3	Vicenza
+ITH33	3	Belluno
+ITH34	3	Treviso
+ITH35	3	Venezia
+ITH36	3	Padova
+ITH37	3	Rovigo
+ITH4	2	Friuli-Venezia Giulia
+ITH41	3	Pordenone
+ITH42	3	Udine
+ITH43	3	Gorizia
+ITH44	3	Trieste
+ITH5	2	Emilia-Romagna
+ITH51	3	Piacenza
+ITH52	3	Parma
+ITH53	3	Reggio nell’Emilia
+ITH54	3	Modena
+ITH55	3	Bologna
+ITH56	3	Ferrara
+ITH57	3	Ravenna
+ITH58	3	Forlì-Cesena
+ITH59	3	Rimini
+ITI	1	Centro (IT)
+ITI1	2	Toscana
+ITI11	3	Massa-Carrara
+ITI12	3	Lucca
+ITI13	3	Pistoia
+ITI14	3	Firenze
+ITI15	3	Prato
+ITI16	3	Livorno
+ITI17	3	Pisa
+ITI18	3	Arezzo
+ITI19	3	Siena
+ITI1A	3	Grosseto
+ITI2	2	Umbria
+ITI21	3	Perugia
+ITI22	3	Terni
+ITI3	2	Marche
+ITI31	3	Pesaro e Urbino
+ITI32	3	Ancona
+ITI33	3	Macerata
+ITI34	3	Ascoli Piceno
+ITI35	3	Fermo
+ITI4	2	Lazio
+ITI41	3	Viterbo
+ITI42	3	Rieti
+ITI43	3	Roma
+ITI44	3	Latina
+ITI45	3	Frosinone
+ITX	1	Not regionalised/Unknown NUTS 1
+ITXX	2	Not regionalised/Unknown NUTS 2
+ITXXX	3	Not regionalised/Unknown NUTS 3
+ITZ	1	Extra-Regio NUTS 1
+ITZZ	2	Extra-Regio NUTS 2
+ITZZZ	3	Extra-Regio NUTS 3
+LI0	1	Liechtenstein
+LI00	2	Liechtenstein
+LI000	3	Liechtenstein
+LIX	1	Not regionalised/Unknown level 1
+LIXX	2	Not regionalised/Unknown level 2
+LIXXX	3	Not regionalised/Unknown level 3
+LIZ	1	Extra-Regio level 1
+LIZZ	2	Extra-Regio level 2
+LIZZZ	3	Extra-Regio level 3
+LT0	1	Lietuva
+LT00	2	Lietuva
+LT001	3	Alytaus apskritis
+LT002	3	Kauno apskritis
+LT003	3	Klaipedos apskritis
+LT004	3	Marijampoles apskritis
+LT005	3	Panevezio apskritis
+LT006	3	Siauliu apskritis
+LT007	3	Taurages apskritis
+LT008	3	Telsiu apskritis
+LT009	3	Utenos apskritis
+LT00A	3	Vilniaus apskritis
+LT01	2	Sostinės regionas
+LT011	3	Vilniaus apskritis
+LT02	2	Vidurio ir vakarų Lietuvos regionas
+LT021	3	Alytaus apskritis
+LT022	3	Kauno apskritis
+LT023	3	Klaipėdos apskritis
+LT024	3	Marijampolės apskritis
+LT025	3	Panevėžio apskritis
+LT026	3	Šiaulių apskritis
+LT027	3	Tauragės apskritis
+LT028	3	Telšių apskritis
+LT029	3	Utenos apskritis
+LTX	1	Not regionalised/Unknown NUTS 1
+LTXX	2	Not regionalised/Unknown NUTS 2
+LTXXX	3	Not regionalised/Unknown NUTS 3
+LTZ	1	Extra-Regio NUTS 1
+LTZZ	2	Extra-Regio NUTS 2
+LTZZZ	3	Extra-Regio NUTS 3
+LU0	1	Luxembourg
+LU00	2	Luxembourg
+LU000	3	Luxembourg
+LUX	1	Not regionalised/Unknown NUTS 1
+LUXX	2	Not regionalised/Unknown NUTS 2
+LUXXX	3	Not regionalised/Unknown NUTS 3
+LUZ	1	Extra-Regio NUTS 1
+LUZZ	2	Extra-Regio NUTS 2
+LUZZZ	3	Extra-Regio NUTS 3
+LV0	1	Latvija
+LV00	2	Latvija
+LV001	3	Riga (statistical region 2001)
+LV002	3	Vidzeme (statistical region 2001)
+LV003	3	Kurzeme
+LV004	3	Zemgale (statistical region 2001)
+LV005	3	Latgale
+LV006	3	Rīga
+LV007	3	Pieriga
+LV008	3	Vidzeme
+LV009	3	Zemgale
+LV00A	3	Rīga
+LV00B	3	Kurzeme
+LV00C	3	Vidzeme
+LVX	1	Not regionalised/Unknown NUTS 1
+LVXX	2	Not regionalised/Unknown NUTS 2
+LVXXX	3	Not regionalised/Unknown NUTS 3
+LVZ	1	Extra-Regio NUTS 1
+LVZZ	2	Extra-Regio NUTS 2
+LVZZZ	3	Extra-Regio NUTS 3
+ME0	1	Crna Gora
+ME00	2	Crna Gora
+ME000	3	Crna Gora
+MED	1	Mediterranean Basin Countries
+MEL	1	Melanesia
+MEX	1	Not regionalised/Unknown level 1
+MEXX	2	Not regionalised/Unknown level 2
+MEXXX	3	Not regionalised/Unknown level 3
+MEZ	1	Extra-Regio level 1
+MEZZ	2	Extra-Regio level 2
+MEZZZ	3	Extra-Regio level 3
+MK0	1	Severna Makedonija
+MK00	2	Severna Makedonija
+MK001	3	Vardarski
+MK002	3	Istočen
+MK003	3	Jugozapaden
+MK004	3	Jugoistočen
+MK005	3	Pelagoniski
+MK006	3	Pološki
+MK007	3	Severoistočen
+MK008	3	Skopski
+MKX	1	Not regionalised/Unknown level 1
+MKXX	2	Not regionalised/Unknown level 2
+MKXXX	3	Not regionalised/Unknown level 3
+MKZ	1	Extra-Regio level 1
+MKZZ	2	Extra-Regio level 2
+MKZZZ	3	Extra-Regio level 3
+MT0	1	Malta
+MT00	2	Malta
+MT001	3	Malta
+MT002	3	Gozo and Comino/Għawdex u Kemmuna
+MTX	1	Not regionalised/Unknown NUTS 1
+MTXX	2	Not regionalised/Unknown NUTS 2
+MTXXX	3	Not regionalised/Unknown NUTS 3
+MTZ	1	Extra-Regio NUTS 1
+MTZZ	2	Extra-Regio NUTS 2
+MTZZZ	3	Extra-Regio NUTS 3
+NL1	1	Noord-Nederland
+NL11	2	Groningen
+NL111	3	Oost-Groningen
+NL112	3	Delfzijl en omgeving
+NL113	3	Overig Groningen
+NL114	3	Oost-Groningen
+NL115	3	Overig Groningen
+NL12	2	Friesland (NL)
+NL121	3	Noord-Friesland
+NL122	3	Zuidwest-Friesland
+NL123	3	Zuidoost-Friesland
+NL124	3	Noord-Friesland
+NL125	3	Zuidwest-Friesland
+NL126	3	Zuidoost-Friesland
+NL127	3	Noord-Friesland
+NL128	3	Zuidwest-Friesland
+NL13	2	Drenthe
+NL131	3	Noord-Drenthe
+NL132	3	Zuidoost-Drenthe
+NL133	3	Zuidwest-Drenthe
+NL2	1	Oost-Nederland
+NL21	2	Overijssel
+NL211	3	Noord-Overijssel
+NL212	3	Zuidwest-Overijssel
+NL213	3	Twente
+NL22	2	Gelderland
+NL221	3	Veluwe
+NL222	3	Achterhoek
+NL223	3	Arnhem/Nijmegen
+NL224	3	Zuidwest-Gelderland
+NL225	3	Achterhoek
+NL226	3	Arnhem/Nijmegen
+NL23	2	Flevoland
+NL230	3	Flevoland
+NL3	1	West-Nederland
+NL31	2	Utrecht
+NL310	3	Utrecht
+NL32	2	Noord-Holland
+NL321	3	Kop van Noord-Holland
+NL322	3	Alkmaar en omgeving
+NL323	3	IJmond
+NL324	3	Agglomeratie Haarlem
+NL325	3	Zaanstreek
+NL326	3	Groot-Amsterdam
+NL327	3	Het Gooi en Vechtstreek
+NL328	3	Alkmaar en omgeving
+NL329	3	Groot-Amsterdam
+NL32A	3	Agglomeratie Haarlem
+NL32B	3	Groot-Amsterdam
+NL33	2	Zuid-Holland
+NL331	3	Agglomeratie Leiden en Bollenstreek
+NL332	3	Agglomeratie 's-Gravenhage
+NL333	3	Delft en Westland
+NL334	3	Oost-Zuid-Holland
+NL335	3	Groot-Rijnmond
+NL336	3	Zuidoost-Zuid-Holland
+NL337	3	Agglomeratie Leiden en Bollenstreek
+NL338	3	Oost-Zuid-Holland
+NL339	3	Groot-Rijnmond
+NL33A	3	Zuidoost-Zuid-Holland
+NL33B	3	Oost-Zuid-Holland
+NL33C	3	Groot-Rijnmond
+NL34	2	Zeeland
+NL341	3	Zeeuwsch-Vlaanderen
+NL342	3	Overig Zeeland
+NL35	2	Utrecht
+NL350	3	Utrecht
+NL36	2	Zuid-Holland
+NL361	3	Agglomeratie ’s-Gravenhage
+NL362	3	Delft en Westland
+NL363	3	Agglomeratie Leiden en Bollenstreek
+NL364	3	Zuidoost-Zuid-Holland
+NL365	3	Oost-Zuid-Holland
+NL366	3	Groot-Rijnmond
+NL4	1	Zuid-Nederland
+NL41	2	Noord-Brabant
+NL411	3	West-Noord-Brabant
+NL412	3	Midden-Noord-Brabant
+NL413	3	Noordoost-Noord-Brabant
+NL414	3	Zuidoost-Noord-Brabant
+NL415	3	Midden-Noord-Brabant
+NL416	3	Noordoost-Noord-Brabant
+NL42	2	Limburg (NL)
+NL421	3	Noord-Limburg
+NL422	3	Midden-Limburg
+NL423	3	Zuid-Limburg
+NLX	1	Not regionalised/Unknown NUTS 1
+NLXX	2	Not regionalised/Unknown NUTS 2
+NLXXX	3	Not regionalised/Unknown NUTS 3
+NLZ	1	Extra-Regio NUTS 1
+NLZZ	2	Extra-Regio NUTS 2
+NLZZZ	3	Extra-Regio NUTS 3
+NO0	1	Norge
+NO01	2	Oslo og Akershus (statistical region 2016)
+NO011	3	Oslo (statistical region 2016)
+NO012	3	Akershus (statistical region 2016)
+NO02	2	Innlandet
+NO020	3	Innlandet
+NO021	3	Hedmark (statistical region 2016)
+NO022	3	Oppland (statistical region 2016)
+NO03	2	Sør-Østlandet (statistical region 2016)
+NO031	3	Østfold (statistical region 2016)
+NO032	3	Buskerud (statistical region 2016)
+NO033	3	Vestfold (statistical region 2016)
+NO034	3	Telemark (statistical region 2016)
+NO04	2	Agder og Rogaland (statistical region 2016)
+NO041	3	Aust-Agder (statistical region 2016)
+NO042	3	Vest-Agder (statistical region 2016)
+NO043	3	Rogaland (statistical region 2016)
+NO05	2	Vestlandet (statistical region 2016)
+NO051	3	Hordaland (statistical region 2016)
+NO052	3	Sogn og Fjordane (statistical region 2016)
+NO053	3	Møre og Romsdal (statistical region 2016)
+NO06	2	Trøndelag
+NO060	3	Trøndelag/Trööndelage
+NO061	3	Sør-Trøndelag (statistical region 2016)
+NO062	3	Nord-Trøndelag (statistical region 2016)
+NO07	2	Nord-Norge
+NO071	3	Nordland/Nordlánnda
+NO072	3	Troms/Romsa/Tromssa
+NO073	3	Finnmark/Finnmárku/Finmarkku
+NO074	3	Troms og Finnmark/Romsa ja Finnmárku/Tromssa ja Finmarkku (statistical region 2021)
+NO08	2	Oslo og Viken
+NO081	3	Oslo
+NO082	3	Viken (statistical region 2021)
+NO083	3	Østfold
+NO084	3	Akershus
+NO085	3	Buskerud
+NO09	2	Agder og Sør-Østlandet
+NO091	3	Vestfold og Telemark (statistical region 2021)
+NO092	3	Agder
+NO093	3	Vestfold
+NO094	3	Telemark
+NO0A	2	Vestlandet
+NO0A1	3	Rogaland
+NO0A2	3	Vestland
+NO0A3	3	Møre og Romsdal
+NO0B	2	Svalbard og Jan Mayen
+NO0B1	3	Jan Mayen
+NO0B2	3	Svalbard
+NOECD	3	Non-OECD countries
+NOX	1	Not regionalised/Unknown level 1
+NOXX	2	Not regionalised/Unknown level 2
+NOXXX	3	Not regionalised/Unknown level 3
+NOZ	1	Extra-Regio level 1
+NOZZ	2	Extra-Regio level 2
+NOZZZ	3	Extra-Regio level 3
+PL01	2	Dolnoslaskie (statistical region 2001)
+PL02	2	Kujawsko-Pomorskie (statistical region 2001)
+PL03	2	Lubelskie (statistical region 2001)
+PL04	2	Lubuskie (statistical region 2001)
+PL05	2	Lódzkie (statistical region 2001)
+PL06	2	Malopolskie (statistical region 2001)
+PL07	2	Mazowieckie (statistical region 2001)
+PL08	2	Opolskie (statistical region 2001)
+PL09	2	Podkarpackie (statistical region 2001)
+PL0A	2	Podlaskie (statistical region 2001)
+PL0B	2	Pomorskie (statistical region 2001)
+PL0C	2	Slaskie (statistical region 2001)
+PL0D	2	Swietokrzyskie (statistical region 2001)
+PL0E	2	Warminsko-Mazurskie (statistical region 2001)
+PL0F	2	Wielkopolskie (statistical region 2001)
+PL0G	2	Zachodniopomorskie (statistical region 2001)
+PL1	1	Region Centralny
+PL11	2	Lódzkie
+PL111	3	Lódzki
+PL112	3	Piotrkowsko-skierniewicki
+PL113	3	Miasto Lódz
+PL114	3	Lódzki
+PL115	3	Piotrkowski
+PL116	3	Sieradzki
+PL117	3	Skierniewicki
+PL12	2	Mazowieckie
+PL121	3	Ciechanowsko-plocki
+PL122	3	Ostrolecko-siedlecki
+PL124	3	Radomski
+PL126	3	Warszawski
+PL127	3	Miasto Warszawa
+PL128	3	Radomski
+PL129	3	Warszawski wschodni
+PL12A	3	Warszawski zachodni
+PL12B	3	Ciechanowski
+PL12C	3	Plocki
+PL12D	3	Ostrolecki
+PL12E	3	Siedlecki
+PL2	1	Makroregion południowy
+PL21	2	Małopolskie
+PL211	3	Krakowsko-tarnowski
+PL212	3	Nowosadecki
+PL213	3	Miasto Kraków
+PL214	3	Krakowski
+PL215	3	Nowosadecki
+PL216	3	Oswiecimski
+PL217	3	Tarnowski
+PL218	3	Nowosądecki
+PL219	3	Nowotarski
+PL21A	3	Oświęcimski
+PL22	2	Śląskie
+PL224	3	Częstochowski
+PL225	3	Bielski
+PL226	3	Centralny slaski
+PL227	3	Rybnicki
+PL228	3	Bytomski
+PL229	3	Gliwicki
+PL22A	3	Katowicki
+PL22B	3	Sosnowiecki
+PL22C	3	Tyski
+PL3	1	Region Wschodni
+PL31	2	Lubelskie
+PL311	3	Bialski
+PL312	3	Chelmsko-zamojski
+PL313	3	Lubelski
+PL314	3	Lubelski
+PL315	3	Pulawski
+PL32	2	Podkarpackie
+PL321	3	Rzeszowsko-tarnobrzeski
+PL322	3	Krosniensko-przemyski
+PL323	3	Krosnienski
+PL324	3	Przemyski
+PL325	3	Rzeszowski
+PL326	3	Tarnobrzeski
+PL33	2	Swietokrzyskie
+PL330	3	Swietokrzyski
+PL331	3	Kielecki
+PL332	3	Sandomiersko-jedrzejowski
+PL34	2	Podlaskie
+PL341	3	Bialostocko-suwalski
+PL342	3	Lomzynski
+PL343	3	Bialostocki
+PL344	3	Lomzynski
+PL345	3	Suwalski
+PL4	1	Makroregion północno-zachodni
+PL41	2	Wielkopolskie
+PL411	3	Pilski
+PL412	3	Poznanski
+PL413	3	Kaliski
+PL414	3	Koniński
+PL415	3	Miasto Poznań
+PL416	3	Kaliski
+PL417	3	Leszczyński
+PL418	3	Poznański
+PL42	2	Zachodniopomorskie
+PL421	3	Szczecinski
+PL422	3	Koszalinski
+PL423	3	Stargardzki
+PL424	3	Miasto Szczecin
+PL425	3	Szczecinski
+PL426	3	Koszaliński
+PL427	3	Szczecinecko-pyrzycki
+PL428	3	Szczeciński
+PL43	2	Lubuskie
+PL431	3	Gorzowski
+PL432	3	Zielonogórski
+PL5	1	Makroregion południowo-zachodni
+PL51	2	Dolnośląskie
+PL511	3	Jeleniogórsko-walbrzyski
+PL512	3	Legnicki
+PL513	3	Wroclawski
+PL514	3	Miasto Wrocław
+PL515	3	Jeleniogórski
+PL516	3	Legnicko-głogowski
+PL517	3	Wałbrzyski
+PL518	3	Wrocławski
+PL52	2	Opolskie
+PL520	3	Opolski
+PL521	3	Nyski
+PL522	3	Opolski
+PL523	3	Nyski
+PL524	3	Opolski
+PL6	1	Makroregion północny
+PL61	2	Kujawsko-pomorskie
+PL611	3	Bydgoski
+PL612	3	Torunsko-wloclawski
+PL613	3	Bydgosko-toruński
+PL614	3	Grudziadzki
+PL615	3	Wloclawski
+PL616	3	Grudziądzki
+PL617	3	Inowrocławski
+PL618	3	Świecki
+PL619	3	Włocławski
+PL62	2	Warmińsko-mazurskie
+PL621	3	Elbląski
+PL622	3	Olsztyński
+PL623	3	Ełcki
+PL63	2	Pomorskie
+PL631	3	Slupski
+PL632	3	Gdanski
+PL633	3	Trójmiejski
+PL634	3	Gdański
+PL635	3	Starogardzki
+PL636	3	Słupski
+PL637	3	Chojnicki
+PL638	3	Starogardzki
+PL7	1	Makroregion centralny
+PL71	2	Łódzkie
+PL711	3	Miasto Łódź
+PL712	3	Łódzki
+PL713	3	Piotrkowski
+PL714	3	Sieradzki
+PL715	3	Skierniewicki
+PL72	2	Świętokrzyskie
+PL721	3	Kielecki
+PL722	3	Sandomiersko-jędrzejowski
+PL8	1	Makroregion wschodni
+PL81	2	Lubelskie
+PL811	3	Bialski
+PL812	3	Chełmsko-zamojski
+PL814	3	Lubelski
+PL815	3	Puławski
+PL82	2	Podkarpackie
+PL821	3	Krośnieński
+PL822	3	Przemyski
+PL823	3	Rzeszowski
+PL824	3	Tarnobrzeski
+PL84	2	Podlaskie
+PL841	3	Białostocki
+PL842	3	Łomżyński
+PL843	3	Suwalski
+PL9	1	Makroregion województwo mazowieckie
+PL91	2	Warszawski stołeczny
+PL911	3	Miasto Warszawa
+PL912	3	Warszawski wschodni
+PL913	3	Warszawski zachodni
+PL92	2	Mazowiecki regionalny
+PL921	3	Radomski
+PL922	3	Ciechanowski
+PL923	3	Płocki
+PL924	3	Ostrołęcki
+PL925	3	Siedlecki
+PL926	3	Żyrardowski
+PLR	1	Southern polar regions
+PLX	1	Not regionalised/Unknown NUTS 1
+PLXX	2	Not regionalised/Unknown NUTS 2
+PLXXX	3	Not regionalised/Unknown NUTS 3
+PLZ	1	Extra-Regio NUTS 1
+PLZZ	2	Extra-Regio NUTS 2
+PLZZZ	3	Extra-Regio NUTS 3
+PT1	1	Continente
+PT11	2	Norte
+PT111	3	Alto Minho
+PT112	3	Cávado
+PT113	3	Ave
+PT114	3	Grande Porto
+PT115	3	Tâmega
+PT116	3	Entre Douro e Vouga
+PT117	3	Douro
+PT118	3	Alto Trás-os-Montes
+PT119	3	Ave
+PT11A	3	Área Metropolitana do Porto
+PT11B	3	Alto Tâmega e Barroso
+PT11C	3	Tâmega e Sousa
+PT11D	3	Douro
+PT11E	3	Terras de Trás-os-Montes
+PT12	2	Centro (PT)
+PT13	2	Lisboa e Vale do Tejo
+PT14	2	Alentejo
+PT15	2	Algarve
+PT150	3	Algarve
+PT16	2	Centro (PT)
+PT161	3	Baixo Vouga
+PT162	3	Baixo Mondego
+PT163	3	Pinhal Litoral
+PT164	3	Pinhal Interior Norte
+PT165	3	Dão-Lafões
+PT166	3	Pinhal Interior Sul
+PT167	3	Serra da Estrela
+PT168	3	Beira Interior Norte
+PT169	3	Beira Interior Sul
+PT16A	3	Cova da Beira
+PT16B	3	Oeste
+PT16C	3	Médio Tejo
+PT16D	3	Região de Aveiro
+PT16E	3	Região de Coimbra
+PT16F	3	Região de Leiria
+PT16G	3	Viseu Dão Lafões
+PT16H	3	Beira Baixa
+PT16I	3	Médio Tejo
+PT16J	3	Beiras e Serra da Estrela
+PT17	2	Área Metropolitana de Lisboa
+PT170	3	Área Metropolitana de Lisboa
+PT171	3	Grande Lisboa
+PT172	3	Península de Setúbal
+PT18	2	Alentejo
+PT181	3	Alentejo Litoral
+PT182	3	Alto Alentejo
+PT183	3	Alentejo Central
+PT184	3	Baixo Alentejo
+PT185	3	Lezíria do Tejo
+PT186	3	Alto Alentejo
+PT187	3	Alentejo Central
+PT19	2	Centro (PT)
+PT191	3	Região de Aveiro
+PT192	3	Região de Coimbra
+PT193	3	Região de Leiria
+PT194	3	Viseu Dão Lafões
+PT195	3	Beira Baixa
+PT196	3	Beiras e Serra da Estrela
+PT1A	2	Grande Lisboa
+PT1A0	3	Grande Lisboa
+PT1B	2	Península de Setúbal
+PT1B0	3	Península de Setúbal
+PT1C	2	Alentejo
+PT1C1	3	Alentejo Litoral
+PT1C2	3	Baixo Alentejo
+PT1C3	3	Alto Alentejo
+PT1C4	3	Alentejo Central
+PT1D	2	Oeste e Vale do Tejo
+PT1D1	3	Oeste
+PT1D2	3	Médio Tejo
+PT1D3	3	Lezíria do Tejo
+PT2	1	Região Autónoma dos Açores
+PT20	2	Região Autónoma dos Açores
+PT200	3	Região Autónoma dos Açores
+PT3	1	Região Autónoma da Madeira
+PT30	2	Região Autónoma da Madeira
+PT300	3	Região Autónoma da Madeira
+PTX	1	Not regionalised/Unknown NUTS 1
+PTXX	2	Not regionalised/Unknown NUTS 2
+PTXXX	3	Not regionalised/Unknown NUTS 3
+PTZ	1	Extra-Regio NUTS 1
+PTZZ	2	Extra-Regio NUTS 2
+PTZZZ	3	Extra-Regio NUTS 3
+RO0	1	Romania (statistical region 2002)
+RO01	2	Nord-Est (statistical region 2002)
+RO011	3	Bacau (statistical region 2002)
+RO012	3	Botosani (statistical region 2002)
+RO013	3	Iasi (statistical region 2002)
+RO014	3	Neamt (statistical region 2002)
+RO015	3	Suceava (statistical region 2002)
+RO016	3	Vaslui (statistical region 2002)
+RO02	2	Sud-Est (statistical region 2002)
+RO021	3	Braila (statistical region 2002)
+RO022	3	Buzau (statistical region 2002)
+RO023	3	Constanta (statistical region 2002)
+RO024	3	Galati (statistical region 2002)
+RO025	3	Tulcea (statistical region 2002)
+RO026	3	Vrancea (statistical region 2002)
+RO03	2	Sud (statistical region 2002)
+RO031	3	Arges (statistical region 2002)
+RO032	3	Calarasi (statistical region 2002)
+RO033	3	Dâmbovita (statistical region 2002)
+RO034	3	Giurgiu (statistical region 2002)
+RO035	3	Ialomita (statistical region 2002)
+RO036	3	Prahova (statistical region 2002)
+RO037	3	Teleorman (statistical region 2002)
+RO04	2	Sud-Vest (statistical region 2002)
+RO041	3	Dolj (statistical region 2002)
+RO042	3	Gorj (statistical region 2002)
+RO043	3	Mehedinti (statistical region 2002)
+RO044	3	Olt (statistical region 2002)
+RO045	3	Vâlcea (statistical region 2002)
+RO05	2	Vest (statistical region 2002)
+RO051	3	Arad (statistical region 2002)
+RO052	3	Caras-Severin (statistical region 2002)
+RO053	3	Hunedoara (statistical region 2002)
+RO054	3	Timis (statistical region 2002)
+RO06	2	Nord-Vest (statistical region 2002)
+RO061	3	Bihor (statistical region 2002)
+RO062	3	Bistrita-Nasaud (statistical region 2002)
+RO063	3	Cluj (statistical region 2002)
+RO064	3	Maramures (statistical region 2002)
+RO065	3	Satu Mare (statistical region 2002)
+RO066	3	Salaj (statistical region 2002)
+RO07	2	Centru (statistical region 2002)
+RO071	3	Alba (statistical region 2002)
+RO072	3	Brasov (statistical region 2002)
+RO073	3	Covasna (statistical region 2002)
+RO074	3	Harghita (statistical region 2002)
+RO075	3	Mures (statistical region 2002)
+RO076	3	Sibiu (statistical region 2002)
+RO08	2	Bucuresti (statistical region 2002)
+RO081	3	Bucuresti (capital) (statistical region 2002)
+RO082	3	Ilfov (statistical region 2002)
+RO1	1	Macroregiunea Unu
+RO11	2	Nord-Vest
+RO111	3	Bihor
+RO112	3	Bistriţa-Năsăud
+RO113	3	Cluj
+RO114	3	Maramureş
+RO115	3	Satu Mare
+RO116	3	Sălaj
+RO12	2	Centru
+RO121	3	Alba
+RO122	3	Braşov
+RO123	3	Covasna
+RO124	3	Harghita
+RO125	3	Mureş
+RO126	3	Sibiu
+RO2	1	Macroregiunea Doi
+RO21	2	Nord-Est
+RO211	3	Bacău
+RO212	3	Botoşani
+RO213	3	Iaşi
+RO214	3	Neamţ
+RO215	3	Suceava
+RO216	3	Vaslui
+RO22	2	Sud-Est
+RO221	3	Brăila
+RO222	3	Buzău
+RO223	3	Constanţa
+RO224	3	Galaţi
+RO225	3	Tulcea
+RO226	3	Vrancea
+RO3	1	Macroregiunea Trei
+RO31	2	Sud-Muntenia
+RO311	3	Argeş
+RO312	3	Călăraşi
+RO313	3	Dâmboviţa
+RO314	3	Giurgiu
+RO315	3	Ialomiţa
+RO316	3	Prahova
+RO317	3	Teleorman
+RO32	2	Bucureşti-Ilfov
+RO321	3	Bucureşti
+RO322	3	Ilfov
+RO4	1	Macroregiunea Patru
+RO41	2	Sud-Vest Oltenia
+RO411	3	Dolj
+RO412	3	Gorj
+RO413	3	Mehedinţi
+RO414	3	Olt
+RO415	3	Vâlcea
+RO42	2	Vest
+RO421	3	Arad
+RO422	3	Caraş-Severin
+RO423	3	Hunedoara
+RO424	3	Timiş
+ROX	1	Not regionalised/Unknown NUTS 1
+ROXX	2	Not regionalised/Unknown NUTS 2
+ROXXX	3	Not regionalised/Unknown NUTS 3
+ROZ	1	Extra-Regio NUTS 1
+ROZZ	2	Extra-Regio NUTS 2
+ROZZZ	3	Extra-Regio NUTS 3
+RS1	1	Srbija - sever
+RS11	2	Beogradski region
+RS110	3	Beogradska oblast
+RS12	2	Region Vojvodine
+RS121	3	Zapadnobacka oblast
+RS122	3	Juznobanatska oblast
+RS123	3	Juznobacka oblast
+RS124	3	Severnobanatska oblast
+RS125	3	Severnobacka oblast
+RS126	3	Srednjobanatska oblast
+RS127	3	Sremska oblast
+RS2	1	Srbija - jug
+RS21	2	Region Sumadije i Zapadne Srbije
+RS211	3	Zlatiborska oblast
+RS212	3	Kolubarska oblast
+RS213	3	Macvanska oblast
+RS214	3	Moravicka oblast
+RS215	3	Pomoravska oblast
+RS216	3	Rasinska oblast
+RS217	3	Raska oblast
+RS218	3	Sumadijska oblast
+RS22	2	Region Juzne i Istocne Srbije
+RS221	3	Borska oblast
+RS222	3	Branicevska oblast
+RS223	3	Zajecarska oblast
+RS224	3	Jablanicka oblast
+RS225	3	Nisavska oblast
+RS226	3	Pirotska oblast
+RS227	3	Podunavska oblast
+RS228	3	Pcinjska oblast
+RS229	3	Toplicka oblast
+RSX	1	Not regionalised/Unknown level 1
+RSXX	2	Not regionalised/Unknown level 2
+RSXXX	3	Not regionalised/Unknown level 3
+RSZ	1	Extra-Regio level 1
+RSZZ	2	Extra-Regio level 2
+RSZZZ	3	Extra-Regio level 3
+SE021	3	Uppsala län
+SE025	3	Västmanlands län
+SE03	2	Småland med öarna
+SE05	2	Västsverige
+SE1	1	Östra Sverige
+SE11	2	Stockholm
+SE110	3	Stockholms län
+SE12	2	Östra Mellansverige
+SE121	3	Uppsala län
+SE122	3	Södermanlands län
+SE123	3	Östergötlands län
+SE124	3	Örebro län
+SE125	3	Västmanlands län
+SE2	1	Södra Sverige
+SE21	2	Småland med öarna
+SE211	3	Jönköpings län
+SE212	3	Kronobergs län
+SE213	3	Kalmar län
+SE214	3	Gotlands län
+SE22	2	Sydsverige
+SE221	3	Blekinge län
+SE224	3	Skåne län
+SE23	2	Västsverige
+SE231	3	Hallands län
+SE232	3	Västra Götalands län
+SE3	1	Norra Sverige
+SE31	2	Norra Mellansverige
+SE311	3	Värmlands län
+SE312	3	Dalarnas län
+SE313	3	Gävleborgs län
+SE32	2	Mellersta Norrland
+SE321	3	Västernorrlands län
+SE322	3	Jämtlands län
+SE33	2	Övre Norrland
+SE331	3	Västerbottens län
+SE332	3	Norrbottens län
+SEX	1	Not regionalised/Unknown NUTS 1
+SEXX	2	Not regionalised/Unknown NUTS 2
+SEXXX	3	Not regionalised/Unknown NUTS 3
+SEZ	1	Extra-Regio NUTS 1
+SEZZ	2	Extra-Regio NUTS 2
+SEZZZ	3	Extra-Regio NUTS 3
+SI0	1	Slovenija
+SI01	2	Vzhodna Slovenija
+SI011	3	Pomurska
+SI012	3	Podravska
+SI013	3	Koroska
+SI014	3	Savinjska
+SI015	3	Zasavska
+SI016	3	Spodnjeposavska
+SI017	3	Jugovzhodna Slovenija
+SI018	3	Notranjsko-kraska
+SI02	2	Zahodna Slovenija
+SI021	3	Osrednjeslovenska
+SI022	3	Gorenjska
+SI023	3	Goriska
+SI024	3	Obalno-kraska
+SI03	2	Vzhodna Slovenija
+SI031	3	Pomurska
+SI032	3	Podravska
+SI033	3	Koroška
+SI034	3	Savinjska
+SI035	3	Zasavska
+SI036	3	Posavska
+SI037	3	Jugovzhodna Slovenija
+SI038	3	Primorsko-notranjska
+SI04	2	Zahodna Slovenija
+SI041	3	Osrednjeslovenska
+SI042	3	Gorenjska
+SI043	3	Goriška
+SI044	3	Obalno-kraška
+SIX	1	Not regionalised/Unknown NUTS 1
+SIXX	2	Not regionalised/Unknown NUTS 2
+SIXXX	3	Not regionalised/Unknown NUTS 3
+SIZ	1	Extra-Regio NUTS 1
+SIZZ	2	Extra-Regio NUTS 2
+SIZZZ	3	Extra-Regio NUTS 3
+SK0	1	Slovensko
+SK01	2	Bratislavský kraj
+SK010	3	Bratislavský kraj
+SK02	2	Západné Slovensko
+SK021	3	Trnavský kraj
+SK022	3	Trenčiansky kraj
+SK023	3	Nitriansky kraj
+SK03	2	Stredné Slovensko
+SK031	3	Žilinský kraj
+SK032	3	Banskobystrický kraj
+SK04	2	Východné Slovensko
+SK041	3	Prešovský kraj
+SK042	3	Košický kraj
+SKX	1	Not regionalised/Unknown NUTS 1
+SKXX	2	Not regionalised/Unknown NUTS 2
+SKXXX	3	Not regionalised/Unknown NUTS 3
+SKZ	1	Extra-Regio NUTS 1
+SKZZ	2	Extra-Regio NUTS 2
+SKZZZ	3	Extra-Regio NUTS 3
+TR1	1	İstanbul
+TR10	2	İstanbul
+TR100	3	İstanbul
+TR2	1	Batı Marmara
+TR21	2	Tekirdağ, Edirne, Kırklareli
+TR211	3	Tekirdağ
+TR212	3	Edirne
+TR213	3	Kırklareli
+TR22	2	Balıkesir, Çanakkale
+TR221	3	Balıkesir
+TR222	3	Çanakkale
+TR3	1	Ege
+TR31	2	İzmir
+TR310	3	İzmir
+TR32	2	Aydın, Denizli, Muğla
+TR321	3	Aydın
+TR322	3	Denizli
+TR323	3	Muğla
+TR33	2	Manisa, Afyonkarahisar, Kütahya, Uşak
+TR331	3	Manisa
+TR332	3	Afyonkarahisar
+TR333	3	Kütahya
+TR334	3	Uşak
+TR4	1	Doğu Marmara
+TR41	2	Bursa, Eskişehir, Bilecik
+TR411	3	Bursa
+TR412	3	Eskişehir
+TR413	3	Bilecik
+TR42	2	Kocaeli, Sakarya, Düzce, Bolu, Yalova
+TR421	3	Kocaeli
+TR422	3	Sakarya
+TR423	3	Düzce
+TR424	3	Bolu
+TR425	3	Yalova
+TR5	1	Batı Anadolu
+TR51	2	Ankara
+TR510	3	Ankara
+TR52	2	Konya, Karaman
+TR521	3	Konya
+TR522	3	Karaman
+TR6	1	Akdeniz
+TR61	2	Antalya, Isparta, Burdur
+TR611	3	Antalya
+TR612	3	Isparta
+TR613	3	Burdur
+TR62	2	Adana, Mersin
+TR621	3	Adana
+TR622	3	Mersin
+TR63	2	Hatay, Kahramanmaraş, Osmaniye
+TR631	3	Hatay
+TR632	3	Kahramanmaraş
+TR633	3	Osmaniye
+TR7	1	Orta Anadolu
+TR71	2	Kırıkkale, Aksaray, Niğde, Nevşehir, Kırşehir
+TR711	3	Kırıkkale
+TR712	3	Aksaray
+TR713	3	Niğde
+TR714	3	Nevşehir
+TR715	3	Kırşehir
+TR72	2	Kayseri, Sivas, Yozgat
+TR721	3	Kayseri
+TR722	3	Sivas
+TR723	3	Yozgat
+TR8	1	Batı Karadeniz
+TR81	2	Zonguldak, Karabük, Bartın
+TR811	3	Zonguldak
+TR812	3	Karabük
+TR813	3	Bartın
+TR82	2	Kastamonu, Çankırı, Sinop
+TR821	3	Kastamonu
+TR822	3	Çankırı
+TR823	3	Sinop
+TR83	2	Samsun, Tokat, Çorum, Amasya
+TR831	3	Samsun
+TR832	3	Tokat
+TR833	3	Çorum
+TR834	3	Amasya
+TR9	1	Doğu Karadeniz
+TR90	2	Trabzon, Ordu, Giresun, Rize, Artvin, Gümüşhane
+TR901	3	Trabzon
+TR902	3	Ordu
+TR903	3	Giresun
+TR904	3	Rize
+TR905	3	Artvin
+TR906	3	Gümüşhane
+TRA	1	Kuzeydoğu Anadolu
+TRA1	2	Erzurum, Erzincan, Bayburt
+TRA11	3	Erzurum
+TRA12	3	Erzincan
+TRA13	3	Bayburt
+TRA2	2	Ağrı, Kars, Iğdır, Ardahan
+TRA21	3	Ağrı
+TRA22	3	Kars
+TRA23	3	Iğdır
+TRA24	3	Ardahan
+TRB	1	Ortadoğu Anadolu
+TRB1	2	Malatya, Elazığ, Bingöl, Tunceli
+TRB11	3	Malatya
+TRB12	3	Elazığ
+TRB13	3	Bingöl
+TRB14	3	Tunceli
+TRB2	2	Van, Muş, Bitlis, Hakkari
+TRB21	3	Van
+TRB22	3	Muş
+TRB23	3	Bitlis
+TRB24	3	Hakkari
+TRC	1	Güneydoğu Anadolu
+TRC1	2	Gaziantep, Adıyaman, Kilis
+TRC11	3	Gaziantep
+TRC12	3	Adıyaman
+TRC13	3	Kilis
+TRC2	2	Şanlıurfa, Diyarbakır
+TRC21	3	Şanlıurfa
+TRC22	3	Diyarbakır
+TRC3	2	Mardin, Batman, Şırnak, Siirt
+TRC31	3	Mardin
+TRC32	3	Batman
+TRC33	3	Şırnak
+TRC34	3	Siirt
+TRS	1	Transit country
+TRX	1	Not regionalised/Unknown level 1
+TRXX	2	Not regionalised/Unknown level 2
+TRXXX	3	Not regionalised/Unknown level 3
+TRZ	1	Extra-Regio level 1
+TRZZ	2	Extra-Regio level 2
+TRZZZ	3	Extra-Regio level 3
+UA1	1	Macroregion_01
+UA11	2	Poltavska Oblast
+UA111	3	Kremenchutskyi Raion
+UA112	3	Lubenskyi Raion
+UA113	3	Myrhorodskyi Raion
+UA114	3	Poltavskyi Raion
+UA12	2	Sumska Oblast
+UA121	3	Konotopskyi Raion
+UA122	3	Okhtyrskyi Raion
+UA123	3	Romenskyi Raion
+UA124	3	Sumskyi Raion
+UA125	3	Shostkynskyi Raion
+UA13	2	Kharkivska Oblast
+UA131	3	Bohodukhivskyi Raion
+UA132	3	Iziumskyi Raion
+UA133	3	Krasnohradskyi Raion
+UA134	3	Kupianskyi Raion
+UA135	3	Lozivskyi Raion
+UA136	3	Kharkivskyi Raion
+UA137	3	Chuhuivskyi Raion
+UA14	2	Chernihivska Oblast
+UA141	3	Koriukivskyi Raion
+UA142	3	Nizhynskyi Raion
+UA143	3	Novhorod-Siverskyi Raion
+UA144	3	Prylutskyi Raion
+UA145	3	Chernihivskyi Raion
+UA2	1	Macroregion_02
+UA21	2	Donetska Oblast
+UA211	3	Bakhmutskyi Raion
+UA212	3	Volnovaskyi Raion
+UA213	3	Horlivskyi Raion
+UA214	3	Donetskyi Raion
+UA215	3	Kalmiuskyi Raion
+UA216	3	Kramatorskyi Raion
+UA217	3	Mariupolskyi Raion
+UA218	3	Pokrovskyi Raion
+UA22	2	Luhanska Oblast
+UA221	3	Alchevskyi Raion
+UA222	3	Dovzhanskyi Raion
+UA223	3	Luhanskyi Raion
+UA224	3	Rovenkivskyi Raion
+UA225	3	Svativskyi Raion
+UA226	3	Sievierodonetskyi Raion
+UA227	3	Starobilskyi Raion
+UA228	3	Shchastynskyi Raion
+UA3	1	Macroregion_03
+UA31	2	Dnipropetrovska Oblast
+UA311	3	Dniprovskyi Raion
+UA312	3	Kamianskyi Raion
+UA313	3	Kryvorizkyi Raion
+UA314	3	Nikopolskyi Raion
+UA315	3	Novomoskovskyi Raion
+UA316	3	Pavlohradskyi Raion
+UA317	3	Synelnykivskyi Raion
+UA32	2	Zaporizka Oblast
+UA321	3	Berdianskyi Raion
+UA322	3	Vasylivskyi Raion
+UA323	3	Zaporizkyi Raion
+UA324	3	Melitopolskyi Raion
+UA325	3	Polohivskyi Raion
+UA33	2	Kirovohradska Oblast
+UA331	3	Holovanivskyi Raion
+UA332	3	Kropyvnytskyi Raion
+UA333	3	Novoukrainskyi Raion
+UA334	3	Oleksandriiskyi Raion
+UA4	1	Macroregion_04
+UA41	2	Mykolaivska Oblast
+UA411	3	Bashtanskyi Raion
+UA412	3	Voznesenskyi Raion
+UA413	3	Mykolaivskyi Raion
+UA414	3	Pervomaiskyi Raion
+UA42	2	Odeska Oblast
+UA421	3	Berezivskyi Raion
+UA422	3	Bilhorod-Dnistrovskyi Raion
+UA423	3	Bolhradskyi Raion
+UA424	3	Izmailskyi Raion
+UA425	3	Odeskyi Raion
+UA426	3	Podilskyi Raion
+UA427	3	Rozdilnianskyi Raion
+UA43	2	Khersonska Oblast
+UA431	3	Beryslavskyi Raion
+UA432	3	Henicheskyi Raion
+UA433	3	Kakhovskyi Raion
+UA434	3	Skadovskyi Raion
+UA435	3	Khersonskyi Raion
+UA44	2	Avtonomna Respublika Krym
+UA441	3	Bakhchysaraiskyi Raion
+UA442	3	Bilohirskyi Raion
+UA443	3	Dzhankoiskyi Raion
+UA444	3	Ievpatoriiskyi Raion
+UA445	3	Kerchenskyi Raion
+UA446	3	Kurmanskyi Raion
+UA447	3	Perekopskyi Raion
+UA448	3	Simferopolskyi Raion
+UA449	3	Feodosiiskyi Raion
+UA44A	3	Ialtynskyi Raion
+UA45	2	M. Sevastopol
+UA450	3	M. Sevastopol
+UA5	1	Macroregion_05
+UA51	2	Vinnytska Oblast
+UA511	3	Vinnytskyi Raion
+UA512	3	Haisynskyi Raion
+UA513	3	Zhmerynskyi Raion
+UA514	3	Mohyliv-Podilskyi Raion
+UA515	3	Tulchynskyi Raion
+UA516	3	Khmilnytskyi Raion
+UA52	2	Ternopilska Oblast
+UA521	3	Kremenetskyi Raion
+UA522	3	Ternopilskyi Raion
+UA523	3	Chortkivskyi Raion
+UA53	2	Khmelnytska Oblast
+UA531	3	Kamianets-Podilskyi Raion
+UA532	3	Khmelnytskyi Raion
+UA533	3	Shepetivskyi Raion
+UA6	1	Macroregion_06
+UA61	2	Kyivska Oblast
+UA611	3	Bilotserkivskyi Raion
+UA612	3	Boryspilskyi Raion
+UA613	3	Brovarskyi Raion
+UA614	3	Buchanskyi Raion
+UA615	3	Vyshhorodskyi Raion
+UA616	3	Obukhivskyi Raion
+UA617	3	Fastivskyi Raion
+UA62	2	Cherkaska Oblast
+UA621	3	Zvenyhorodskyi Raion
+UA622	3	Zolotoniskyi Raion
+UA623	3	Umanskyi Raion
+UA624	3	Cherkaskyi Raion
+UA63	2	M. Kyiv
+UA630	3	M. Kyiv
+UA7	1	Macroregion_07
+UA71	2	Zakarpatska Oblast
+UA711	3	Berehivskyi Raion
+UA712	3	Mukachivskyi Raion
+UA713	3	Rakhivskyi Raion
+UA714	3	Tiachivskyi Raion
+UA715	3	Uzhhorodskyi Raion
+UA716	3	Khustskyi Raion
+UA72	2	Ivano-Frankivska Oblast
+UA721	3	Verkhovynskyi Raion
+UA722	3	Ivano-Frankivskyi Raion
+UA723	3	Kaluskyi Raion
+UA724	3	Kolomyiskyi Raion
+UA725	3	Kosivskyi Raion
+UA726	3	Nadvirnianskyi Raion
+UA73	2	Lvivska Oblast
+UA731	3	Drohobytskyi Raion
+UA732	3	Zolochivskyi Raion
+UA733	3	Lvivskyi Raion
+UA734	3	Sambirskyi Raion
+UA735	3	Stryiskyi Raion
+UA736	3	Chervonohradskyi Raion
+UA737	3	Iavorivskyi Raion
+UA74	2	Chernivetska Oblast
+UA741	3	Vyzhnytskyi Raion
+UA742	3	Dnistrovskyi Raion
+UA743	3	Chernivetskyi Raion
+UA8	1	Macroregion_08
+UA81	2	Volynska Oblast
+UA811	3	Volodymyrskyi Raion
+UA812	3	Kamin-Kashyrskyi Raion
+UA813	3	Kovelskyi Raion
+UA814	3	Lutskyi Raion
+UA82	2	Zhytomyrska Oblast
+UA821	3	Berdychivskyi Raion
+UA822	3	Zhytomyrskyi Raion
+UA823	3	Korostenskyi Raion
+UA824	3	Zviahelskyi Raion
+UA83	2	Rivnenska Oblast
+UA831	3	Varaskyi Raion
+UA832	3	Dubenskyi Raion
+UA833	3	Rivnenskyi Raion
+UA834	3	Sarnenskyi Raion
+UAX	1	Not regionalised/Unknown level 1
+UAXX	2	Not regionalised/Unknown level 2
+UAXXX	3	Not regionalised/Unknown level 3
+UAZ	1	Extra-Regio level 1
+UAZZ	2	Extra-Regio level 2
+UAZZZ	3	Extra-Regio level 3
+UK1	1	North
+UK11	2	Cleveland, Durham
+UK111	3	Cleveland
+UK112	3	Durham
+UK12	2	Cumbria
+UK13	2	Northumberland,Tyne and Wear
+UK131	3	Northumberland
+UK132	3	Tyne and Wear
+UK2	1	Yorkshire and Humberside
+UK21	2	Humberside
+UK22	2	North Yorkshire
+UK23	2	South Yorkshire
+UK24	2	West Yorkshire
+UK3	1	East Midlands
+UK31	2	Derbyshire, Nottinghamshire
+UK311	3	Derbyshire
+UK312	3	Nottinghamshire
+UK32	2	Leicestershire, Northamptonshire
+UK321	3	Leicestershire
+UK322	3	Northamptonshire
+UK33	2	Lincolnshire
+UK4	1	East Anglia
+UK401	3	Cambridgeshire
+UK402	3	Norfolk
+UK403	3	Suffolk
+UK5	1	South East (UK)
+UK51	2	Bedfordshire, Hertfordshire
+UK511	3	Bedfordshire
+UK512	3	Hertfordshire
+UK52	2	Berkshire, Buckinghamshire, Oxfordshire
+UK521	3	Berkshire
+UK522	3	Buckinghamshire
+UK523	3	Oxfordshire
+UK53	2	Surrey, East-West Sussex
+UK531	3	East Sussex
+UK532	3	Surrey
+UK533	3	West Sussex
+UK54	2	Essex
+UK55	2	Greater London
+UK56	2	Hampshire, Isle of Wight
+UK561	3	Hampshire
+UK562	3	Isle of Wight
+UK57	2	Kent
+UK6	1	South West (UK)
+UK61	2	Avon, Gloucestershire, Wiltshire
+UK611	3	Avon
+UK612	3	Gloucestershire
+UK613	3	Wiltshire
+UK62	2	Cornwall, Devon
+UK621	3	Cornwall
+UK622	3	Devon
+UK63	2	Dorset, Somerset
+UK631	3	Dorset
+UK632	3	Somerset
+UK7	1	West Midlands
+UK71	2	Hereford and Worcester, Warwickshire
+UK711	3	Hereford and Worcester
+UK712	3	Warwickshire
+UK72	2	Shropshire, Staffordshire
+UK721	3	Shropshire
+UK722	3	Staffordshire
+UK73	2	West Midlands (County)
+UK8	1	North West (UK)
+UK81	2	Cheshire
+UK82	2	Greater Manchester
+UK83	2	Lancashire
+UK84	2	Merseyside
+UK9	1	Wales
+UK91	2	Clwyd, Dyfed, Gwynedd, Powys
+UK911	3	Clwyd
+UK912	3	Dyfed
+UK913	3	Gwynedd
+UK914	3	Powys
+UK92	2	Gwent, Mid-South-West Glamorgan
+UK921	3	Gwent
+UK922	3	Mid Glamorgan
+UK923	3	South Glamorgan
+UK924	3	West Glamorgan
+UKA	1	Scotland
+UKA1	2	Borders-Central-Fife-Lothian-Tayside
+UKA11	3	Borders
+UKA12	3	Central
+UKA13	3	Fife
+UKA14	3	Lothian
+UKA15	3	Tayside
+UKA2	2	Dumfries and Galloway, Strathclyde
+UKA21	3	Dumfries and Galloway
+UKA22	3	Strathclyde
+UKA3	2	Highlands, Islands
+UKA31	3	Highlands
+UKA32	3	Islands
+UKA4	2	Grampian
+UKB	1	Northern Ireland (UK)
+UKC	1	North East (UK)
+UKC1	2	Tees Valley and Durham
+UKC11	3	Hartlepool and Stockton-on-Tees
+UKC12	3	South Teesside
+UKC13	3	Darlington
+UKC14	3	Durham CC
+UKC2	2	Northumberland and Tyne and Wear
+UKC21	3	Northumberland
+UKC22	3	Tyneside
+UKC23	3	Sunderland
+UKD	1	North West (UK)
+UKD1	2	Cumbria
+UKD11	3	West Cumbria
+UKD12	3	East Cumbria
+UKD2	2	Cheshire
+UKD21	3	Halton and Warrington
+UKD22	3	Cheshire CC
+UKD3	2	Greater Manchester
+UKD31	3	Greater Manchester South
+UKD32	3	Greater Manchester North
+UKD33	3	Manchester
+UKD34	3	Greater Manchester South West
+UKD35	3	Greater Manchester South East
+UKD36	3	Greater Manchester North West
+UKD37	3	Greater Manchester North East
+UKD4	2	Lancashire
+UKD41	3	Blackburn with Darwen
+UKD42	3	Blackpool
+UKD43	3	Lancashire CC
+UKD44	3	Lancaster & Wyre
+UKD45	3	Mid Lancashire
+UKD46	3	East Lancashire
+UKD47	3	Chorley & West Lancashire
+UKD5	2	Merseyside
+UKD51	3	East Merseyside
+UKD52	3	Liverpool
+UKD53	3	Sefton
+UKD54	3	Wirral
+UKD6	2	Cheshire
+UKD61	3	Warrington
+UKD62	3	Cheshire East
+UKD63	3	Cheshire West and Chester
+UKD7	2	Merseyside
+UKD71	3	East Merseyside
+UKD72	3	Liverpool
+UKD73	3	Sefton
+UKD74	3	Wirral
+UKE	1	Yorkshire and The Humber
+UKE1	2	East Yorkshire and Northern Lincolnshire
+UKE11	3	Kingston upon Hull, City of
+UKE12	3	East Riding of Yorkshire
+UKE13	3	North and North East Lincolnshire
+UKE2	2	North Yorkshire
+UKE21	3	York
+UKE22	3	North Yorkshire CC
+UKE3	2	South Yorkshire
+UKE31	3	Barnsley, Doncaster and Rotherham
+UKE32	3	Sheffield
+UKE4	2	West Yorkshire
+UKE41	3	Bradford
+UKE42	3	Leeds
+UKE43	3	Calderdale, Kirklees and Wakefield
+UKE44	3	Calderdale and Kirklees
+UKE45	3	Wakefield
+UKF	1	East Midlands (UK)
+UKF1	2	Derbyshire and Nottinghamshire
+UKF11	3	Derby
+UKF12	3	East Derbyshire
+UKF13	3	South and West Derbyshire
+UKF14	3	Nottingham
+UKF15	3	North Nottinghamshire
+UKF16	3	South Nottinghamshire
+UKF2	2	Leicestershire, Rutland and Northamptonshire
+UKF21	3	Leicester
+UKF22	3	Leicestershire CC and Rutland
+UKF23	3	Northamptonshire
+UKF24	3	West Northamptonshire
+UKF25	3	North Northamptonshire
+UKF3	2	Lincolnshire
+UKF30	3	Lincolnshire
+UKG	1	West Midlands (UK)
+UKG1	2	Herefordshire, Worcestershire and Warwickshire
+UKG11	3	Herefordshire, County of
+UKG12	3	Worcestershire
+UKG13	3	Warwickshire
+UKG2	2	Shropshire and Staffordshire
+UKG21	3	Telford and Wrekin
+UKG22	3	Shropshire CC
+UKG23	3	Stoke-on-Trent
+UKG24	3	Staffordshire CC
+UKG3	2	West Midlands
+UKG31	3	Birmingham
+UKG32	3	Solihull
+UKG33	3	Coventry
+UKG34	3	Dudley and Sandwell
+UKG35	3	Walsall and Wolverhampton
+UKG36	3	Dudley
+UKG37	3	Sandwell
+UKG38	3	Walsall
+UKG39	3	Wolverhampton
+UKH	1	East of England
+UKH1	2	East Anglia
+UKH11	3	Peterborough
+UKH12	3	Cambridgeshire CC
+UKH13	3	Norfolk
+UKH14	3	Suffolk
+UKH15	3	Norwich & East Norfolk
+UKH16	3	North & West Norfolk
+UKH17	3	Breckland & South Norfolk
+UKH2	2	Bedfordshire and Hertfordshire
+UKH21	3	Luton
+UKH22	3	Bedfordshire CC
+UKH23	3	Hertfordshire
+UKH24	3	Bedford
+UKH25	3	Central Bedfordshire
+UKH3	2	Essex
+UKH31	3	Southend-on-Sea
+UKH32	3	Thurrock
+UKH33	3	Essex CC
+UKH34	3	Essex Haven Gateway
+UKH35	3	West Essex
+UKH36	3	Heart of Essex
+UKH37	3	Essex Thames Gateway
+UKI	1	London
+UKI1	2	Inner London
+UKI11	3	Inner London - West
+UKI12	3	Inner London - East
+UKI2	2	Outer London
+UKI21	3	Outer London - East and North East
+UKI22	3	Outer London - South
+UKI23	3	Outer London - West and North West
+UKI3	2	Inner London - West
+UKI31	3	Camden & City of London
+UKI32	3	Westminster
+UKI33	3	Kensington and Chelsea & Hammersmith and Fulham
+UKI34	3	Wandsworth
+UKI4	2	Inner London - East
+UKI41	3	Hackney & Newham
+UKI42	3	Tower Hamlets
+UKI43	3	Haringey & Islington
+UKI44	3	Lewisham & Southwark
+UKI45	3	Lambeth
+UKI5	2	Outer London - East and North East
+UKI51	3	Bexley & Greenwich
+UKI52	3	Barking & Dagenham and Havering
+UKI53	3	Redbridge & Waltham Forest
+UKI54	3	Enfield
+UKI6	2	Outer London - South
+UKI61	3	Bromley
+UKI62	3	Croydon
+UKI63	3	Merton, Kingston upon Thames & Sutton
+UKI7	2	Outer London - West and North West
+UKI71	3	Barnet
+UKI72	3	Brent
+UKI73	3	Ealing
+UKI74	3	Harrow & Hillingdon
+UKI75	3	Hounslow & Richmond upon Thames
+UKJ	1	South East (UK)
+UKJ1	2	Berkshire, Buckinghamshire and Oxfordshire
+UKJ11	3	Berkshire
+UKJ12	3	Milton Keynes
+UKJ13	3	Buckinghamshire CC
+UKJ14	3	Oxfordshire
+UKJ2	2	Surrey, East and West Sussex
+UKJ21	3	Brighton and Hove
+UKJ22	3	East Sussex CC
+UKJ23	3	Surrey
+UKJ24	3	West Sussex
+UKJ25	3	West Surrey
+UKJ26	3	East Surrey
+UKJ27	3	West Sussex (South West)
+UKJ28	3	West Sussex (North East)
+UKJ3	2	Hampshire and Isle of Wight
+UKJ31	3	Portsmouth
+UKJ32	3	Southampton
+UKJ33	3	Hampshire CC
+UKJ34	3	Isle of Wight
+UKJ35	3	South Hampshire
+UKJ36	3	Central Hampshire
+UKJ37	3	North Hampshire
+UKJ4	2	Kent
+UKJ41	3	Medway
+UKJ42	3	Kent CC
+UKJ43	3	Kent Thames Gateway
+UKJ44	3	East Kent
+UKJ45	3	Mid Kent
+UKJ46	3	West Kent
+UKK	1	South West (UK)
+UKK1	2	Gloucestershire, Wiltshire and Bristol/Bath area
+UKK11	3	Bristol, City of
+UKK12	3	Bath and North East Somerset, North Somerset and South Gloucestershire
+UKK13	3	Gloucestershire
+UKK14	3	Swindon
+UKK15	3	Wiltshire CC
+UKK2	2	Dorset and Somerset
+UKK21	3	Bournemouth and Poole
+UKK22	3	Dorset CC
+UKK23	3	Somerset
+UKK24	3	Bournemouth, Christchurch and Poole
+UKK25	3	Dorset
+UKK3	2	Cornwall and Isles of Scilly
+UKK30	3	Cornwall and Isles of Scilly
+UKK4	2	Devon
+UKK41	3	Plymouth
+UKK42	3	Torbay
+UKK43	3	Devon CC
+UKL	1	Wales
+UKL1	2	West Wales and The Valleys
+UKL11	3	Isle of Anglesey
+UKL12	3	Gwynedd
+UKL13	3	Conwy and Denbighshire
+UKL14	3	South West Wales
+UKL15	3	Central Valleys
+UKL16	3	Gwent Valleys
+UKL17	3	Bridgend and Neath Port Talbot
+UKL18	3	Swansea
+UKL2	2	East Wales
+UKL21	3	Monmouthshire and Newport
+UKL22	3	Cardiff and Vale of Glamorgan
+UKL23	3	Flintshire and Wrexham
+UKL24	3	Powys
+UKM	1	Scotland
+UKM1	2	North Eastern Scotland
+UKM10	3	Aberdeen City, Aberdeenshire and North East Moray
+UKM2	2	Eastern Scotland
+UKM21	3	Angus and Dundee City
+UKM22	3	Clackmannanshire and Fife
+UKM23	3	East Lothian and Midlothian
+UKM24	3	Scottish Borders
+UKM25	3	Edinburgh, City of
+UKM26	3	Falkirk
+UKM27	3	Perth & Kinross and Stirling
+UKM28	3	West Lothian
+UKM3	2	South Western Scotland
+UKM31	3	East Dunbartonshire, West Dunbartonshire and Helensburgh & Lomond
+UKM32	3	Dumfries & Galloway
+UKM33	3	East Ayrshire and North Ayrshire mainland
+UKM34	3	Glasgow City
+UKM35	3	Inverclyde, East Renfrewshire and Renfrewshire
+UKM36	3	North Lanarkshire
+UKM37	3	South Ayrshire
+UKM38	3	South Lanarkshire
+UKM4	2	Highlands and Islands
+UKM42	3	Inverness and Nairn, Moray, Badenoch and Strathspey
+UKM5	2	North Eastern Scotland
+UKM50	3	Aberdeen City and Aberdeenshire
+UKM6	2	Highlands and Islands
+UKM61	3	Caithness & Sutherland and Ross & Cromarty
+UKM62	3	Inverness & Nairn and Moray, Badenoch & Strathspey
+UKM63	3	Lochaber, Skye & Lochalsh, Arran & Cumbrae and Argyll & Bute
+UKM64	3	Eilean Siar (Western Isles)
+UKM65	3	Orkney Islands
+UKM66	3	Shetland Islands
+UKM7	2	Eastern Scotland
+UKM71	3	Angus and Dundee City
+UKM72	3	Clackmannanshire and Fife
+UKM73	3	East Lothian and Midlothian
+UKM75	3	Edinburgh, City of
+UKM76	3	Falkirk
+UKM77	3	Perth & Kinross and Stirling
+UKM78	3	West Lothian
+UKM8	2	West Central Scotland
+UKM81	3	East Dunbartonshire, West Dunbartonshire and Helensburgh & Lomond
+UKM82	3	Glasgow City
+UKM83	3	Inverclyde, East Renfrewshire and Renfrewshire
+UKM84	3	North Lanarkshire
+UKM9	2	Southern Scotland
+UKM91	3	Scottish Borders
+UKM92	3	Dumfries & Galloway
+UKM93	3	East Ayrshire and North Ayrshire mainland
+UKM94	3	South Ayrshire
+UKM95	3	South Lanarkshire
+UKN	1	Northern Ireland (UK)
+UKN0	2	Northern Ireland (UK)
+UKN01	3	Belfast
+UKN02	3	Outer Belfast
+UKN03	3	East of Northern Ireland
+UKN04	3	North of Northern Ireland
+UKN05	3	West and South of Northern Ireland
+UKN06	3	Belfast
+UKN07	3	Armagh City, Banbridge and Craigavon
+UKN08	3	Newry, Mourne and Down
+UKN09	3	Ards and North Down
+UKN0A	3	Derry City and Strabane
+UKN0B	3	Mid Ulster
+UKN0C	3	Causeway Coast and Glens
+UKN0D	3	Antrim and Newtownabbey
+UKN0E	3	Lisburn and Castlereagh
+UKN0F	3	Mid and East Antrim
+UKN0G	3	Fermanagh and Omagh
+UKN10	3	Derry City and Strabane
+UKN11	3	Mid Ulster
+UKN12	3	Causeway Coast and Glens
+UKN13	3	Antrim and Newtownabbey
+UKN14	3	Lisburn and Castlereagh
+UKN15	3	Mid and East Antrim
+UKN16	3	Fermanagh and Omagh
+UKX	1	Not regionalised/Unknown NUTS 1
+UKXX	2	Not regionalised/Unknown NUTS 2
+UKXXX	3	Not regionalised/Unknown NUTS 3
+UKZ	1	Extra-Regio NUTS 1
+UKZZ	2	Extra-Regio NUTS 2
+UKZZZ	3	Extra-Regio NUTS 3
+XK0	1	Kosovë/Kosovo
+XK00	2	Kosovë/Kosovo
+XK001	3	Prishtinë/Priština
+XK002	3	Mitrovicë/Mitrovica
+XK003	3	Pejë/Peć
+XK004	3	Prizren/Prizren
+XK005	3	Ferizaj/Uroševac
+XK006	3	Gjilan/Gnjilane
+XK007	3	Gjakovë/Đakovica
+XKX	1	Not regionalised/Unknown level 1
+XKXX	2	Not regionalised/Unknown level 2
+XKXXX	3	Not regionalised/Unknown level 3
+XKZ	1	Extra-Regio level 1
+XKZZ	2	Extra-Regio level 2
+XKZZZ	3	Extra-Regio level 3

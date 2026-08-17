@@ -78,6 +78,58 @@ faire correspondre fabriquerait une approximation silencieuse : à
 refuser par principe. OpenStreetMap est exclu d'office (ODbL,
 partage à l'identique).
 
+### Nomenclature NUTS — chargée le 2026-08-17, attribution consignée
+
+**Canal d'acquisition : l'API de diffusion statistique Eurostat**
+(codelist SDMX 2.1 `ESTAT/GEO`,
+`ec.europa.eu/eurostat/api/dissemination/…`) — délibérément PAS le
+serveur GISCO, même pour un fichier sans géométrie : zéro ambiguïté,
+c'est la donnée statistique du site Eurostat, couverte par la décision
+2011/833/UE (CC BY 4.0, réutilisation commerciale explicitement
+autorisée, vérifiée à la source ce jour — section GISCO ci-dessus).
+
+**Attribution requise et portée par le produit** : « Source : Eurostat —
+nomenclature NUTS, © Union européenne, CC BY 4.0 ». À afficher sur les
+surfaces qui montrent des noms de régions (crédit de pied de page avec
+CORDIS/NIH/NSF, page « À propos des données ») — posée avec les
+surfaces du lot F.
+
+**Modifications déclarées** (la CC BY exige de les indiquer) : filtrage
+aux codes NUTS des pays du système (UE-27, AELE, candidats, UK hérité,
+UA/MD) — les agrégats statistiques (EU27, zone euro, ACP…) sont
+écartés ; suffixes de millésime retirés des libellés (« Zuid-Holland
+(NUTS 2021) » → « Zuid-Holland »). Libellés officiels conservés
+VERBATIM par ailleurs (« Ile de France », sans accent : écriture
+Eurostat). **3 348 codes** (254 NUTS1, 610 NUTS2, 2 484 NUTS3),
+fichier versionné `backend/curation/nuts-nomenclature.tsv` — le diff
+est le journal d'audit, comme la curation des groupes.
+
+### 📉 Backfill NUTS — la ligne de perfs constatées (run prod du 2026-08-17)
+
+Le rétro-remplissage `participations.nuts_code` depuis les caches CORDIS
+(fp7, h2020, horizon), version table temporaire indexée + jointure
+`split_part` — après l'abandon du motif LIKE qui rebalayait 842 k lignes
+par lot de 5 000 :
+
+- **431 798 / 463 147** participations CORDIS tamponnées (**93,2 %**),
+  en **125 s** tout compris (lecture des trois zips, table temporaire,
+  index, UPDATE en une passe) — sur l'image tamponnée `4de2ca8aa93d`,
+  vérifiée AVANT lancement grâce au label de révision : plus jamais un
+  run sur du vieux code sans le savoir ;
+- résidu : **31 349 participations sans code** — l'organisation n'a pas
+  de `nutsCode` dans CORDIS (pays tiers surtout) ; l'absence restera
+  dite à l'écran, jamais fondue dans un zéro (règle du lot E) ;
+- résidu de PROFONDEUR : une part des codes s'arrête au niveau pays
+  (« FR » sec : 2 118 participations françaises) ou NUTS1 — la vue par
+  régions les classera « région non précisée », pas ailleurs ;
+- sanity check qui parle : FR10 (Île-de-France) 12,37 Md€, puis
+  **FRJ2 (Midi-Pyrénées / Toulouse) 1,16 Md€** juste derrière FRK2
+  (Rhône-Alpes) 1,25 Md€ — l'aérospatial se lit déjà dans la maille ;
+- au passage, la passe idempotente a reconfirmé les 362 219 États
+  américains (NIH), et signalé **1 cache NSF manquant** au volume
+  (`nsf_cache_missing=1`) : à re-télécharger au prochain run NSF, sans
+  effet sur l'existant.
+
 ### Précédent : l'ANR, retirée le 2026-08-03
 
 Les données ANR étaient publiées sous **ODbL 1.0** (clause de partage à

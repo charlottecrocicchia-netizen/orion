@@ -29,6 +29,7 @@ import csv
 import io
 import json
 import zipfile
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import text
@@ -40,6 +41,7 @@ from orion.ingest.runlog import RunStats, record_run
 
 SOURCE = "subdivisions"
 CHUNK = 5000
+NUTS_FILE = Path(__file__).resolve().parents[3] / "curation" / "nuts-nomenclature.tsv"
 
 # Les 50 États + DC, puis les cinq territoires qui reçoivent des
 # financements fédéraux (ils apparaissent dans NIH/NSF : la règle gravée
@@ -273,11 +275,40 @@ def backfill_cordis(session: Session, stats: RunStats) -> None:
     stats.add("cordis_nuts", total)
 
 
+def seed_nuts_nomenclature(session: Session, stats: RunStats, path: Path | None = None) -> None:
+    """Les NOMS des régions européennes — nomenclature statistique
+    Eurostat (codelist SDMX GEO, CC BY 4.0, registre des sources au
+    2026-08-17), versionnée dans le dépôt comme la curation : le diff
+    est le journal d'audit. Remplacée en entier, tout ou rien — un
+    référentiel à moitié chargé mentirait sur ce qu'il sait nommer.
+
+    Libellés officiels VERBATIM (« Ile de France » sans accent : c'est
+    l'écriture Eurostat, on ne retouche pas une source). Deux
+    modifications assumées et consignées : filtrage aux codes NUTS des
+    pays du système, suffixes de millésime retirés des libellés."""
+    path = path or NUTS_FILE
+    with open(path, encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh, delimiter="\t")
+        rows = [
+            {"code": row["code"], "level": int(row["level"]), "name": row["name"]} for row in reader
+        ]
+    if not rows:
+        raise ValueError(f"nomenclature NUTS vide : {path}")
+    session.execute(text("DELETE FROM nuts_nomenclature"))
+    session.execute(
+        text("INSERT INTO nuts_nomenclature (code, level, name) VALUES (:code, :level, :name)"),
+        rows,
+    )
+    session.commit()
+    stats.add("nuts_names", len(rows))
+
+
 def run(force: bool = False) -> dict[str, int]:  # noqa: ARG001 — backfill total
     with record_run(SOURCE) as stats:
         session = SessionLocal()
         try:
             seed_subdivisions(session, stats)
+            seed_nuts_nomenclature(session, stats)
             backfill_nsf(session, stats)
             backfill_nih(session, stats)
             backfill_cordis(session, stats)

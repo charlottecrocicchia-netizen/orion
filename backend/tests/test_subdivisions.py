@@ -136,3 +136,29 @@ def test_explore_distributes_by_subdivision(db_session):
     )
     assert compared is not None
     assert {s["key"] for s in compared["series"]} == {"US-CA", "US-MA"}
+
+
+def test_the_nuts_nomenclature_names_the_raw_codes(db_session):
+    """Lot F (2026-08-17) : le fichier versionné charge tout ou rien, et
+    les codes BRUTS du backfill CORDIS y trouvent leurs noms officiels —
+    des régions nommées, jamais dessinées (la géométrie GISCO est exclue
+    au registre, la nomenclature CC BY 4.0 passe)."""
+    from orion.ingest.subdivisions import seed_nuts_nomenclature
+
+    seed_nuts_nomenclature(db_session, RunStats())
+    rows = {
+        r.code: (r.level, r.name)
+        for r in db_session.execute(text("SELECT code, level, name FROM nuts_nomenclature"))
+    }
+    assert len(rows) > 3000, "la nomenclature couvre l'Europe élargie"
+    # Les codes constatés en prod au backfill se résolvent, aux niveaux
+    # attendus — libellés Eurostat VERBATIM (« Ile de France »).
+    assert rows["FR10"] == (2, "Ile de France")
+    assert rows["FRJ2"] == (2, "Midi-Pyrénées")
+    assert rows["FRJ"] == (1, "Occitanie")
+    assert rows["DE21"] == (2, "Oberbayern")
+    # Le niveau est cohérent avec la longueur du code, partout.
+    assert all(len(code) - 2 == level for code, (level, _) in rows.items())
+    # Rejouable : remplacée, jamais dupliquée.
+    seed_nuts_nomenclature(db_session, RunStats())
+    assert db_session.execute(text("SELECT count(*) FROM nuts_nomenclature")).scalar() == len(rows)
