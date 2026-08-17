@@ -78,6 +78,19 @@ faire correspondre fabriquerait une approximation silencieuse : à
 refuser par principe. OpenStreetMap est exclu d'office (ODbL,
 partage à l'identique).
 
+### Vérification — API EU Funding & Tenders (2026-08-17, phase 5)
+
+Affirmation d'un audit externe : « CC-BY 4.0 par défaut ». Vérifié à la
+source ce jour : la mention légale de la Commission pose le défaut
+**CC BY 4.0 (décision 2011/833/UE), réutilisation commerciale autorisée**
+avec attribution, pour tout contenu détenu par l'UE ; le portail F&T est
+un site de la Commission, ses données d'appels relèvent de ce défaut.
+**Verdict : PASSE** — même base que la nomenclature NUTS. Réserve de
+procédure : la mention légale PROPRE au portail (SPA illisible en fetch)
+sera relue au navigateur le jour du chargement, règle sans exception.
+Première source licite de la phase 5 (appels), instruction post-serveur.
+Détail : [lecons-audit-produit.md](lecons-audit-produit.md).
+
 ### Nomenclature NUTS — chargée le 2026-08-17, attribution consignée
 
 **Canal d'acquisition : l'API de diffusion statistique Eurostat**

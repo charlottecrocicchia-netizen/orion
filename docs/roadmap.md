@@ -346,6 +346,11 @@ même : [conception-drill-etats.md](conception-drill-etats.md) et
 
 ## Puis — phase 5 : les appels (calls)
 
+**Source des appels tranchée (2026-08-17)** : l'API du portail EU
+Funding & Tenders — licence vérifiée au [registre](data-sources.md)
+(CC BY 4.0, décision 2011/833/UE), première source P5 licite, à
+instruire post-serveur.
+
 Cahier des charges enrichi par l'[analyse fonctionnelle de la concurrence]
 (analyse-fonctionnelle-concurrence.md) (2026-08-02, à valider) : catalogue
 filtrable + matching par description libre avec % de correspondance + test
