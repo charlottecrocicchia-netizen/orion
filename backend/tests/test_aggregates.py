@@ -72,6 +72,24 @@ def test_global_stats_shape_and_curve(db_session, seeded):
     assert 2022 in years
 
 
+def test_global_stats_space_counters_follow_the_lens(db_session, seeded):
+    """Le hero spatial (lot 2, validé 2026-08-17) : ses compteurs suivent
+    la lentille — le grand chiffre est « direct + habilitant » (cœur +
+    adjacent), les organisations et les groupes se comptent sur les
+    projets tagués, la courbe se dessine sur les années du SPATIAL."""
+    db_session.execute(
+        text("UPDATE projects SET space_tag = 'core' WHERE id = :p"), {"p": seeded["project"]}
+    )
+    db_session.flush()
+    stats = aggregates.global_stats(db_session)
+
+    assert stats["space"]["core"] == 1
+    assert stats["space"]["funding_eur"] == pytest.approx(7_000_000)
+    assert stats["space"]["organisations"] >= 1
+    assert stats["space"]["groups"] == 0  # la graine n'a pas de groupe
+    assert [row["year"] for row in stats["space"]["by_year"]] == [2022]
+
+
 def test_country_hub_aggregates_and_404(db_session, seeded):
     hub = aggregates.country_hub(db_session, "fr")
     assert hub is not None and hub["code"] == "FR"

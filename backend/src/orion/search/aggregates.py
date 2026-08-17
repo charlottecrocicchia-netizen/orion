@@ -29,7 +29,21 @@ def global_stats(session: Session) -> dict[str, Any]:
                    (SELECT count(*) FROM projects
                     WHERE space_tag = 'adjacent') AS space_adjacent,
                    (SELECT coalesce(sum(funding_amount_eur), 0) FROM projects
-                    WHERE space_tag = 'core') AS space_core_funding
+                    WHERE space_tag = 'core') AS space_core_funding,
+                   -- Le hero spatial (lot 2, validé 2026-08-17) : le grand
+                   -- chiffre dit « direct + habilitant » — cœur + adjacent.
+                   (SELECT coalesce(sum(funding_amount_eur), 0) FROM projects
+                    WHERE space_tag IS NOT NULL) AS space_funding,
+                   (SELECT count(DISTINCT pa.organisation_id)
+                    FROM participations pa
+                    JOIN projects p ON p.id = pa.project_id
+                    WHERE p.space_tag IS NOT NULL) AS space_orgs,
+                   (SELECT count(DISTINCT m.group_id)
+                    FROM entity_group_map m
+                    JOIN participations pa ON pa.organisation_id = m.organisation_id
+                    JOIN projects p ON p.id = pa.project_id
+                    WHERE m.status = 'active'
+                      AND p.space_tag IS NOT NULL) AS space_groups
             """)
         ).one()
         by_year = session.execute(
@@ -37,6 +51,17 @@ def global_stats(session: Session) -> dict[str, Any]:
             SELECT extract(year FROM start_date)::int AS y, sum(funding_amount_eur) AS amount
             FROM projects
             WHERE start_date IS NOT NULL
+              AND extract(year FROM start_date) BETWEEN 2000 AND 2035
+            GROUP BY y ORDER BY y
+            """)
+        ).all()
+        # La courbe-constellation du hero spatial : les années du SPATIAL,
+        # jamais celles du corpus entier maquillées.
+        space_by_year = session.execute(
+            text("""
+            SELECT extract(year FROM start_date)::int AS y, sum(funding_amount_eur) AS amount
+            FROM projects
+            WHERE space_tag IS NOT NULL AND start_date IS NOT NULL
               AND extract(year FROM start_date) BETWEEN 2000 AND 2035
             GROUP BY y ORDER BY y
             """)
@@ -53,6 +78,10 @@ def global_stats(session: Session) -> dict[str, Any]:
                 "core": totals.space_core or 0,
                 "adjacent": totals.space_adjacent or 0,
                 "core_funding_eur": float(totals.space_core_funding or 0),
+                "funding_eur": float(totals.space_funding or 0),
+                "organisations": totals.space_orgs or 0,
+                "groups": totals.space_groups or 0,
+                "by_year": [{"year": y, "amount_eur": float(a or 0)} for y, a in space_by_year],
             },
             "funding_by_year": [{"year": y, "amount_eur": float(a or 0)} for y, a in by_year],
         }

@@ -13,8 +13,17 @@ export interface Stats {
     countries: number;
   };
   funding_by_year: { year: number; amount_eur: number }[];
-  /** La lentille spatiale (V1) : les compteurs de preuve de la home. */
-  space: { core: number; adjacent: number; core_funding_eur: number };
+  /** La lentille spatiale : les compteurs de preuve de la home, et le
+   *  hero spatial (lot 2) — « direct + habilitant » = cœur + adjacent. */
+  space: {
+    core: number;
+    adjacent: number;
+    core_funding_eur: number;
+    funding_eur: number;
+    organisations: number;
+    groups: number;
+    by_year: { year: number; amount_eur: number }[];
+  };
 }
 
 export interface ProjectHit {

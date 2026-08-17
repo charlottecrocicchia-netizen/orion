@@ -240,6 +240,22 @@ PROJECTS = [
             )
         },
     ),
+    # Une DEUXIÈME année spatiale (motif « earth observation ») : le hero
+    # spatial dessine sa constellation, et une courbe à un point est
+    # invisible — la leçon QUBITNET, apprise deux fois, gravée ici.
+    (
+        "e2e-earthobs",
+        "TERRASCOPE",
+        2021,
+        "he-child",
+        [("cnrs", 0.6)],
+        {
+            "en": (
+                "Earth observation for coastal resilience",
+                "Multispectral earth observation services for shoreline monitoring.",
+            )
+        },
+    ),
 ]
 
 

@@ -18,7 +18,18 @@ const STATS = {
     { year: 2023, amount_eur: 18.3e9 },
     { year: 2027, amount_eur: 0.9e9 },
   ],
-  space: { core: 812, adjacent: 2140, core_funding_eur: 3.1e9 },
+  space: {
+    core: 812,
+    adjacent: 2140,
+    core_funding_eur: 3.1e9,
+    funding_eur: 5.2e9,
+    organisations: 1450,
+    groups: 21,
+    by_year: [
+      { year: 2019, amount_eur: 1.1e9 },
+      { year: 2024, amount_eur: 2.3e9 },
+    ],
+  },
 };
 
 const SEARCH = {
@@ -116,10 +127,15 @@ test("home leads with the hero, acts follow below", async () => {
   for (const intent of ["Discover", "Analyse", "Build", "Workspace"]) {
     expect(banner.getByRole("button", { name: intent })).toBeInTheDocument();
   }
-  // Act 1 — the hero seizes first (jsdom: reduced motion → final state).
-  expect(await screen.findByText("€211B")).toBeInTheDocument();
-  expect(await screen.findByText("119,172")).toBeInTheDocument();
-  expect(screen.getByText("funded projects")).toBeInTheDocument();
+  // Act 1 — the hero is SPATIAL (lot 2, 2026-08-17): the big figure is
+  // the lens total and its phrase says the perimeter; the general corpus
+  // becomes the quiet line below (jsdom: reduced motion → final state).
+  expect(await screen.findByText("€5B")).toBeInTheDocument();
+  expect(screen.getByText(/direct \+ enabling/)).toBeInTheDocument();
+  expect(await screen.findByText("2,952")).toBeInTheDocument();
+  expect(screen.getByText("space projects")).toBeInTheDocument();
+  expect(screen.getByText("industrial groups")).toBeInTheDocument();
+  expect(screen.getByText(/Backed by a corpus/)).toBeInTheDocument();
   // Act 2 — the ink tile: the question and the three editorial entries.
   expect(
     screen.getByRole("heading", { name: "What are you looking for?" }),

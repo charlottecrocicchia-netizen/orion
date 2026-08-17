@@ -12,33 +12,45 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("la home Orion Space Intelligence : la bande espace dit le vrai et sa porte cadre l'Explorateur", async ({
+test("la home raconte le spatial : le hero dit son périmètre, la ligne corpus dit l'assise", async ({
   page,
 }) => {
+  // Lot 2 (validé 2026-08-17) : les rôles s'inversent — le grand chiffre
+  // est SPATIAL et dit « direct + habilitant » dans la phrase même
+  // (exigence fondatrice ①) ; le corpus général devient la ligne
+  // discrète, avec sa porte vers Toute la R&D.
   await page.goto("/");
   await expect(page.getByText("Orion Space Intelligence").first()).toBeVisible();
+  await expect(page.getByText(/direct \+ habilitant/)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("projets spatiaux", { exact: true })).toBeVisible();
+  await expect(page.getByText("groupes industriels", { exact: true })).toBeVisible();
 
-  const band = page.getByRole("region", { name: "Le secteur spatial, identifié dans le corpus" });
-  await expect(band).toBeVisible({ timeout: 10_000 });
-  // ORBITGUARD est le seul projet cœur de la graine — la forme
-  // SINGULIÈRE du libellé prouve le compte (pluriels i18n).
-  await expect(band.getByText("projet spatial au cœur", { exact: true })).toBeVisible();
-  await expect(band.getByText("€2M")).toBeVisible();
+  // L'assise : le corpus entier, jamais caché.
+  const corpus = page.getByRole("region", { name: "Le corpus entier" });
+  await expect(corpus).toBeVisible();
+  await expect(corpus.getByText(/Adossé à un corpus/)).toBeVisible();
 
-  await band.getByRole("link", { name: /Explorer l’espace/ }).click();
+  // La porte spatiale du hero cadre l'Explorateur, en carte.
+  await page.getByRole("link", { name: /Explorer l.espace/ }).click();
   await expect(page).toHaveURL(/\/explore\?.*sector=space/);
-  // La vue cadrée rend en CARTE (pays × financements : la carte mène,
-  // règle doctrine) — le paysage industriel spatial, pays vivants.
   const map = page.getByRole("group", { name: /Carte du monde/ });
   await expect(map).toBeVisible({ timeout: 15_000 });
   await expect(map.locator("path[data-code='NL']")).toHaveCount(1, { timeout: 10_000 });
+
+  // Et la porte corpus mène à Toute la R&D (sans cadrage).
+  await page.goto("/");
+  await page.getByRole("link", { name: /Toute la R&D/ }).click();
+  await expect(page).toHaveURL(/\/explore\?/);
+  await expect(page).not.toHaveURL(/sector=/);
 });
 
 test("la recherche projets parle la lentille : ?sector=space cadre au projet tagué", async ({
   page,
 }) => {
   await page.goto("/projects?sector=space");
-  await expect(page.getByText("1 résultat", { exact: true })).toBeVisible({ timeout: 10_000 });
+  // Deux projets spatiaux au seed depuis le lot 2 (ORBITGUARD core +
+  // TERRASCOPE earth observation — la constellation exige deux années).
+  await expect(page.getByText("2 résultats", { exact: true })).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText("ORBITGUARD")).toBeVisible();
 });
 

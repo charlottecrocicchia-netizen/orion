@@ -17,14 +17,17 @@ test("home leads with the pinned hero, then the acts follow", async ({ page }) =
   await page.goto("/");
   // Act 1: the scrub floor already shows a €…B figure before any scroll.
   await expect(page.locator(".hero-gradient")).toContainText(/€\d+B/, { timeout: 10_000 });
-  await expect(page.getByText("funded projects", { exact: true })).toBeVisible();
+  // Le hero est SPATIAL depuis le lot 2 (2026-08-17) : ses KPIs parlent
+  // du sujet du produit, et la phrase dit le périmètre.
+  await expect(page.getByText("space projects", { exact: true })).toBeVisible();
+  await expect(page.getByText(/direct \+ enabling/)).toBeVisible();
   await expect(page.getByRole("img", { name: "Funding per year" })).toBeVisible();
   // Scrolling through the pin drives the shared progress. Asserted on the
   // projects KPI growing — dataset-agnostic (the CI corpus is tiny, and the
   // seeded hero rounds to €0B regardless of progress).
   await page.locator(".pin-spacer").waitFor({ state: "attached", timeout: 5_000 });
   const kpi = page
-    .getByText("funded projects", { exact: true })
+    .getByText("space projects", { exact: true })
     .locator("xpath=preceding-sibling::div[1]");
   const before = Number((await kpi.innerText()).replace(/[^\d]/g, ""));
   await page.mouse.wheel(0, 2400);

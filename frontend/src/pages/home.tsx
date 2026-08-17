@@ -229,6 +229,13 @@ export function HomePage() {
   const years = stats?.funding_by_year ?? [];
   const from = years[0]?.year;
   const to = years[years.length - 1]?.year;
+  // Le hero spatial (lot 2) : dès que la lentille est chargée, le
+  // produit se présente par son sujet — repli général sinon (une base
+  // sans lentille reste honnête).
+  const spaceHero = (stats?.space?.core ?? 0) > 0;
+  const spaceYears = stats?.space?.by_year ?? [];
+  const spaceFrom = spaceYears[0]?.year;
+  const spaceTo = spaceYears[spaceYears.length - 1]?.year;
   const cueOpacity = scrub == null ? 0 : Math.max(0, 1 - ((scrub - SCRUB_BASE) / 0.3) * 1.2);
 
   return (
@@ -240,7 +247,38 @@ export function HomePage() {
       >
         <div className="mx-auto w-full max-w-[1240px]">
           <p className="mb-4 text-sm font-medium text-accent">{t("hero.eyebrow")}</p>
-          {stats ? (
+          {stats && spaceHero ? (
+            /* Le hero SPATIAL (lot 2, validé 2026-08-17) : le produit se
+               présente par son sujet. Le grand chiffre dit son périmètre
+               DANS la phrase même — « direct + habilitant » (exigence
+               fondatrice ①) — et la courbe se dessine sur les années du
+               spatial, jamais sur le corpus entier maquillé. */
+            <>
+              <StatHero
+                funding={stats.space.funding_eur}
+                sub={spaceFrom && spaceTo ? t("hero.subSpace", { from: spaceFrom, to: spaceTo }) : " "}
+                kpis={[
+                  {
+                    value: stats.space.core + stats.space.adjacent,
+                    label: t("hero.spaceProjects"),
+                  },
+                  { value: stats.space.organisations, label: t("hero.spaceOrgs") },
+                  { value: stats.space.groups, label: t("hero.spaceGroups") },
+                ]}
+                years={spaceYears}
+                progress={scrub}
+                basis={t("coverage.heroBasis")}
+              />
+              <p className="mt-7">
+                <Link
+                  to="/explore?sector=space&by=country&split=0"
+                  className="rounded-full bg-foreground px-5 py-2.5 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
+                >
+                  {t("home.spaceCta")} →
+                </Link>
+              </p>
+            </>
+          ) : stats ? (
             <StatHero
               funding={stats.totals.funding_eur}
               sub={from && to ? t("hero.sub", { from, to }) : " "}
@@ -252,10 +290,7 @@ export function HomePage() {
               years={years}
               progress={scrub}
               /* L'assiette du grand total (lot E, 2026-08-17) : le
-                 chiffre du hero dit sur QUOI il porte — quatre sources
-                 officielles, l'Europe par ses programmes-cadres, les
-                 États-Unis par NIH et NSF. Sans cette ligne, 734 Md€ se
-                 lit comme « tout l'argent public de la recherche ». */
+                 chiffre du hero dit sur QUOI il porte. */
               basis={t("coverage.heroBasis")}
             />
           ) : (
@@ -397,58 +432,33 @@ export function HomePage() {
             ))}
           </p>
 
-          {/* La lentille spatiale (V1, 2026-08-05) : la porte « Espace »
-              dit des chiffres VRAIS — les projets tagués par la lentille
-              versionnée, cœur et adjacent séparés, jamais gonflés. */}
-          {(stats?.space?.core ?? 0) > 0 && stats ? (
+          {/* La ligne CORPUS (lot 2, validé 2026-08-17) : les rôles
+              s'inversent — le hero raconte le spatial, le corpus général
+              devient l'assise discrète, avec sa porte vers Toute la R&D.
+              Rien n'est retiré : l'avantage généraliste reste dit. */}
+          {stats && spaceHero ? (
             <section
-              aria-label={t("home.spaceTitle")}
-              className="mt-16 border-y border-border-soft py-8 text-left"
+              aria-label={t("home.corpusKicker")}
+              className="mt-16 border-y border-border-soft py-6 text-left"
             >
-              <p className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted-foreground">
-                {t("home.spaceKicker")}
-              </p>
-              <div className="mt-2 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-                <div className="max-w-[52ch]">
-                  <h2 className="font-display text-[clamp(20px,2.4vw,26px)] font-[560] tracking-[-0.02em]">
-                    {t("home.spaceTitle")}
-                  </h2>
+              <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
+                <div className="max-w-[64ch]">
+                  <p className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-muted-foreground">
+                    {t("home.corpusKicker")}
+                  </p>
                   <p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">
-                    {t("home.spaceLead")}
+                    {t("home.corpusLead", {
+                      projects: formatInt(stats.totals.projects, i18n.language),
+                      funding: formatCompactEur(stats.totals.funding_eur, i18n.language),
+                    })}
                   </p>
                 </div>
-                <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2">
-                  <span>
-                    <span className="tnum font-display block text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
-                      {formatInt(stats.space.core, i18n.language)}
-                    </span>
-                    <span className="text-[12.5px] text-muted-foreground">
-                      {t("home.spaceCore", { count: stats.space.core })}
-                    </span>
-                  </span>
-                  <span>
-                    <span className="tnum font-display block text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
-                      {formatCompactEur(stats.space.core_funding_eur, i18n.language)}
-                    </span>
-                    <span className="text-[12.5px] text-muted-foreground">
-                      {t("home.spaceFunding")}
-                    </span>
-                  </span>
-                  <span>
-                    <span className="tnum font-display block text-[clamp(22px,2.6vw,30px)] font-[560] tracking-[-0.02em]">
-                      {formatInt(stats.space.adjacent, i18n.language)}
-                    </span>
-                    <span className="text-[12.5px] text-muted-foreground">
-                      {t("home.spaceAdjacent", { count: stats.space.adjacent })}
-                    </span>
-                  </span>
-                  <Link
-                    to="/explore?sector=space&by=country&split=0"
-                    className="rounded-full bg-foreground px-5 py-2.5 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
-                  >
-                    {t("home.spaceCta")} →
-                  </Link>
-                </div>
+                <Link
+                  to="/explore?by=country&split=0"
+                  className="rounded-full border px-4.5 py-2 text-[13.5px] font-medium transition-colors hover:border-accent hover:text-accent"
+                >
+                  {t("home.corpusCta")} →
+                </Link>
               </div>
             </section>
           ) : null}
