@@ -1,6 +1,6 @@
 {
   "_readme": "Registre des photos pays du panneau d'accueil (V1 validée 2026-08-02). Une entrée par pays réellement curé : fichier local optimisé (1200px, JPEG), page source Wikimedia Commons, auteur, licence VÉRIFIÉE via l'API imageinfo/extmetadata à la date d'audit. Règle de curation : CC0 / domaine public / CC BY uniquement (pas de ShareAlike — le duotone d'affichage flirte avec l'adaptation) ; les CC BY exigent l'attribution affichée, que le composant rend depuis ce registre (elle est affichée pour toutes par élégance). Les pays absents utilisent le fallback duotone abstrait. Ne JAMAIS ajouter une image sans vérifier sa page de licence.",
-  "_audit": "2026-08-02 — 13 pays vérifiés (FR/ES/IT/NL/DE/GB puis BE/DK/SE/PL/GR/IE/FI, extmetadata API à la date d'audit, CC0/domaine public UNIQUEMENT). CH/AT/PT : silhouette élégante en attendant une prise digne. Curation continue au fil de l'eau.",
+  "_audit": "2026-08-02 — 13 pays européens vérifiés (extmetadata API, CC0/domaine public uniquement). CH/AT/PT : silhouette en attendant une prise digne. 2026-08-17 — fournée monde (pivot spatial, le monde est cliquable) : US/CA/JP/CN/KR/AU/BR/IN/IL, RÈGLE DURCIE au CC0/domaine public STRICT (plus de CC BY pour les nouvelles entrées), extmetadata re-vérifiée à l'instant du téléchargement. Recette visuelle faite : rejets pour galion touristique (Hakone), foule (Juyongguan), personne posant (Moraine Lake), site industriel (mer Morte) — remplacés avant chargement. KR : côte volcanique de Jeju, choisie NATURE d'office (pas de liberté de panorama commerciale sur l'architecture en Corée du Sud). Curation continue au fil de l'eau.",
   "photos": {
     "DE": {
       "file": "/countries/de.jpg",
@@ -79,6 +79,60 @@
       "author": "InsectIntelligence",
       "licence": "Domaine public",
       "source": "https://commons.wikimedia.org/wiki/File%3ALakeshore_in_southern_Finland_in_the_summer_2008%2C_forest_and_rocks%2C_some_sky_reflected_in_the_water.jpg"
+    },
+    "US": {
+      "file": "/countries/us.jpg",
+      "author": "Mx. Granger",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Snow_at_the_Grand_Canyon_1.jpg"
+    },
+    "CA": {
+      "file": "/countries/ca.jpg",
+      "author": "Ezra Jeffrey",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:The_Moraine_Lake_landscape_(Unsplash).jpg"
+    },
+    "JP": {
+      "file": "/countries/jp.jpg",
+      "author": "Alpsdake",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Mount_Fuji_from_Lake_Yamanaka_1995-7-30.jpg"
+    },
+    "CN": {
+      "file": "/countries/cn.jpg",
+      "author": "Velatrix",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Great_Wall_of_China_July_2006.JPG"
+    },
+    "KR": {
+      "file": "/countries/kr.jpg",
+      "author": "Bernard Gagnon",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Yongmeori_Coast.jpg"
+    },
+    "AU": {
+      "file": "/countries/au.jpg",
+      "author": "Dhruva Reddy",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Twelve_Apostles,_Princetown_(Unsplash).jpg"
+    },
+    "BR": {
+      "file": "/countries/br.jpg",
+      "author": "Monocletophat123",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Iguazu_Falls_6.JPG"
+    },
+    "IN": {
+      "file": "/countries/in.jpg",
+      "author": "A,Ocram",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Taj_Mahal_2018.jpg"
+    },
+    "IL": {
+      "file": "/countries/il.jpg",
+      "author": "Mussi Katz",
+      "licence": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:The_Dead_Sea_(49532877853).jpg"
     }
   }
 }
