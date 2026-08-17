@@ -526,6 +526,8 @@ const resources = {
         by: "by",
         overTime: "over time",
         entityScoped: "scoped to one entity",
+        // Même vocabulaire que la bande d'accueil (home.spaceKicker).
+        sectorSpace: "the space lens",
         top: "top {{count}}",
         addFilter: "+ filter",
         theme: "Theme",
@@ -1222,6 +1224,8 @@ const resources = {
         by: "par",
         overTime: "dans le temps",
         entityScoped: "cadré sur une entité",
+        // Même vocabulaire que la bande d'accueil (home.spaceKicker).
+        sectorSpace: "la lentille spatiale",
         top: "top {{count}}",
         addFilter: "+ filtre",
         theme: "Thème",
