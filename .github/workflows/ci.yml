@@ -38,6 +38,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+        with:
+          # L'étape Post (élagage du cache) casse sur le runner depuis
+          # uv 0.12.5 alors que les tests sont verts — on coupe
+          # l'élagage, le cache reste (2026-08-17).
+          prune-cache: false
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .
@@ -85,6 +90,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+        with:
+          # L'étape Post (élagage du cache) casse sur le runner depuis
+          # uv 0.12.5 alors que les tests sont verts — on coupe
+          # l'élagage, le cache reste (2026-08-17).
+          prune-cache: false
       - uses: pnpm/action-setup@v4
         with:
           version: 11
