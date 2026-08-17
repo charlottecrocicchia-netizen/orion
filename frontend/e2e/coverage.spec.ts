@@ -35,13 +35,30 @@ test("une vue qui mélange les couvertures le confesse ; une vue homogène se ta
 }) => {
   // Le monde par pays : la Commission et NIH/NSF couvrent leurs pays,
   // les autres n'apparaissent que par leurs consortiums.
-  await page.goto("/explore?by=country&split=0&limit=8");
+  await page.goto("/explore?by=country&split=0&limit=20");
   await expect(page.getByText("Couvertures inégales")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(/leur budget propre est invisible ici, pas nul/)).toBeVisible();
+  // Elle NOMME le pays concerné : « le Japon finance peu » et « nous ne
+  // voyons du Japon que ce qu'il fait avec l'Europe » ne se disent pas
+  // de la même façon.
+  await expect(page.getByText(/Japon/)).toBeVisible();
 
-  // Cadrée sur l'Europe, la même vue n'a rien à confesser.
-  await page.goto("/explore?by=country&split=0&limit=8&scope=europe");
-  await expect(page.getByRole("img").first()).toBeVisible({ timeout: 15_000 });
+  // La note décrit ce qui est AFFICHÉ, pas le corpus entier. Resserrée
+  // au top 8, la vue ne contient plus que des pays couverts : elle n'a
+  // rien à avouer et se tait. C'est ce qui la garde crédible — une
+  // phrase qui apparaît partout ne se lit bientôt plus nulle part.
+  // On attend que la carte ait RENDU avant de constater une absence :
+  // sans cette ancre, le test passerait au vert sur une page vide.
+  const map = page.getByRole("group", { name: /Carte du monde/ });
+  await page.goto("/explore?by=country&split=0&limit=8");
+  await expect(map.getByRole("button", { name: /United States/ })).toBeVisible({ timeout: 15_000 });
+  await expect(map.getByRole("button", { name: /Japan/ })).toHaveCount(0);
+  await expect(page.getByText("Couvertures inégales")).toHaveCount(0);
+
+  // Et une vue qui ne parle pas de géographie ne parle pas de
+  // couverture : par thème, la question ne se pose pas.
+  await page.goto("/explore?by=theme&split=0&limit=20");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText("Couvertures inégales")).toHaveCount(0);
 });
 

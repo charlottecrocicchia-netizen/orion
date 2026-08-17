@@ -77,6 +77,10 @@ def _seed(session: Session) -> None:
             {"p": projects[sid], "o": orgs[org], "c": country, "a": amount, "s": source, "u": uid},
         )
     session.flush()
+    # La couverture lit `country_stats`, comme tous les agrégats depuis
+    # le chantier performance : la chaîne d'ingestion la rafraîchit après
+    # chaque source, la graine de test fait pareil.
+    session.execute(text("REFRESH MATERIALIZED VIEW country_stats"))
 
 
 def test_the_classes_derive_from_what_is_actually_loaded(db_session):

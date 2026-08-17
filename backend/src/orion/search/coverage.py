@@ -62,13 +62,14 @@ def coverage_map(session: Session) -> dict[str, str]:
         covered: set[str] = set()
         for code in loaded:
             covered |= FUNDER_COVERAGE.get(code, set())
+        # Les pays VUS : lus dans la vue matérialisée que la chaîne
+        # d'ingestion entretient déjà — jamais un DISTINCT sur 842 k
+        # participations à la première visite (leçon du chantier
+        # performance : l'agrégat se calcule au chargement, pas au clic).
         seen = {
             row[0]
             for row in session.execute(
-                text(
-                    "SELECT DISTINCT country_code FROM participations "
-                    "WHERE country_code IS NOT NULL"
-                )
+                text("SELECT code FROM country_stats WHERE projects_count > 0")
             )
         }
         all_countries = {row[0] for row in session.execute(text("SELECT code FROM countries"))}

@@ -64,6 +64,12 @@ ORGS = {
     "mit": ("MASSACHUSETTS INSTITUTE OF TECHNOLOGY", "US", "HES"),
     "technion": ("TECHNION ISRAEL INSTITUTE OF TECHNOLOGY", "IL", "HES"),
     "um_malta": ("UNIVERSITA TA MALTA", "MT", "HES"),
+    # Le cas que la règle de couverture vise (lot E, 2026-08-17) : un
+    # partenaire japonais dans un consortium européen. Le Japon n'a
+    # AUCUN bailleur domestique chargé chez nous — son chiffre est vrai
+    # mais partiel, et l'écran doit le dire plutôt que laisser lire
+    # « le Japon ne finance rien ».
+    "riken": ("RIKEN", "JP", "REC"),
     # La paire AEROSTELLAR (fictive) porte la fiche groupe : deux entités
     # légales sous un même groupe, qui co-signent un projet — le consolidé
     # doit le compter UNE fois (la règle DISTINCT se teste en e2e).
@@ -180,7 +186,7 @@ PROJECTS = [
         "MEDAIR",
         2021,
         "he-child",
-        [("upm", 1.5), ("polito", 0.9)],
+        [("upm", 1.5), ("polito", 0.9), ("riken", 0.3)],
         {"en": ("Air quality and health", "Urban exposure models for the Mediterranean.")},
     ),
     (
