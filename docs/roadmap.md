@@ -344,6 +344,44 @@ même : [conception-drill-etats.md](conception-drill-etats.md) et
   **F3 — option ouverte** : le benchmark géographique (l'Europe face aux
   États-Unis dans `/compare`).
 
+## Multi-lentilles — M0 LIVRÉ (2026-08-17) + registre des évolutions
+
+Conception [conception-multi-lentilles.md](conception-multi-lentilles.md)
+**validée** (D1-D6, D5 amendée, deux amendements M0) — **M0 livré** : le
+tag quitte sa colonne pour `project_lens_tags` (migration 0023, un
+projet peut porter plusieurs lentilles), registre versionné
+**famille → lentille** ([registry.csv](../backend/curation/lenses/registry.csv),
+clé technique `aerospace_mobility`, jamais un libellé), chargeur
+générique (`orion-ingest lenses`, run `<slug>-lens` — `space-lens`
+garde son nom à l'À-propos), grammaire `sector=<slug>|<slug>-direct`
+validée au registre (`space` inchangé par construction), bloc `lenses`
+de `/api/stats` avec alias `space` conservé jusqu'à M1. Recette : les
+71 e2e verts sans une ligne modifiée. **M1 sur validation explicite ;
+A1 (curation aéro) et A2 (decks) chantiers suivants.**
+
+**Registre des évolutions identifiées** (consignes fondatrice,
+2026-08-17) :
+
+- **Intersections de lentilles (`SPACE × QUANTUM`) — évolution MAJEURE
+  identifiée du produit, post-A1.** Le modèle de données la permet
+  (plusieurs tags par projet, souhaité) ; la grammaire produit ne
+  l'expose pas : D3 reste strict — une seule lentille active par vue,
+  aucune syntaxe multi-lentilles, aucun opérateur AND/OU, aucun
+  composant préparatoire dans M0/M1. La porte est ouverte dans le
+  modèle, jamais préimplémentée dans la grammaire.
+- **Cible de marque actée : ORION marque ombrelle**, la lentille comme
+  identité de contexte — **ORION / SPACE**, **ORION / AVIATION**.
+  Exécution SEULEMENT quand A1 aura produit une deuxième lentille
+  réelle, validée, exploitable en production ; d'ici là le jeton
+  « Orion Space Intelligence » ne bouge pas (D5 amendée).
+- **La Lens Room** ([vision-lens-room.md](vision-lens-room.md)) —
+  conçue et implémentée après A1 seulement, quand Orion possède au
+  moins deux lentilles réelles. **Règle d'honnêteté définitive** : elle
+  n'affichera que des lentilles réellement implémentées, aux métriques
+  calculées sur les données réelles — pas de placeholder qui fait
+  croire qu'une lentille existe, pas de compteur fictif, pas de
+  « coming soon » présenté comme disponible.
+
 ## Puis — phase 5 : les appels (calls)
 
 **Source des appels tranchée (2026-08-17)** : l'API du portail EU

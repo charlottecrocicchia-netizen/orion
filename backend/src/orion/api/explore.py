@@ -34,7 +34,8 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         Query(description="entity filter: organisation id or group ref (g<id>)"),
     ] = None,
     sector: Annotated[
-        str | None, Query(description="space lens: 'space' (core+adjacent) or 'space-direct'")
+        str | None,
+        Query(description="registry lens: '<slug>' (core+adjacent) or '<slug>-direct'"),
     ] = None,
     subdivision: Annotated[str | None, Query(description="mesh filter: ISO 3166-2 (US-CA)")] = None,
 ) -> dict[str, Any]:

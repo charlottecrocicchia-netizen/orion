@@ -78,7 +78,8 @@ def test_global_stats_space_counters_follow_the_lens(db_session, seeded):
     adjacent), les organisations et les groupes se comptent sur les
     projets tagués, la courbe se dessine sur les années du SPATIAL."""
     db_session.execute(
-        text("UPDATE projects SET space_tag = 'core' WHERE id = :p"), {"p": seeded["project"]}
+        text("INSERT INTO project_lens_tags (project_id, lens, tag) VALUES (:p, 'space', 'core')"),
+        {"p": seeded["project"]},
     )
     db_session.flush()
     stats = aggregates.global_stats(db_session)

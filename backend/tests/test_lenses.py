@@ -1,16 +1,25 @@
-"""La lentille spatiale (V1, 2026-08-05) : le secteur se DÉFINIT dans un
-fichier versionné et se tague sur pièces — programmes par sous-arbre,
-thèmes par préfixe de code (jamais un libellé), motifs texte cadrés par
-source (jamais NIH, où « satellite cell » est un muscle)."""
+"""Les lentilles (M0, généralisation de la lentille spatiale V1) : un
+secteur se DÉFINIT dans un fichier versionné et se tague sur pièces —
+programmes par sous-arbre, thèmes par préfixe de code (jamais un
+libellé), motifs texte cadrés par source (jamais NIH, où « satellite
+cell » est un muscle). Le registre famille → lentille est validé tout ou
+rien, et un projet peut porter plusieurs lentilles (D1) — chaque vue
+n'en lit qu'une (D3)."""
 
 import pytest
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from orion.core.db import engine
+from orion.ingest.lenses import (
+    LensError,
+    load_all,
+    load_lens,
+    parse_registry,
+    parse_rules,
+)
 from orion.ingest.reference import seed_reference
 from orion.ingest.runlog import RunStats
-from orion.ingest.space_lens import SpaceLensError, load_space_lens, parse_rules
 
 
 @pytest.fixture
@@ -30,8 +39,8 @@ def db_session(test_database):
 HEADER = "rule_type,value,tag,sources,evidence,source"
 
 
-def _lens(tmp_path, rows):
-    path = tmp_path / "space-lens.csv"
+def _lens(tmp_path, rows, name="space.csv"):
+    path = tmp_path / name
     path.write_text("\n".join([HEADER, *rows]) + "\n", encoding="utf-8")
     return path
 
@@ -109,10 +118,11 @@ RULES = [
 ]
 
 
-def _tags(session, ids):
+def _tags(session, ids, lens="space"):
     return {
         sid: session.execute(
-            text("SELECT space_tag FROM projects WHERE id = :i"), {"i": pid}
+            text("SELECT tag FROM project_lens_tags WHERE project_id = :i AND lens = :lens"),
+            {"i": pid, "lens": lens},
         ).scalar()
         for sid, pid in ids.items()
     }
@@ -120,7 +130,7 @@ def _tags(session, ids):
 
 def test_the_lens_tags_by_subtree_prefix_and_framed_text(db_session, tmp_path):
     ids = _seed(db_session)
-    load_space_lens(db_session, RunStats(), path=_lens(tmp_path, RULES))
+    load_lens(db_session, RunStats(), "space", _lens(tmp_path, RULES))
     tags = _tags(db_session, ids)
     assert tags["zzsl-1"] == "core"  # sous-arbre du programme
     assert tags["zzsl-2"] == "core"  # préfixe de thème, malgré le programme
@@ -135,14 +145,14 @@ def test_core_beats_adjacent_whatever_the_file_order(db_session, tmp_path):
         'text,in-orbit,core,cordis|nsf,"Services en orbite",test',
         'text,servicing,adjacent,cordis|nsf,"Générique — adjacent",test',
     ]
-    load_space_lens(db_session, RunStats(), path=_lens(tmp_path, rows))
+    load_lens(db_session, RunStats(), "space", _lens(tmp_path, rows))
     assert _tags(db_session, ids)["zzsl-3"] == "core"
 
 
 def test_reload_retags_from_scratch(db_session, tmp_path):
     ids = _seed(db_session)
-    load_space_lens(db_session, RunStats(), path=_lens(tmp_path, RULES))
-    load_space_lens(db_session, RunStats(), path=_lens(tmp_path, [RULES[0]]))
+    load_lens(db_session, RunStats(), "space", _lens(tmp_path, RULES))
+    load_lens(db_session, RunStats(), "space", _lens(tmp_path, [RULES[0]]))
     tags = _tags(db_session, ids)
     assert tags["zzsl-1"] == "core"
     assert tags["zzsl-3"] is None
@@ -151,10 +161,11 @@ def test_reload_retags_from_scratch(db_session, tmp_path):
 def test_missing_programme_is_counted_never_fatal(db_session, tmp_path):
     _seed(db_session)
     stats = RunStats()
-    load_space_lens(
+    load_lens(
         db_session,
         stats,
-        path=_lens(tmp_path, ['programme,ABSENT-CODE,core,,"Règle vraie corpus absent",test']),
+        "space",
+        _lens(tmp_path, ['programme,ABSENT-CODE,core,,"Règle vraie corpus absent",test']),
     )
     assert stats.counts.get("rule_skipped_no_match") == 1
 
@@ -167,8 +178,78 @@ def test_malformed_rules_refuse_to_tag(tmp_path):
         'theme,/23/43,wrong,,"tag inconnu",test',
     ]
     for row in bad:
-        with pytest.raises(SpaceLensError):
+        with pytest.raises(LensError):
             parse_rules(_lens(tmp_path, [row]))
+
+
+def _registry(tmp_path, rows):
+    path = tmp_path / "registry.csv"
+    path.write_text("\n".join(["family_key,slug,rank", *rows]) + "\n", encoding="utf-8")
+    return path
+
+
+def test_registry_validates_all_or_nothing(tmp_path):
+    """Amendement M0 n°1 : famille → lentille, clés techniques stables —
+    un registre mal formé ne mire rien."""
+    assert parse_registry(_registry(tmp_path, ["aerospace_mobility,space,1"])) == [
+        {"family_key": "aerospace_mobility", "slug": "space", "rank": 1}
+    ]
+    bad = [
+        ["Aérospatial,space,1"],  # un libellé n'est pas une clé de famille
+        ["aerospace_mobility,Space,1"],  # slug en minuscules, toujours
+        ["aerospace_mobility,space-direct,1"],  # « -direct » = grammaire D2
+        ["aerospace_mobility,space,0"],  # rang ≥ 1
+        ["aerospace_mobility,space,1", "energy,space,2"],  # slug en double
+        ["aerospace_mobility,space,1", "energy,solar,1"],  # rang en double
+    ]
+    for rows in bad:
+        with pytest.raises(LensError):
+            parse_registry(_registry(tmp_path, rows))
+
+
+def test_load_all_refuses_rules_outside_the_registry(db_session, tmp_path):
+    """Toute lentille naît au registre — un CSV orphelin comme une entrée
+    sans règles refusent de charger, dans les deux sens."""
+    _registry(tmp_path, ["aerospace_mobility,space,1"])
+    _lens(tmp_path, RULES, name="space.csv")
+    _lens(tmp_path, RULES, name="orphan.csv")
+    with pytest.raises(LensError):
+        load_all(db_session, RunStats(), base_dir=tmp_path)
+
+    (tmp_path / "orphan.csv").unlink()
+    (tmp_path / "space.csv").unlink()
+    with pytest.raises(LensError):
+        load_all(db_session, RunStats(), base_dir=tmp_path)
+
+
+def test_a_project_carries_two_lenses_each_read_full(db_session, tmp_path):
+    """D1 + D3 : le chevauchement est permis par construction — le même
+    projet compte PLEIN dans chaque lentille, et chaque vue n'en lit
+    qu'une (les nombres de deux lentilles ne s'additionnent jamais)."""
+    from orion.search.explore import aggregate
+
+    ids = _seed(db_session)
+    _registry(tmp_path, ["aerospace_mobility,space,1", "zz_family,zztest,2"])
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Services en orbite",test'], name="space.csv")
+    _lens(
+        tmp_path,
+        ['text,servicing,adjacent,cordis|nsf,"Lecture seconde du même monde",test'],
+        name="zztest.csv",
+    )
+    load_all(db_session, RunStats(), base_dir=tmp_path)
+
+    assert _tags(db_session, ids, lens="space")["zzsl-3"] == "core"
+    assert _tags(db_session, ids, lens="zztest")["zzsl-3"] == "adjacent"
+
+    both = db_session.execute(
+        text("SELECT count(*) FROM project_lens_tags WHERE project_id = :p"),
+        {"p": ids["zzsl-3"]},
+    ).scalar()
+    assert both == 2
+
+    one = aggregate(db_session, metric="projects", by="funder", sector="zztest")
+    assert one is not None
+    assert sum(s["value"] or 0 for s in one["series"]) == 1
 
 
 def test_the_two_perimeters_frame_the_explorer(db_session, tmp_path):
@@ -179,7 +260,7 @@ def test_the_two_perimeters_frame_the_explorer(db_session, tmp_path):
     from orion.search.explore import aggregate
 
     ids = _seed(db_session)
-    load_space_lens(db_session, RunStats(), path=_lens(tmp_path, RULES))
+    load_lens(db_session, RunStats(), "space", _lens(tmp_path, RULES))
     del ids
 
     enabling = aggregate(db_session, metric="projects", by="funder", sector="space")

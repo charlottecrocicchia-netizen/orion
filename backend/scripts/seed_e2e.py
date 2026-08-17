@@ -392,10 +392,11 @@ def main() -> None:
         for view in MATERIALIZED_VIEWS:
             connection.execute(text(f"REFRESH MATERIALIZED VIEW {view}"))
 
-    # La lentille spatiale tague la graine comme elle taguera la prod —
-    # même fichier, même chargeur (ORBITGUARD doit sortir core).
+    # Les lentilles taguent la graine comme elles tagueront la prod —
+    # même registre, mêmes fichiers, même chargeur (ORBITGUARD doit
+    # sortir core sous la lentille spatiale).
+    from orion.ingest.lenses import load_all
     from orion.ingest.runlog import RunStats as _RunStats
-    from orion.ingest.space_lens import load_space_lens
     from orion.ingest.subdivisions import (
         backfill_nuts_meshes,
         seed_nuts_meshes,
@@ -404,7 +405,7 @@ def main() -> None:
     )
 
     with Session(engine) as session:
-        load_space_lens(session, _RunStats())
+        load_all(session, _RunStats())
         # La maille sous le pays : le référentiel complet, et le MIT posé
         # dans son État (les caches ne sont pas là en CI — la graine dit
         # la maille comme le backfill la dirait).

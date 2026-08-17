@@ -36,16 +36,38 @@ CORPUS_SOURCES = ("cordis-horizon", "cordis-h2020", "cordis-fp7", "nih", "nsf", 
 def _data_stamp(session: Session) -> str:
     """Changes when a run that TOUCHES THE CORPUS succeeds — the cache
     invalidation key. A source that only feeds the identity layer leaves
-    the project caches alone."""
+    the project caches alone. Lens runs (`<slug>-lens`) count: their tags
+    feed the stats and the explorer, so a retag must invalidate (M0)."""
     return str(
         session.execute(
             text(
                 "SELECT coalesce(max(finished_at)::text, '0') "
-                "FROM ingestion_runs WHERE status = 'succeeded' AND source = ANY(:sources)"
+                "FROM ingestion_runs WHERE status = 'succeeded' "
+                "AND (source = ANY(:sources) OR source LIKE '%-lens')"
             ),
             {"sources": list(CORPUS_SOURCES)},
         ).scalar()
     )
+
+
+def parse_sector(sector: str) -> tuple[str, bool]:
+    """La grammaire D2 : `<slug>` → (slug, False) — cœur + habilitant ;
+    `<slug>-direct` → (slug, True) — le cœur seul. « -direct » est un
+    suffixe de périmètre, jamais une lentille (le registre l'interdit)."""
+    if sector.endswith("-direct"):
+        return sector[: -len("-direct")], True
+    return sector, False
+
+
+def valid_sector(session: Session, sector: str) -> bool:
+    """Un cadrage ne vaut que si son slug est au registre — une valeur
+    inconnue est refusée, jamais un cadrage silencieusement ignoré."""
+    slugs = _cached(
+        session,
+        "lens_slugs",
+        lambda: {row[0] for row in session.execute(text("SELECT slug FROM lenses"))},
+    )
+    return parse_sector(sector)[0] in slugs
 
 
 def _cached(session: Session, key: str, build: Callable[[], Any]) -> Any:
@@ -80,8 +102,9 @@ class ProjectFilters:
     # régions): frames the search to the region's member countries, the
     # list coming from the referential, never from the client.
     scope: str | None = None
-    # La lentille spatiale (V1) : « space » cadre aux projets tagués
-    # core|adjacent — le tag dérive de backend/curation/space-lens.csv.
+    # Une lentille du registre (M0) : `<slug>` cadre au cœur + habilitant,
+    # `<slug>-direct` au cœur seul — le tag dérive des fichiers versionnés
+    # backend/curation/lenses/, validé au registre par l'API.
     sector: str | None = None
     year_from: int | None = None
     year_to: int | None = None
@@ -221,10 +244,17 @@ def _project_where(f: ProjectFilters, params: dict[str, Any]) -> str:
             "WHERE pa.country_code IN (SELECT code FROM countries WHERE region = :scope))"
         )
         params["scope"] = f.scope
-    if f.sector == "space":
-        clauses.append("p.space_tag IS NOT NULL")
-    elif f.sector == "space-direct":
-        clauses.append("p.space_tag = 'core'")
+    if f.sector:
+        # Une lentille est une LECTURE posée sur le corpus (D3) : le
+        # projet tagué compte plein, une seule lentille par vue. Même
+        # idiome semi-join que le filtre pays (mesuré, ci-dessus).
+        lens_slug, core_only = parse_sector(f.sector)
+        params["sector_lens"] = lens_slug
+        tag_clause = " AND plt.tag = 'core'" if core_only else ""
+        clauses.append(
+            "p.id IN (SELECT plt.project_id FROM project_lens_tags plt "
+            f"WHERE plt.lens = :sector_lens{tag_clause})"
+        )
     if f.year_from is not None:
         clauses.append("extract(year FROM p.start_date) >= :year_from")
         params["year_from"] = f.year_from

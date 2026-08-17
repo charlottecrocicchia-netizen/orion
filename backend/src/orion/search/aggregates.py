@@ -24,26 +24,7 @@ def global_stats(session: Session) -> dict[str, Any]:
                    (SELECT count(*) FROM participations) AS participations,
                    (SELECT sum(funding_amount_eur) FROM projects) AS funding_eur,
                    (SELECT count(DISTINCT country_code) FROM participations
-                    WHERE country_code IS NOT NULL) AS countries,
-                   (SELECT count(*) FROM projects WHERE space_tag = 'core') AS space_core,
-                   (SELECT count(*) FROM projects
-                    WHERE space_tag = 'adjacent') AS space_adjacent,
-                   (SELECT coalesce(sum(funding_amount_eur), 0) FROM projects
-                    WHERE space_tag = 'core') AS space_core_funding,
-                   -- Le hero spatial (lot 2, validé 2026-08-17) : le grand
-                   -- chiffre dit « direct + habilitant » — cœur + adjacent.
-                   (SELECT coalesce(sum(funding_amount_eur), 0) FROM projects
-                    WHERE space_tag IS NOT NULL) AS space_funding,
-                   (SELECT count(DISTINCT pa.organisation_id)
-                    FROM participations pa
-                    JOIN projects p ON p.id = pa.project_id
-                    WHERE p.space_tag IS NOT NULL) AS space_orgs,
-                   (SELECT count(DISTINCT m.group_id)
-                    FROM entity_group_map m
-                    JOIN participations pa ON pa.organisation_id = m.organisation_id
-                    JOIN projects p ON p.id = pa.project_id
-                    WHERE m.status = 'active'
-                      AND p.space_tag IS NOT NULL) AS space_groups
+                    WHERE country_code IS NOT NULL) AS countries
             """)
         ).one()
         by_year = session.execute(
@@ -55,18 +36,71 @@ def global_stats(session: Session) -> dict[str, Any]:
             GROUP BY y ORDER BY y
             """)
         ).all()
-        # La courbe-constellation du hero spatial : les années du SPATIAL,
-        # jamais celles du corpus entier maquillées.
-        space_by_year = session.execute(
-            text("""
-            SELECT extract(year FROM start_date)::int AS y, sum(funding_amount_eur) AS amount
-            FROM projects
-            WHERE space_tag IS NOT NULL AND start_date IS NOT NULL
-              AND extract(year FROM start_date) BETWEEN 2000 AND 2035
-            GROUP BY y ORDER BY y
-            """)
-        ).all()
-        return {
+        # Un bloc de compteurs PAR lentille du registre, en ordre de rang
+        # (M0) : la forme est le contrat générique d'une verticale — le
+        # grand chiffre reste « direct + habilitant » (cœur + adjacent),
+        # la courbe-constellation se dessine sur les années de LA
+        # lentille, jamais celles du corpus entier maquillées.
+        lenses = []
+        for lens in session.execute(
+            text("SELECT slug, family_key, rank FROM lenses ORDER BY rank")
+        ).all():
+            counters = session.execute(
+                text("""
+                SELECT (SELECT count(*) FROM project_lens_tags
+                        WHERE lens = :slug AND tag = 'core') AS core,
+                       (SELECT count(*) FROM project_lens_tags
+                        WHERE lens = :slug AND tag = 'adjacent') AS adjacent,
+                       (SELECT coalesce(sum(p.funding_amount_eur), 0)
+                        FROM projects p
+                        JOIN project_lens_tags plt ON plt.project_id = p.id
+                        WHERE plt.lens = :slug AND plt.tag = 'core') AS core_funding,
+                       (SELECT coalesce(sum(p.funding_amount_eur), 0)
+                        FROM projects p
+                        JOIN project_lens_tags plt ON plt.project_id = p.id
+                        WHERE plt.lens = :slug) AS funding,
+                       (SELECT count(DISTINCT pa.organisation_id)
+                        FROM participations pa
+                        WHERE pa.project_id IN (SELECT project_id
+                                                FROM project_lens_tags
+                                                WHERE lens = :slug)) AS orgs,
+                       (SELECT count(DISTINCT m.group_id)
+                        FROM entity_group_map m
+                        JOIN participations pa ON pa.organisation_id = m.organisation_id
+                        WHERE m.status = 'active'
+                          AND pa.project_id IN (SELECT project_id
+                                                FROM project_lens_tags
+                                                WHERE lens = :slug)) AS groups
+                """),
+                {"slug": lens.slug},
+            ).one()
+            lens_by_year = session.execute(
+                text("""
+                SELECT extract(year FROM p.start_date)::int AS y,
+                       sum(p.funding_amount_eur) AS amount
+                FROM projects p
+                JOIN project_lens_tags plt ON plt.project_id = p.id
+                WHERE plt.lens = :slug AND p.start_date IS NOT NULL
+                  AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
+                GROUP BY y ORDER BY y
+                """),
+                {"slug": lens.slug},
+            ).all()
+            lenses.append(
+                {
+                    "slug": lens.slug,
+                    "family_key": lens.family_key,
+                    "rank": lens.rank,
+                    "core": counters.core or 0,
+                    "adjacent": counters.adjacent or 0,
+                    "core_funding_eur": float(counters.core_funding or 0),
+                    "funding_eur": float(counters.funding or 0),
+                    "organisations": counters.orgs or 0,
+                    "groups": counters.groups or 0,
+                    "by_year": [{"year": y, "amount_eur": float(a or 0)} for y, a in lens_by_year],
+                }
+            )
+        payload = {
             "totals": {
                 "projects": totals.projects,
                 "organisations": totals.organisations,
@@ -74,17 +108,19 @@ def global_stats(session: Session) -> dict[str, Any]:
                 "funding_eur": float(totals.funding_eur or 0),
                 "countries": totals.countries,
             },
-            "space": {
-                "core": totals.space_core or 0,
-                "adjacent": totals.space_adjacent or 0,
-                "core_funding_eur": float(totals.space_core_funding or 0),
-                "funding_eur": float(totals.space_funding or 0),
-                "organisations": totals.space_orgs or 0,
-                "groups": totals.space_groups or 0,
-                "by_year": [{"year": y, "amount_eur": float(a or 0)} for y, a in space_by_year],
-            },
+            "lenses": lenses,
             "funding_by_year": [{"year": y, "amount_eur": float(a or 0)} for y, a in by_year],
         }
+        # L'alias historique `space` — le front M0 le lit tel quel, à
+        # l'octet près ; il tombera en M1 (conception multi-lentilles, D6).
+        space = next((entry for entry in lenses if entry["slug"] == "space"), None)
+        if space is not None:
+            payload["space"] = {
+                key: value
+                for key, value in space.items()
+                if key not in ("slug", "family_key", "rank")
+            }
+        return payload
 
     return _cached(session, "global_stats", build)
 

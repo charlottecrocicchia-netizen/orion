@@ -8,10 +8,10 @@ from orion.ingest import reference as reference_module
 from orion.ingest.cordis.config import FRAMEWORKS
 from orion.ingest.gleif import load as gleif_load
 from orion.ingest.groups import build as groups_build
+from orion.ingest.lenses import run as lenses_run
 from orion.ingest.nih import load as nih_load
 from orion.ingest.nsf import load as nsf_load
 from orion.ingest.rates import run as rates_run
-from orion.ingest.space_lens import run as space_lens_run
 from orion.ingest.subdivisions import run as subdivisions_run
 from orion.ingest.wikidata import load as wikidata_load
 
@@ -29,9 +29,10 @@ REGISTRY = {
     "gleif": gleif_load.run,
     "wikidata": wikidata_load.run,
     "groups": groups_build.run,
-    # La lentille spatiale : un TAGGING dérivé du fichier versionné,
-    # pas une source — elle se rejoue après tout chargement de corpus.
-    "space-lens": space_lens_run,
+    # Les lentilles : un TAGGING dérivé des fichiers versionnés (registre
+    # famille → lentille, M0), pas une source — elles se rejouent après
+    # tout chargement de corpus, chacune sous son run `<slug>-lens`.
+    "lenses": lenses_run,
     # La maille sous le pays : référentiel + backfill depuis les caches
     # (dérivée comme la lentille, rejouable, jamais un retéléchargement).
     "subdivisions": subdivisions_run,
@@ -49,7 +50,7 @@ ALL = [
     "gleif",
     "wikidata",
     "groups",
-    "space-lens",
+    "lenses",
     "subdivisions",
 ]
 

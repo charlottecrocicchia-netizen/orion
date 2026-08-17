@@ -10,6 +10,7 @@ from orion.search.service import (
     search_organisations,
     search_projects,
     suggest,
+    valid_sector,
 )
 
 router = APIRouter()
@@ -24,7 +25,8 @@ def search_projects_endpoint(
     country: Annotated[list[str] | None, Query()] = None,
     scope: Annotated[str | None, Query(description="manager region slug")] = None,
     sector: Annotated[
-        str | None, Query(description="space lens: 'space' (core+adjacent) or 'space-direct'")
+        str | None,
+        Query(description="registry lens: '<slug>' (core+adjacent) or '<slug>-direct'"),
     ] = None,
     year_from: int | None = None,
     year_to: int | None = None,
@@ -41,7 +43,7 @@ def search_projects_endpoint(
         programmes=programme or [],
         countries=country or [],
         scope=scope or None,
-        sector=sector if sector in ("space", "space-direct") else None,
+        sector=sector if sector and valid_sector(db, sector) else None,
         year_from=year_from,
         year_to=year_to,
         amount_min=amount_min,

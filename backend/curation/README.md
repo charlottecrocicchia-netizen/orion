@@ -1,4 +1,22 @@
-# Curation des groupes — le fichier est l'interface
+# Curation — le fichier est l'interface
+
+## Les lentilles (`lenses/`)
+
+`lenses/registry.csv` est le registre famille → lentille
+(`family_key,slug,rank`) : la clé de famille est TECHNIQUE et stable
+(`aerospace_mobility`), jamais un libellé — les mots vivent en i18n. Le
+rang ordonne les verticales (rang 1 = le hero). Chaque lentille du
+registre a son fichier de règles `lenses/<slug>.csv` (trois familles :
+`programme` en sous-arbre, `theme` par préfixe euroSciVoc, `text` cadré
+par source) — le chargeur (`orion-ingest lenses`) refuse autant un CSV
+hors registre qu'une entrée sans CSV, mire le registre dans la table
+`lenses`, et RÉTAGUE chaque lentille en entier sous son run
+`<slug>-lens`. Une lentille est une LECTURE du corpus, jamais une
+partition : un projet peut porter plusieurs lentilles, chaque vue n'en
+lit qu'une, et les nombres de deux lentilles ne s'additionnent jamais
+(conception multi-lentilles, D1-D3, validée 2026-08-17).
+
+## Les groupes (`groups.csv`)
 
 `groups.csv` porte les faits humains de la couche identité : une ligne =
 un rattachement (`attach`) ou un refus (`refuse`), toujours avec son

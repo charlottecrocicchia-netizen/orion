@@ -21,6 +21,8 @@ from orion.search.service import (
     _materialize_match,
     _programme_roots,
     _programme_tree,
+    parse_sector,
+    valid_sector,
 )
 
 METRICS = ("funding", "projects", "organisations", "avg", "coordination")
@@ -429,7 +431,7 @@ def aggregate(
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
         return None
-    if sector is not None and sector not in ("space", "space-direct"):
+    if sector is not None and not valid_sector(session, sector):
         return None
     # La maille cadre, la dimension distribue : se filtrer sur la maille
     # qu'on distribue n'a pas de sens (même règle que region × scope).
@@ -600,14 +602,18 @@ def _build(
         org_members = _entity_ref_ids(session, [organisation]).get(organisation) or [(-1, 1.0)]
         params["organisation_ids"] = [org_id for org_id, _ in org_members]
         clauses.append("pa.organisation_id = ANY(:organisation_ids)")
-    if sector == "space":
-        # La lentille spatiale cadre la vue — le tag vit sur le projet.
-        # « space » = Spatial + habilitant (cœur + adjacent), son sens
-        # historique, désormais NOMMÉ à l'écran (audit, 2026-08-17).
-        clauses.append("p.space_tag IS NOT NULL")
-    elif sector == "space-direct":
-        # « Spatial direct » : le cœur seul.
-        clauses.append("p.space_tag = 'core'")
+    if sector:
+        # Une lentille cadre la vue — une LECTURE posée sur le corpus
+        # (D3), le tag vit en project_lens_tags depuis M0. `<slug>` =
+        # cœur + habilitant (le sens historique de « space », nommé à
+        # l'écran depuis l'audit) ; `<slug>-direct` = le cœur seul.
+        lens_slug, core_only = parse_sector(sector)
+        params["sector_lens"] = lens_slug
+        tag_clause = " AND plt.tag = 'core'" if core_only else ""
+        clauses.append(
+            "p.id IN (SELECT plt.project_id FROM project_lens_tags plt "
+            f"WHERE plt.lens = :sector_lens{tag_clause})"
+        )
     if subdivision is not None:
         params["subdivision"] = subdivision
         clauses.append("pa.subdivision_code = :subdivision")

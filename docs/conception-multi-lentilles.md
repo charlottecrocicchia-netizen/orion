@@ -1,4 +1,10 @@
-# Conception — le multi-lentilles (À VALIDER)
+# Conception — le multi-lentilles (VALIDÉE le 2026-08-17)
+
+> **Validation fondatrice** : D1, D2, D3, D4, D6 telles quelles ; D5
+> amendée ; deux amendements M0 ; M0 seul lancé (M1 sur validation
+> explicite). Détail en fin de document. La vision design future vit
+> dans [vision-lens-room.md](vision-lens-room.md) — un document de
+> VISION : rien ne s'en développe avant A1.
 
 *2026-08-17 — cadre fondateur : le spatial est la **première** verticale
 d'Orion, pas la seule ; l'aéronautique est décidée deuxième (Clean Sky,
@@ -172,3 +178,53 @@ mots i18n, sa recette. C'est là que se décide aussi le nom (§ 3).
 | **D4** | La home : **hero = rang 1** (le spatial), autres verticales en **lignes discrètes** au-dessus de la ligne corpus, seulement si chargées | La structure actuelle se généralise sans se renverser |
 | **D5** | **Le nom ne change pas dans ce chantier** — « Orion » ombrelle est une décision commerciale, déclencheur : l'ouverture de A1 | La marque est déjà un jeton i18n, interchangeable en une ligne |
 | **D6** | Lots **M0 → M1** ; A1/A2 chantiers suivants | Recette M0 = les 71 e2e inchangés et verts ; M1 quasi invisible jusqu'à l'aéro |
+
+---
+
+## Validation du 2026-08-17 — amendements fondatrice
+
+**D5, amendée.** Le jeton « Orion Space Intelligence » reste inchangé
+pour M0 et M1 — mais la cible de marque long terme est désormais
+**actée** : **ORION est la marque ombrelle**, la lentille devient une
+composante de l'identité de contexte — **ORION / SPACE**,
+**ORION / AVIATION**. L'évolution ne s'exécute PAS pendant M0/M1 ; elle
+s'appliquera quand A1 aura produit une deuxième lentille réelle,
+validée et exploitable en production.
+
+**Amendement M0 n° 1 — les familles.** Le registre porte dès M0 la
+taxonomie à deux niveaux **famille → lentille**, par clé technique
+stable indépendante de la langue (`family_key = aerospace_mobility`) —
+le libellé utilisateur appartient à l'i18n et ne sert jamais
+d'identifiant. Seule la famille réellement nécessaire existe :
+`aerospace_mobility → space`. Aucune famille ou lentille fictive, aucun
+chiffre inventé.
+
+**Amendement M0 n° 2 — les intersections.** Les intersections de
+lentilles (`SPACE × QUANTUM`) sont consignées au registre des évolutions
+([roadmap](roadmap.md)) comme évolution majeure identifiée. Le modèle
+de données (D1) permet naturellement plusieurs tags par projet — c'est
+souhaité. D3 reste strictement applicable : **une seule lentille active
+par vue** — dans M0 et M1, aucune intersection dans l'interface, aucune
+syntaxe d'URL multi-lentilles, aucun opérateur AND/OU, aucun composant
+préparatoire, aucune logique de sélection multiple. La porte reste
+ouverte dans le modèle, jamais préimplémentée dans la grammaire.
+
+## Exécution M0 — divergences constatées sur pièce (2026-08-17)
+
+Trois écarts entre cette conception et le dépôt réel, résolus en faveur
+du réel :
+
+1. **La maison A alembic** — le § 2 disait « pas d'alembic, script
+   idempotent » : faux (relevé trop vite ; `make migrate` = `alembic
+   upgrade head`, et l'entrypoint de prod migre au démarrage). D1
+   s'exécute donc en **révision 0023**, même effet, meilleure forme.
+2. **Le nom de run est `<slug>-lens`, pas `lens-<slug>`** — la page
+   À-propos affiche les runs par leur nom ; `space-lens` y est visible
+   depuis la V1. Le motif `<slug>-lens` donne `space-lens` à
+   l'identique : générique ET invisible, par construction.
+3. **Le tampon de cache apprend les lentilles** — `_data_stamp`
+   ignorait les runs de lentille : un retag ne rafraîchissait ni les
+   stats ni l'Explorateur avant redémarrage (staleness préexistante,
+   masquée par les redémarrages de déploiement). Les runs `%-lens`
+   comptent désormais dans le tampon : requis pour que le mécanisme
+   soit juste quand une lentille se recharge à chaud.
