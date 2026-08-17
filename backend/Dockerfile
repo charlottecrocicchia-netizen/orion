@@ -19,5 +19,12 @@ RUN uv sync --frozen --no-dev
 RUN useradd --create-home appuser && chown -R appuser:appuser /app
 USER appuser
 
+# Le tampon de révision (2026-08-17) : l'image dit de quelles sources
+# elle est née, et le lanceur du Bureau refuse d'ouvrir une pile dont le
+# tampon ne correspond plus. Placé en DERNIER, l'ARG n'invalide que
+# cette couche-ci — pas les `uv sync` qui coûtent des minutes.
+ARG GIT_REV=inconnu
+LABEL org.opencontainers.image.revision=$GIT_REV
+
 EXPOSE 8000
 CMD ["./docker-entrypoint.sh"]

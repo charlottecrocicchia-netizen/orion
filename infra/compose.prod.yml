@@ -46,7 +46,14 @@ services:
 
   api:
     image: ${API_IMAGE:-ghcr.io/charlottecrocicchia-netizen/orion-api:latest}
-    build: ../backend
+    build:
+      context: ../backend
+      # Le tampon que le lanceur du Bureau vérifie — `make up` l'exporte
+      # depuis scripts/source-rev.sh. Une construction hors Makefile le
+      # laisse à « inconnu », ce que le lanceur traite comme périmé :
+      # dans le doute, il reconstruit plutôt qu'il ne montre du vieux.
+      args:
+        GIT_REV: ${GIT_REV:-inconnu}
     restart: unless-stopped
     environment:
       ORION_ENV: ${ORION_ENV:-production}
@@ -75,7 +82,10 @@ services:
 
   web:
     image: ${WEB_IMAGE:-ghcr.io/charlottecrocicchia-netizen/orion-web:latest}
-    build: ../frontend
+    build:
+      context: ../frontend
+      args:
+        GIT_REV: ${GIT_REV:-inconnu}
     restart: unless-stopped
 
   caddy:

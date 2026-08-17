@@ -7,6 +7,11 @@ export UV_PROJECT_ENVIRONMENT := $(HOME)/.venvs/orion-backend
 COMPOSE_DEV := docker compose -f compose.dev.yml
 COMPOSE_PROD := cd infra && docker compose --env-file ../.env -f compose.prod.yml
 
+# Le tampon de révision porté par les images de prod. Le lanceur du
+# Bureau le recalcule et compare : une pile qui tourne sur un tampon
+# périmé est reconstruite au lieu d'être ouverte en silence.
+export GIT_REV := $(shell ./scripts/source-rev.sh)
+
 # ONE STACK AT A TIME. The development database and the production stack
 # each run their own PostgreSQL; on the 8 GB machine this project is
 # built on, running both means two instances competing for a VM that is
