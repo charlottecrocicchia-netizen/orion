@@ -169,6 +169,10 @@ critère, a été retiré : il tenait en isolation et dégradait le système.
 NWO → Vinnova** → SBIR → USAspending (glisse en fin de vague s'il pèse)
 → Grants.gov → OpenAIRE. Fondations déjà en place : le modèle `funders`
 multi-juridictions/multi-devises prévu dès la phase 1.
+**Ajout fondateur du 2026-08-17** : **NASA, DoD et DOE à instruire
+post-hébergement** — le mémo produit a nommé le trou (les financements
+spatiaux américains directs manquent à un produit spatial) ; sources
+notées, instruction quand le serveur les portera.
 
 **Acquis de l'étape 2 (NSF, 2026-08-03)** : 235 071 projets, 118,8 Md€,
 et surtout **la première collaboration américaine visible** — l'extension

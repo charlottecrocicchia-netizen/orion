@@ -743,18 +743,19 @@ def group_watchpost(session: Session, group_id: int, new_partner_cutoff: str) ->
                 WHERE t.scheme = 'euroscivoc' AND t.code ~ '^/[0-9]+/[0-9]+'
             )
             SELECT j.tkey, coalesce(l2.label, j.tkey) AS label,
-                   sum(pa.amount_eur) AS amount,
+                   sum(pa.amount_eur * coalesce(m.share, 100) / 100.0) AS amount,
                    count(DISTINCT pa.project_id) AS projects
-            FROM participations pa
+            FROM entity_group_map m
+            JOIN participations pa ON pa.organisation_id = m.organisation_id
             JOIN proj_theme j ON j.project_id = pa.project_id
             LEFT JOIN topics l2
               ON l2.scheme = 'euroscivoc' AND l2.code = j.tkey
-            WHERE pa.organisation_id = ANY(:oids)
+            WHERE m.group_id = :gid AND m.status = 'active'
             GROUP BY j.tkey, l2.label
             ORDER BY amount DESC NULLS LAST
             LIMIT 5
             """),
-            {"oids": member_ids},
+            {"gid": group_id},
         ).all()
 
         theme_windows = session.execute(
@@ -767,24 +768,25 @@ def group_watchpost(session: Session, group_id: int, new_partner_cutoff: str) ->
                 WHERE t.scheme = 'euroscivoc' AND t.code ~ '^/[0-9]+/[0-9]+'
             )
             SELECT j.tkey, coalesce(l2.label, j.tkey) AS label,
-                   sum(pa.amount_eur) FILTER (
+                   sum(pa.amount_eur * coalesce(m.share, 100) / 100.0) FILTER (
                      WHERE extract(year FROM p.start_date) BETWEEN 2019 AND 2021
                    ) AS before,
-                   sum(pa.amount_eur) FILTER (
+                   sum(pa.amount_eur * coalesce(m.share, 100) / 100.0) FILTER (
                      WHERE extract(year FROM p.start_date) BETWEEN 2022 AND 2024
                    ) AS recent,
                    count(DISTINCT pa.project_id) FILTER (
                      WHERE extract(year FROM p.start_date) BETWEEN 2019 AND 2024
                    ) AS window_projects
-            FROM participations pa
+            FROM entity_group_map m
+            JOIN participations pa ON pa.organisation_id = m.organisation_id
             JOIN projects p ON p.id = pa.project_id
             JOIN proj_theme j ON j.project_id = pa.project_id
             LEFT JOIN topics l2
               ON l2.scheme = 'euroscivoc' AND l2.code = j.tkey
-            WHERE pa.organisation_id = ANY(:oids)
+            WHERE m.group_id = :gid AND m.status = 'active'
             GROUP BY j.tkey, l2.label
             """),
-            {"oids": member_ids},
+            {"gid": group_id},
         ).all()
 
         accelerating = None
@@ -878,29 +880,37 @@ def group_compare_entry(session: Session, group_id: int) -> dict[str, Any] | Non
         if base is None:
             return None
         member_ids = _group_member_ids(session, group_id)
+        # Pondération JV (doctrine, 2026-08-17) : les MONTANTS consolidés
+        # portent le pacte (67/33 reste 67/33) ; les comptes de projets
+        # restent DISTINCT et entiers — un projet co-signé est un projet
+        # entier du groupe, c'est l'argent que le pacte partage.
         kpis = session.execute(
             text("""
             SELECT count(DISTINCT pa.project_id) AS projects,
-                   coalesce(sum(pa.amount_eur), 0) AS funding,
+                   coalesce(sum(pa.amount_eur * coalesce(m.share, 100) / 100.0), 0) AS funding,
                    count(DISTINCT pa.project_id)
                      FILTER (WHERE pa.role = 'coordinator') AS coordinated,
                    min(extract(year FROM p.start_date))::int AS first_year,
                    max(extract(year FROM p.start_date))::int AS last_year
-            FROM participations pa
+            FROM entity_group_map m
+            JOIN participations pa ON pa.organisation_id = m.organisation_id
             LEFT JOIN projects p ON p.id = pa.project_id
-            WHERE pa.organisation_id = ANY(:oids)
+            WHERE m.group_id = :gid AND m.status = 'active'
             """),
-            {"oids": member_ids or [-1]},
+            {"gid": group_id},
         ).first()
         by_year = session.execute(
             text("""
-            SELECT extract(year FROM p.start_date)::int AS y, sum(pa.amount_eur) AS amount
-            FROM participations pa JOIN projects p ON p.id = pa.project_id
-            WHERE pa.organisation_id = ANY(:oids) AND p.start_date IS NOT NULL
+            SELECT extract(year FROM p.start_date)::int AS y,
+                   sum(pa.amount_eur * coalesce(m.share, 100) / 100.0) AS amount
+            FROM entity_group_map m
+            JOIN participations pa ON pa.organisation_id = m.organisation_id
+            JOIN projects p ON p.id = pa.project_id
+            WHERE m.group_id = :gid AND m.status = 'active' AND p.start_date IS NOT NULL
               AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
             GROUP BY 1 ORDER BY 1
             """),
-            {"oids": member_ids or [-1]},
+            {"gid": group_id},
         ).all()
         themes = session.execute(
             text("""
@@ -941,8 +951,8 @@ def group_compare_entry(session: Session, group_id: int) -> dict[str, Any] | Non
                 for key, label, projects in themes
             ],
             "top_partners": group_partners(session, group_id, limit=5),
-            "top_programmes": _entry_top_programmes(session, member_ids),
-            "countries": _entry_countries(session, member_ids),
+            "top_programmes": _entry_top_programmes(session, member_ids, group_id=group_id),
+            "countries": _entry_countries(session, member_ids, group_id=group_id),
         }
 
     return _cached_bounded(session, f"gcompare:{group_id}", build, prefix="gcompare:", cap=64)
@@ -975,17 +985,29 @@ def compare_entries(session: Session, refs: list[str]) -> dict[str, Any]:
     }
 
 
-def _entry_top_programmes(session: Session, oids: list[int], limit: int = 5) -> list[dict]:
+def _entry_top_programmes(
+    session: Session, oids: list[int], limit: int = 5, group_id: int | None = None
+) -> list[dict]:
     """Les programmes où une entité de benchmark est forte — libellé du
-    programme tel qu'enregistré, bailleur au revers, projets DISTINCTS."""
+    programme tel qu'enregistré, bailleur au revers, projets DISTINCTS.
+    Pour un GROUPE, les montants portent la pondération JV du pacte."""
     if not oids:
         return []
+    weight, weight_join, extra = "1", "", {}
+    if group_id is not None:
+        weight = "coalesce(m.share, 100) / 100.0"
+        weight_join = (
+            "JOIN entity_group_map m ON m.organisation_id = pa.organisation_id "
+            "AND m.group_id = :gid AND m.status = 'active'"
+        )
+        extra = {"gid": group_id}
     rows = session.execute(
-        text("""
+        text(f"""
         SELECT pr.id, coalesce(pr.name, pr.code) AS label, f.code AS funder,
                count(DISTINCT pa.project_id) AS projects,
-               coalesce(sum(pa.amount_eur), 0) AS funding
+               coalesce(sum(pa.amount_eur * {weight}), 0) AS funding
         FROM participations pa
+        {weight_join}
         JOIN projects p ON p.id = pa.project_id
         JOIN programmes pr ON pr.id = p.programme_id
         LEFT JOIN funders f ON f.id = pr.funder_id
@@ -994,7 +1016,7 @@ def _entry_top_programmes(session: Session, oids: list[int], limit: int = 5) -> 
         ORDER BY funding DESC
         LIMIT :limit
         """),
-        {"oids": oids, "limit": limit},
+        {"oids": oids, "limit": limit, **extra},
     ).all()
     return [
         {
@@ -1008,24 +1030,34 @@ def _entry_top_programmes(session: Session, oids: list[int], limit: int = 5) -> 
     ]
 
 
-def _entry_countries(session: Session, oids: list[int]) -> list[dict]:
+def _entry_countries(session: Session, oids: list[int], group_id: int | None = None) -> list[dict]:
     """La géographie d'une entité de benchmark : les pays de ses
-    organisations, teinte de région portée par le référentiel."""
+    organisations, teinte de région portée par le référentiel. Pour un
+    GROUPE, les montants portent la pondération JV du pacte."""
     if not oids:
         return []
+    weight, weight_join, extra = "1", "", {}
+    if group_id is not None:
+        weight = "coalesce(m.share, 100) / 100.0"
+        weight_join = (
+            "JOIN entity_group_map m ON m.organisation_id = o.id "
+            "AND m.group_id = :gid AND m.status = 'active'"
+        )
+        extra = {"gid": group_id}
     rows = session.execute(
-        text("""
+        text(f"""
         SELECT o.country_code AS code, max(c.region) AS region,
                count(DISTINCT o.id) AS entities,
-               coalesce(sum(pa.amount_eur), 0) AS funding
+               coalesce(sum(pa.amount_eur * {weight}), 0) AS funding
         FROM organisations o
+        {weight_join}
         LEFT JOIN countries c ON c.code = o.country_code
         LEFT JOIN participations pa ON pa.organisation_id = o.id
         WHERE o.id = ANY(:oids) AND o.country_code IS NOT NULL
         GROUP BY o.country_code
         ORDER BY funding DESC
         """),
-        {"oids": oids},
+        {"oids": oids, **extra},
     ).all()
     return [
         {

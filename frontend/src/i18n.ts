@@ -386,6 +386,8 @@ const resources = {
         headerLine_other: "Group of {{count, number}} legal entities",
         lei: "LEI",
         totalFunding: "Consolidated public R&D funding of the attached perimeter",
+        jvWeighted:
+          "Joint-venture amounts are weighted by their pact — a 67/33 counts 67 and 33, never twice 100.",
         coverageBasis: "Memberships built from public registries (GLEIF, Wikidata) and manual curation.",
         coverageGap_one:
           "{{count}} corpus organisation carrying this group\u2019s name is not attached yet{{weight}} — totals state the attached perimeter, never the whole group.",
@@ -1084,6 +1086,8 @@ const resources = {
         headerLine_other: "Groupe de {{count, number}} entités légales",
         lei: "LEI",
         totalFunding: "Financements publics R&D consolidés du périmètre rattaché",
+        jvWeighted:
+          "Les montants des coentreprises sont pondérés par leur pacte — un 67/33 compte 67 et 33, jamais deux fois 100.",
         coverageBasis: "Rattachements fondés sur les registres publics (GLEIF, Wikidata) et la curation manuelle.",
         coverageGap_one:
           "{{count}} organisation du corpus portant le nom du groupe n\u2019est pas encore rattachée{{weight}} — les totaux disent le périmètre rattaché, jamais le groupe entier.",

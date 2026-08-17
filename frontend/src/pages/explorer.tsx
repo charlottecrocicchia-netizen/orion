@@ -719,9 +719,15 @@ export function ExplorerPage() {
                     name: serie.label ?? String(serie.key),
                     eu_member: false,
                     // La région vient de l'index des pays (le référentiel
-                    // backend) — jamais devinée côté front.
+                    // backend) — jamais devinée côté front. La classe de
+                    // couverture voyage avec (aspérité du mémo,
+                    // 2026-08-17) : la carte de l'Explorateur hachure les
+                    // financements domestiques non couverts comme toutes
+                    // les cartes géographiques.
                     region:
                       countries?.find((entry) => entry.code === String(serie.key))?.region ?? null,
+                    coverage: countries?.find((entry) => entry.code === String(serie.key))
+                      ?.coverage,
                     projects_count: 0,
                     funding_eur: serie.value ?? 0,
                   }))}

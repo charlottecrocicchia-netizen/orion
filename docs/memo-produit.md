@@ -148,7 +148,9 @@ mise à jour est un geste manuel de l'exploitante.
   programmes-cadres.
 - **Sources prévues** (ordre validé, en attente d'un serveur adapté) :
   UKRI, SNSF, NWO, Vinnova, puis SBIR ; USAspending et OpenAIRE
-  ensuite.
+  ensuite ; **NASA, DoD et DOE à instruire post-hébergement** (décision
+  fondatrice du 2026-08-17 — le trou spatial américain est connu et
+  daté).
 
 ---
 
@@ -462,7 +464,8 @@ La page, dans l'ordre :
 ### 4.10 Le dossier (`/dossier`)
 
 **Le parcours** : partout où vit une vue (Explorateur, angle d'analyse,
-fiche organisation, fiche pays, page région, benchmark), le bouton
+fiche organisation, fiche groupe, fiche pays, page région, benchmark),
+le bouton
 **« + Ajouter au dossier »** — un *toggle* : « ✓ Au dossier · retirer ».
 Le compteur apparaît dans l'en-tête du site.
 
@@ -604,7 +607,7 @@ vue est cadrée espace (le cadrage est dans l'URL).
 - **Clair/sombre** : bascule persistée, appliquée avant le premier
   rendu (pas de flash) ; toute la dataviz est en jetons de couleur, le
   sombre suit gratuitement.
-- **L'ajout au dossier** : le même toggle sur six surfaces.
+- **L'ajout au dossier** : le même toggle sur sept surfaces.
 - **L'honnêteté de couverture** : hachures (globe, cartes), badges
   « partiel » (benchmark, classements de régions), phrases d'assiette
   (hero, fiches pays, pages régions, vues mélangées), résidus nommés
@@ -645,23 +648,25 @@ vue est cadrée espace (le cadrage est dans l'URL).
   (géométrie GISCO non commerciale) : des barres nommées, pas de
   choroplèthe. Réexamen seulement si une licence EuroGeographics est
   achetée un jour.
-- **La pondération des coentreprises n'est pas encore appliquée aux
-  montants** : les parts (67/33, 50/50) sont curées, validées, stockées
-  et affichées en badge, mais le consolidé d'un groupe compte
-  aujourd'hui 100 % des participations de ses entités actives, JV
-  comprises. La doctrine (« toute vue consolidée respecte ces
-  pondérations ») attend son implémentation.
+- **La pondération des coentreprises est appliquée depuis le
+  2026-08-17** : tout montant consolidé d'un groupe porte le pacte
+  (Thales Alenia Space compte 67 % chez Thales et 33 % chez Leonardo) —
+  fiche groupe, benchmark, strate de recherche, repli et cadrage
+  `g<id>` de l'Explorateur, veille consolidée. Les comptes de projets
+  restent entiers (un projet co-signé est un projet du groupe ; c'est
+  l'argent que le pacte partage), et la fiche DIT que la pondération
+  s'applique.
 - **La mise à jour des données est manuelle** (hebdomadaire prête mais
   désactivée sur cette machine) ; la fraîcheur est affichée par source.
-- **Petites aspérités connues** (relevées au présent inventaire) : la
-  fiche groupe n'a pas encore de bouton dossier ; la carte de
-  l'Explorateur n'affiche pas les hachures de couverture (les cartes
-  géographiques, si) ; la dimension État/région ne se choisit que par
-  URL ; le cadrage spatial est invisible à l'écran de l'Explorateur ;
-  la 404 est encore la version nue (sa refonte est au chantier
-  hygiène, lot A, non commencé) ; la navigation n'a pas de variante
-  mobile dédiée ; quelques textes restent en dur en français sur « À
-  propos des données » et en anglais dans les amorces de la palette.
+- **Petites aspérités connues** (relevées au présent inventaire ; le
+  bouton dossier de la fiche groupe et les hachures de la carte de
+  l'Explorateur ont été corrigés le jour même) : la dimension
+  État/région ne se choisit que par URL ; le cadrage spatial est
+  invisible à l'écran de l'Explorateur ; la 404 est encore la version
+  nue (sa refonte est au chantier hygiène, lot A, non commencé) ; la
+  navigation n'a pas de variante mobile dédiée ; quelques textes
+  restent en dur en français sur « À propos des données » et en anglais
+  dans les amorces de la palette.
 
 ---
 

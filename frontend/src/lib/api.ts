@@ -216,9 +216,13 @@ export interface GroupHub {
     method: string;
     confidence: number;
     is_jv: boolean;
+    /** Le pacte de la coentreprise (67 → 67 %) — null hors JV. Les
+     *  montants consolidés le portent (pondération, 2026-08-17). */
+    share: number | null;
     /** active | announced | historical — l'annoncé est listé, jamais consolidé. */
     status: string;
     projects: number;
+    /** La CONTRIBUTION pondérée de l'entité au consolidé du groupe. */
     funding_eur: number;
     share_pct: number;
   }[];

@@ -595,7 +595,7 @@ def _matching_groups(session: Session, q: str) -> list[dict[str, Any]]:
                 WHERE m.group_id = c.id AND m.status = 'active') AS entities,
                (SELECT count(*) FROM entity_group_map m
                 WHERE m.group_id = c.id AND m.status = 'announced') AS announced,
-               coalesce((SELECT sum(pa.amount_eur)
+               coalesce((SELECT sum(pa.amount_eur * coalesce(m.share, 100) / 100.0)
                          FROM entity_group_map m
                          JOIN participations pa ON pa.organisation_id = m.organisation_id
                          WHERE m.group_id = c.id AND m.status = 'active'), 0) AS funding

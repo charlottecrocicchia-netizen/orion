@@ -130,19 +130,22 @@ def _view_coverage(
     }
 
 
-def _entity_ref_ids(session: Session, refs: list[str]) -> dict[str, list[int]]:
-    """« 123 » → [123] ; « g45 » → les organisations ACTIVES du groupe 45.
-    Le benchmark composable parle les deux langues (recette 2026-08-05)."""
-    out: dict[str, list[int]] = {}
+def _entity_ref_ids(session: Session, refs: list[str]) -> dict[str, list[tuple[int, float]]]:
+    """« 123 » → [(123, 1.0)] ; « g45 » → les organisations ACTIVES du
+    groupe 45, chacune avec son POIDS de pacte (pondération JV, doctrine
+    2026-08-17 : un 67/33 reste un 67/33, jamais deux fois 100). Le
+    benchmark composable parle les deux langues (recette 2026-08-05)."""
+    out: dict[str, list[tuple[int, float]]] = {}
     for ref in refs:
         if ref.isdigit():
-            out[ref] = [int(ref)]
+            out[ref] = [(int(ref), 1.0)]
         elif ref[:1] == "g" and ref[1:].isdigit():
             out[ref] = [
-                row[0]
+                (row[0], float(row[1]))
                 for row in session.execute(
                     text(
-                        "SELECT organisation_id FROM entity_group_map "
+                        "SELECT organisation_id, coalesce(share, 100) / 100.0 "
+                        "FROM entity_group_map "
                         "WHERE group_id = :gid AND status = 'active'"
                     ),
                     {"gid": int(ref[1:])},
@@ -517,24 +520,31 @@ def _build(
     )
     params: dict[str, Any] = {}
     dim = _dimension(by, participation, params)
-    cmp_entity_refs: dict[str, list[int]] | None = None
+    cmp_entity_refs: dict[str, list[tuple[int, float]]] | None = None
     if by == "organisation" and compare and any(not c.isdigit() for c in compare):
         cmp_entity_refs = _entity_ref_ids(session, compare)
         pairs = [
-            (org_id, ref) for ref, org_ids in cmp_entity_refs.items() for org_id in org_ids
-        ] or [(-1, "none")]
+            (org_id, ref, weight)
+            for ref, members in cmp_entity_refs.items()
+            for org_id, weight in members
+        ] or [(-1, "none", 1.0)]
         values_sql = ", ".join(
-            f"(CAST(:cmpo{i} AS integer), CAST(:cmpr{i} AS text))" for i in range(len(pairs))
+            f"(CAST(:cmpo{i} AS integer), CAST(:cmpr{i} AS text), "
+            f"CAST(:cmpw{i} AS double precision))"
+            for i in range(len(pairs))
         )
-        for i, (org_id, ref) in enumerate(pairs):
+        for i, (org_id, ref, weight) in enumerate(pairs):
             params[f"cmpo{i}"] = org_id
             params[f"cmpr{i}"] = ref
+            params[f"cmpw{i}"] = weight
         # La dimension devient le REF du benchmark : les organisations
-        # d'un groupe se replient en une série, étiquetée plus bas.
+        # d'un groupe se replient en une série, étiquetée plus bas — et
+        # chaque participation porte son POIDS de pacte (pondération JV).
         dim = {
             "key": "cmp.ref",
             "joins": (
-                f"JOIN (VALUES {values_sql}) AS cmp(org_id, ref) ON cmp.org_id = pa.organisation_id"
+                f"JOIN (VALUES {values_sql}) AS cmp(org_id, ref, weight) "
+                "ON cmp.org_id = pa.organisation_id"
             ),
             "label": "NULL",
             "clause": "",
@@ -548,6 +558,23 @@ def _build(
     else:
         base = "FROM projects p"
         cols = _METRIC_COLS[False]
+    # Pondération JV : l'ARGENT d'un groupe replié porte le poids de
+    # chaque adhésion ; les comptes (projets, organisations, part en
+    # coordination) restent entiers — c'est l'argent que le pacte
+    # partage, pas les faits. AVANT la construction du SELECT : une
+    # surcharge posée après ne serait qu'un dictionnaire mort.
+    if cmp_entity_refs is not None:
+        cols = {**cols, "funding": "sum(pa.amount_eur * cmp.weight)"}
+    if organisation is not None and organisation.startswith("g"):
+        # Vue cadrée sur un GROUPE (organisation=g<id>) : même règle, le
+        # poids se lit sur l'adhésion active de chaque participation.
+        params["orgf_gid"] = int(organisation[1:])
+        weight_sub = (
+            "(SELECT coalesce(m.share, 100) / 100.0 FROM entity_group_map m "
+            "WHERE m.group_id = :orgf_gid "
+            "AND m.organisation_id = pa.organisation_id AND m.status = 'active')"
+        )
+        cols = {**cols, "funding": f"sum(pa.amount_eur * {weight_sub})"}
     select_cols = (
         f"{dim['key']} AS key, {dim['label']} AS label, "
         f"{cols['funding']} AS funding, {cols['projects']} AS projects, "
@@ -570,8 +597,8 @@ def _build(
         params["member_ids"] = _subtree(programme, parents) or [-1]
         clauses.append("p.programme_id = ANY(:member_ids)")
     if organisation is not None:
-        org_filter_ids = _entity_ref_ids(session, [organisation]).get(organisation) or [-1]
-        params["organisation_ids"] = org_filter_ids
+        org_members = _entity_ref_ids(session, [organisation]).get(organisation) or [(-1, 1.0)]
+        params["organisation_ids"] = [org_id for org_id, _ in org_members]
         clauses.append("pa.organisation_id = ANY(:organisation_ids)")
     if sector == "space":
         # La lentille spatiale cadre la vue — le tag vit sur le projet.

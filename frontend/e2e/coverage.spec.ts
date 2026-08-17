@@ -53,6 +53,10 @@ test("une vue qui mélange les couvertures le confesse ; une vue homogène se ta
   // les autres n'apparaissent que par leurs consortiums.
   await page.goto("/explore?by=country&split=0&limit=20");
   await expect(page.getByText("Couvertures inégales")).toBeVisible({ timeout: 15_000 });
+  // La carte de l'EXPLORATEUR hachure aussi (aspérité du mémo, corrigée
+  // le 2026-08-17) : le Japon, vu par ses seules participations, porte
+  // la texture ici comme sur toutes les cartes géographiques.
+  await expect(page.locator("[data-not-covered='JP']")).toBeAttached({ timeout: 10_000 });
   await expect(page.getByText(/leur budget propre est invisible ici, pas nul/)).toBeVisible();
   // Elle NOMME le pays concerné : « le Japon finance peu » et « nous ne
   // voyons du Japon que ce qu'il fait avec l'Europe » ne se disent pas

@@ -115,6 +115,11 @@ test("la fiche avoue son périmètre et déroule ses actes de deck", async ({ pa
   await groupOption.click();
   await expect(page).toHaveURL(/\/groups\/\d+/);
 
+  // Le bouton dossier (aspérité du mémo, corrigée le 2026-08-17) : la
+  // fiche groupe collectionne sa vue vivante comme les six autres
+  // surfaces — le toggle de la recette du 2026-08-04 vaut ici aussi.
+  await expect(page.getByRole("button", { name: /Ajouter au dossier/ })).toBeVisible();
+
   // La note d'honnêteté : AEROSTELLAR GROUP SERVICES BV porte le nom du
   // groupe sans y être rattachée — la fiche le dit, pesé.
   const note = page.getByText(/pas encore rattachée/);

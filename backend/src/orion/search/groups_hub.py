@@ -13,6 +13,13 @@ entities counts ONCE in the consolidated totals (DISTINCT project);
 shares are stated on the group's own total; membership method and
 confidence ride along — a curated fact and a name-bridge guess are not
 the same thing, and the reader can see which is which.
+
+JV weighting (doctrine enforced 2026-08-17): every consolidated AMOUNT
+multiplies each participation by the membership share — Thales Alenia
+Space counts 67 % at Thales and 33 % at Leonardo, never 100 % on both
+sides. Project COUNTS stay DISTINCT and unweighted: a co-signed project
+is a whole project of the group, money is what the pact splits. The
+page says the weighting is applied (group.jvWeighted).
 """
 
 from typing import Any
@@ -37,7 +44,8 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         SELECT o.id, o.name, o.country_code, c.region,
                m.method, m.confidence, m.is_jv, m.share, m.status,
                count(DISTINCT pa.project_id) AS projects,
-               coalesce(sum(pa.amount_eur), 0) AS funding
+               coalesce(sum(pa.amount_eur), 0) AS funding,
+               coalesce(sum(pa.amount_eur * coalesce(m.share, 100) / 100.0), 0) AS weighted
         FROM entity_group_map m
         JOIN organisations o ON o.id = m.organisation_id
         LEFT JOIN countries c ON c.code = o.country_code
@@ -46,7 +54,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
         GROUP BY o.id, o.name, o.country_code, c.region,
                  m.method, m.confidence, m.is_jv, m.share, m.status
         ORDER BY CASE m.status WHEN 'active' THEN 0 WHEN 'announced' THEN 1 ELSE 2 END,
-                 funding DESC, o.name
+                 weighted DESC, o.name
         """),
         {"id": group_id},
     ).all()
@@ -54,7 +62,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
     totals = session.execute(
         text("""
         SELECT count(DISTINCT pa.project_id) AS projects,
-               coalesce(sum(pa.amount_eur), 0) AS funding
+               coalesce(sum(pa.amount_eur * coalesce(m.share, 100) / 100.0), 0) AS funding
         FROM entity_group_map m
         JOIN participations pa ON pa.organisation_id = m.organisation_id
         WHERE m.group_id = :id AND m.status = 'active'
@@ -65,7 +73,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
     trajectory = session.execute(
         text("""
         SELECT extract(year FROM p.start_date)::int AS year,
-               coalesce(sum(pa.amount_eur), 0) AS funding
+               coalesce(sum(pa.amount_eur * coalesce(m.share, 100) / 100.0), 0) AS funding
         FROM entity_group_map m
         JOIN participations pa ON pa.organisation_id = m.organisation_id
         JOIN projects p ON p.id = pa.project_id
@@ -106,14 +114,20 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
             "method": row.method,
             "confidence": float(row.confidence or 0),
             "is_jv": bool(row.is_jv),
+            # Le pacte, exposé tel quel : le front l'affiche à côté du
+            # badge Coentreprise (« 67 % ») — la pondération se voit.
+            "share": float(row.share) if row.share is not None else None,
             "status": row.status,
             "projects": row.projects,
-            "funding_eur": float(row.funding or 0),
+            # La CONTRIBUTION au consolidé : pondérée par le pacte. La
+            # participation brute de l'entité reste lisible sur SA fiche
+            # d'organisation — ici, on lit le groupe.
+            "funding_eur": float(row.weighted or 0),
             # The share is stated on the group's own consolidated total —
             # sums of shares can EXCEED 100 % when entities co-sign the
             # same project (each holds its own participation): honest,
             # and the page says so.
-            "share_pct": round(float(row.funding or 0) / group_funding * 100, 1)
+            "share_pct": round(float(row.weighted or 0) / group_funding * 100, 1)
             if group_funding > 0
             else 0.0,
         }
@@ -138,7 +152,7 @@ def group_hub(session: Session, group_id: int) -> dict[str, Any] | None:
     per_entity_years = session.execute(
         text("""
         SELECT m.organisation_id AS org, extract(year FROM p.start_date)::int AS year,
-               coalesce(sum(pa.amount_eur), 0) AS funding
+               coalesce(sum(pa.amount_eur * coalesce(m.share, 100) / 100.0), 0) AS funding
         FROM entity_group_map m
         JOIN participations pa ON pa.organisation_id = m.organisation_id
         JOIN projects p ON p.id = pa.project_id

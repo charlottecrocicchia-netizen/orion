@@ -110,8 +110,12 @@ export function ExploreView({
                 name: serie.label ?? String(serie.key),
                 eu_member: false,
                 // La région vient du référentiel backend, jamais devinée.
+                // La couverture voyage avec : les hachures d'honnêteté
+                // valent aussi dans les decks, le dossier, le benchmark.
                 region:
                   countryIndex?.find((entry) => entry.code === String(serie.key))?.region ?? null,
+                coverage: countryIndex?.find((entry) => entry.code === String(serie.key))
+                  ?.coverage,
                 projects_count: 0,
                 funding_eur: serie.value ?? 0,
               }))}

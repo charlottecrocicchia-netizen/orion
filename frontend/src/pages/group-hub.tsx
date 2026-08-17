@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { countryFlag, formatCompactEur, formatInt, formatOrgName, themeLabel, useCountryName } from "@/lib/format";
 import { isRegion, REGION_ORDER, regionColor } from "@/lib/regions";
+import { CollectButton } from "@/components/collect-button";
 import { LinesChart } from "@/components/charts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrajectorySpark } from "@/components/trajectory-spark";
@@ -129,12 +130,18 @@ export function GroupHubPage() {
           {displayName}
         </h1>
         {/* The benchmark door — this group beside another, AS groups. */}
-        <Link
-          to={`/compare?orgs=g${hub.id}`}
-          className="mt-2.5 shrink-0 rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors hover:border-accent hover:text-accent"
-        >
-          ⇄ {t("group.compareCta")}
-        </Link>
+        <span className="mt-2.5 flex shrink-0 items-center gap-2.5">
+          <CollectButton
+            view={`by=organisation&split=1&compare=g${hub.id}`}
+            title={displayName}
+          />
+          <Link
+            to={`/compare?orgs=g${hub.id}`}
+            className="rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors hover:border-accent hover:text-accent"
+          >
+            ⇄ {t("group.compareCta")}
+          </Link>
+        </span>
       </div>
 
       {/* The record hero — the consolidated total as a display figure,
@@ -165,6 +172,12 @@ export function GroupHubPage() {
                       : "",
                 })}
               </span>
+            </>
+          ) : null}
+          {hub.entities.some((entity) => entity.is_jv) ? (
+            <>
+              {" "}
+              <span>{t("group.jvWeighted")}</span>
             </>
           ) : null}
         </p>
@@ -297,6 +310,7 @@ export function GroupHubPage() {
                       {entity.is_jv ? (
                         <span className="ml-2 rounded-full border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                           {t("group.jv")}
+                          {entity.share != null ? ` · ${Math.round(entity.share)} %` : ""}
                         </span>
                       ) : null}
                       {entity.status !== "active" ? (

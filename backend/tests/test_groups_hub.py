@@ -552,3 +552,83 @@ def test_explore_organisation_filter_scopes_to_the_entity(db_session):
     # Garde-fous : ref invalide → None ; organisation × by=organisation → None.
     assert aggregate(db_session, metric="funding", by="programme", organisation="zz") is None
     assert aggregate(db_session, metric="funding", by="organisation", organisation="12") is None
+
+
+def _add_jv_member(session: Session, group_id: int) -> None:
+    """Une coentreprise à 50 % avec 2 M€ de participations : le pacte
+    doit en compter 1 M€ partout, jamais 2."""
+    funder = session.execute(text("SELECT id FROM funders WHERE code = 'ec'")).scalar_one()
+    programme = session.execute(
+        text("SELECT id FROM programmes WHERE code = 'ZZPROG'")
+    ).scalar_one()
+    session.execute(
+        text(
+            "INSERT INTO organisations (name, name_normalized, country_code) "
+            "VALUES ('ZZJV SPACE', 'zzjv space', 'FR')"
+        )
+    )
+    org = session.execute(
+        text("SELECT id FROM organisations WHERE name = 'ZZJV SPACE'")
+    ).scalar_one()
+    session.execute(
+        text(
+            "INSERT INTO entity_group_map (organisation_id, group_id, method, confidence, "
+            "source, is_jv, share) VALUES (:o, :g, 'curation', 0.9, 'curation', true, 50)"
+        ),
+        {"o": org, "g": group_id},
+    )
+    session.execute(
+        text(
+            "INSERT INTO projects (source, source_id, title, funder_id, programme_id, "
+            "start_date) VALUES ('test-jv', 'zz-jv', 'zz jv sat', :f, :pr, '2023-01-01')"
+        ),
+        {"f": funder, "pr": programme},
+    )
+    project = session.execute(
+        text("SELECT id FROM projects WHERE source_id = 'zz-jv'")
+    ).scalar_one()
+    session.execute(
+        text(
+            "INSERT INTO participations (project_id, organisation_id, role, country_code, "
+            "amount_eur, source, source_uid) "
+            "VALUES (:p, :o, 'participant', 'FR', 2000000, 'test-jv', 'jv-1')"
+        ),
+        {"p": project, "o": org},
+    )
+    session.flush()
+
+
+def test_jv_amounts_carry_the_pact_weight_everywhere(db_session):
+    """Pondération JV (doctrine appliquée le 2026-08-17) : un 50 % compte
+    moitié dans TOUT consolidé — fiche, benchmark, strate de recherche,
+    repli et cadrage g<id> de l'Explorateur. Les comptes de projets
+    restent ENTIERS : c'est l'argent que le pacte partage, pas les
+    faits. Base de la graine : 8 M€ non-JV ; la coentreprise ajoute
+    2 M€ à 50 % → 9 M€, jamais 10."""
+    from orion.search import aggregates
+    from orion.search.explore import aggregate
+    from orion.search.service import OrganisationFilters, search_organisations
+
+    group_id = _seed_group(db_session)
+    _add_jv_member(db_session, group_id)
+
+    hub = group_hub(db_session, group_id)
+    assert hub["totals"]["funding_eur"] == pytest.approx(9_000_000)
+    row = next(e for e in hub["entities"] if e["name"] == "ZZJV SPACE")
+    assert row["is_jv"] is True and row["share"] == pytest.approx(50.0)
+    # La CONTRIBUTION affichée est pondérée ; le projet compte entier.
+    assert row["funding_eur"] == pytest.approx(1_000_000)
+    assert row["projects"] == 1
+
+    entry = aggregates.group_compare_entry(db_session, group_id)
+    assert entry["kpis"]["total_funding_eur"] == pytest.approx(9_000_000)
+
+    db_session.execute(text("SELECT set_config('pg_trgm.similarity_threshold', '0.25', true)"))
+    strate = search_organisations(db_session, OrganisationFilters(q="zzgroupe aero"))
+    assert strate["groups"][0]["funding_eur"] == pytest.approx(9_000_000)
+
+    folded = aggregate(db_session, metric="funding", by="organisation", compare=[f"g{group_id}"])
+    assert folded["series"][0]["value"] == pytest.approx(9_000_000)
+
+    scoped = aggregate(db_session, metric="funding", by="programme", organisation=f"g{group_id}")
+    assert scoped["series"][0]["value"] == pytest.approx(9_000_000)
