@@ -52,10 +52,13 @@ from orion.ingest.runlog import RunStats, record_run
 LENSES_DIR = Path(__file__).resolve().parents[3] / "curation" / "lenses"
 REGISTRY_FILE = LENSES_DIR / "registry.csv"
 
-REGISTRY_COLUMNS = ["family_key", "slug", "rank"]
+REGISTRY_COLUMNS = ["family_key", "slug", "rank", "status"]
 COLUMNS = ["rule_type", "value", "tag", "sources", "evidence", "source"]
 RULE_TYPES = ("programme", "theme", "text")
 TAGS = ("core", "adjacent")
+# I2 : draft se charge sans être exposée, published est le produit,
+# retired n'est plus rechargée — ses tags restent gelés en base.
+STATUSES = ("draft", "published", "retired")
 TEXT_SOURCES = {"cordis", "nsf", "nih"}
 
 # La grammaire URL réserve le suffixe « -direct » au périmètre (D2) ; un
@@ -91,6 +94,8 @@ def parse_registry(path: Path) -> list[dict[str, Any]]:
                 _fail(path.name, index, "un slug ne finit jamais par « -direct » (grammaire D2)")
             if not entry["rank"].isdigit() or int(entry["rank"]) < 1:
                 _fail(path.name, index, f"rank « {entry['rank']} » (entier ≥ 1)")
+            if entry["status"] not in STATUSES:
+                _fail(path.name, index, f"status « {entry['status']} » (draft|published|retired)")
             entry["rank"] = int(entry["rank"])
             entries.append(entry)
         slugs = [e["slug"] for e in entries]
@@ -154,10 +159,11 @@ def mirror_registry(session: Session, entries: list[dict[str, Any]]) -> None:
     for entry in entries:
         session.execute(
             text(
-                "INSERT INTO lenses (slug, family_key, rank) "
-                "VALUES (:slug, :family_key, :rank) "
+                "INSERT INTO lenses (slug, family_key, rank, status) "
+                "VALUES (:slug, :family_key, :rank, :status) "
                 "ON CONFLICT (slug) DO UPDATE "
-                "SET family_key = excluded.family_key, rank = excluded.rank"
+                "SET family_key = excluded.family_key, rank = excluded.rank, "
+                "    status = excluded.status"
             ),
             entry,
         )
@@ -271,6 +277,9 @@ def load_all(session: Session, stats: RunStats, base_dir: Path | None = None) ->
     _check_files(entries, base)
     mirror_registry(session, entries)
     for entry in entries:
+        if entry["status"] == "retired":
+            stats.add("lens_retired_skipped")
+            continue
         load_lens(session, stats, entry["slug"], base / f"{entry['slug']}.csv")
 
 
@@ -286,6 +295,10 @@ def run(force: bool = False) -> dict[str, int]:  # noqa: ARG001 — retag total 
 
     combined: dict[str, int] = {}
     for entry in entries:
+        # Une lentille retirée ne se recharge plus — pas même un run.
+        if entry["status"] == "retired":
+            combined["lens_retired_skipped"] = combined.get("lens_retired_skipped", 0) + 1
+            continue
         # Un run journalisé PAR lentille : `space-lens` garde son nom.
         with record_run(f"{entry['slug']}-lens") as stats:
             session = SessionLocal()

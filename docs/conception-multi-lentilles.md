@@ -228,3 +228,40 @@ du réel :
    masquée par les redémarrages de déploiement). Les runs `%-lens`
    comptent désormais dans le tampon : requis pour que le mécanisme
    soit juste quand une lentille se recharge à chaud.
+
+## Invariants post-M0 (fondatrice, 2026-08-18 — M0 validé)
+
+**I1 — `lens` est la grammaire canonique future ; `sector` devient un
+alias de compatibilité.** Rien ne migre maintenant : M1 continue
+d'émettre `sector=` partout (aucune URL ne casse, aucune double forme
+en circulation). Mais toute lecture/écriture du paramètre passe par UN
+seul module de chaque côté (`useActiveLens()` au front,
+`parse_sector`/`valid_sector` au back) — aucune surface nouvelle ne
+propage `sector` en dur comme si c'était l'avenir. Le basculement
+`sector→lens` (avec normalisation des anciennes URL) sera un geste
+propre et daté, pas un effet de bord.
+
+**I2 — une lentille porte un statut : `draft | published | retired`.**
+Seule une lentille PUBLIÉE est exposée — validation d'URL, bloc
+`lenses` de `/api/stats`, et un jour la Lens Room. `draft` se charge et
+se vérifie en base sans exister pour le produit (le chemin d'A1 :
+construire l'aviation en draft, la publier quand elle est vraie) ;
+`retired` n'est plus rechargée ni exposée, ses tags restent gelés en
+base (rien n'est supprimé). **Implémenté dès maintenant** (bon marché :
+colonne au registre + migration 0024) — `space = published`.
+
+**I3 — le vocabulaire est UNE paire, à deux registres.** Technique :
+`core / enabling`. Utilisateur : « X direct » / « X + habilitant »,
+en i18n — les libellés validés du chantier Space natif font foi.
+Aucun troisième terme nulle part. L'alignement `adjacent → enabling`
+(valeur en base, colonne des CSV de règles, clé de payload) n'est PAS
+bon marché isolément — la home lit `stats.space.adjacent`
+(home.tsx:262) : le renommer côté données seul créerait un TROISIÈME
+état. Il se fait en **un seul geste au lot M1.0**, quand le front
+bascule sur le bloc `lenses`.
+
+**I4 — le recalcul indépendant par lentille est une exigence d'A1,
+pas un développement d'aujourd'hui.** Consigné : sélecteur CLI
+(`orion-ingest lenses --lens aviation`), et versions/journaux PAR
+lentille (le run `<slug>-lens` existe déjà ; A1 y ajoute la version du
+fichier de règles — hash + date — dans le journal). Voir roadmap.

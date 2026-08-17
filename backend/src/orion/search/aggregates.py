@@ -42,8 +42,12 @@ def global_stats(session: Session) -> dict[str, Any]:
         # la courbe-constellation se dessine sur les années de LA
         # lentille, jamais celles du corpus entier maquillées.
         lenses = []
+        # I2 : seule une lentille publiée est exposée — draft se vérifie
+        # en base, retired reste gelée, aucune des deux n'existe ici.
         for lens in session.execute(
-            text("SELECT slug, family_key, rank FROM lenses ORDER BY rank")
+            text(
+                "SELECT slug, family_key, rank FROM lenses WHERE status = 'published' ORDER BY rank"
+            )
         ).all():
             counters = session.execute(
                 text("""

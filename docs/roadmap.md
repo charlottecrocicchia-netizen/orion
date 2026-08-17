@@ -359,6 +359,22 @@ de `/api/stats` avec alias `space` conservé jusqu'à M1. Recette : les
 71 e2e verts sans une ligne modifiée. **M1 sur validation explicite ;
 A1 (curation aéro) et A2 (decks) chantiers suivants.**
 
+**M0 VALIDÉ (2026-08-18) + invariants I1-I4 gravés** (détail à la
+[conception](conception-multi-lentilles.md)) : I1 `lens` canonique
+futur / `sector` alias de compatibilité (rien ne migre, un seul module
+de lecture-écriture) ; I2 statut `draft|published|retired` —
+**implémenté** (migration 0024, registre à 4 colonnes, exposition
+published-only : validation d'URL, bloc `lenses`, un jour la Lens
+Room) ; I3 une paire à deux registres — technique `core/enabling`
+(alignement `adjacent→enabling` en un geste au lot M1.0), utilisateur
+« direct / + habilitant » ; I4 recalcul par lentille = **exigence
+d'A1** : sélecteur CLI (`orion-ingest lenses --lens aviation`) et
+version du fichier de règles (hash + date) au journal `<slug>-lens`.
+**Conception M1 détaillée soumise** :
+[conception-m1-lentille-active.md](conception-m1-lentille-active.md)
+(lots M1.0-M1.3, invariants d'URL U1-U5, recette, trois arbitrages
+ouverts) — **aucun code M1 écrit**.
+
 **Registre des évolutions identifiées** (consignes fondatrice,
 2026-08-17) :
 

@@ -17,10 +17,16 @@ from orion.models.base import Base
 
 class Lens(Base):
     __tablename__ = "lenses"
+    __table_args__ = (
+        CheckConstraint("status IN ('draft', 'published', 'retired')", name="ck_lenses_status"),
+    )
 
     slug: Mapped[str] = mapped_column(String(30), primary_key=True)
     family_key: Mapped[str] = mapped_column(String(40))
     rank: Mapped[int] = mapped_column(Integer)
+    # I2 (2026-08-18) : seule une lentille `published` existe pour le
+    # produit ; `draft` se vérifie en base, `retired` reste gelée.
+    status: Mapped[str] = mapped_column(String(12), server_default="published")
 
 
 class ProjectLensTag(Base):

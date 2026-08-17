@@ -184,23 +184,25 @@ def test_malformed_rules_refuse_to_tag(tmp_path):
 
 def _registry(tmp_path, rows):
     path = tmp_path / "registry.csv"
-    path.write_text("\n".join(["family_key,slug,rank", *rows]) + "\n", encoding="utf-8")
+    path.write_text("\n".join(["family_key,slug,rank,status", *rows]) + "\n", encoding="utf-8")
     return path
 
 
 def test_registry_validates_all_or_nothing(tmp_path):
     """Amendement M0 n°1 : famille → lentille, clés techniques stables —
-    un registre mal formé ne mire rien."""
-    assert parse_registry(_registry(tmp_path, ["aerospace_mobility,space,1"])) == [
-        {"family_key": "aerospace_mobility", "slug": "space", "rank": 1}
+    un registre mal formé ne mire rien. I2 : le statut fait partie de la
+    forme validée."""
+    assert parse_registry(_registry(tmp_path, ["aerospace_mobility,space,1,published"])) == [
+        {"family_key": "aerospace_mobility", "slug": "space", "rank": 1, "status": "published"}
     ]
     bad = [
-        ["Aérospatial,space,1"],  # un libellé n'est pas une clé de famille
-        ["aerospace_mobility,Space,1"],  # slug en minuscules, toujours
-        ["aerospace_mobility,space-direct,1"],  # « -direct » = grammaire D2
-        ["aerospace_mobility,space,0"],  # rang ≥ 1
-        ["aerospace_mobility,space,1", "energy,space,2"],  # slug en double
-        ["aerospace_mobility,space,1", "energy,solar,1"],  # rang en double
+        ["Aérospatial,space,1,published"],  # un libellé n'est pas une clé de famille
+        ["aerospace_mobility,Space,1,published"],  # slug en minuscules, toujours
+        ["aerospace_mobility,space-direct,1,published"],  # « -direct » = grammaire D2
+        ["aerospace_mobility,space,0,published"],  # rang ≥ 1
+        ["aerospace_mobility,space,1,soon"],  # statut hors draft|published|retired
+        ["aerospace_mobility,space,1,published", "energy,space,2,published"],  # slug en double
+        ["aerospace_mobility,space,1,published", "energy,solar,1,published"],  # rang en double
     ]
     for rows in bad:
         with pytest.raises(LensError):
@@ -210,7 +212,7 @@ def test_registry_validates_all_or_nothing(tmp_path):
 def test_load_all_refuses_rules_outside_the_registry(db_session, tmp_path):
     """Toute lentille naît au registre — un CSV orphelin comme une entrée
     sans règles refusent de charger, dans les deux sens."""
-    _registry(tmp_path, ["aerospace_mobility,space,1"])
+    _registry(tmp_path, ["aerospace_mobility,space,1,published"])
     _lens(tmp_path, RULES, name="space.csv")
     _lens(tmp_path, RULES, name="orphan.csv")
     with pytest.raises(LensError):
@@ -229,7 +231,10 @@ def test_a_project_carries_two_lenses_each_read_full(db_session, tmp_path):
     from orion.search.explore import aggregate
 
     ids = _seed(db_session)
-    _registry(tmp_path, ["aerospace_mobility,space,1", "zz_family,zztest,2"])
+    _registry(
+        tmp_path,
+        ["aerospace_mobility,space,1,published", "zz_family,zztest,2,published"],
+    )
     _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Services en orbite",test'], name="space.csv")
     _lens(
         tmp_path,
@@ -250,6 +255,40 @@ def test_a_project_carries_two_lenses_each_read_full(db_session, tmp_path):
     one = aggregate(db_session, metric="projects", by="funder", sector="zztest")
     assert one is not None
     assert sum(s["value"] or 0 for s in one["series"]) == 1
+
+
+def test_only_published_lenses_exist_for_the_product(db_session, tmp_path):
+    """I2 (2026-08-18) : draft se charge et se vérifie en base sans
+    exister pour le produit — sector refusé, absente du bloc lenses ;
+    retired n'est plus rechargée du tout."""
+    from orion.search import aggregates
+    from orion.search.explore import aggregate
+
+    ids = _seed(db_session)
+    _registry(
+        tmp_path,
+        [
+            "aerospace_mobility,space,1,published",
+            "zz_family,zzdraft,2,draft",
+            "zz_family2,zzretired,3,retired",
+        ],
+    )
+    _lens(tmp_path, RULES, name="space.csv")
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Brouillon",test'], name="zzdraft.csv")
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Retirée",test'], name="zzretired.csv")
+    stats = RunStats()
+    load_all(db_session, stats, base_dir=tmp_path)
+
+    # Le draft est en base, vérifiable…
+    assert _tags(db_session, ids, lens="zzdraft")["zzsl-3"] == "core"
+    # …mais n'existe pas pour le produit.
+    assert aggregate(db_session, metric="projects", by="funder", sector="zzdraft") is None
+    exposed = [entry["slug"] for entry in aggregates.global_stats(db_session)["lenses"]]
+    assert "zzdraft" not in exposed and "space" in exposed
+
+    # La retirée n'a même pas été rechargée.
+    assert stats.counts.get("lens_retired_skipped") == 1
+    assert _tags(db_session, ids, lens="zzretired")["zzsl-3"] is None
 
 
 def test_the_two_perimeters_frame_the_explorer(db_session, tmp_path):

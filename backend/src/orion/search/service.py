@@ -60,12 +60,16 @@ def parse_sector(sector: str) -> tuple[str, bool]:
 
 
 def valid_sector(session: Session, sector: str) -> bool:
-    """Un cadrage ne vaut que si son slug est au registre — une valeur
-    inconnue est refusée, jamais un cadrage silencieusement ignoré."""
+    """Un cadrage ne vaut que si son slug est une lentille PUBLIÉE (I2)
+    — une valeur inconnue, draft ou retirée est refusée, jamais un
+    cadrage silencieusement ignoré."""
     slugs = _cached(
         session,
         "lens_slugs",
-        lambda: {row[0] for row in session.execute(text("SELECT slug FROM lenses"))},
+        lambda: {
+            row[0]
+            for row in session.execute(text("SELECT slug FROM lenses WHERE status = 'published'"))
+        },
     )
     return parse_sector(sector)[0] in slugs
 
