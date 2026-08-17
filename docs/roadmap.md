@@ -311,16 +311,21 @@ même : [conception-drill-etats.md](conception-drill-etats.md) et
   panneau du globe et sur la fiche pays, assiette sous le hero, badge
   « partiel » au benchmark. Règle gravée : **plus jamais un écran où
   l'absence de données se fait passer pour un zéro.**
-- **Lot F — les régions européennes (NUTS) : DONNÉE acquise, SURFACE
-  bloquée.** Le `nuts_code` de CORDIS (CC BY 4.0) est posé par le même
-  backfill. Mais la géométrie NUTS et la table des NOMS de régions
-  viennent de GISCO/Eurostat, dont je n'ai pas pu VÉRIFIER les
-  conditions depuis ici (page de licences en 404, pages Eurostat
-  muettes sur leurs termes). Règle maison appliquée sans exception :
-  **zone grise = pas de carte**. Deux questions à trancher avec les
-  conditions réelles sous les yeux — la géométrie, et les noms. Sans
-  elles, une V1 « régions UE » reste possible en liste classée sur les
-  codes bruts (utile mais aride) : non livrée sans arbitrage.
+- **Lot F — les régions européennes (NUTS) : tranché le 2026-08-17,
+  vérification formelle au registre.** La zone grise est levée, et le
+  verdict est double ([registre des sources](data-sources.md)) : la
+  **géométrie** GISCO est **EXCLUE définitivement** — clause « *the data
+  will not be used for commercial purposes* » + usage commercial renvoyé
+  à un accord négocié avec EuroGeographics : deux motifs d'exclusion de
+  notre règle, pas un. La **nomenclature** (codes ET noms de régions) est
+  en revanche **CC BY 4.0** (décision 2011/833/UE, réutilisation
+  commerciale explicitement autorisée avec mention de la source) — donc
+  licite, tout comme le `nuts_code` que CORDIS nous donne déjà.
+  Conséquence : lot F livrable **sans carte** (classement, barres,
+  comparaison, noms officiels), et c'est la seule forme propre. Réexamen
+  de la carte seulement si nous achetons une licence EuroGeographics :
+  décision commerciale, pas technique. Prérequis inchangé : le backfill
+  NUTS (0/463 147) attend une image API reconstruite.
 
 ## Puis — phase 5 : les appels (calls)
 

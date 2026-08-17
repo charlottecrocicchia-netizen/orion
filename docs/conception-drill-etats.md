@@ -72,8 +72,8 @@ les données ET la géométrie passent les règles.
 | Fédération | Données | Géométrie | Verdict |
 |---|---|---|---|
 | **États-Unis** | ✔ NIH `ORG_STATE` + NSF `inst_state_code`, caches complets | ✔ Natural Earth admin-1, domaine public | **V1 proposée ici** |
-| **Länder allemands** | ✔ CORDIS `nutsCode` (les Länder = NUTS1 DE, DE1…DEG) | ⚠ les frontières NUTS officielles (Eurostat GISCO) portent la mention « © EuroGeographics » avec conditions — **passage au registre des licences obligatoire ; zone grise = pas de carte** ; Natural Earth admin-1 peut servir pour les Länder (découpage identique) mais l'appariement NE↔NUTS doit être vérifié Land par Land | **Faisable ; carte sous réserve de licence** |
-| **Régions UE (NUTS1/2)** | ✔ CORDIS `nutsCode` sur toute l'Europe élargie | ⚠ même sujet GISCO ; pas d'équivalent Natural Earth propre hors quelques pays | **Données oui ; V1 possible SANS carte** (classement, barres, panneau — la carte attend une géométrie limpide) |
+| **Länder allemands** | ✔ CORDIS `nutsCode` (les Länder = NUTS1 DE, DE1…DEG) | ❌ géométrie GISCO exclue (voir ci-dessous) ; Natural Earth admin-1 découpe bien les Länder mais l'appariement NE↔NUTS resterait à prouver Land par Land | **Données oui, carte non** |
+| **Régions UE (NUTS1/2)** | ✔ CORDIS `nutsCode` sur toute l'Europe élargie ; **noms officiels licites** (CC BY 4.0) | ❌ géométrie GISCO exclue | **V1 SANS carte** (classement, barres, panneau) |
 | Autres (CA, AU…) | ✖ nos sources ne portent pas leurs subdivisions | — | Attendra leurs sources |
 
 Le point d'honnêteté : pour l'Europe, la VALEUR (quelles régions
@@ -81,6 +81,29 @@ captent les programmes-cadres) est disponible tout de suite — c'est la
 géométrie qui pose une question de licence, pas la donnée. Une V1
 « régions UE » non cartographique est donc possible dès S1-S3 livrés,
 si tu la veux.
+
+### Vérification GISCO du 2026-08-17 — la question est tranchée
+
+Faite à la source, aux pages officielles Eurostat, et portée au
+[registre des sources](data-sources.md). Deux objets, deux licences :
+
+- **la géométrie** (limites administratives, dérivées d'EuroGeographics)
+  est accordée à la condition que « *the data will not be used for
+  commercial purposes* », et renvoie l'usage commercial à un **accord
+  négocié** avec EuroGeographics → **exclusion définitive**, sur deux
+  motifs de notre règle plutôt qu'un ;
+- **la nomenclature NUTS** (codes ET noms de régions) est une donnée
+  statistique Eurostat en **CC BY 4.0** (décision 2011/833/UE) :
+  réutilisation commerciale explicitement autorisée avec mention de la
+  source → **elle passe**, et le `nuts_code` de CORDIS avec elle.
+
+Ce que ça change ici : la ligne « carte sous réserve » disparaît des
+deux lignes européennes du tableau. Le lot F se fait **sans carte**,
+avec les vrais noms de régions — ou ne se fait pas. Et l'appariement
+Natural Earth↔NUTS est écarté par principe, pas seulement par prudence :
+faire coïncider deux découpages différents fabriquerait une
+approximation silencieuse, c'est-à-dire l'inverse exact de la règle du
+lot E.
 
 ## 5. Décisions à trancher avant lancement
 

@@ -44,6 +44,40 @@ d'instruction — les conditions changent), sa mention exacte est portée
 au tableau ci-dessus, et une licence qui bascule vers l'exclusion
 déclenche le retrait de la source. C'est ce qui est arrivé à l'ANR.
 
+### Vérification formelle — GISCO / Eurostat (2026-08-17, lot F)
+
+Instruction fondatrice : trancher noir sur blanc avant toute carte
+européenne. Vérifié **à la source, aux pages officielles**, et le
+verdict est DOUBLE — les deux objets ne suivent pas la même licence.
+
+| Objet | Licence constatée | Verdict |
+|---|---|---|
+| **Géométrie NUTS / limites administratives** (GISCO, dérivée d'EuroGeographics) | « *the data will not be used for commercial purposes* » + « *© EuroGeographics for the administrative boundaries* » + usage commercial renvoyé à un **accord négocié** avec EuroGeographics | ❌ **EXCLUSION** |
+| **Classification NUTS elle-même** (codes + noms, tables de correspondance — donnée statistique Eurostat) | CC BY 4.0, décision 2011/833/UE : « *Reuse of statistical data, metadata… for commercial or non-commercial purposes is authorised provided the source is acknowledged* » | ✅ **PASSE** |
+
+**La géométrie échoue sur DEUX motifs de notre règle, pas un** : la
+clause **non commerciale** (Orion est un SaaS commercial — exclusion
+sèche) et la **redistribution négociée** (« contactez EuroGeographics
+pour leurs accords de licence » — exactement la zone que la règle
+refuse). Aucun arbitrage à faire : c'est la même famille que l'ODbL de
+l'ANR, en pire. Réexamen possible seulement si nous ACHETONS une licence
+EuroGeographics — décision commerciale, jamais technique.
+
+**La nomenclature passe**, et avec elle le `nuts_code` que CORDIS nous
+donne déjà (CC BY 4.0). Conséquence pratique : une V1 « régions
+européennes » **sans carte** est parfaitement licite (classement, barres,
+comparaison — codes ET noms officiels), et c'est la seule forme
+livrable en l'état.
+
+Pistes de géométrie licite, si la carte devient indispensable (non
+instruites, coût réel à mesurer) : les référentiels NATIONAUX en licence
+ouverte, pays par pays (la France publie ADMIN EXPRESS sous Licence
+Ouverte) — long mais propre ; Natural Earth admin-1 (domaine public) est
+disponible mais ses découpages ne coïncident PAS avec les NUTS, l'y
+faire correspondre fabriquerait une approximation silencieuse : à
+refuser par principe. OpenStreetMap est exclu d'office (ODbL,
+partage à l'identique).
+
 ### Précédent : l'ANR, retirée le 2026-08-03
 
 Les données ANR étaient publiées sous **ODbL 1.0** (clause de partage à
