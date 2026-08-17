@@ -380,7 +380,12 @@ def main() -> None:
     # même fichier, même chargeur (ORBITGUARD doit sortir core).
     from orion.ingest.runlog import RunStats as _RunStats
     from orion.ingest.space_lens import load_space_lens
-    from orion.ingest.subdivisions import seed_subdivisions
+    from orion.ingest.subdivisions import (
+        backfill_nuts_meshes,
+        seed_nuts_meshes,
+        seed_nuts_nomenclature,
+        seed_subdivisions,
+    )
 
     with Session(engine) as session:
         load_space_lens(session, _RunStats())
@@ -395,6 +400,29 @@ def main() -> None:
                 "AND o.name LIKE 'MASSACHUSETTS%'"
             )
         )
+        # La maille européenne (symétrie validée le 2026-08-17) : les
+        # VRAIS chargeurs — nomenclature, mailles au niveau curé, puis la
+        # troncature d'affichage. La graine pose les NUTS bruts comme
+        # CORDIS les écrirait : le CNRS en Île-de-France (NUTS3 FR101 →
+        # maille FR1), le CEA en Auvergne-Rhône-Alpes (FRK26 → FRK), et
+        # AEROSTELLAR au NUTS national sec — le résidu « non rattaché »
+        # que l'écran doit dire, jamais fondre.
+        seed_nuts_nomenclature(session, _RunStats())
+        seed_nuts_meshes(session, _RunStats())
+        for pattern, nuts in (
+            ("CENTRE NATIONAL DE LA RECHERCHE%", "FR101"),
+            ("COMMISSARIAT A L ENERGIE%", "FRK26"),
+            ("AEROSTELLAR SA", "FR"),
+        ):
+            session.execute(
+                text(
+                    "UPDATE participations pa SET nuts_code = :nuts "
+                    "FROM organisations o WHERE o.id = pa.organisation_id "
+                    "AND o.name LIKE :pattern"
+                ),
+                {"nuts": nuts, "pattern": pattern},
+            )
+        backfill_nuts_meshes(session, _RunStats())
         session.commit()
 
     print(f"Seeded {len(PROJECTS)} projects, {len(ORGS)} organisations, 5 countries.")

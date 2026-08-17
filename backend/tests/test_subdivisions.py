@@ -162,3 +162,100 @@ def test_the_nuts_nomenclature_names_the_raw_codes(db_session):
     # Rejouable : remplacée, jamais dupliquée.
     seed_nuts_nomenclature(db_session, RunStats())
     assert db_session.execute(text("SELECT count(*) FROM nuts_nomenclature")).scalar() == len(rows)
+
+
+def test_the_european_meshes_derive_from_the_curated_levels(db_session):
+    """Symétrie géographique (validée le 2026-08-17) : chaque pays curé a
+    ses mailles AU NIVEAU CHOISI — la France en NUTS1 (la carte de 2016),
+    l'Espagne en NUTS2, la Suède en NUTS3 — et la Grèce s'écrit GR chez
+    nous même si Eurostat écrit EL."""
+    from orion.ingest.subdivisions import seed_nuts_meshes, seed_nuts_nomenclature
+
+    seed_subdivisions(db_session, RunStats())
+    seed_nuts_nomenclature(db_session, RunStats())
+    seed_nuts_meshes(db_session, RunStats())
+
+    fr = {
+        r.code: r.name
+        for r in db_session.execute(
+            text("SELECT code, name FROM subdivisions WHERE country_code = 'FR'")
+        )
+    }
+    assert "FR1" in fr and fr["FRJ"] == "Occitanie"
+    assert all(len(code) == 3 for code in fr), "France : NUTS1, la maille de 2016"
+    es_levels = {
+        r[0]
+        for r in db_session.execute(
+            text("SELECT DISTINCT level FROM subdivisions WHERE country_code = 'ES'")
+        )
+    }
+    assert es_levels == {"nuts2"}
+    gr = db_session.execute(
+        text("SELECT count(*) FROM subdivisions WHERE country_code = 'GR' AND code LIKE 'EL%'")
+    ).scalar()
+    assert gr > 0, "les mailles grecques portent le préfixe Eurostat EL sous le pays ISO GR"
+    # La maille US n'a pas bougé.
+    assert (
+        db_session.execute(
+            text("SELECT count(*) FROM subdivisions WHERE country_code = 'US'")
+        ).scalar()
+        == 56
+    )
+
+
+def test_the_display_mesh_truncates_the_raw_nuts_and_keeps_the_residue_null(db_session):
+    """La troncature est une VUE : le brut reste, le résidu reste NULL —
+    « FR » sec n'est d'aucune région, il sera affiché comme tel."""
+    from orion.ingest.subdivisions import (
+        backfill_nuts_meshes,
+        seed_nuts_meshes,
+        seed_nuts_nomenclature,
+    )
+
+    seed_nuts_nomenclature(db_session, RunStats())
+    seed_nuts_meshes(db_session, RunStats())
+    funder = db_session.execute(text("SELECT id FROM funders WHERE code = 'ec'")).scalar_one()
+    db_session.execute(
+        text(
+            "INSERT INTO projects (source, source_id, title, funder_id, start_date) "
+            "VALUES ('cordis-h', 'nm-1', 'zz', :f, '2023-01-01')"
+        ),
+        {"f": funder},
+    )
+    db_session.execute(
+        text(
+            "INSERT INTO organisations (name, name_normalized, country_code) "
+            "VALUES ('ZZ CNRS', 'zz cnrs', 'FR')"
+        )
+    )
+    pid = db_session.execute(text("SELECT id FROM projects WHERE source_id = 'nm-1'")).scalar_one()
+    oid = db_session.execute(
+        text("SELECT id FROM organisations WHERE name = 'ZZ CNRS'")
+    ).scalar_one()
+    rows = [("FR101", "nm-u1"), ("FRK26", "nm-u2"), ("FR", "nm-u3")]
+    for nuts, uid in rows:
+        db_session.execute(
+            text(
+                "INSERT INTO participations (project_id, organisation_id, role, country_code, "
+                "nuts_code, amount_eur, source, source_uid) "
+                "VALUES (:p, :o, 'participant', 'FR', :n, 1000, 'cordis-h', :u)"
+            ),
+            {"p": pid, "o": oid, "n": nuts, "u": uid},
+        )
+    db_session.flush()
+
+    backfill_nuts_meshes(db_session, RunStats())
+    got = {
+        r.source_uid: r.subdivision_code
+        for r in db_session.execute(
+            text(
+                "SELECT source_uid, subdivision_code FROM participations "
+                "WHERE source_uid LIKE 'nm-%'"
+            )
+        )
+    }
+    # NUTS3 brut → maille NUTS1 : Île-de-France, Auvergne-Rhône-Alpes.
+    assert got["nm-u1"] == "FR1"
+    assert got["nm-u2"] == "FRK"
+    # Le code pays sec ne se rattache à rien : résidu affiché, jamais fondu.
+    assert got["nm-u3"] is None
