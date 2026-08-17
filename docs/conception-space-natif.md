@@ -83,9 +83,13 @@ La porte « Analyser » de la home pointe vers le deck 1 en mode spatial.
    entre au menu « par » (libellé « État / région ») ; sans filtre pays
    elle classe toutes les mailles du monde confondues — honnête et
    intéressant (la Californie face à l'Île-de-France).
-4. **Quatrième correction : à confirmer sur le document source** (le PDF
-   n'a pas pu être lu — permission macOS ; à compléter quand il entrera
-   au dépôt).
+4. **Quatrième correction (identifiée sur pièce, §16) : le
+   rafraîchissement manuel.** Classée DATÉE sur instruction fondatrice —
+   elle appartient au pipeline opportunités (post-serveur), avec la
+   distinction de l'audit : *historical intelligence* (rafraîchie
+   périodiquement — le cron hebdo est câblé) vs *opportunity
+   monitoring* (beaucoup plus frais). Ni lot 0, ni lot 2 :
+   [lecons-audit-produit.md](lecons-audit-produit.md).
 
 ## 5. Lots d'exécution
 
@@ -109,8 +113,8 @@ même (« direct + habilitant ») — intégrée au cahier du lot 2 ;
 ② la définition des deux lentilles figure en clair sur la page À
 propos — FAITE avec les lots 0-1. Lots 0 et 1 lancés ensemble le jour
 même ; recette du chip avant d'ouvrir les lots 2-3. La quatrième
-correction d'honnêteté reste à lire au PDF (toujours absent du dépôt
-au moment de l'exécution — docs/audit/ vide).*
+correction (§16 : le rafraîchissement manuel) est identifiée sur pièce
+et classée datée — pipeline opportunités, post-serveur.*
 
 ## 6 bis. Décisions (référence)
 
