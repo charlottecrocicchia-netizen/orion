@@ -11,6 +11,7 @@ import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
 import { CoverageNote } from "@/components/coverage-note";
 import { SectorChip } from "@/components/sector-chip";
+import { LENS_PARAM } from "@/lib/lens";
 import { ExploreTable } from "@/components/explore-table";
 import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -204,7 +205,7 @@ export function ExplorerPage() {
     if (next.view !== "auto") out.set("view", next.view);
     // Les cadrages traversent l'interaction (Space natif, lot 0) : les
     // perdre en silence était l'aspérité relevée au mémo produit.
-    if (next.sector) out.set("sector", next.sector);
+    if (next.sector) out.set(LENS_PARAM, next.sector);
     if (next.subdivision) out.set("subdivision", next.subdivision);
     if (next.organisation) out.set("organisation", next.organisation);
     setParams(out, { preventScrollReset: true });
@@ -658,8 +659,8 @@ export function ExplorerPage() {
                 sector={state.sector}
                 onChange={(next) => {
                   const out = new URLSearchParams(activeSlide?.params ?? "");
-                  if (next) out.set("sector", next);
-                  else out.delete("sector");
+                  if (next) out.set(LENS_PARAM, next);
+                  else out.delete(LENS_PARAM);
                   openInComposer(out.toString());
                 }}
               />

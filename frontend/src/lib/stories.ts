@@ -14,10 +14,10 @@ export interface Story {
   key: string;
   params: string;
   deck?: AngleSlide[];
-  /** Les decks 100 % spatiaux (lot 3, validé 2026-08-17) : la section
-   *  « Espace » les met en tête de la bibliothèque — les généralistes
-   *  restent dessous, jamais retirés. */
-  space?: boolean;
+  /** Le slug de la lentille dont ce deck raconte le monde (M1.1). La
+   *  bibliothèque groupe alors les decks par lentille publiée, en ordre
+   *  de rang — les généralistes restent dessous, jamais retirés. */
+  lens?: string;
 }
 
 export const STORIES: Story[] = [
@@ -25,7 +25,7 @@ export const STORIES: Story[] = [
   // dans l'adresse : la loi du chip vaut aussi pour les decks.
   {
     key: "spaceMoney",
-    space: true,
+    lens: "space",
     params: "metric=funding&by=year&sector=space",
     deck: [
       { params: "metric=funding&by=year&sector=space", titleKey: "explorer.stories.spaceMoney.a1" },
@@ -49,7 +49,7 @@ export const STORIES: Story[] = [
     // vraie comparaison — leurs paliers log NOMMÉS sont fixes, donc les
     // deux vues partagent la même échelle (l'écart comme récit).
     key: "spaceDirect",
-    space: true,
+    lens: "space",
     params: "metric=funding&by=year&sector=space",
     deck: [
       {
@@ -76,7 +76,7 @@ export const STORIES: Story[] = [
   },
   {
     key: "spaceRising",
-    space: true,
+    lens: "space",
     params: "metric=funding&by=organisation&split=1&sector=space&limit=5&view=bump",
     deck: [
       {

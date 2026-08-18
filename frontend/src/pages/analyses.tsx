@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { lensWords, usePublishedLenses } from "@/lib/lens";
 import { STORIES } from "@/lib/stories";
 
 /** /analyses — the ready-made analyses get their own library (site
@@ -9,10 +10,18 @@ import { STORIES } from "@/lib/stories";
  *  as always, an Explorer URL. The Explorer keeps a short renvoi. */
 export function AnalysesPage() {
   const { t } = useTranslation();
-  // La section « Espace » mène (lot 3, validé 2026-08-17) — les decks
-  // généralistes restent dessous, jamais retirés.
-  const spaceDecks = STORIES.filter((story) => story.deck && story.space);
-  const decks = STORIES.filter((story) => story.deck && !story.space);
+  // Une section par lentille PUBLIÉE qui a des decks, en ordre de rang
+  // (M1.1) — les decks généralistes restent dessous, jamais retirés.
+  // Aucune lentille n'est nommée ici : la bibliothèque suit le registre.
+  const lenses = usePublishedLenses();
+  const lensSections = lenses
+    .map((lens) => ({
+      slug: lens.slug,
+      title: lensWords(lens.slug, t).name,
+      stories: STORIES.filter((story) => story.deck && story.lens === lens.slug),
+    }))
+    .filter((section) => section.stories.length > 0);
+  const decks = STORIES.filter((story) => story.deck && !story.lens);
   const simple = STORIES.filter((story) => !story.deck);
 
   return (
@@ -27,11 +36,12 @@ export function AnalysesPage() {
         {t("analyses.lead")}
       </p>
 
-      <section className="mt-14" aria-label={t("analyses.spaceTitle")}>
+      {lensSections.map((section) => (
+      <section key={section.slug} className="mt-14" aria-label={section.title}>
         <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-          {t("analyses.spaceTitle")}
+          {section.title}
         </h2>
-        {spaceDecks.map((story) => (
+        {section.stories.map((story) => (
           <Link
             key={story.key}
             to={`/explore?angles=${story.key}`}
@@ -56,6 +66,7 @@ export function AnalysesPage() {
           </Link>
         ))}
       </section>
+      ))}
 
       <section className="mt-16" aria-label={t("analyses.decksTitle")}>
         <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">

@@ -1,29 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { lensValue, lensWords, parseLens, usePublishedLenses } from "@/lib/lens";
 import { cn } from "@/lib/utils";
 
-/** Le chip de périmètre spatial (chantier Space natif, lot 1 — validé
- *  2026-08-17). La règle qu'il répare : `?sector=space` cadrait la vue
- *  SANS le dire à l'écran. Désormais toute vue cadrée porte son
- *  périmètre, nommé, cliquable — et le périmètre vit dans l'URL, jamais
- *  dans une session : deux onglets peuvent lire deux périmètres.
+/** Le chip de périmètre (chantier Space natif, lot 1 — validé
+ *  2026-08-17 ; généralisé au lot M1.1). La règle qu'il répare :
+ *  `?sector=…` cadrait la vue SANS le dire à l'écran. Désormais toute
+ *  vue cadrée porte son périmètre, nommé, cliquable — et le périmètre
+ *  vit dans l'URL, jamais dans une session : deux onglets peuvent lire
+ *  deux périmètres.
  *
- *  Trois états : « Spatial direct » (cœur seul, sector=space-direct),
- *  « Spatial + habilitant » (core + enabling, sector=space — son sens
- *  historique, désormais nommé), « Toute la R&D » (pas de paramètre). */
-export const SECTOR_VALUES = ["space-direct", "space", ""] as const;
-
-const KEY_OF: Record<string, string> = {
-  "space-direct": "direct",
-  space: "enabling",
-  "": "all",
-};
-
-export function sectorLabelKey(sector: string): string {
-  return `explorer.sector.${KEY_OF[sector] ?? "all"}`;
-}
-
+ *  Le composant ne connaît AUCUNE lentille : ses entrées viennent du
+ *  registre publié (`stats.lenses`, ordre de rang) et ses mots de
+ *  `lens.<slug>.*`. Deux entrées par lentille — le cœur seul, puis le
+ *  cœur + habilitant — et « Toute la R&D » pour finir. */
 export function SectorChip({
   sector,
   onChange,
@@ -32,6 +23,7 @@ export function SectorChip({
   onChange: (next: string) => void;
 }) {
   const { t } = useTranslation();
+  const lenses = usePublishedLenses();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
 
@@ -47,19 +39,42 @@ export function SectorChip({
   // Sans cadrage, pas de chip : « Toute la R&D » est l'état silencieux —
   // un chip permanent ne se lirait bientôt plus (la leçon des notes de
   // couverture vaut ici aussi).
-  if (!sector) return null;
+  const active = parseLens(sector);
+  if (!active) return null;
+
+  const activeWords = lensWords(active.slug, t);
+  // Le menu suit le registre ; la lentille active y figure toujours,
+  // même si le registre n'est pas encore arrivé.
+  const slugs = lenses.map((lens) => lens.slug);
+  if (!slugs.includes(active.slug)) slugs.unshift(active.slug);
+  const entries = slugs.flatMap((slug) => {
+    const words = lensWords(slug, t);
+    return [
+      {
+        value: lensValue(slug, true),
+        label: words.direct,
+        hint: t("explorer.sector.directHint"),
+      },
+      {
+        value: lensValue(slug, false),
+        label: words.enabling,
+        hint: t("explorer.sector.enablingHint"),
+      },
+    ];
+  });
+  entries.push({ value: "", label: t("explorer.sector.all"), hint: "" });
 
   return (
     <span ref={rootRef} className="relative inline-flex items-center">
       <button
         type="button"
         aria-expanded={open}
-        aria-label={t("explorer.sector.chipLabel")}
+        aria-label={activeWords.chipLabel}
         onClick={() => setOpen((current) => !current)}
         className="inline-flex items-center gap-1.5 rounded-full border border-accent/50 bg-accent-soft/40 px-3 py-1 text-[12.5px] font-medium text-foreground transition-colors hover:border-accent"
       >
         <i aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-accent" />
-        {t(sectorLabelKey(sector))}
+        {active.coreOnly ? activeWords.direct : activeWords.enabling}
         <span aria-hidden="true" className="text-muted-foreground">
           ▾
         </span>
@@ -69,29 +84,27 @@ export function SectorChip({
           role="menu"
           className="absolute left-0 top-[calc(100%+6px)] z-40 min-w-[220px] rounded-xl border border-border bg-background p-1.5 shadow-key"
         >
-          {SECTOR_VALUES.map((value) => (
+          {entries.map((entry) => (
             <button
-              key={value || "all"}
+              key={entry.value || "all"}
               type="button"
               role="menuitemradio"
-              aria-checked={sector === value}
+              aria-checked={sector === entry.value}
               onClick={() => {
                 setOpen(false);
-                onChange(value);
+                onChange(entry.value);
               }}
               className={cn(
                 "block w-full rounded-lg px-3 py-1.5 text-left text-[13px] transition-colors",
-                sector === value
+                sector === entry.value
                   ? "bg-accent-soft/60 font-medium"
                   : "text-muted-foreground hover:bg-surface hover:text-foreground",
               )}
             >
-              {t(`explorer.sector.${KEY_OF[value]}`)}
-              {value === "" ? null : (
-                <span className="block text-[11px] text-muted-foreground">
-                  {t(`explorer.sector.${KEY_OF[value]}Hint`)}
-                </span>
-              )}
+              {entry.label}
+              {entry.hint ? (
+                <span className="block text-[11px] text-muted-foreground">{entry.hint}</span>
+              ) : null}
             </button>
           ))}
         </span>

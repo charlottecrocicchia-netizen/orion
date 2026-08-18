@@ -13,9 +13,13 @@ export interface Stats {
     countries: number;
   };
   funding_by_year: { year: number; amount_eur: number }[];
+  /** Le registre des lentilles PUBLIÉES, en ordre de rang (M0/M1) —
+   *  l'API est le registre du front, qui n'a aucune liste en dur. */
+  lenses: LensMeta[];
   /** La lentille spatiale : les compteurs de preuve de la home, et le
    *  hero spatial (lot 2) — « direct + habilitant » = core + enabling
-   *  (le registre technique de la paire unique, I3). */
+   *  (le registre technique de la paire unique, I3). Alias historique :
+   *  il tombe au lot M1.4, `lenses` le remplace. */
   space: {
     core: number;
     enabling: number;
@@ -25,6 +29,19 @@ export interface Stats {
     groups: number;
     by_year: { year: number; amount_eur: number }[];
   };
+}
+
+export interface LensMeta {
+  slug: string;
+  family_key: string;
+  rank: number;
+  core: number;
+  enabling: number;
+  core_funding_eur: number;
+  funding_eur: number;
+  organisations: number;
+  groups: number;
+  by_year: { year: number; amount_eur: number }[];
 }
 
 export interface ProjectHit {

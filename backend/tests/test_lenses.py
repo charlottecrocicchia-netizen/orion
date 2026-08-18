@@ -333,3 +333,24 @@ def test_the_api_contract_speaks_the_canonical_pair(client):
     assert {"core", "enabling"} <= set(body["space"])
 
     assert "adjacent" not in _json.dumps(body)
+
+
+def test_the_seed_lens_can_never_come_from_the_production_registry():
+    """La barrière du motif ORBITGUARD (M1.1) : la lentille SYNTHÉTIQUE
+    de la recette vit dans la graine e2e — jamais dans `curation/`, donc
+    jamais en production. Si quelqu'un l'y glissait un jour, ou lui
+    écrivait un fichier de règles, ce test tombe."""
+    import re
+    from pathlib import Path
+
+    from orion.ingest.lenses import LENSES_DIR, REGISTRY_FILE, parse_registry
+
+    seed = (Path(__file__).resolve().parents[1] / "scripts" / "seed_e2e.py").read_text(
+        encoding="utf-8"
+    )
+    match = re.search(r'^SEED_LENS_SLUG = "([^"]+)"', seed, re.M)
+    assert match, "la graine doit nommer sa lentille synthétique"
+    seed_slug = match.group(1)
+
+    assert seed_slug not in {entry["slug"] for entry in parse_registry(REGISTRY_FILE)}
+    assert not (LENSES_DIR / f"{seed_slug}.csv").exists()

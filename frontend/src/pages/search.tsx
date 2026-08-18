@@ -6,6 +6,7 @@ import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
 import { SearchComposer } from "@/components/search-composer";
 import { SectorChip } from "@/components/sector-chip";
+import { LENS_PARAM, useLensGate } from "@/lib/lens";
 import { Sparkline } from "@/components/sparkline";
 import { TrendDelta } from "@/components/trend-delta";
 import { Button } from "@/components/ui/button";
@@ -264,6 +265,8 @@ function Pager({
 
 export function ProjectsSearchPage() {
   const { t, i18n } = useTranslation();
+  // Le registre publié tranche ce qui cadre une vue (M1.1).
+  const lensGate = useLensGate();
   const countryName = useCountryName();
   const { params, update, toggleMulti, replaceAll } = useSearchState();
   const q = params.get("q") ?? "";
@@ -287,10 +290,10 @@ export function ProjectsSearchPage() {
     activeCountries.length > 0 ||
     params.get("year_from") != null ||
     params.get("year_to") != null ||
-    // La lentille spatiale est un filtre à part entière : une URL
-    // ?sector=space (ou space-direct) encadre une vraie liste, jamais
-    // l'invite.
-    ["space", "space-direct"].includes(params.get("sector") ?? "");
+    // La lentille est un filtre à part entière : une URL cadrée
+    // (?sector=<lentille publiée>) encadre une vraie liste, jamais
+    // l'invite. Le registre tranche — le front ne connaît aucun slug.
+    lensGate(params.get(LENS_PARAM));
   const composed = Boolean(q) || hasFilters;
 
   return (
@@ -332,11 +335,7 @@ export function ProjectsSearchPage() {
         {/* Le périmètre spatial, nommé sur la liste cadrée (Space natif,
             lot 1) — trois états, l'URL comme seule vérité. */}
         <SectorChip
-          sector={
-            ["space", "space-direct"].includes(params.get("sector") ?? "")
-              ? (params.get("sector") as string)
-              : ""
-          }
+          sector={lensGate(params.get(LENS_PARAM)) ? (params.get(LENS_PARAM) as string) : ""}
           onChange={(next) => update({ sector: next || null })}
         />
       </div>

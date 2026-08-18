@@ -36,8 +36,11 @@ test("le vocabulaire à l'écran, en français : les libellés recettés, et rie
   // chose en clair — sans jamais nommer le tag de la base.
   await chip.click();
   await expect(page.getByRole("menuitemradio", { name: /Spatial direct/ })).toBeVisible();
-  await expect(page.getByRole("menuitemradio", { name: /Spatial \+ habilitant/ })).toBeVisible();
-  await expect(page.getByText("cœur + technologies habilitantes")).toBeVisible();
+  // L'aide est vérifiée SUR l'entrée spatiale : depuis M1.1 le registre
+  // publie plusieurs lentilles, et chacune porte la même aide générique.
+  await expect(page.getByRole("menuitemradio", { name: /Spatial \+ habilitant/ })).toContainText(
+    "cœur + technologies habilitantes",
+  );
 
   const explorer = await visibleText(page);
   expect(explorer).not.toContain("adjacent");

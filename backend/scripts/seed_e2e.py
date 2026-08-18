@@ -259,6 +259,38 @@ PROJECTS = [
 ]
 
 
+# La lentille SYNTHÉTIQUE de la recette (M1.1, motif ORBITGUARD : une
+# donnée inventée vit dans la graine, JAMAIS dans curation/ ni en prod).
+# Son nom est neutre — aucune hypothèse métier sur la vraie deuxième
+# lentille à venir. Elle prouve que le mécanisme marche à plusieurs
+# lentilles publiées, sans une seule condition spéciale sur « space » :
+# le chip la propose, ses mots viennent des motifs génériques (elle n'a
+# pas de curation), et le projet spatial qu'elle tague aussi démontre le
+# chevauchement (D1) — plein dans chaque lentille, jamais additionné.
+SEED_LENS_SLUG = "test-lens"
+
+
+def _seed_synthetic_lens(session: Session) -> None:
+    session.execute(
+        text(
+            "INSERT INTO lenses (slug, family_key, rank, status) "
+            "VALUES (:slug, 'zz_seed_family', 99, 'published') "
+            "ON CONFLICT (slug) DO NOTHING"
+        ),
+        {"slug": SEED_LENS_SLUG},
+    )
+    for source_id, tag in (("e2e-aeroserv", "core"), ("e2e-orbit", "enabling")):
+        session.execute(
+            text(
+                "INSERT INTO project_lens_tags (project_id, lens, tag) "
+                "SELECT id, :slug, :tag FROM projects WHERE source_id = :sid "
+                "ON CONFLICT (project_id, lens) DO UPDATE SET tag = excluded.tag"
+            ),
+            {"slug": SEED_LENS_SLUG, "tag": tag, "sid": source_id},
+        )
+    session.commit()
+
+
 def main() -> None:
     engine = create_engine(get_settings().database_url)
     with Session(engine) as session:
@@ -406,6 +438,7 @@ def main() -> None:
 
     with Session(engine) as session:
         load_all(session, _RunStats())
+        _seed_synthetic_lens(session)
         # La maille sous le pays : le référentiel complet, et le MIT posé
         # dans son État (les caches ne sont pas là en CI — la graine dit
         # la maille comme le backfill la dirait).

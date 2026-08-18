@@ -206,7 +206,6 @@ const resources = {
         eyebrow: "Orion · Analyses",
         title: "The ready-made analyses",
         lead: "One question, several angles — click, slide, then make it your own: every analysis is a real Explorer state, hence a URL.",
-        spaceTitle: "Space",
         decksTitle: "The decks",
         simpleTitle: "Simple views",
       },
@@ -524,6 +523,16 @@ const resources = {
         topProjects: "Largest projects",
         searchProjects: "Search projects in {{code}}",
       },
+      lens: {
+        // Les MOTS d'une lentille sont sa curation (I3) — pour l'espace,
+        // les libellés recettés au chantier Space natif, verbatim.
+        space: {
+          name: "Space",
+          direct: "Space direct",
+          enabling: "Space + enabling",
+          chipLabel: "Space perimeter of this view",
+        },
+      },
       explorer: {
         eyebrow: "Explore",
         show: "Show",
@@ -532,11 +541,13 @@ const resources = {
         entityScoped: "scoped to one entity",
         // Même vocabulaire que la bande d'accueil (home.spaceKicker).
         sector: {
-          chipLabel: "Space perimeter of this view",
-          direct: "Space direct",
+          // Génériques : le chip ne sait plus ce qu'est « space ». Les
+          // motifs servent de repli à une lentille sans ses mots.
+          chipLabel: "Perimeter of this view",
           directHint: "core projects only, by the versioned lens",
-          enabling: "Space + enabling",
           enablingHint: "core + enabling technologies",
+          directPattern: "{{lens}} direct",
+          enablingPattern: "{{lens}} + enabling",
           all: "All R&D",
         },
         top: "top {{count}}",
@@ -940,7 +951,6 @@ const resources = {
         eyebrow: "Orion · Analyses",
         title: "Les analyses prêtes",
         lead: "Une question, plusieurs angles — cliquez, glissez, puis faites-en votre vue : chaque analyse est un état réel de l'Explorateur, donc une URL.",
-        spaceTitle: "Espace",
         decksTitle: "Les decks",
         simpleTitle: "Vues simples",
       },
@@ -1258,6 +1268,14 @@ const resources = {
         topProjects: "Plus gros projets",
         searchProjects: "Chercher les projets {{code}}",
       },
+      lens: {
+        space: {
+          name: "Espace",
+          direct: "Spatial direct",
+          enabling: "Spatial + habilitant",
+          chipLabel: "Périmètre spatial de cette vue",
+        },
+      },
       explorer: {
         eyebrow: "Explorer",
         show: "Montrer",
@@ -1266,11 +1284,11 @@ const resources = {
         entityScoped: "cadré sur une entité",
         // Même vocabulaire que la bande d'accueil (home.spaceKicker).
         sector: {
-          chipLabel: "Périmètre spatial de cette vue",
-          direct: "Spatial direct",
+          chipLabel: "Périmètre de cette vue",
           directHint: "les projets cœur seuls, par la lentille versionnée",
-          enabling: "Spatial + habilitant",
           enablingHint: "cœur + technologies habilitantes",
+          directPattern: "{{lens}} direct",
+          enablingPattern: "{{lens}} + habilitant",
           all: "Toute la R&D",
         },
         top: "top {{count}}",

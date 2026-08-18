@@ -11,6 +11,7 @@ import {
   useDossier,
 } from "@/lib/dossier";
 import type { DossierItem } from "@/lib/dossier";
+import { lensPhrase } from "@/lib/lens";
 import { readState } from "@/lib/explore-state";
 
 /** The dossier (lot 4, mockup v2 validated): an EDITORIAL page, not a
@@ -33,7 +34,7 @@ function requestPhrase(
     state.q ? `« ${state.q} »` : null,
     state.country ? state.country : null,
     state.organisation ? t("explorer.entityScoped") : null,
-    state.sector ? t(`explorer.sector.${state.sector === "space" ? "enabling" : "direct"}`) : null,
+    lensPhrase(state.sector, t),
     state.from != null || state.to != null ? `${state.from ?? ""} → ${state.to ?? ""}` : null,
   ]
     .filter(Boolean)

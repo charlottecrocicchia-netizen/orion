@@ -209,7 +209,18 @@ vide.
 `/projects` (jamais le corpus entier en silence) ; l'API répond `400` ;
 `?sector=space` et l'absence de paramètre sont inchangés.
 
-**M1.3 — les surfaces.** Titre de document : `Spatial · Explorateur —
+**M1.3 — les surfaces.** **Invariant d'internationalisation, gravé le
+2026-08-18 (fondatrice)** : *toutes les surfaces de méthode des
+lentilles passent par l'i18n* — zéro texte français en dur en mode EN,
+zéro texte anglais en dur en mode FR, et l'attribut `lang` du document
+suit la langue. C'est là que le bloc historique de l'À-propos (français
+en dur depuis le lot 1 de Space natif) se bilinguise, en devenant un
+bloc méthode par lentille publiée. Recette : en mode EN, aucune phrase
+française ne subsiste sur les surfaces de méthode (et
+réciproquement) ; `document.documentElement.lang` vaut `en` ou `fr`
+selon la langue active.
+
+Titre de document : `Spatial · Explorateur —
 Orion` sur une vue cadrée, `Explorateur — Orion` sans lentille.
 Généricité prouvée par la lentille de graine synthétique : deux groupes
 au menu du chip, ligne verticale sur la home, badges des deux mondes

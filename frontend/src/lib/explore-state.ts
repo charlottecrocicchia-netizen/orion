@@ -2,6 +2,8 @@
  *  read the same grammar (lot 3). One state → one API query → one resolved
  *  view — never three copies of the rules. */
 
+import { LENS_PARAM } from "@/lib/lens";
+
 export interface ExplorerState {
   metric: string;
   by: string;
@@ -16,7 +18,8 @@ export interface ExplorerState {
   /** Entity frame: an organisation id or a group ref (« g<id> ») — the
    *  composable benchmark scopes a view to one compared entity. */
   organisation: string;
-  /** La lentille spatiale : « space » cadre aux projets tagués. */
+  /** La lentille active de la vue : `<slug>` ou `<slug>-direct`
+   *  (grammaire D2). Le nom du paramètre vit dans `@/lib/lens`. */
   sector: string;
   /** La maille sous le pays (lot D) : « US-CA » cadre la vue. */
   subdivision: string;
@@ -37,7 +40,7 @@ export function readState(params: URLSearchParams): ExplorerState {
     country: params.get("country") ?? "",
     programme: params.get("programme") ?? "",
     organisation: params.get("organisation") ?? "",
-    sector: params.get("sector") ?? "",
+    sector: params.get(LENS_PARAM) ?? "",
     subdivision: params.get("subdivision") ?? "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
@@ -58,7 +61,7 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   if (state.country) apiParams.set("country", state.country);
   if (state.programme && state.by === "programme") apiParams.set("programme", state.programme);
   if (state.organisation) apiParams.set("organisation", state.organisation);
-  if (state.sector) apiParams.set("sector", state.sector);
+  if (state.sector) apiParams.set(LENS_PARAM, state.sector);
   if (state.subdivision) apiParams.set("subdivision", state.subdivision);
   return apiParams;
 }
