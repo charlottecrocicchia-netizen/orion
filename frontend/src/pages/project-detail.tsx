@@ -95,6 +95,14 @@ export function ProjectDetailPage() {
               <Link
                 key={`${entry.lens}-${entry.tag}`}
                 to={`/projects?${LENS_PARAM}=${lensValue(entry.lens, entry.tag === "core")}`}
+                /* Le badge habilitant ouvre le périmètre ENTIER (il n'existe
+                   pas de vue « habilitants seuls » — D2) : son libellé
+                   accessible dit donc la lentille, jamais un filtre. */
+                aria-label={
+                  entry.tag === "enabling"
+                    ? t("project.openLens", { lens: words.name })
+                    : undefined
+                }
                 className="inline-flex items-center gap-1.5 rounded-full border border-accent/50 bg-accent-soft/40 px-3 py-1 text-[12.5px] font-medium transition-colors hover:border-accent"
               >
                 <i aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-accent" />

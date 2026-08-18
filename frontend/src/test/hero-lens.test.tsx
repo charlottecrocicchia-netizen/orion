@@ -40,15 +40,6 @@ const STATS = {
   funding_by_year: [{ year: 2023, amount_eur: 18.3e9 }],
   lenses: [LEAD],
   overlap_projects: 0,
-  space: {
-    core: 0,
-    enabling: 0,
-    core_funding_eur: 0,
-    funding_eur: 0,
-    organisations: 0,
-    groups: 0,
-    by_year: [],
-  },
 };
 
 beforeEach(() => {

@@ -19,19 +19,6 @@ export interface Stats {
   /** Les projets lus par PLUSIEURS lentilles publiées (D3) — le
    *  recouvrement n'a de sens qu'à deux lentilles. */
   overlap_projects: number;
-  /** La lentille spatiale : les compteurs de preuve de la home, et le
-   *  hero spatial (lot 2) — « direct + habilitant » = core + enabling
-   *  (le registre technique de la paire unique, I3). Alias historique :
-   *  il tombe au lot M1.4, `lenses` le remplace. */
-  space: {
-    core: number;
-    enabling: number;
-    core_funding_eur: number;
-    funding_eur: number;
-    organisations: number;
-    groups: number;
-    by_year: { year: number; amount_eur: number }[];
-  };
 }
 
 export interface LensMeta {

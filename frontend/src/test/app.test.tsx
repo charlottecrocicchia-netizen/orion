@@ -36,18 +36,6 @@ const STATS = {
       ],
     },
   ],
-  space: {
-    core: 812,
-    enabling: 2140,
-    core_funding_eur: 3.1e9,
-    funding_eur: 5.2e9,
-    organisations: 1450,
-    groups: 21,
-    by_year: [
-      { year: 2019, amount_eur: 1.1e9 },
-      { year: 2024, amount_eur: 2.3e9 },
-    ],
-  },
 };
 
 const SEARCH = {

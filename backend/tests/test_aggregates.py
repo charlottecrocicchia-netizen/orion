@@ -72,11 +72,12 @@ def test_global_stats_shape_and_curve(db_session, seeded):
     assert 2022 in years
 
 
-def test_global_stats_space_counters_follow_the_lens(db_session, seeded):
-    """Le hero spatial (lot 2, validé 2026-08-17) : ses compteurs suivent
-    la lentille — le grand chiffre est « direct + habilitant » (cœur +
-    enabling), les organisations et les groupes se comptent sur les
-    projets tagués, la courbe se dessine sur les années du SPATIAL."""
+def test_global_stats_lens_counters_follow_the_lens(db_session, seeded):
+    """Les compteurs d'une lentille suivent SA lecture (lot 2, généralisé
+    M1.1, alias déposé M1.4) : le grand chiffre est « direct +
+    habilitant » (core + enabling), les organisations et les groupes se
+    comptent sur les projets tagués, la courbe se dessine sur les années
+    de LA lentille — jamais celles du corpus maquillées."""
     db_session.execute(
         text("INSERT INTO project_lens_tags (project_id, lens, tag) VALUES (:p, 'space', 'core')"),
         {"p": seeded["project"]},
@@ -84,11 +85,12 @@ def test_global_stats_space_counters_follow_the_lens(db_session, seeded):
     db_session.flush()
     stats = aggregates.global_stats(db_session)
 
-    assert stats["space"]["core"] == 1
-    assert stats["space"]["funding_eur"] == pytest.approx(7_000_000)
-    assert stats["space"]["organisations"] >= 1
-    assert stats["space"]["groups"] == 0  # la graine n'a pas de groupe
-    assert [row["year"] for row in stats["space"]["by_year"]] == [2022]
+    lens = next(entry for entry in stats["lenses"] if entry["slug"] == "space")
+    assert lens["core"] == 1
+    assert lens["funding_eur"] == pytest.approx(7_000_000)
+    assert lens["organisations"] >= 1
+    assert lens["groups"] == 0  # la graine n'a pas de groupe
+    assert [row["year"] for row in lens["by_year"]] == [2022]
 
 
 def test_country_hub_aggregates_and_404(db_session, seeded):

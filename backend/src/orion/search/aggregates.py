@@ -145,15 +145,8 @@ def global_stats(session: Session) -> dict[str, Any]:
             "lenses": lenses,
             "funding_by_year": [{"year": y, "amount_eur": float(a or 0)} for y, a in by_year],
         }
-        # L'alias historique `space` — le front M0 le lit tel quel, à
-        # l'octet près ; il tombera en M1 (conception multi-lentilles, D6).
-        space = next((entry for entry in lenses if entry["slug"] == "space"), None)
-        if space is not None:
-            payload["space"] = {
-                key: value
-                for key, value in space.items()
-                if key not in ("slug", "family_key", "rank")
-            }
+        # M1.4 : l'alias historique `space` est DÉPOSÉ. `lenses` est la
+        # seule source de vérité — aucun repli, aucune compatibilité.
         return payload
 
     return _cached(session, "global_stats", build)

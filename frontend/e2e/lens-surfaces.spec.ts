@@ -22,7 +22,10 @@ test("la fiche projet montre ses deux appartenances, et chacune ouvre sa vue", a
 
   // Deux lentilles lisent ce projet — plein dans chacune (D1/D3).
   await expect(page.getByRole("link", { name: /Espace · cœur/ })).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole("link", { name: /test-lens · habilitant/ })).toBeVisible();
+  // Le badge habilitant montre son tag, mais son libellé accessible dit
+  // la LENTILLE : il ouvre le périmètre entier, pas un filtre inexistant.
+  await expect(page.getByText("test-lens · habilitant")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ouvrir la lentille test-lens" })).toBeVisible();
 
   // Le badge « cœur » ouvre la vue la plus serrée qui contient ce projet.
   await page.getByRole("link", { name: /Espace · cœur/ }).click();

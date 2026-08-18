@@ -329,10 +329,24 @@ def test_the_api_contract_speaks_the_canonical_pair(client):
     assert body["lenses"], "le registre expose au moins la lentille publiée"
     for entry in body["lenses"]:
         assert {"core", "enabling"} <= set(entry), entry["slug"]
-    # L'alias historique `space` porte le même vocabulaire (il tombe en M1.4).
-    assert {"core", "enabling"} <= set(body["space"])
-
     assert "adjacent" not in _json.dumps(body)
+
+
+def test_the_space_alias_never_comes_back(client):
+    """M1.4 : `stats.space` est DÉPOSÉ — `lenses` est la seule source de
+    vérité. Ce test existe pour qu'on ne le réintroduise pas « pour
+    compatibilité » dans six mois : /api/stats n'est pas un contrat
+    public, c'est le contrat interne de CE front, et il parle registre.
+    Une lentille reste nommée `space` — dans `lenses`, à sa place."""
+    body = client.get("/api/stats").json()
+
+    assert "space" not in body, "aucune clé de premier niveau par lentille"
+    assert not [
+        key
+        for key in body
+        if key not in {"totals", "lenses", "funding_by_year", "overlap_projects"}
+    ]
+    assert any(entry["slug"] == "space" for entry in body["lenses"])
 
 
 def test_the_seed_lens_can_never_come_from_the_production_registry():
