@@ -379,7 +379,13 @@ ouverts) — **aucun code M1 écrit**.
 2026-08-17) :
 
 - **Intersections de lentilles (`SPACE × QUANTUM`) — évolution MAJEURE
-  identifiée du produit, post-A1.** Le modèle de données la permet
+  identifiée du produit, post-A1.** *Amendement du 2026-08-18 : elles
+  devront être SENSIBLES AU NIVEAU — croiser deux cœurs n'a pas le même
+  sens que croiser deux habilitants. Défaut probable **core × core**
+  (sur Space × Aviation, c'est le quadrant sain : ~101 projets contre
+  ~1 369 toutes combinaisons), les autres combinaisons restant
+  accessibles explicitement. À instruire quand les intersections
+  entreront à la grammaire, jamais avant.* Le modèle de données la permet
   (plusieurs tags par projet, souhaité) ; la grammaire produit ne
   l'expose pas : D3 reste strict — une seule lentille active par vue,
   aucune syntaxe multi-lentilles, aucun opérateur AND/OU, aucun

@@ -180,7 +180,132 @@ surface produit — elle ordonne les règles et l'échantillonnage) :
    parade est des motifs plus étroits ; avec, des motifs plus francs
    gardés par des vetos nets.
 
-## 7. Les décisions à soumettre — chiffres à l'appui, rien de tranché
+## 7. Les décisions — TRANCHÉES le 2026-08-18
+
+**F1 — SESAR / ATM : Aviation CORE.** L'ATM est une composante du
+système aéronautique, pas une technologie habilitante. Sous-catégorie
+« Air transport system » à la taxonomie (§ 6, famille 5 confirmée).
+
+**F2 — UAS / Drones / AAM : CORE** quand le projet développe l'aéronef,
+ses systèmes, sa navigabilité, ses opérations, son intégration
+ATM/U-space ou l'AAM. Le drone-instrument d'une recherche non
+aéronautique est EXCLU. Loi générale qui en découle, gravée au registre
+des lois : **Orion classe ce que le projet DÉVELOPPE, pas l'équipement
+qu'il UTILISE** — elle vaut pour toutes les lentilles.
+
+**F3 — hydrogène PRUDENT.** Les appels Clean Aviation H₂ → core par
+preuve structurelle. Hors de ces appels : core seulement avec preuve
+explicite d'intégration avion ; enabling seulement avec lien
+aéronautique réel démontré ; aucun H₂ générique, jamais.
+
+**M — la hiérarchie de preuve, gravée.** `call` ET `topic` sont des
+preuves STRUCTURELLES de première classe, plus fortes que le thème et
+le texte. Le `veto` existe, mais cadré par cette hiérarchie : un veto
+textuel peut tuer un candidat issu du TEXTE ou du THÈME, **jamais une
+classification obtenue par `call`/`topic`**.
+
+**structurel (call, topic) > taxonomique (thème) > textuel (motif)** —
+et le veto n'agit que sur les deux derniers étages.
+
+## 7 bis. La matrice du chevauchement Space × Aviation — relevée avant tout chargement
+
+*Périmètre Aviation provisoire = preuves structurelles seules (les six
+familles d'appels ∪ les thèmes `aircraft`, `rotorcraft`,
+`aeronautical engineering`), toutes core par les arbitrages ci-dessus :
+**2 182 projets**. Aucune règle enabling Aviation n'existe encore — les
+lignes « Aviation enabling » sont donc structurellement VIDES
+aujourd'hui, et le resteront jusqu'à ce que ses règles soient écrites.*
+
+| Aviation ↓ / Space → | Space **core** | Space **enabling** | Hors lentille spatiale |
+|---|---|---|---|
+| **Aviation core** — par appel seul | 14 · 67 M€ | 5 · 4 M€ | 813 · 2 262 M€ |
+| **Aviation core** — par appel + thème | 20 · 37 M€ | **722 · 2 188 M€** | 0 |
+| **Aviation core** — par thème seul | 67 · 130 M€ | **541 · 2 697 M€** | 0 |
+| **Aviation enabling** (toutes causes) | — | — | — |
+| **Total** | **101 · 234 M€** | **1 268 · 4 889 M€** | 813 · 2 262 M€ |
+
+**La surprise, et elle concerne les règles SPACE.** La décomposition du
+périmètre habilitant spatial par règle d'origine (5 814 projets) :
+
+| Règle spatiale habilitante | Projets | M€ |
+|---|---|---|
+| `programme AGS` (NSF géospace) | 4 389 | 3 875 |
+| `theme /25/75/461/1239` (aerospace engineering) | 1 277 | 4 914 |
+| `text microgravity` | 148 | 56 |
+
+Et **1 263 des 1 277** (4 886 M€ — **99 %**) portent un thème AVIATION
+(aircraft, rotorcraft, aeronautical engineering) ; 14 seulement (28 M€)
+sont d'autres enfants du nœud. La règle habilitante « aerospace
+engineering » du spatial **ne récolte, en pratique, que de
+l'aéronautique**. Ses thèmes dominants le disent : aircraft (1 011),
+aeronautical engineering (253), energy and fuels (252), rotorcraft
+(161), composites (131), air traffic management (90).
+
+Conséquence chiffrée sur ce qu'Orion affiche aujourd'hui : le grand
+chiffre spatial (23,7 Md€ « direct + habilitant ») contient **4,9 Md€
+de projets aéronautiques** — 55 % de la part habilitante, 21 % du total.
+Sous la loi que tu viens de graver (*on classe ce que le projet
+développe*), un démonstrateur Clean Sky de voilure tournante développe
+un aéronef, pas une technologie spatiale.
+
+**Le quadrant core × core (101 projets · 234 M€) est, lui, sain** — il
+tient debout à l'inspection : PJ14 EECNS (communication-navigation-
+surveillance SESAR, 22 M€), SPESAR (surveillance par satellite du
+trafic aérien, 10 M€), SaT5G (satellite + terrestre), EUNADICS-AV
+(alerte aux nuages de cendres pour l'aviation), ACASIAS
+(aéro-structures à antennes intégrées). Ce sont de vrais projets des
+deux mondes : le chevauchement nominal que D3 prévoit.
+
+**Ce que la matrice ouvre — une décision fondatrice, non tranchée
+ici** : faut-il RÉVISER la règle habilitante spatiale
+`theme /25/75/461/1239` maintenant que l'aéronautique a sa propre
+lentille ? Trois options, avec leurs poids :
+
+- *Option S-A — la restreindre aux enfants NON aviation* (exclure
+  aircraft, rotorcraft, aeronautical engineering) : le spatial perd
+  1 263 projets et 4,9 Md€ d'habilitant ; son grand chiffre passe de
+  23,7 à ~18,8 Md€ ; le chevauchement Space × Aviation tombe à ~101
+  projets, tous sains. Le plus honnête sous la loi gravée ; c'est un
+  changement VISIBLE du hero, donc une recette fondatrice.
+- *Option S-B — la garder telle quelle* : le spatial continue de
+  compter l'aéronautique comme habilitante (choix documenté d'origine :
+  « l'aéronautique s'y mêle au spatial : adjacent »), et le
+  recouvrement affiché à l'À-propos dira ~1 369 projets. Cohérent avec
+  l'histoire, moins avec la loi nouvelle.
+- *Option S-C — la basculer en règle de la lentille Aviation* : le
+  thème `/25/75/461/1239` sort du spatial et devient une preuve
+  structurelle d'Aviation (elle l'est déjà, via ses enfants). Variante
+  la plus nette : chaque thème sert la lentille dont il parle.
+
+Je ne tranche pas : la modification toucherait les chiffres affichés du
+spatial, déjà recettés. Elle attend ton arbitrage (**S**).
+
+## 7 ter. Consigné au registre des évolutions
+
+Les futures **intersections de lentilles** devront être sensibles au
+NIVEAU : une intersection « Space × Aviation » n'a pas le même sens
+selon qu'elle croise deux cœurs ou deux habilitants. Défaut probable :
+**core × core** (les 101 projets sains ci-dessus), les autres
+combinaisons restant accessibles explicitement. À instruire quand les
+intersections entreront à la grammaire — jamais avant (amendement M0
+n° 2 : rien de préimplémenté).
+
+## 7 quater. Le gold set devient un actif cumulatif
+
+Les 37 cas sont le **seed adversarial permanent** d'Orion : enrichi à
+chaque faux positif ou faux négatif intéressant rencontré, sur toutes
+les lentilles — jamais un test jetable, jamais purgé. Chaque entrée
+garde son `cas` (la famille de piège) pour que le motif se relise.
+
+## 8 bis. Les quatre portes de publication (rappel, gravé)
+
+`aviation` reste **`draft` du premier au dernier jour** du chantier. La
+publication n'est possible qu'aux quatre portes franchies : précision
+≥ 95 % core et ≥ 90 % enabling par échantillonnage ; **100 %** des
+projets ≥ 20 M€ revus ; top 50 des organisations contrôlé ;
+chevauchements Space analysés. Pas de Lens Room, pas d'éditorial.
+
+## 7 quinquies. Les décisions initialement soumises (archive)
 
 **F1 — SESAR / ATM : 265 projets · 1 049 M€** (SESAR 2020 149/545 +
 Digital European Sky 116/503).

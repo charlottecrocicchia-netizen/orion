@@ -260,6 +260,24 @@ bon marché isolément — la home lit `stats.space.adjacent`
 état. Il se fait en **un seul geste au lot M1.0**, quand le front
 bascule sur le bloc `lenses`.
 
+**I5 — Orion classe ce que le projet DÉVELOPPE, pas l'équipement qu'il
+UTILISE** (loi gravée le 2026-08-18, valable pour TOUTES les lentilles).
+Un drone qui compte des oiseaux est un projet d'écologie, pas
+d'aéronautique ; un avion de recherche atmosphérique est un projet de
+climat ; un satellite qui sert à mesurer les sols est un projet
+d'observation — la lentille suit l'OBJET du travail, jamais son outil.
+C'est la loi qui tranche les négatifs difficiles du gold set (le
+drone-outil, l'avion-instrument NSF), et elle vaut d'avance pour toute
+lentille future.
+
+**I6 — la hiérarchie de preuve** (gravée le 2026-08-18) :
+**structurel > taxonomique > textuel**. `call` et `topic` sont des
+preuves STRUCTURELLES de première classe — la source les affirme.
+Le `theme` est taxonomique, le motif `text` est interprétatif. Un
+`veto` textuel peut annuler un candidat issu du texte ou du thème,
+**jamais une classification obtenue par `call` ou `topic`** : une
+interprétation ne renverse pas un fait de la source.
+
 **I4 — le recalcul indépendant par lentille est une exigence d'A1,
 pas un développement d'aujourd'hui.** Consigné : sélecteur CLI
 (`orion-ingest lenses --lens aviation`), et versions/journaux PAR
