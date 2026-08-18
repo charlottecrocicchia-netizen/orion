@@ -63,7 +63,22 @@ COLUMNS = ["rule_type", "value", "tag", "sources", "group", "scope", "evidence",
 # Les portées de corroboration : le TITRE dit le SUJET du projet, le
 # TEXTE (titre + résumé) dit ce dont il parle. L'asymétrie est mesurée,
 # pas supposée — et cette capacité servira toutes les lentilles futures.
-SCOPES = ("title", "text")
+# Les CHAMPS d'une confirmation. Ils ne disent pas la même chose :
+# `title` nomme le SUJET du projet ; `body_text` est l'objectif/résumé
+# SEUL, hors titre — c'est lui qui prouve que le motif du titre n'était
+# pas un accident ; `all_text` mêle les deux et ne prouve donc RIEN de
+# nouveau quand le titre a déjà mordu (constat du 2026-08-18).
+SCOPES = ("title", "body_text", "all_text")
+
+# La politique V1 : un groupe lié doit corroborer sur le titre ET sur
+# le corps. `all_text` reste disponible, jamais suffisant.
+REQUIRED_SCOPES = ("title", "body_text")
+
+SCOPE_FIELDS = {
+    "title": "ptx.title",
+    "body_text": "coalesce(ptx.abstract, '')",
+    "all_text": "(ptx.title || ' ' || coalesce(ptx.abstract, ''))",
+}
 # La hiérarchie de preuve (I6) : structurel > taxonomique > textuel.
 # `call` et `topic` sont des FAITS de la source — l'appel qui a financé,
 # le concept exact qu'elle a posé. `theme` est un sous-arbre de
@@ -197,7 +212,11 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
                 _fail(path.name, index, "`group` n'appartient qu'aux candidate et confirm")
             if rule["rule_type"] == "confirm":
                 if rule["scope"] not in SCOPES:
-                    _fail(path.name, index, f"scope « {rule['scope']} » (title|text)")
+                    _fail(
+                        path.name,
+                        index,
+                        f"scope « {rule['scope']} » ({'|'.join(SCOPES)})",
+                    )
                 if not sources:
                     _fail(path.name, index, "une confirmation doit CADRER ses sources (cordis|nsf)")
             elif rule["scope"]:
@@ -220,7 +239,7 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
             scopes = {
                 r["scope"] for r in rules if r["rule_type"] == "confirm" and r["group"] == gid
             }
-            missing = sorted(set(SCOPES) - scopes)
+            missing = sorted(set(REQUIRED_SCOPES) - scopes)
             if missing:
                 raise LensError(
                     f"groupe « {gid} » : corroboration {missing} manquante "
@@ -311,10 +330,14 @@ def _confirm_clause(
     """La corroboration d'UN groupe sur UN champ.
 
     `title` interroge le seul titre — il dit le SUJET du projet ;
-    `text` interroge titre + résumé. L'asymétrie est mesurée : au résumé,
-    « aircraft » ne vaut que 74 % (l'aviation y est souvent citée en
-    exemple), au titre il nomme l'objet. Les confirmations d'un AUTRE
-    groupe ne sont jamais lues ici : le lien est le groupe (I8)."""
+    `body_text` interroge l'objectif SEUL, hors titre. L'asymétrie est
+    mesurée : au résumé, « aircraft » ne vaut que 74 % (l'aviation y est
+    souvent citée en exemple), au titre il nomme l'objet. Croiser titre
+    et `all_text` ne prouverait rien — le motif du titre satisferait les
+    deux ; seul `body_text` est une VRAIE seconde lecture.
+
+    Les confirmations d'un AUTRE groupe ne sont jamais lues ici : le
+    lien est le groupe, jamais la proximité dans le fichier (I8)."""
     confs = [
         r
         for r in rules
@@ -322,7 +345,7 @@ def _confirm_clause(
     ]
     if not confs:
         return None
-    field = "ptx.title" if scope == "title" else "(ptx.title || ' ' || coalesce(ptx.abstract, ''))"
+    field = SCOPE_FIELDS[scope]
     by_source: dict[tuple[str, ...], list[str]] = {}
     for rule in confs:
         by_source.setdefault(tuple(rule["sources_list"]), []).append(f"%{rule['value']}%")
@@ -374,9 +397,12 @@ def _rule_clause(
         # V1 : candidat ET titre ET texte. Le résultat est de classe
         # TAXONOMIQUE confirmée — jamais structurelle (I6).
         params: dict[str, Any] = {"topic_code": value}
-        titre = _confirm_clause(rules, rule["group"], "title", params)
-        texte = _confirm_clause(rules, rule["group"], "text", params)
-        if titre is None or texte is None:
+        clauses = []
+        for scope in SCOPES:
+            corroboration = _confirm_clause(rules, rule["group"], scope, params)
+            if corroboration is not None:
+                clauses.append(corroboration)
+        if not clauses:
             return None
         return (
             """p.id IN (
@@ -384,7 +410,7 @@ def _rule_clause(
                 JOIN topics tp ON tp.id = pt.topic_id
                 WHERE tp.scheme = 'euroscivoc' AND tp.code = :topic_code
             )"""
-            f" AND {titre} AND {texte}",
+            + "".join(f" AND {c}" for c in clauses),
             params,
         )
     if kind == "theme":

@@ -982,3 +982,78 @@ challenger.**
 
 Aviation n'est **pas publiée**, pas activable, absente de la Lens Room.
 Prochaine porte : ta relecture du holdout.
+
+---
+
+## A1 · Correction de la double confirmation (amendement fondatrice, 2026-08-18)
+
+**Le défaut.** La première version croisait `title` et `text`, où `text`
+signifiait titre + résumé. Ce n'était **pas** une double confirmation :
+un motif présent dans le titre satisfaisait mécaniquement les deux
+lectures. La preuve est dans les raisons produites — « corroboré par le
+titre (« aviation ») et par le texte (« aviation ») » : le même mot,
+compté deux fois.
+
+**La correction.** Trois champs désormais : `title` (le titre seul),
+**`body_text`** (l'objectif/résumé SEUL, hors titre) et `all_text`
+(titre + résumé, conservé dans la grammaire, **jamais suffisant**). La
+politique Aviation v1 devient **candidat ET `title` ET `body_text`**.
+Un test le prouve à l'envers : le même motif posé sur `title` et
+`body_text` ne tague rien.
+
+### Reprojection
+
+| | avant correction | après |
+|---|---|---|
+| Aviation core | 1 741 | **1 737** |
+| dont taxonomique confirmée | 149 | **145** (−4) |
+| Financement taxonomique | 460 862 310 € | **444 849 175,46 €** |
+| Structurel | 1 592 | 1 592 — inchangé |
+| **Space** | — | **10 278 / 4 537 · 18 816 721 695 € — inchangé** |
+
+Seed adversarial : **0 faux positif**, 1 manqué (DroneHopper) — inchangé.
+
+### Les quatre disparus, nommés
+
+| Projet | Sort |
+|---|---|
+| 814801 — *Assessing aViation emission Impact on local Air quality at airports* | perdu à tort : `core` sous I12 |
+| 101192936 — *Boosting the digital transformation of aviation supply chains* | perdu à tort : **`core` par ta propre revue** |
+| 641627 — *Capacity building for aviation stakeholders* | perdu à tort : **`core` par ta propre revue** |
+| 101192913 — *LOW-Carbon fuels for heavy-duty, aviation, and maritime* | **bien écarté** de core : `enabling` sous I13 |
+
+**La cause, mesurée.** Aucun de ces quatre résumés ne contient un motif
+de la liste de corps. Cette liste a été construite pour un rôle
+différent — celle des motifs à ≥ 90 % de justesse en signal AUTONOME —
+et `aircraft` en est exclu (74,4 % seul). Or AVIATOR écrit « Emissions
+from **aircraft** … around **airports** » : deux motifs qui ne sont
+présents que dans la liste de TITRE.
+
+Autrement dit : maintenant que `title` porte la spécificité, un motif
+de corps n'a plus besoin d'être spécifique à lui seul — il n'a qu'à
+corroborer. Élargir la liste de corps (`aircraft`, `airport`,
+`aeronautic`) est le geste qui rattraperait ces trois pertes. **Je ne
+l'ai pas fait** : c'est une refonte de règle, elle t'appartient.
+
+### Le holdout v2 — [a1-holdout-groupes-lies.csv](curation/a1-holdout-groupes-lies.csv)
+
+**95 projets, 340,1 M€** (82 aircraft, 11 rotorcraft, 2 aeronautical
+engineering). Les doctrines gravées ont résolu **13 des 16 réserves** :
+
+| Ma proposition | Nombre |
+|---|---|
+| `core` | 83 |
+| `enabling` (I13) | 4 |
+| `excluded` (I5, I12) | 8 |
+| **réserves conservées** | **3** |
+
+**12 projets divergent de ce que la règle chargée tague** (elle les
+met tous en `core`). Ce sont les candidats naturels d'un futur travail
+de veto ou de règle `enabling` — aucun n'a été écrit ici.
+
+Les trois réserves restantes sont celles où deux doctrines tirent en
+sens contraire : 5D-AeroSafe (drones pour la sécurité des aéroports
+**et** des voies navigables), l'UAS autonome de surveillance côtière
+(l'autonomie développée est une capacité d'aéronef, l'objectif ne parle
+que de la mer) et la détection d'aéronefs à basse altitude (surveiller
+l'espace aérien, ou protéger une frontière ?).

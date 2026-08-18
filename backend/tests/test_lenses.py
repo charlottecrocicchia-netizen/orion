@@ -665,7 +665,7 @@ def test_a_candidate_never_tags_without_its_two_corroborations(db_session, tmp_p
             [
                 CAND,
                 'confirm,in-orbit,,cordis,av-test,title,"Le titre dit le sujet",test',
-                'confirm,microgravity,,cordis,av-test,text,"Corroboration texte",test',
+                'confirm,microgravity,,cordis,av-test,body_text,"Corroboration texte",test',
             ],
         ),
     )
@@ -684,7 +684,9 @@ def test_the_two_corroborations_together_tag_as_taxonomic(db_session, tmp_path):
             [
                 CAND,
                 'confirm,in-orbit,,cordis,av-test,title,"Le titre dit le sujet",test',
-                'confirm,servicing,,cordis,av-test,text,"Corroboration texte",test',
+                # « servicing » n'est QUE dans le titre : il ne peut pas
+                # se confirmer lui-même. Le corps doit porter son motif.
+                'confirm,abstract,,cordis,av-test,body_text,"Le corps, hors titre",test',
             ],
         ),
     )
@@ -718,12 +720,12 @@ def test_a_confirmation_never_confirms_another_groups_candidate(db_session, tmp_
             [
                 CAND,  # groupe av-test, pool = {zzsl-5}
                 'confirm,in-orbit,,cordis,av-test,title,"Titre du groupe A",test',
-                'confirm,servicing,,cordis,av-test,text,"Texte du groupe A",test',
+                'confirm,servicing,,cordis,av-test,body_text,"Texte du groupe A",test',
                 # Le groupe B corrobore PARFAITEMENT zzsl-5 « Microgravity
                 # protein growth » — mais son candidat ne le contient pas.
                 'candidate,/23/43/257/777,core,,av-autre,,"Autre concept",test',
                 'confirm,microgravity,,cordis,av-autre,title,"Titre du groupe B",test',
-                'confirm,microgravity,,cordis,av-autre,text,"Texte du groupe B",test',
+                'confirm,microgravity,,cordis,av-autre,body_text,"Texte du groupe B",test',
             ],
         ),
     )
@@ -752,3 +754,59 @@ def test_the_v1_policy_refuses_incomplete_groups(tmp_path):
     for rows in cases:
         with pytest.raises(LensError):
             parse_rules(_lens(tmp_path, rows))
+
+
+def test_the_body_reads_the_objective_alone_never_the_title_again(db_session, tmp_path):
+    """La correction du 2026-08-18 : croiser `title` et titre+résumé ne
+    prouve RIEN — le motif du titre satisfait les deux lectures. Seul
+    l'objectif SEUL est une vraie seconde lecture."""
+    ids = _seed(db_session)
+    _in_pool(db_session, ids, "zzsl-3", "zzsl-5")
+    # Le MÊME motif sur les deux champs : le titre mord, le corps non.
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(
+            tmp_path,
+            [
+                CAND,
+                'confirm,in-orbit,,cordis,av-test,title,"Le titre dit le sujet",test',
+                'confirm,in-orbit,,cordis,av-test,body_text,"Le corps, hors titre",test',
+            ],
+        ),
+    )
+    assert set(_tags(db_session, ids).values()) == {None}
+
+    # Un motif réellement présent dans le résumé, lui, corrobore.
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(
+            tmp_path,
+            [
+                CAND,
+                'confirm,in-orbit,,cordis,av-test,title,"Le titre dit le sujet",test',
+                'confirm,abstract,,cordis,av-test,body_text,"Le corps, hors titre",test',
+            ],
+        ),
+    )
+    tags = _tags(db_session, ids)
+    assert tags["zzsl-3"] == "core"
+    assert tags["zzsl-5"] is None
+
+
+def test_all_text_is_never_enough_for_the_v1_policy(tmp_path):
+    """`all_text` reste dans la grammaire — jamais suffisant."""
+    with pytest.raises(LensError, match="body_text"):
+        parse_rules(
+            _lens(
+                tmp_path,
+                [
+                    CAND,
+                    'confirm,in-orbit,,cordis,av-test,title,"Titre",test',
+                    'confirm,servicing,,cordis,av-test,all_text,"Titre + résumé",test',
+                ],
+            )
+        )

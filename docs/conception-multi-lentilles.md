@@ -348,19 +348,59 @@ Le champ `group` fait le lien, et lui seul : **une confirmation ne peut
 jamais confirmer le candidat d'un autre groupe** — ni la proximité dans
 le fichier, ni l'ordre des lignes ne créent d'appartenance (I8).
 
-Le `scope` distingue explicitement les deux champs, parce qu'ils ne
+Le `scope` distingue explicitement **trois** champs, parce qu'ils ne
 disent pas la même chose :
 
 - `title` — le **titre** seul : il nomme le SUJET du projet ;
-- `text` — titre + résumé : il décrit le contexte, les exemples, les
-  applications visées.
+- `body_text` — l'**objectif/résumé SEUL, hors titre** : la seule
+  vraie seconde lecture ;
+- `all_text` — titre + résumé : disponible dans la grammaire, **jamais
+  suffisant** pour la politique V1.
+
+**Correction du 2026-08-18 (amendement fondatrice).** La première
+version croisait `title` et titre+résumé : ce n'était pas une double
+confirmation. Un motif présent dans le titre satisfaisait
+mécaniquement les deux lectures — la seconde ne prouvait rien. Seul
+`body_text` interroge un texte que le titre n'a pas déjà fourni.
 
 L'asymétrie est mesurée, pas supposée : sur les 200 projets revus,
 « aircraft » au résumé ne vaut que 74,4 % de justesse (l'aviation y est
 souvent citée en exemple — « one example being engine cooling in the
 aviation industry »), là où au titre il désigne l'objet développé.
 
-**Politique V1 : candidat ET corroboration titre ET corroboration
-texte.** Un groupe incomplet — deux candidats, une confirmation
+**Politique V1 : candidat ET corroboration `title` ET corroboration
+`body_text`.** Un groupe incomplet — deux candidats, une confirmation
 orpheline, un `scope` manquant — est refusé au CHARGEMENT, jamais en
 silence.
+
+
+**I12 — la localisation n'est pas une preuve ; la FONCTION développée
+l'est** (gravé le 2026-08-18). Un projet ne devient pas aéronautique
+parce qu'il se déroule dans un aéroport, ni spatial parce qu'il parle
+d'un satellite : ce qu'il faut établir, c'est que la fonction
+développée est **intrinsèque au système aérien** — côté piste, escale,
+aire de trafic, rotation, avitaillement et recharge, matériels de
+piste, sûreté et sécurité, infrastructures propres aux opérations
+aériennes. Un centre commercial d'aérogare, un projet d'énergie qui se
+trouve installé sur un tarmac, une étude de mobilité de surface qui
+dessert un aéroport : hors périmètre. C'est la généralisation d'I9 —
+un contexte partagé ne classe pas.
+
+**I5 (raffinement du 2026-08-18) — l'aviation comme simple OBJET
+D'ÉTUDE ne suffit pas.** `core` exige de **développer, améliorer,
+exploiter, sécuriser ou structurer** le système aérien ou sa R&I. Une
+recherche en sciences sociales sur les mouvements d'opposition au
+transport aérien, un projet théorique qui prend l'aviation pour terrain
+de modélisation : l'objet est réel, la classification ne l'est pas.
+Symétriquement — et c'est le même invariant — l'**aéronef-instrument**
+(archéologie au drone, mesure atmosphérique embarquée) est `excluded`,
+tandis qu'une **capacité d'aéronef réellement développée** est `core`.
+
+**I13 — le multisectoriel se lit à la place que l'aviation y tient.**
+Un projet dont l'aviation est **un cas d'usage substantiel** parmi
+d'autres (batteries pour véhicules électriques *et* aéronefs,
+carburants pour le routier, l'aérien et le maritime) est `enabling` —
+c'est exactement le mot que ce registre sert à dire. Un projet où
+l'aviation n'apparaît que dans une **liste de marchés visés** est
+`excluded`. La frontière est le poids réel du cas d'usage, pas la
+présence du mot.
