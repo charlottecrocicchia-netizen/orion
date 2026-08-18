@@ -155,8 +155,8 @@ export function AboutDataPage() {
             les projets au cœur du spatial (lanceurs, satellites, débris,
             observation de la Terre…) ; et{" "}
             <b className="font-medium text-foreground/80">« Spatial + habilitant »</b> —
-            le cœur plus les technologies habilitantes, taguées
-            &laquo;&nbsp;enabling&nbsp;&raquo; par la lentille
+            le cœur plus les technologies identifiées comme habilitantes
+            par les règles de la lentille
             (ingénierie aérospatiale au sens large, microgravité,
             géospatial-atmosphérique). Une vue cadrée porte son périmètre
             en chip, et l&rsquo;URL le dit (« sector=space-direct » /

@@ -312,3 +312,24 @@ def test_the_two_perimeters_frame_the_explorer(db_session, tmp_path):
     assert direct["meta"]["sector"] == "space-direct"
 
     assert aggregate(db_session, metric="projects", by="funder", sector="martien") is None
+
+
+def test_the_api_contract_speaks_the_canonical_pair(client):
+    """I3 (validé fondatrice, 2026-08-18) : le contrat d'API parle la
+    paire canonique — `core` et `enabling` existent, `adjacent` n'existe
+    plus NULLE PART dans le payload, à aucune profondeur. C'est la
+    garde de la convention : un troisième terme ne peut plus revenir par
+    une clé oubliée."""
+    import json as _json
+
+    response = client.get("/api/stats")
+    assert response.status_code == 200
+    body = response.json()
+
+    assert body["lenses"], "le registre expose au moins la lentille publiée"
+    for entry in body["lenses"]:
+        assert {"core", "enabling"} <= set(entry), entry["slug"]
+    # L'alias historique `space` porte le même vocabulaire (il tombe en M1.4).
+    assert {"core", "enabling"} <= set(body["space"])
+
+    assert "adjacent" not in _json.dumps(body)

@@ -175,9 +175,24 @@ par les clés i18n par lentille.
 modification** — ni assertion retouchée, ni test supprimé, ni couverture
 affaiblie. Générique ne veut pas dire différent.
 
-**M1.0 — le vocabulaire.** Témoins API avant/après dont la **seule**
+**M1.0 — le vocabulaire. FAIT et VALIDÉ** (2026-08-18, avec deux
+corrections de clôture). Témoins API avant/après dont la **seule**
 différence est `adjacent → enabling` (clé du bloc `lenses` et de l'alias
-`space`) ; tout le reste à l'octet. Le hint du chip et la phrase de
+`space`) ; tout le reste à l'octet.
+
+**La convention est gardée par des tests** (corrections de clôture) :
+un test d'API — `core` et `enabling` existent pour chaque lentille
+exposée, et `adjacent` n'apparaît nulle part dans le payload sérialisé,
+à aucune profondeur ; deux tests d'interface, **un par langue** — les
+libellés recettés s'affichent (« Spatial direct » / « Spatial +
+habilitant » ; « Space direct » / « Space + enabling ») et le
+vocabulaire de la donnée ne fuit sur aucune surface utilisateur.
+**Nuance déclarée** : en anglais, « enabling » EST le mot utilisateur
+validé — les deux registres coïncident dans cette langue par
+construction ; le test anglais garde donc ce qui est gardable, l'absence
+totale d'« adjacent ». L'À-propos montre désormais la MÉTHODE
+(« identifiées comme habilitantes par les règles de la lentille »), plus
+le tag interne. Le hint du chip et la phrase de
 l'À-propos ne nomment plus un tag qui n'existe pas ; les libellés
 « Spatial direct » / « Spatial + habilitant » sont intacts — les e2e
 existants, qui les assertent, en sont la preuve. Chargeur rejoué en
