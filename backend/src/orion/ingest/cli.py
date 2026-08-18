@@ -69,6 +69,10 @@ def main() -> int:
     parser.add_argument(
         "--force", action="store_true", help="re-download even if the source is unchanged"
     )
+    parser.add_argument(
+        "--lens",
+        help="recalcule UNE lentille (ex. --lens aviation) ; sans lui, toutes",
+    )
     args = parser.parse_args()
 
     sources = ALL if "all" in args.sources else args.sources
@@ -77,7 +81,8 @@ def main() -> int:
         started = time.perf_counter()
         print(f"==> {source}", flush=True)
         try:
-            counts = REGISTRY[source](force=args.force)
+            extra = {"lens": args.lens} if source == "lenses" and args.lens else {}
+            counts = REGISTRY[source](force=args.force, **extra)
         except Exception as exc:  # noqa: BLE001 — report and continue with next source
             failures += 1
             print(f"    FAILED: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)

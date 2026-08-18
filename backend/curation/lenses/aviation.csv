@@ -1,0 +1,11 @@
+rule_type,value,tag,sources,evidence,source
+call,SP1-JTI-CS-,core,,Clean Sky 1 — appels du JU aéronautique FP7 (SP1-JTI-CS-2009-01 à 2013-03) : le financeur est l'aéronautique elle-même,CORDIS (codes d'appel FP7 Clean Sky)
+call,JTI-CS-,core,,Clean Sky 1 — conventions de subvention aux membres (JTI-CS-GAM) : les ITD moteurs voilure systèmes régional rotorcraft,CORDIS (codes d'appel FP7 Clean Sky GAM)
+call,H2020-CS2-,core,,Clean Sky 2 — les onze appels à propositions du JU (CFP01 à CFP11),CORDIS (codes d'appel H2020 Clean Sky 2)
+call,HORIZON-JU-Clean-Aviation-,core,,Clean Aviation — le JU successeur (2022 2023 2025) : démonstrateurs open fan hydrogène hybride,CORDIS (codes d'appel Horizon Clean Aviation)
+call,FP7-AAT-,core,,FP7 Aeronautics and Air Transport — le volet aéronautique du 7e PC,CORDIS (codes d'appel FP7-AAT)
+call,H2020-SESAR-,core,,SESAR 2020 — la recherche ATM européenne ; l'ATM est une composante du système aéronautique (arbitrage F1),CORDIS (codes d'appel H2020 SESAR)
+call,HORIZON-SESAR-,core,,SESAR 3 / Digital European Sky — la suite du programme ATM (arbitrage F1),CORDIS (codes d'appel Horizon SESAR)
+topic,/25/75/461/1239/1737,core,,euroSciVoc « aircraft » — le concept EXACT posé par la source ; jamais son parent aerospace engineering qui mêle spatial et aéronautique (I7),euroSciVoc (code)
+topic,/25/75/461/1239/1737/1829,core,,euroSciVoc « rotorcraft » — nommé explicitement puisque le concept est exact et n'hérite pas de son parent,euroSciVoc (code)
+topic,/25/75/461/1239/1741,core,,euroSciVoc « aeronautical engineering » — le concept EXACT de l'ingénierie aéronautique,euroSciVoc (code)

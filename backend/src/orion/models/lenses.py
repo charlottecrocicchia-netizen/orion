@@ -68,6 +68,10 @@ class ProjectLensTag(Base):
     __tablename__ = "project_lens_tags"
     __table_args__ = (
         CheckConstraint("tag IN ('core', 'enabling')", name="ck_project_lens_tags_tag"),
+        CheckConstraint(
+            "proof IN ('structural', 'taxonomic', 'textual')",
+            name="ck_project_lens_tags_proof",
+        ),
         Index("ix_project_lens_tags_lens_project", "lens", "project_id"),
     )
 
@@ -76,3 +80,7 @@ class ProjectLensTag(Base):
     )
     lens: Mapped[str] = mapped_column(String(30), ForeignKey("lenses.slug"), primary_key=True)
     tag: Mapped[str] = mapped_column(String(8))
+    # L'origine de la classification (I6) : l'audit sait quelle famille
+    # de règles corriger, et le veto sait ce qu'il n'a pas le droit de
+    # renverser.
+    proof: Mapped[str] = mapped_column(String(12), server_default="taxonomic")

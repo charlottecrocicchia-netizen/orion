@@ -97,8 +97,11 @@ test("S1 — la méthodologie se date, et le deck enseigne le vrai périmètre",
   const bloc = page.getByRole("region", { name: "Espace" });
   await expect(bloc).toBeVisible({ timeout: 15_000 });
   await expect(bloc.getByText(/Méthodologie v2/)).toBeVisible();
-  await expect(bloc.getByText(/Avant\s*:.*10.278 cœur.*5.814 habilitant/)).toBeVisible();
-  await expect(bloc.getByText(/Après\s*:.*10.278 cœur.*4.537 habilitant/)).toBeVisible();
+  // Les chiffres viennent de la BASE (dérivés du run en prod, posés par
+  // la graine ici) — la recette vérifie la forme et la baisse, jamais
+  // des nombres de production copiés dans un test.
+  await expect(bloc.getByText(/Avant\s*:.*2 cœur.*1 habilitant/)).toBeVisible();
+  await expect(bloc.getByText(/Après\s*:.*2 cœur.*0 habilitant/)).toBeVisible();
   await expect(bloc.getByText(/99 % de ce qu.il récoltait était de l.aéronautique/)).toBeVisible();
   // La méthode dit 22 règles — le compte vient du chargeur, pas d'un texte.
   await expect(bloc.getByText(/22 règles/)).toBeVisible();

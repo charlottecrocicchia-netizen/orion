@@ -385,3 +385,104 @@ arbitrages F1-F3 + M** : A1-Exécution — le mécanisme (`call`, `veto` si
 retenus) testé sur le gold set, `aviation.csv` écrit règle à règle avec
 évidences, chargé en `draft`, l'échantillonnage du § 8, tes recettes,
 et SEULEMENT ALORS la publication — mots, decks et surfaces (A2).
+
+
+---
+
+# A1-Exécution — le premier noyau (2026-08-18, `aviation` en `draft`)
+
+## Les mécanismes (étape 1)
+
+`call` (préfixe de code d'appel) et `topic` (concept euroSciVoc EXACT,
+sans sous-arbre) rejoignent `programme` au niveau **structurel** ;
+`theme` reste taxonomique, `text` textuel ; le `veto` retire un tag mais
+**ne mord jamais sur le structurel** (I6). Chaque tag garde son
+**origine** (`project_lens_tags.proof`, migration 0028) : l'audit sait
+quelle famille corriger. I4 est exécutable : `orion-ingest lenses
+--lens aviation` ne touche aucune autre lentille, et chaque run
+journalise lentille, version, durée, comptes, statut. Le changelog est
+**dérivé** : mesuré par le run après succès, jamais saisi — seule la
+justification éditoriale reste curée (S1 ①).
+
+## Le noyau (étapes 2 et 3)
+
+10 règles, toutes `core`, toutes structurelles : **7 appels** (Clean Sky
+1 en deux formes, Clean Sky 2, Clean Aviation, FP7-AAT, SESAR 2020,
+Digital European Sky) et **3 concepts exacts** (`aircraft`,
+`rotorcraft`, `aeronautical engineering` — nommés un à un, jamais leur
+parent : I7).
+
+**2 182 projets · 7 386 M€**, 100 % `core`, 100 % preuve structurelle.
+Chargement : **0,8 s** (contre ~500 s pour le spatial, qui balaie des
+motifs texte sur 700 000 projets).
+
+| Famille de preuve | Projets | M€ |
+|---|---|---|
+| appel SEUL | 832 | 2 333 |
+| appel + concept | 742 | 2 225 |
+| concept SEUL | 608 | 2 828 |
+
+## La matrice, avec Space v2 — elle a fondu vers les vrais ponts
+
+| Space ↓ / Aviation → | core |
+|---|---|
+| **core** | **101 · 234 M€** |
+| **enabling** | **0** |
+| hors lentille spatiale | 2 081 · 7 152 M€ |
+
+Le quadrant core × enabling (1 268 projets, 4 889 M€ avant S1) a
+**disparu** : c'était l'aéronautique que la règle parent spatiale
+ramassait. Il ne reste que les vrais ponts — CNS satellitaire, alertes
+cendres, connectivité.
+
+## Le seed adversarial — 5 faux positifs, tous par le CONCEPT
+
+| Verdict | Nombre |
+|---|---|
+| OK | 24 (dont **12/12 positifs certains** et 12/17 négatifs) |
+| **FAUX POSITIF** | **5** |
+| Manqué | 0 |
+| À arbitrer | 8 (les frontières, par construction) |
+
+**Aucun faux positif n'est entré par un appel.** Les cinq sont entrés
+par un concept, et leur appel réel dit l'inverse :
+
+| Cas | Concept qui l'a fait entrer | Appel réel |
+|---|---|---|
+| FALCon (récupération d'étage de lanceur) | `aircraft` | H2020-**SPACE**-2018 |
+| GasOn (moteurs gaz pour véhicules) | `aeronautical engineering` | H2020-**GV** (Green Vehicles) |
+| MAGNIFIC (GNSS en Afrique) | `aircraft` | H2020-**Galileo**-2014 |
+| UNAELCO (aéroélasticité d'éoliennes) | `aeronautical engineering` | FP7-**PEOPLE** |
+| DroneHopper (drone de lutte incendie) | `rotorcraft` | H2020-**SMEINST** |
+
+**Constat** : le concept euroSciVoc est un fait de la source, mais la
+source le pose largement — l'appel, lui, ne se trompe pas. Et le veto
+ne peut PAS réparer cela : `topic` étant structurel, un veto textuel
+n'a pas le droit d'y toucher (I6, et c'est bien la règle qui protège).
+
+**Nuance déclarée sur DroneHopper** : son étiquette `excluded` du gold
+set est ANTÉRIEURE à l'arbitrage F2, qui dit « core quand le projet
+développe l'aéronef ». DroneHopper développe le drone lui-même : F2 le
+rendrait `core`. L'étiquette n'a pas été changée — un score ne se
+corrige pas en déplaçant sa cible ; la relabellisation est une décision
+de curation à soumettre. Sur les quatre autres, aucun doute.
+
+**Trois options, chiffrées, à trancher (décision T)** :
+
+- *T-A — les appels seuls* : on retire les 3 règles de concept. Noyau
+  **1 574 projets · 4 558 M€**, **zéro faux positif** au gold set,
+  rappel plus faible (−608 projets). « Mieux vaut manquer que salir ».
+- *T-B — le concept redevient taxonomique* : `topic` descend d'un
+  étage, et des vetos textuels peuvent alors mordre (wind turbine,
+  passenger car, launcher…). Garde le rappel, coûte une campagne de
+  vetos et une baisse de la garantie de preuve.
+- *T-C — un veto STRUCTUREL par l'appel* : un appel d'un autre domaine
+  (SPACE, Green Vehicles, Galileo, PEOPLE…) annule une classification
+  obtenue par le seul concept. Même niveau de preuve, et le fait le
+  plus fort gagne : l'appel dit qui a financé. C'est un mécanisme
+  nouveau — à valider avant écriture.
+
+Rien d'autre n'a bougé : `aviation` est en `draft`, aucune règle
+textuelle, aucun `enabling`, aucune publication, aucune Lens Room. La
+lentille spatiale est intacte (14 815 tags — 10 278 + 4 537), preuve en
+production que le recalcul par lentille ne déborde pas.

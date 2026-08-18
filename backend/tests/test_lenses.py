@@ -442,3 +442,165 @@ def test_a_registry_outage_is_never_an_invalid_lens(client, monkeypatch):
     monkeypatch.setattr(lens_param, "valid_sector", registry_down)
     with pytest.raises(OperationalError):
         client.get("/api/search/projects?sector=space")
+
+
+def test_the_proof_hierarchy_decides_and_travels(db_session, tmp_path):
+    """I6 : `call` et `topic` sont des faits de la source (structurels),
+    le thème est taxonomique, le motif textuel. Chaque tag GARDE l'origine
+    qui l'a posé — l'audit sait quelle famille corriger."""
+    ids = _seed(db_session)
+    funder = db_session.execute(text("SELECT id FROM funders WHERE code = 'ec'")).scalar_one()
+    db_session.execute(
+        text(
+            "INSERT INTO calls (funder_id, code, title) "
+            "VALUES (:f, 'ZZ-CALL-2024-01', 'appel de test')"
+        ),
+        {"f": funder},
+    )
+    call_id = db_session.execute(
+        text("SELECT id FROM calls WHERE code = 'ZZ-CALL-2024-01'")
+    ).scalar_one()
+    db_session.execute(
+        text("UPDATE projects SET call_id = :c WHERE id = :p"),
+        {"c": call_id, "p": ids["zzsl-5"]},
+    )
+    db_session.flush()
+
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(
+            tmp_path,
+            [
+                'call,ZZ-CALL-,core,,"L\'appel qui a financé — un fait",test',
+                'theme,/23/43/257,core,,"Sous-arbre astronomie",test',
+                'text,in-orbit,core,cordis|nsf,"Services en orbite",test',
+            ],
+        ),
+    )
+    proofs = {
+        sid: db_session.execute(
+            text("SELECT proof FROM project_lens_tags WHERE project_id = :i AND lens = 'space'"),
+            {"i": pid},
+        ).scalar()
+        for sid, pid in ids.items()
+    }
+    assert proofs["zzsl-5"] == "structural"  # par l'appel
+    assert proofs["zzsl-2"] == "taxonomic"  # par le sous-arbre de thème
+    assert proofs["zzsl-3"] == "textual"  # par le motif
+
+
+def test_topic_takes_the_exact_concept_never_the_subtree(db_session, tmp_path):
+    """I7 : `topic` nomme le concept EXACT — il n'hérite pas des voisins,
+    contrairement à `theme` qui prend le sous-arbre."""
+    ids = _seed(db_session)
+    # zzsl-2 porte le thème /23/43/257/999, ENFANT de /23/43/257.
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(tmp_path, ['topic,/23/43/257,core,,"Le concept exact, pas ses enfants",test']),
+    )
+    assert _tags(db_session, ids)["zzsl-2"] is None
+
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(tmp_path, ['topic,/23/43/257/999,core,,"Le concept exact que porte le projet",test']),
+    )
+    assert _tags(db_session, ids)["zzsl-2"] == "core"
+
+
+def test_a_veto_never_overturns_a_fact_of_the_source(db_session, tmp_path):
+    """I6, la garde : un veto textuel tue un candidat venu du texte ou du
+    thème — jamais une classification obtenue par `call` ou `topic`."""
+    ids = _seed(db_session)
+    funder = db_session.execute(text("SELECT id FROM funders WHERE code = 'ec'")).scalar_one()
+    db_session.execute(
+        text(
+            "INSERT INTO calls (funder_id, code, title) "
+            "VALUES (:f, 'ZZ-CALL-2024-01', 'appel de test')"
+        ),
+        {"f": funder},
+    )
+    call_id = db_session.execute(
+        text("SELECT id FROM calls WHERE code = 'ZZ-CALL-2024-01'")
+    ).scalar_one()
+    # zzsl-3 (« in-orbit servicing ») est aussi financé par l'appel.
+    db_session.execute(
+        text("UPDATE projects SET call_id = :c WHERE id = :p"),
+        {"c": call_id, "p": ids["zzsl-3"]},
+    )
+    db_session.flush()
+
+    stats = RunStats()
+    load_lens(
+        db_session,
+        stats,
+        "space",
+        _lens(
+            tmp_path,
+            [
+                'text,microgravity,core,cordis|nsf,"Motif interprété",test',
+                'call,ZZ-CALL-,core,,"Un fait de la source",test',
+                'veto,servicing,,cordis|nsf,"Le mot est trop générique",test',
+                'veto,microgravity,,cordis|nsf,"Retiré par veto",test',
+            ],
+        ),
+    )
+    tags = _tags(db_session, ids)
+    assert tags["zzsl-5"] is None  # textuel : le veto mord
+    assert tags["zzsl-3"] == "core"  # structurel : le veto NE MORD PAS
+    assert stats.counts.get("vetoed", 0) >= 1
+
+
+def test_a_veto_carries_no_tag(tmp_path):
+    with pytest.raises(LensError):
+        parse_rules(_lens(tmp_path, ['veto,servicing,core,cordis,"un veto ne classe pas",test']))
+
+
+def test_one_lens_recalculates_alone(db_session, tmp_path):
+    """I4 exécutable : `--lens <slug>` ne touche JAMAIS les tags des
+    autres lentilles — chaque lentille vit sa propre vie."""
+    ids = _seed(db_session)
+    _registry(
+        tmp_path,
+        ["aerospace_mobility,space,1,published,1", "zz_family,zztest,2,published,1"],
+    )
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Orbite",test'], name="space.csv")
+    _lens(tmp_path, ['text,microgravity,core,cordis|nsf,"Micropesanteur",test'], name="zztest.csv")
+    load_all(db_session, RunStats(), base_dir=tmp_path)
+    assert _tags(db_session, ids, lens="space")["zzsl-3"] == "core"
+    assert _tags(db_session, ids, lens="zztest")["zzsl-5"] == "core"
+
+    # On rétague zztest SEULE, avec des règles vides de tout résultat.
+    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,"Rien",test'], name="zztest.csv")
+    load_all(db_session, RunStats(), base_dir=tmp_path, only="zztest")
+    assert _tags(db_session, ids, lens="zztest")["zzsl-5"] is None
+    assert _tags(db_session, ids, lens="space")["zzsl-3"] == "core"  # intacte
+
+    with pytest.raises(LensError):
+        load_all(db_session, RunStats(), base_dir=tmp_path, only="inconnue")
+
+
+def test_the_changelog_is_derived_never_typed(db_session, tmp_path):
+    """S1 ① : l'avant/après d'un changement de méthodologie est MESURÉ
+    par le run après succès, jamais saisi. Un premier chargement n'est
+    pas un changement — il ne journalise rien."""
+    ids = _seed(db_session)
+    _registry(tmp_path, ["aerospace_mobility,space,1,published,1"])
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Orbite",test'], name="space.csv")
+    load_all(db_session, RunStats(), base_dir=tmp_path)
+    assert db_session.execute(text("SELECT count(*) FROM lens_changelog")).scalar() == 0
+
+    # Version 2 : la règle se resserre, le run mesure et journalise.
+    _registry(tmp_path, ["aerospace_mobility,space,1,published,2"])
+    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,"Plus rien",test'], name="space.csv")
+    load_all(db_session, RunStats(), base_dir=tmp_path)
+    row = db_session.execute(
+        text("SELECT version, core_before, core_after FROM lens_changelog WHERE lens = 'space'")
+    ).one()
+    assert (row.version, row.core_before, row.core_after) == (2, 1, 0)
+    assert _tags(db_session, ids)["zzsl-3"] is None

@@ -296,6 +296,18 @@ def _seed_synthetic_lens(session: Session) -> None:
             ),
             {"slug": SEED_LENS_SLUG, "tag": tag, "sid": source_id},
         )
+    # Le journal de méthodologie est DÉRIVÉ des runs (S1 ①) : sur une
+    # base neuve il n'y a rien à journaliser (un premier chargement n'est
+    # pas un changement). La graine en pose donc un, à SES échelles, pour
+    # que la surface ait quelque chose de vrai à montrer.
+    session.execute(
+        text(
+            "INSERT INTO lens_changelog (lens, version, changed_on, core_before, core_after, "
+            "enabling_before, enabling_after, funding_before_eur, funding_after_eur) "
+            "VALUES ('space', 2, '2026-08-18', 2, 2, 1, 0, 3400000, 2600000) "
+            "ON CONFLICT (lens, version) DO NOTHING"
+        )
+    )
     session.commit()
 
 
