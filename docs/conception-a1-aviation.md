@@ -1169,3 +1169,60 @@ MarineUAS → core, ALFA → excluded par I14).
 **11 projets divergent du tag de la règle**, qui les met tous en `core`.
 Conformément à l'arbitrage ④, **aucun veto ni aucune règle `enabling`
 n'a été écrit** — I10 continue de s'appliquer.
+
+---
+
+## A1 · Ablation et GEL de la candidate V1 (2026-08-18)
+
+### Ablation — mesure seule, aucune règle modifiée
+
+Sur les **162 projets taxonomiques** actuellement tagués, de quels
+motifs l'admission dépend-elle *exclusivement* ?
+
+**Motif de TITRE `airborne` — 1 seul projet en dépend :**
+
+| Projet | Montant | Label |
+|---|---|---|
+| 666793 — *Commercial introduction of the first Airborne Wind Energy system* | 2,50 M€ | **core** (arbitrage fondatrice) |
+
+**Motif de CORPS `maintenance` — 4 projets en dépendent :**
+
+| Projet | Montant | Label | Autre côté |
+|---|---|---|---|
+| 101192936 — *Boosting the digital transformation of aviation supply chains* | 4,93 M€ | **core** (revue des 200) | `aviation` |
+| 666793 — *Airborne Wind Energy system* | 2,50 M€ | **core** (arbitrage) | `airborne` |
+| 712667 — *Hybrid multi copter with 6 times more flight time* | 0,05 M€ | **core** (revue des 200) | `flight` |
+| 779576 — *Fuel CelL HYdrogen System for AircraFt Emergency operation* | 5,06 M€ | **core** (holdout) | `aircraft` |
+
+**Les deux motifs sont blanchis.** `airborne` porte exactement un
+projet, et c'est un vrai `core`. `maintenance` en porte quatre, tous
+`core` — 100 % de précision marginale sur ses dépendants exclusifs.
+
+Et par conséquent : après l'arbitrage sur Ampyx, la recalibration
+n'a introduit **aucun** faux positif doctrinal. Ce que j'avais déclaré
+comme une entrée à tort n'en était pas une.
+
+### GEL — candidate Aviation V1
+
+| | |
+|---|---|
+| Statut | **`draft`**, invisible de l'API |
+| Aviation core | **1 754** |
+| dont preuve structurelle | 1 592 |
+| dont **taxonomique confirmée** | **162** |
+| Financement | **6 307 772 443,38 €** |
+| Règles | 176 — 8 `call`, 3 `candidate`, 78 `confirm` titre, 87 `confirm` corps |
+| Space | **10 278 / 4 537 · 18 816 721 695 € — inchangé** |
+| Holdout | **102 projets — 92 `core`, 3 `enabling`, 7 `excluded`, 0 réserve** |
+
+**Le seed adversarial change de statut.** Ses 37 spécimens ont servi à
+la CONCEPTION des règles ; ils ne sont donc plus une validation (I10).
+Ils deviennent une **suite de régression permanente** : leur rôle est
+désormais de détecter qu'un changement futur casse quelque chose qui
+marchait, jamais de prouver qu'une règle est juste. Son état au gel —
+0 faux positif, 0 manqué — est une ligne de base, pas un résultat.
+
+**Rien ne bouge avant la revue des 102 :** aucun veto, aucune règle
+`enabling`, aucun élargissement de motif.
+
+Le holdout à relire : **`docs/curation/a1-holdout-groupes-lies.csv`**

@@ -419,3 +419,33 @@ Les deux moitiés d'I5 se disent donc d'un trait : **l'aéronef comme
 OUTIL ne prouve rien, l'aéronef comme CIBLE non plus** — seule sa
 conception, son exploitation, sa sécurisation ou la structuration de
 sa R&I prouvent quelque chose.
+
+**I15 — une extension de règle se juge sur la précision MARGINALE de
+ses nouveaux entrants, jamais sur la précision globale après ajout**
+(gravé le 2026-08-18). Ajouter un motif à une règle qui tourne déjà
+juste dilue mécaniquement ses erreurs dans une base saine : `aircraft`
+au corps affichait 95 % de justesse conditionnelle sur l'ensemble du
+pool, et **78,6 % sur ses seuls nouveaux entrants** (11 core pour 3
+aéronefs-instruments). C'est le second chiffre qui décide, parce que
+c'est le seul que l'extension produit. Le premier ne mesure que
+l'héritage.
+
+Corollaire consigné : **AVIATOR est un faux négatif assumé.** Le projet
+est `core`, la règle ne le voit pas, et il ne sera pas récupéré par
+`aircraft` brut — seulement, un jour, par une règle plus spécifique.
+Un faux négatif nommé vaut mieux qu'un seuil détendu.
+
+**La frontière de l'aéronef, précisée (2026-08-18).** Deux cas voisins,
+deux sorts opposés, et la distinction tient en une phrase :
+
+- **AMPYXAP3 (Ampyx Power) → `core`.** Le projet conçoit, construit,
+  contrôle, lance et fait atterrir un **aéronef autonome**. La capacité
+  de vol développée fait le core (I5, jurisprudence DroneHopper et
+  MarineUAS) ; la mission — produire de l'électricité — ne la défait
+  pas.
+- **UNAELCO → `excluded`, et le reste au seed.** Des rotors
+  d'éoliennes : **rien ne vole**. Le mot « aéro » y désigne
+  l'aérodynamique, pas l'aéronautique.
+
+La question n'est donc jamais « est-ce de l'énergie ? » mais
+**« quelque chose vole-t-il, et le projet le fait-il voler ? »**
