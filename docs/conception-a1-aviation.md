@@ -762,3 +762,111 @@ En repondérant les taux mesurés sur la population réelle du pool
 `aircraft`, 60 par `aeronautical engineering`, 59 par `rotorcraft`.
 C'est une estimation d'échantillon, pas une décision : **aucune règle
 n'est écrite.**
+
+
+---
+
+# Les règles de confirmation et les vetos — PROPOSITIONS (2026-08-18)
+
+*Rien n'est chargé. Chaque règle est mesurée sur les 200 vérités de
+revue et testée contre le seed adversarial. La confiance s'attache à
+une règle, jamais à une famille (I8).*
+
+## La découverte qui commande tout : titre ≠ résumé
+
+Le mot « aircraft » dans le **résumé** ne vaut que **74,4 %** de
+précision : tout le monde cite l'avion en exemple. Les trois faux
+positifs qui survivaient à la confirmation simple le disent en une
+ligne — IN-NOVA entre par « EASA » (réglementation du bruit citée),
+ADeHEx par « aviation » (« one example being engine cooling in the
+aviation industry »), ORGGROWTH par « airline » (exemple
+d'entrepreneuriat). C'est exactement la définition d'`excluded` : *l'aviation
+n'est qu'un exemple*.
+
+Le même mot dans le **titre** dit le SUJET du projet. D'où la
+**double confirmation** : un motif d'aviation dans le titre **ET** un
+motif fort dans le texte. Elle atteint **100 % sur les trois concepts**.
+
+**Les motifs mesurés** (précision sur les 200) — les FORTS : `landing`
+100 %, `airframe` 100 %, `air traffic` 100 %, `aviation` 96,6 %,
+`airline` 94,4 %, `air transport` 91,7 %, `uav` 90,9 %. Les faibles,
+écartés : `aircraft` 74,4 %, `aeronautic` 66,0 %, `wing` 63,4 %,
+`helicopter` 63,2 %, `airborne` 44,4 %.
+
+## Les propositions, une par concept
+
+| Concept | Règle proposée | Mécanisme (I6) | Entrent | Restent dehors | M€ | Précision mesurée | IC 95 % |
+|---|---|---|---|---|---|---|---|
+| **aircraft** | double confirmation | candidat `topic` (taxonomique) + motif titre **et** motif fort → tag `taxonomic` | **121** | 268 | 390 | **100 %** (40/40) | 91-100 |
+| **aeronautical engineering** | double confirmation | idem | **20** | 107 | 60 | **100 %** (11/11) | 74-100 |
+| — *variante plus large* | motif titre + veto | idem, veto textuel actif | 36 | 91 | 119 | 95,8 % (23/24) | 80-99 |
+| **rotorcraft** | confirmation **légère** : motif fort seul | candidat + motif fort → tag `taxonomic` | **46** | 30 | 73 | 95,2 % (20/21) | 77-99 |
+| — *variante stricte* | double confirmation | idem | 29 | 47 | 46 | **100 %** (15/15) | 80-100 |
+
+**Place dans la hiérarchie (I6)** : le concept reste **taxonomique** ;
+la confirmation est **textuelle**. Un candidat confirmé produit donc un
+tag de niveau **taxonomique** — jamais structurel : il n'est pas un fait
+de la source, c'est une lecture corroborée. Conséquence directe et
+voulue : **un veto textuel peut le retirer**, alors qu'il ne peut rien
+contre les 8 règles d'appel.
+
+## Les vetos — mesurés, et concept-dépendants
+
+Aucun veto n'est un filet universel. Leur pureté sur les 200 : `vessel`
+100 % (5 cas), `automotive` 89,5 %, `maritime` 85,7 %, `wind turbine`
+83,3 %, `wind farm` 83,3 %. Un veto « wind turbine » brut tuerait donc
+**2 projets utiles sur 12** — inacceptable seul.
+
+Leur effet réel dépend du concept, et c'est I8 en action :
+
+| Concept | Sans veto | Avec veto | Verdict |
+|---|---|---|---|
+| aircraft (double conf.) | 100 % | 100 % | **inutile** — la double confirmation a déjà tout filtré |
+| aeronautical eng. (titre) | 85,2 % | **95,8 %** | **indispensable** — il fait passer le seuil |
+| rotorcraft (fort seul) | **95,2 %** | 94,7 % | **nuisible** — il retire 2 utiles pour 1 faux |
+
+→ Le veto n'est proposé **que** sur la variante large d'aeronautical
+engineering. Ailleurs, il n'apporte rien ou il coûte.
+
+## Le test contre le seed adversarial : zéro faute
+
+Les 37 cas passés aux règles proposées, dans les deux scénarios :
+**aucun faux positif introduit**. GasOn (moteurs gaz automobiles),
+MAGNIFIC (GNSS générique), UNAELCO (éoliennes) et FALCon (étage de
+lanceur) **restent dehors** — aucun ne réunit titre + motif fort.
+
+**Le manqué demeure** : DroneHopper reste hors du noyau. Son résumé dit
+« remote-controlled aircraft » sans aucun motif fort de la liste. C'est
+le prix assumé de « mieux vaut manquer que salir » — et le cas est au
+gold set, il rappellera cette dette à chaque mesure.
+
+## L'honnêteté statistique — à lire avant de trancher
+
+Les précisions reposent sur de **petits échantillons**. « 100 % » sur
+11 observations (aeronautical engineering en double confirmation) a une
+borne basse d'intervalle à **74 %** : ce n'est pas une garantie de
+95 %. Trois lectures possibles, par ordre de prudence :
+
+1. **le plus sûr** — double confirmation partout : +170 projets,
+   +496 M€, borne basse la plus haute sur aircraft (91 %) ; le noyau
+   passerait à **1 762 projets · 6 319 M€** ;
+2. **l'équilibré** — double sur aircraft, légère sur rotorcraft, double
+   sur aeronautical engineering : +187 projets ;
+3. **le plus large** — variantes larges partout : +250 projets, mais
+   deux règles sous 95 % et des bornes basses à 75-80 %.
+
+**Le signal du montant**, mesuré : ≥ 20 M€ vaut 100 % sur `aircraft` et
+`rotorcraft` — mais sur `aeronautical engineering`, ≥ 10 M€ tombe à
+**20 %**. Il n'est donc **pas** proposé comme règle : ce n'est pas un
+signal de la lentille, c'est un signal de deux de ses concepts, sur
+trois à six cas. I8 interdit d'en faire une famille.
+
+## Ce que ces règles exigent du mécanisme
+
+La grammaire actuelle ne sait pas exprimer « candidat confirmé ». Il
+faudra, à valider séparément : un type de règle **`candidate`** (un
+concept qui ouvre un pool sans taguer) et un type **`confirm`** (un
+motif qui promeut, avec sa portée `titre` ou `texte`) — soit une
+septième colonne au CSV des règles, validée tout ou rien comme le
+reste. **Rien de cela n'est écrit** : les propositions attendent les
+arbitrages.
