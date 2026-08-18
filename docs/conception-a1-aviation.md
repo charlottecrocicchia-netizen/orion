@@ -870,3 +870,115 @@ motif qui promeut, avec sa portée `titre` ou `texte`) — soit une
 septième colonne au CSV des règles, validée tout ou rien comme le
 reste. **Rien de cela n'est écrit** : les propositions attendent les
 arbitrages.
+
+---
+
+## A1 · Les groupes liés chargés — projection sur le holdout (2026-08-18)
+
+Arbitrages fondatrice appliqués : **double confirmation pour les trois
+concepts**, rotorcraft-light conservé en **challenger analytique**,
+mesuré ici et **jamais chargé**.
+
+### Ce qui est chargé
+
+`backend/curation/lenses/aviation.csv` — **140 règles**, aviation reste
+**`draft`** :
+
+| Type | Nombre | Classe |
+|---|---|---|
+| `call` | 8 | structurelle |
+| `candidate` | 3 | taxonomique (ouvre un pool, ne tague jamais seul) |
+| `confirm` `title` | 78 | corroboration sur le titre |
+| `confirm` `text` | 51 | corroboration sur titre + résumé |
+
+Trois groupes : `av-aircraft`, `av-aeronautical-engineering`,
+`av-rotorcraft`. **Aucun veto nouveau**, conformément à l'arbitrage.
+
+### Les chiffres, mesurés
+
+| | avant | après |
+|---|---|---|
+| Aviation core | 1 592 | **1 741** (+149) |
+| dont preuve structurelle | 1 592 | 1 592 (inchangé) |
+| dont preuve taxonomique confirmée | 0 | **149** |
+| Financement Aviation | 5 822 834 792 € | **6 283 697 101,46 €** |
+| **Space core / enabling** | 10 278 / 4 537 | **10 278 / 4 537 — inchangé** |
+| **Space financement** | 18 816 721 695 € | **18 816 721 695 € — inchangé** |
+
+I4 vérifié sur pièce : `--lens aviation` n'a pas touché un seul tag Space.
+Aviation étant en `draft`, **aucune ligne de journal** n'a été écrite —
+le seul enregistrement de `lens_changelog` reste celui de Space v2.
+
+Les groupes ont retenu 389 projets : **240 étaient déjà dans le noyau
+structurel** (les appels Clean Sky / SESAR les avaient déjà) et **149
+sont nouveaux**. Ce recouvrement de 62 % est en soi une corroboration :
+les concepts visent bien la même zone que les appels.
+
+### Le seed adversarial — tenu
+
+`uv run python scripts/gold_check.py aviation` sur les 37 spécimens :
+**0 faux positif**, 1 manqué (DroneHopper, connu). Les pièges tiennent
+tous, y compris ceux que les motifs lexicaux menaçaient le plus :
+`drone_outil` (GIDROM), `nsf_avion_outil`, `aero_eolien`,
+`wing_biologique`, `flight_spatial` (ASTROCIT), `piege_engineering`.
+
+### Écart déclaré : la garde des motifs courts
+
+La proposition arbitrée s'appuyait sur des motifs mesurés dont sept
+sont **refusés par la garde maison** du chargeur (« motif trop court et
+sans espace — trop ambigu ») : `vtol`, `uav`, `uas`, `drone`, `aero`,
+`easa`, `icao`. J'ai choisi de **respecter la garde** plutôt que de
+l'affaiblir — `uas` capture « quasi », `aero` capture « aerosol » — et
+d'y substituer des équivalents multi-mots conformes (`unmanned
+aerial`, `unmanned aircraft`, `vertical take-off`, `drones`,
+`multicopter`, `quadcopter`).
+
+Coût mesuré sur l'échantillon : **56 entrants au lieu de 66**. La
+justesse reste de **100 %** sur les trois concepts ; c'est du rappel
+qui est perdu, pas de la précision.
+
+### Le holdout — à relire
+
+`docs/curation/a1-holdout-groupes-lies.csv` — **97 projets, 349,3 M€**,
+les entrants taxonomiques **hors des 200 déjà labellisés** (83
+aircraft, 12 rotorcraft, 2 aeronautical engineering ; les 52 autres
+nouveaux entrants sont dans l'échantillon déjà revu).
+
+Format de l'échantillon, plus une colonne `doute` : **16 projets** y
+portent une réserve doctrinale de ma part, en quatre familles —
+
+1. **I5 — le projet UTILISE un aéronef** au lieu d'en développer un
+   (archéologie au drone Lidar, turbulence atmosphérique in situ,
+   prestataire de services de drones) ;
+2. **l'aviation est UNE application parmi plusieurs** (batteries pour
+   véhicules électriques *et* avions, carburants routier/aérien/maritime) ;
+3. **objet non-R&I aéronautique** (mouvements sociaux contre le
+   transport aérien, projet ERC théorique) ;
+4. **le sol et l'aéroport plutôt que l'aéronef** — extension de F1
+   (ATM core) qui demande ton arbitrage explicite.
+
+**Aucun taux de précision n'est calculé sur ce holdout** : sa vérité
+n'existe pas encore. C'est précisément son rôle (I10).
+
+### Rotorcraft-light — mesuré, non chargé
+
+Variante à confirmation **titre seule** sur le groupe rotorcraft :
+
+- pool rotorcraft avec confirmation titre : **82**
+- dont double confirmation, chargée : **69**
+- **que light aurait ajoutés : 13**, dont 8 hors du noyau structurel.
+
+Sur les 5 de ces 13 qui portent déjà une vérité de revue : **3 core**
+(dont **DroneHopper**, le manqué du seed) et **2 excluded**. Soit une
+justesse de 60 % là où la double confirmation tient 100 %.
+
+Le cas qui tranche est dans le holdout : **« A Helicopter View on
+Electrocatalysis »** — une métaphore. Le titre dit « helicopter », le
+texte ne parle jamais d'aéronautique ; la corroboration texte l'écarte,
+la variante légère l'aurait fait entrer. **Le challenger reste un
+challenger.**
+
+### Ce qui n'est pas fait
+
+Aviation n'est **pas publiée**, pas activable, absente de la Lens Room.
+Prochaine porte : ta relecture du holdout.

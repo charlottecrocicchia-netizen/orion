@@ -59,7 +59,11 @@ LENSES_DIR = Path(__file__).resolve().parents[3] / "curation" / "lenses"
 REGISTRY_FILE = LENSES_DIR / "registry.csv"
 
 REGISTRY_COLUMNS = ["family_key", "slug", "rank", "status", "version"]
-COLUMNS = ["rule_type", "value", "tag", "sources", "evidence", "source"]
+COLUMNS = ["rule_type", "value", "tag", "sources", "group", "scope", "evidence", "source"]
+# Les portées de corroboration : le TITRE dit le SUJET du projet, le
+# TEXTE (titre + résumé) dit ce dont il parle. L'asymétrie est mesurée,
+# pas supposée — et cette capacité servira toutes les lentilles futures.
+SCOPES = ("title", "text")
 # La hiérarchie de preuve (I6) : structurel > taxonomique > textuel.
 # `call` et `topic` sont des FAITS de la source — l'appel qui a financé,
 # le concept exact qu'elle a posé. `theme` est un sous-arbre de
@@ -71,12 +75,17 @@ PROOF_OF_RULE = {
     "topic": "structural",
     "programme": "structural",
     "theme": "taxonomic",
+    # Un candidat CORROBORÉ reste taxonomique : euroSciVoc est lui-même
+    # dérivé des textes CORDIS — les deux signaux sont corrélés par
+    # construction. On dit « candidat taxonomique + corroboration
+    # lexicale », jamais « deux preuves indépendantes ».
+    "candidate": "taxonomic",
     "text": "textual",
 }
 # Du plus faible au plus fort : l'ordre d'application, pour qu'un tag
 # finisse toujours avec la preuve la plus forte qui le justifie.
 PROOFS = ("textual", "taxonomic", "structural")
-RULE_TYPES = ("call", "topic", "programme", "theme", "text", "veto")
+RULE_TYPES = ("call", "topic", "programme", "theme", "text", "veto", "candidate", "confirm")
 TAGS = ("core", "enabling")
 # I2 : draft se charge sans être exposée, published est le produit,
 # retired n'est plus rechargée — ses tags restent gelés en base.
@@ -150,13 +159,16 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
                 )
             rule = {key: (value or "").strip() for key, value in raw.items()}
             if rule["rule_type"] not in RULE_TYPES:
-                _fail(path.name, index, f"rule_type « {rule['rule_type']} » (programme|theme|text)")
-            if rule["rule_type"] == "veto":
+                _fail(
+                    path.name, index, f"rule_type « {rule['rule_type']} » ({'|'.join(RULE_TYPES)})"
+                )
+            if rule["rule_type"] in ("veto", "confirm"):
                 if rule["tag"]:
                     _fail(
                         path.name,
                         index,
-                        "un veto ne porte pas de tag : il retire, il ne classe pas",
+                        f"un {rule['rule_type']} ne porte pas de tag : "
+                        "il retire ou corrobore, il ne classe pas",
                     )
             elif rule["tag"] not in TAGS:
                 _fail(path.name, index, f"tag « {rule['tag']} » (core|enabling)")
@@ -165,7 +177,7 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
             if not rule["evidence"] or not rule["source"]:
                 _fail(path.name, index, "évidence et source sont obligatoires")
             sources = [s for s in rule["sources"].split("|") if s]
-            if rule["rule_type"] in ("text", "veto"):
+            if rule["rule_type"] in ("text", "veto", "confirm"):
                 if not sources:
                     _fail(path.name, index, "un motif texte doit CADRER ses sources (cordis|nsf)")
                 unknown = set(sources) - TEXT_SOURCES
@@ -174,10 +186,46 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
                 if len(rule["value"]) < 6 and " " not in rule["value"]:
                     _fail(path.name, index, "motif trop court et sans espace — trop ambigu")
             elif sources:
-                _fail(path.name, index, "sources ne s'applique qu'aux motifs texte et veto")
+                _fail(path.name, index, "sources ne cadre que texte, veto et confirmation")
+            # Les GROUPES liés (V1 aviation) : un `candidate` taxonomique et
+            # ses `confirm`. Un confirm ne peut JAMAIS corroborer un candidat
+            # d'un autre groupe — le lien est le groupe, pas la proximité.
+            if rule["rule_type"] in ("candidate", "confirm"):
+                if not rule["group"]:
+                    _fail(path.name, index, f"un {rule['rule_type']} doit nommer son groupe")
+            elif rule["group"]:
+                _fail(path.name, index, "`group` n'appartient qu'aux candidate et confirm")
+            if rule["rule_type"] == "confirm":
+                if rule["scope"] not in SCOPES:
+                    _fail(path.name, index, f"scope « {rule['scope']} » (title|text)")
+                if not sources:
+                    _fail(path.name, index, "une confirmation doit CADRER ses sources (cordis|nsf)")
+            elif rule["scope"]:
+                _fail(path.name, index, "`scope` n'appartient qu'aux confirm")
             rule["sources_list"] = sources
             rule["line"] = index
             rules.append(rule)
+
+        # Politique V1 : candidat ET corroboration de titre ET de texte. Un
+        # groupe incomplet ne tague rien — le dire au CHARGEMENT, jamais en
+        # silence à l'exécution.
+        cands = [r for r in rules if r["rule_type"] == "candidate"]
+        groupes = {r["group"] for r in cands}
+        if len(groupes) != len(cands):
+            raise LensError("un groupe ne peut porter qu'UN candidat")
+        confs = {r["group"] for r in rules if r["rule_type"] == "confirm"}
+        for orphan in sorted(confs - groupes):
+            raise LensError(f"groupe « {orphan} » : des confirmations sans candidat")
+        for gid in sorted(groupes):
+            scopes = {
+                r["scope"] for r in rules if r["rule_type"] == "confirm" and r["group"] == gid
+            }
+            missing = sorted(set(SCOPES) - scopes)
+            if missing:
+                raise LensError(
+                    f"groupe « {gid} » : corroboration {missing} manquante "
+                    "(politique V1 : candidat + titre + texte)"
+                )
         return rules
 
 
@@ -257,7 +305,46 @@ def _apply_rule(
     return result.rowcount or 0
 
 
-def _rule_clause(session: Session, rule: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
+def _confirm_clause(
+    rules: list[dict[str, Any]], gid: str, scope: str, params: dict[str, Any]
+) -> str | None:
+    """La corroboration d'UN groupe sur UN champ.
+
+    `title` interroge le seul titre — il dit le SUJET du projet ;
+    `text` interroge titre + résumé. L'asymétrie est mesurée : au résumé,
+    « aircraft » ne vaut que 74 % (l'aviation y est souvent citée en
+    exemple), au titre il nomme l'objet. Les confirmations d'un AUTRE
+    groupe ne sont jamais lues ici : le lien est le groupe (I8)."""
+    confs = [
+        r
+        for r in rules
+        if r["rule_type"] == "confirm" and r["group"] == gid and r["scope"] == scope
+    ]
+    if not confs:
+        return None
+    field = "ptx.title" if scope == "title" else "(ptx.title || ' ' || coalesce(ptx.abstract, ''))"
+    by_source: dict[tuple[str, ...], list[str]] = {}
+    for rule in confs:
+        by_source.setdefault(tuple(rule["sources_list"]), []).append(f"%{rule['value']}%")
+    parts = []
+    for index, (sources, needles) in enumerate(by_source.items()):
+        key_src, key_needle = f"{gid}_{scope}_s{index}", f"{gid}_{scope}_n{index}"
+        key_src, key_needle = key_src.replace("-", "_"), key_needle.replace("-", "_")
+        params[key_src] = [f"{src}%" for src in sources]
+        params[key_needle] = needles
+        # Le cadre de sources reste À L'EXTÉRIEUR de la sous-requête :
+        # à l'intérieur il la corrèle, et Postgres la rejoue par projet.
+        parts.append(
+            f"(p.source LIKE ANY(:{key_src}) AND p.id IN ("
+            f" SELECT ptx.project_id FROM project_texts ptx"
+            f" WHERE {field} ILIKE ANY(:{key_needle})))"
+        )
+    return "(" + " OR ".join(parts) + ")"
+
+
+def _rule_clause(
+    session: Session, rule: dict[str, Any], rules: list[dict[str, Any]]
+) -> tuple[str, dict[str, Any]] | None:
     """La clause SQL d'une règle — None si le corpus ne la connaît pas."""
     kind, value = rule["rule_type"], rule["value"]
     if kind == "programme":
@@ -280,6 +367,25 @@ def _rule_clause(session: Session, rule: dict[str, Any]) -> tuple[str, dict[str,
                 WHERE tp.scheme = 'euroscivoc' AND tp.code = :topic_code
             )""",
             {"topic_code": value},
+        )
+    if kind == "candidate":
+        # Un candidat n'a JAMAIS le droit de taguer seul : le concept
+        # ouvre un pool, la corroboration lexicale le referme. Politique
+        # V1 : candidat ET titre ET texte. Le résultat est de classe
+        # TAXONOMIQUE confirmée — jamais structurelle (I6).
+        params: dict[str, Any] = {"topic_code": value}
+        titre = _confirm_clause(rules, rule["group"], "title", params)
+        texte = _confirm_clause(rules, rule["group"], "text", params)
+        if titre is None or texte is None:
+            return None
+        return (
+            """p.id IN (
+                SELECT pt.project_id FROM project_topics pt
+                JOIN topics tp ON tp.id = pt.topic_id
+                WHERE tp.scheme = 'euroscivoc' AND tp.code = :topic_code
+            )"""
+            f" AND {titre} AND {texte}",
+            params,
         )
     if kind == "theme":
         return (
@@ -357,7 +463,7 @@ def load_lens(session: Session, stats: RunStats, slug: str, path: Path) -> None:
                     continue
                 if PROOF_OF_RULE[rule["rule_type"]] != proof:
                     continue
-                clause = _rule_clause(session, rule)
+                clause = _rule_clause(session, rule, rules)
                 if clause is None:
                     stats.add("rule_skipped_no_match")
                     continue

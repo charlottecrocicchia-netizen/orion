@@ -313,3 +313,54 @@ pas un développement d'aujourd'hui.** Consigné : sélecteur CLI
 (`orion-ingest lenses --lens aviation`), et versions/journaux PAR
 lentille (le run `<slug>-lens` existe déjà ; A1 y ajoute la version du
 fichier de règles — hash + date — dans le journal). Voir roadmap.
+
+**I10 — une règle conçue sur un échantillon n'est jamais validée par
+ce même échantillon** (gravé le 2026-08-18). L'échantillon qui a servi
+à *voir* le signal en a épuisé le pouvoir de preuve : y mesurer 100 %
+de justesse ne dit rien de la règle, seulement qu'elle décrit
+correctement ce qu'on lui a montré. Toute règle apprise doit être
+mesurée sur un **holdout** — des cas jamais vus lors de sa conception —
+avant publication. Corollaire opératoire : les 200 projets revus de
+l'échantillon taxonomique A1 sont désormais **brûlés** comme jeu de
+validation ; ils restent utiles comme jeu de non-régression, jamais
+comme preuve de généralisation.
+
+**I11 — le vocabulaire des preuves ne se surévalue pas.** Quand un
+candidat taxonomique est refermé par des motifs de texte, on écrit
+« **candidat taxonomique + corroboration lexicale** » — jamais « deux
+preuves indépendantes ». EuroSciVoc est lui-même dérivé des textes
+CORDIS : les deux signaux sont corrélés par construction, et les
+présenter comme indépendants gonflerait la confiance d'un facteur que
+personne n'a mesuré. Le résultat d'un groupe lié est de classe
+**taxonomique confirmée** — jamais structurelle (I6) : un veto futur
+peut donc l'enlever.
+
+## La grammaire des groupes liés (A1, 2026-08-18)
+
+Deux types de règles s'ajoutent, et ne valent que par paire :
+
+| Type | Classe | Rôle |
+|---|---|---|
+| `candidate` | taxonomique | un concept euroSciVoc EXACT qui **ouvre un pool** — il ne tague jamais seul |
+| `confirm` | — | un motif qui **referme** le pool, sur un champ nommé (`scope`) |
+
+Le champ `group` fait le lien, et lui seul : **une confirmation ne peut
+jamais confirmer le candidat d'un autre groupe** — ni la proximité dans
+le fichier, ni l'ordre des lignes ne créent d'appartenance (I8).
+
+Le `scope` distingue explicitement les deux champs, parce qu'ils ne
+disent pas la même chose :
+
+- `title` — le **titre** seul : il nomme le SUJET du projet ;
+- `text` — titre + résumé : il décrit le contexte, les exemples, les
+  applications visées.
+
+L'asymétrie est mesurée, pas supposée : sur les 200 projets revus,
+« aircraft » au résumé ne vaut que 74,4 % de justesse (l'aviation y est
+souvent citée en exemple — « one example being engine cooling in the
+aviation industry »), là où au titre il désigne l'objet développé.
+
+**Politique V1 : candidat ET corroboration titre ET corroboration
+texte.** Un groupe incomplet — deux candidats, une confirmation
+orpheline, un `scope` manquant — est refusé au CHARGEMENT, jamais en
+silence.

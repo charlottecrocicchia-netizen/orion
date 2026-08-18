@@ -36,7 +36,7 @@ def db_session(test_database):
             outer.rollback()
 
 
-HEADER = "rule_type,value,tag,sources,evidence,source"
+HEADER = "rule_type,value,tag,sources,group,scope,evidence,source"
 
 
 def _lens(tmp_path, rows, name="space.csv"):
@@ -111,10 +111,10 @@ def _seed(session: Session) -> dict[str, int]:
 
 
 RULES = [
-    'programme,ZZ-SPACE,core,,"Programme spatial de test",test',
-    'theme,/23/43/257,core,,"Sous-arbre astronomie",test',
-    'text,in-orbit,core,cordis|nsf,"Services en orbite",test',
-    'text,microgravity,enabling,cordis|nsf,"Micropesanteur — habilitante",test',
+    'programme,ZZ-SPACE,core,,,,"Programme spatial de test",test',
+    'theme,/23/43/257,core,,,,"Sous-arbre astronomie",test',
+    'text,in-orbit,core,cordis|nsf,,,"Services en orbite",test',
+    'text,microgravity,enabling,cordis|nsf,,,"Micropesanteur — habilitante",test',
 ]
 
 
@@ -142,8 +142,8 @@ def test_the_lens_tags_by_subtree_prefix_and_framed_text(db_session, tmp_path):
 def test_core_beats_enabling_whatever_the_file_order(db_session, tmp_path):
     ids = _seed(db_session)
     rows = [
-        'text,in-orbit,core,cordis|nsf,"Services en orbite",test',
-        'text,servicing,enabling,cordis|nsf,"Générique — habilitant",test',
+        'text,in-orbit,core,cordis|nsf,,,"Services en orbite",test',
+        'text,servicing,enabling,cordis|nsf,,,"Générique — habilitant",test',
     ]
     load_lens(db_session, RunStats(), "space", _lens(tmp_path, rows))
     assert _tags(db_session, ids)["zzsl-3"] == "core"
@@ -165,17 +165,17 @@ def test_missing_programme_is_counted_never_fatal(db_session, tmp_path):
         db_session,
         stats,
         "space",
-        _lens(tmp_path, ['programme,ABSENT-CODE,core,,"Règle vraie corpus absent",test']),
+        _lens(tmp_path, ['programme,ABSENT-CODE,core,,,,"Règle vraie corpus absent",test']),
     )
     assert stats.counts.get("rule_skipped_no_match") == 1
 
 
 def test_malformed_rules_refuse_to_tag(tmp_path):
     bad = [
-        'programme,X,core,cordis,"sources sur un programme",test',
-        'text,in-orbit,core,,"motif sans cadre de sources",test',
-        'text,orbit,core,cordis,"motif court ambigu",test',
-        'theme,/23/43,wrong,,"tag inconnu",test',
+        'programme,X,core,cordis,,,"sources sur un programme",test',
+        'text,in-orbit,core,,,,"motif sans cadre de sources",test',
+        'text,orbit,core,cordis,,,"motif court ambigu",test',
+        'theme,/23/43,wrong,,,,"tag inconnu",test',
     ]
     for row in bad:
         with pytest.raises(LensError):
@@ -244,10 +244,10 @@ def test_a_project_carries_two_lenses_each_read_full(db_session, tmp_path):
         tmp_path,
         ["aerospace_mobility,space,1,published,1", "zz_family,zztest,2,published,1"],
     )
-    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Services en orbite",test'], name="space.csv")
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,,,"Services en orbite",test'], name="space.csv")
     _lens(
         tmp_path,
-        ['text,servicing,enabling,cordis|nsf,"Lecture seconde du même monde",test'],
+        ['text,servicing,enabling,cordis|nsf,,,"Lecture seconde du même monde",test'],
         name="zztest.csv",
     )
     load_all(db_session, RunStats(), base_dir=tmp_path)
@@ -283,8 +283,8 @@ def test_only_published_lenses_exist_for_the_product(db_session, tmp_path):
         ],
     )
     _lens(tmp_path, RULES, name="space.csv")
-    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Brouillon",test'], name="zzdraft.csv")
-    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Retirée",test'], name="zzretired.csv")
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,,,"Brouillon",test'], name="zzdraft.csv")
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,,,"Retirée",test'], name="zzretired.csv")
     stats = RunStats()
     load_all(db_session, stats, base_dir=tmp_path)
 
@@ -473,9 +473,9 @@ def test_the_proof_hierarchy_decides_and_travels(db_session, tmp_path):
         _lens(
             tmp_path,
             [
-                'call,ZZ-CALL-,core,,"L\'appel qui a financé — un fait",test',
-                'theme,/23/43/257,core,,"Sous-arbre astronomie",test',
-                'text,in-orbit,core,cordis|nsf,"Services en orbite",test',
+                'call,ZZ-CALL-,core,,,,"L\'appel qui a financé — un fait",test',
+                'theme,/23/43/257,core,,,,"Sous-arbre astronomie",test',
+                'text,in-orbit,core,cordis|nsf,,,"Services en orbite",test',
             ],
         ),
     )
@@ -500,7 +500,7 @@ def test_topic_takes_the_exact_concept_never_the_subtree(db_session, tmp_path):
         db_session,
         RunStats(),
         "space",
-        _lens(tmp_path, ['topic,/23/43/257,core,,"Le concept exact, pas ses enfants",test']),
+        _lens(tmp_path, ['topic,/23/43/257,core,,,,"Le concept exact, pas ses enfants",test']),
     )
     assert _tags(db_session, ids)["zzsl-2"] is None
 
@@ -508,7 +508,9 @@ def test_topic_takes_the_exact_concept_never_the_subtree(db_session, tmp_path):
         db_session,
         RunStats(),
         "space",
-        _lens(tmp_path, ['topic,/23/43/257/999,core,,"Le concept exact que porte le projet",test']),
+        _lens(
+            tmp_path, ['topic,/23/43/257/999,core,,,,"Le concept exact que porte le projet",test']
+        ),
     )
     assert _tags(db_session, ids)["zzsl-2"] == "core"
 
@@ -543,10 +545,10 @@ def test_a_veto_never_overturns_a_fact_of_the_source(db_session, tmp_path):
         _lens(
             tmp_path,
             [
-                'text,microgravity,core,cordis|nsf,"Motif interprété",test',
-                'call,ZZ-CALL-,core,,"Un fait de la source",test',
-                'veto,servicing,,cordis|nsf,"Le mot est trop générique",test',
-                'veto,microgravity,,cordis|nsf,"Retiré par veto",test',
+                'text,microgravity,core,cordis|nsf,,,"Motif interprété",test',
+                'call,ZZ-CALL-,core,,,,"Un fait de la source",test',
+                'veto,servicing,,cordis|nsf,,,"Le mot est trop générique",test',
+                'veto,microgravity,,cordis|nsf,,,"Retiré par veto",test',
             ],
         ),
     )
@@ -558,7 +560,7 @@ def test_a_veto_never_overturns_a_fact_of_the_source(db_session, tmp_path):
 
 def test_a_veto_carries_no_tag(tmp_path):
     with pytest.raises(LensError):
-        parse_rules(_lens(tmp_path, ['veto,servicing,core,cordis,"un veto ne classe pas",test']))
+        parse_rules(_lens(tmp_path, ['veto,servicing,core,cordis,,,"un veto ne classe pas",test']))
 
 
 def test_one_lens_recalculates_alone(db_session, tmp_path):
@@ -569,14 +571,16 @@ def test_one_lens_recalculates_alone(db_session, tmp_path):
         tmp_path,
         ["aerospace_mobility,space,1,published,1", "zz_family,zztest,2,published,1"],
     )
-    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Orbite",test'], name="space.csv")
-    _lens(tmp_path, ['text,microgravity,core,cordis|nsf,"Micropesanteur",test'], name="zztest.csv")
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,,,"Orbite",test'], name="space.csv")
+    _lens(
+        tmp_path, ['text,microgravity,core,cordis|nsf,,,"Micropesanteur",test'], name="zztest.csv"
+    )
     load_all(db_session, RunStats(), base_dir=tmp_path)
     assert _tags(db_session, ids, lens="space")["zzsl-3"] == "core"
     assert _tags(db_session, ids, lens="zztest")["zzsl-5"] == "core"
 
     # On rétague zztest SEULE, avec des règles vides de tout résultat.
-    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,"Rien",test'], name="zztest.csv")
+    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,,,"Rien",test'], name="zztest.csv")
     load_all(db_session, RunStats(), base_dir=tmp_path, only="zztest")
     assert _tags(db_session, ids, lens="zztest")["zzsl-5"] is None
     assert _tags(db_session, ids, lens="space")["zzsl-3"] == "core"  # intacte
@@ -591,13 +595,13 @@ def test_the_changelog_is_derived_never_typed(db_session, tmp_path):
     pas un changement — il ne journalise rien."""
     ids = _seed(db_session)
     _registry(tmp_path, ["aerospace_mobility,space,1,published,1"])
-    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Orbite",test'], name="space.csv")
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,,,"Orbite",test'], name="space.csv")
     load_all(db_session, RunStats(), base_dir=tmp_path)
     assert db_session.execute(text("SELECT count(*) FROM lens_changelog")).scalar() == 0
 
     # Version 2 : la règle se resserre, le run mesure et journalise.
     _registry(tmp_path, ["aerospace_mobility,space,1,published,2"])
-    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,"Plus rien",test'], name="space.csv")
+    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,,,"Plus rien",test'], name="space.csv")
     load_all(db_session, RunStats(), base_dir=tmp_path)
     row = db_session.execute(
         text("SELECT version, core_before, core_after FROM lens_changelog WHERE lens = 'space'")
@@ -611,11 +615,11 @@ def test_a_draft_lens_owes_no_changelog(db_session, tmp_path):
     en draft n'a jamais rien montré : ses règles bougent sans dette."""
     _seed(db_session)
     _registry(tmp_path, ["zz_family,zzdraft,1,draft,1"])
-    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Orbite",test'], name="zzdraft.csv")
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,,,"Orbite",test'], name="zzdraft.csv")
     load_all(db_session, RunStats(), base_dir=tmp_path)
 
     _registry(tmp_path, ["zz_family,zzdraft,1,draft,2"])
-    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,"Plus rien",test'], name="zzdraft.csv")
+    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,,,"Plus rien",test'], name="zzdraft.csv")
     load_all(db_session, RunStats(), base_dir=tmp_path)
     assert db_session.execute(text("SELECT count(*) FROM lens_changelog")).scalar() == 0
 
@@ -624,4 +628,127 @@ def test_an_unescaped_comma_says_so_plainly(tmp_path):
     """Une virgule non échappée dans une évidence ajoute des colonnes :
     le chargeur le dit, au lieu de planter obscurément plus loin."""
     with pytest.raises(LensError, match="virgule non échappée"):
-        parse_rules(_lens(tmp_path, ["call,X-,core,,une évidence, avec virgule,test"]))
+        parse_rules(_lens(tmp_path, ["call,X-,core,,,,une évidence, avec virgule,test"]))
+
+
+# --- Les groupes liés : candidat taxonomique + corroboration lexicale ---
+#
+# La politique V1 : un candidat ne tague JAMAIS seul. Le concept
+# euroSciVoc ouvre un pool ; le titre ET le texte le referment. Le
+# résultat est de classe TAXONOMIQUE confirmée — jamais structurelle.
+
+CAND = 'candidate,/23/43/257/999,core,,av-test,,"Concept candidat",test'
+
+
+def _in_pool(session, ids, *keys):
+    topic = session.execute(
+        text("SELECT id FROM topics WHERE code = '/23/43/257/999'")
+    ).scalar_one()
+    for key in keys:
+        session.execute(
+            text("INSERT INTO project_topics (project_id, topic_id) VALUES (:p, :t)"),
+            {"p": ids[key], "t": topic},
+        )
+    session.flush()
+
+
+def test_a_candidate_never_tags_without_its_two_corroborations(db_session, tmp_path):
+    ids = _seed(db_session)
+    _in_pool(db_session, ids, "zzsl-3", "zzsl-5")
+    # Le titre corrobore (zzsl-3), le texte NON : personne n'entre.
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(
+            tmp_path,
+            [
+                CAND,
+                'confirm,in-orbit,,cordis,av-test,title,"Le titre dit le sujet",test',
+                'confirm,microgravity,,cordis,av-test,text,"Corroboration texte",test',
+            ],
+        ),
+    )
+    assert set(_tags(db_session, ids).values()) == {None}
+
+
+def test_the_two_corroborations_together_tag_as_taxonomic(db_session, tmp_path):
+    ids = _seed(db_session)
+    _in_pool(db_session, ids, "zzsl-3", "zzsl-5")
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(
+            tmp_path,
+            [
+                CAND,
+                'confirm,in-orbit,,cordis,av-test,title,"Le titre dit le sujet",test',
+                'confirm,servicing,,cordis,av-test,text,"Corroboration texte",test',
+            ],
+        ),
+    )
+    tags = _tags(db_session, ids)
+    assert tags["zzsl-3"] == "core"
+    # zzsl-5 est dans le pool mais son titre ne corrobore pas.
+    assert tags["zzsl-5"] is None
+    proof = db_session.execute(
+        text("SELECT proof FROM project_lens_tags WHERE project_id = :i"),
+        {"i": ids["zzsl-3"]},
+    ).scalar_one()
+    assert proof == "taxonomic"
+
+
+def test_a_confirmation_never_confirms_another_groups_candidate(db_session, tmp_path):
+    """Le lien est le GROUPE, jamais la proximité dans le fichier (I8)."""
+    ids = _seed(db_session)
+    _in_pool(db_session, ids, "zzsl-5")  # zzsl-5 est dans le pool du groupe A
+    db_session.execute(
+        text(
+            "INSERT INTO topics (scheme, code, label) VALUES "
+            "('euroscivoc', '/23/43/257/777', 'zz autre concept')"
+        )
+    )
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(
+            tmp_path,
+            [
+                CAND,  # groupe av-test, pool = {zzsl-5}
+                'confirm,in-orbit,,cordis,av-test,title,"Titre du groupe A",test',
+                'confirm,servicing,,cordis,av-test,text,"Texte du groupe A",test',
+                # Le groupe B corrobore PARFAITEMENT zzsl-5 « Microgravity
+                # protein growth » — mais son candidat ne le contient pas.
+                'candidate,/23/43/257/777,core,,av-autre,,"Autre concept",test',
+                'confirm,microgravity,,cordis,av-autre,title,"Titre du groupe B",test',
+                'confirm,microgravity,,cordis,av-autre,text,"Texte du groupe B",test',
+            ],
+        ),
+    )
+    assert set(_tags(db_session, ids).values()) == {None}
+
+
+def test_the_v1_policy_refuses_incomplete_groups(tmp_path):
+    """Un groupe incomplet se dit au CHARGEMENT, jamais en silence."""
+    cases = [
+        # Deux candidats dans un même groupe.
+        [CAND, CAND.replace("/999", "/777")],
+        # Une confirmation orpheline — aucun candidat ne la porte.
+        [CAND, 'confirm,in-orbit,,cordis,av-orphelin,title,"Sans candidat",test'],
+        # Corroboration texte manquante : la politique V1 exige les deux.
+        [CAND, 'confirm,in-orbit,,cordis,av-test,title,"Titre seul",test'],
+        # Un scope hors title|text.
+        [CAND, 'confirm,in-orbit,,cordis,av-test,abstract,"Scope inventé",test'],
+        # Une confirmation qui ne cadre pas ses sources.
+        [CAND, 'confirm,in-orbit,,,av-test,title,"Sans cadre",test'],
+        # Un candidat sans groupe.
+        ['candidate,/23/43/257/999,core,,,,"Sans groupe",test'],
+        # `group` et `scope` n'appartiennent qu'aux règles liées.
+        ['text,in-orbit,core,cordis,av-test,,"Groupe usurpé",test'],
+        ['text,in-orbit,core,cordis,,title,"Scope usurpé",test'],
+    ]
+    for rows in cases:
+        with pytest.raises(LensError):
+            parse_rules(_lens(tmp_path, rows))
