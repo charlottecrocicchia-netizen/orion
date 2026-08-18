@@ -404,10 +404,15 @@ def _record_change(
 
     Un premier chargement n'est pas un changement : sans état antérieur,
     rien n'est journalisé."""
-    version = session.execute(
-        text("SELECT version FROM lenses WHERE slug = :slug"), {"slug": slug}
-    ).scalar()
-    if version is None or before["core"] + before["enabling"] == 0:
+    row = session.execute(
+        text("SELECT version, status FROM lenses WHERE slug = :slug"), {"slug": slug}
+    ).first()
+    if row is None or before["core"] + before["enabling"] == 0:
+        return
+    version, status = row
+    # Un journal explique le mouvement de chiffres PUBLIÉS. Une lentille
+    # en draft n'a jamais rien montré : ses règles bougent sans dette.
+    if status != "published":
         return
     logged = session.execute(
         text("SELECT coalesce(max(version), 0) FROM lens_changelog WHERE lens = :slug"),

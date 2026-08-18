@@ -604,3 +604,17 @@ def test_the_changelog_is_derived_never_typed(db_session, tmp_path):
     ).one()
     assert (row.version, row.core_before, row.core_after) == (2, 1, 0)
     assert _tags(db_session, ids)["zzsl-3"] is None
+
+
+def test_a_draft_lens_owes_no_changelog(db_session, tmp_path):
+    """Un journal explique le mouvement de chiffres PUBLIÉS. Une lentille
+    en draft n'a jamais rien montré : ses règles bougent sans dette."""
+    _seed(db_session)
+    _registry(tmp_path, ["zz_family,zzdraft,1,draft,1"])
+    _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Orbite",test'], name="zzdraft.csv")
+    load_all(db_session, RunStats(), base_dir=tmp_path)
+
+    _registry(tmp_path, ["zz_family,zzdraft,1,draft,2"])
+    _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,"Plus rien",test'], name="zzdraft.csv")
+    load_all(db_session, RunStats(), base_dir=tmp_path)
+    assert db_session.execute(text("SELECT count(*) FROM lens_changelog")).scalar() == 0

@@ -287,6 +287,18 @@ d'aéronautique (1 263 projets, 4,9 Md€). Corollaire opératoire : on ne
 remplace jamais un parent large par un autre parent large — on descend
 au niveau qui parle du sujet, et lui seul.
 
+**I8 — la confiance s'attache à une RÈGLE précise, jamais à une
+famille de preuve entière** (gravé le 2026-08-18, décision T-B+). La
+précision se mesure et se publie **par règle**. Constat fondateur : les
+sept règles d'appel d'Aviation n'ont produit aucun faux positif, quand
+trois règles de concept en produisaient cinq — or les deux familles
+étaient déclarées « structurelles ». Une famille n'est pas une garantie ;
+seule une règle mesurée l'est. Corollaire : `call` et `topic` restent
+les preuves POSITIVES les plus fortes, mais aucune preuve n'est jamais
+une preuve NÉGATIVE — un appel d'un autre domaine ne disqualifie rien
+(DroneHopper, appel agriculture, développe bien un aéronef ; FALCon,
+appel Space, porte de vraies technologies de vol).
+
 **I4 — le recalcul indépendant par lentille est une exigence d'A1,
 pas un développement d'aujourd'hui.** Consigné : sélecteur CLI
 (`orion-ingest lenses --lens aviation`), et versions/journaux PAR

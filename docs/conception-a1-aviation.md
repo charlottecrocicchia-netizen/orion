@@ -486,3 +486,71 @@ Rien d'autre n'a bougé : `aviation` est en `draft`, aucune règle
 textuelle, aucun `enabling`, aucune publication, aucune Lens Room. La
 lentille spatiale est intacte (14 815 tags — 10 278 + 4 537), preuve en
 production que le recalcul par lentille ne déborde pas.
+
+
+---
+
+# T-B+ appliquée, et l'échantillon de revue (2026-08-18)
+
+**Le seed corrigé** (application de F2 déjà rendue, pas un déplacement
+de cible) : DroneHopper → `core` (il développe l'aéronef) ; FALCon →
+`a_arbitrer`, candidat Space core × Aviation core ; MAGNIFIC hors core,
+conservé candidat enabling futur ; GasOn et UNAELCO restent exclus.
+**Résultat après T-B+ : 0 faux positif, 1 manqué** (DroneHopper, que
+les appels n'atteignent pas — c'est exactement ce que la confirmation
+devra récupérer), 27 OK, 9 à arbitrer.
+
+**Les concepts sont redescendus** : les 3 règles `topic` quittent
+`aviation.csv`. Le noyau publié en base est donc **les 7 appels seuls —
+1 574 projets, 4 558 M€, zéro faux positif**. Les concepts deviennent le
+**pool candidat** de 608 projets, en attente du mécanisme de
+confirmation.
+
+## Une trouvaille de rappel : 18 projets Clean Sky 2 manquants
+
+L'échantillon a fait apparaître `H2020-IBA-CS2-GAMS-2017` et
+`-2019` — les **conventions aux membres** (GAM) de Clean Sky 2, qui
+portent les ITD : Airframe, Engines, Systems, Fast Rotorcraft,
+Eco-design. Mon préfixe `H2020-CS2-` ne les atteint pas.
+**18 projets · 1 265 M€** — plus du quart du noyau actuel — manquent
+donc, alors qu'ils sont indiscutablement Clean Sky 2. Le correctif est
+structurel (un préfixe d'appel de plus) et n'appelle aucune règle
+textuelle ; il n'a PAS été appliqué : c'est une décision à rendre.
+
+## L'échantillon de revue — [a1-echantillon-taxonomique.csv](curation/a1-echantillon-taxonomique.csv)
+
+**200 projets du pool taxonomique** (concept sans appel aviation),
+tirés de façon déterministe et reproductible (`md5(source_id ||
+'a1-echantillon')`), stratifiés : **100 aircraft · 70 aeronautical
+engineering · 30 rotorcraft**. Le mélange demandé est là : MSCA/ERC 59,
+PME/innovation 57, transport/mobilité 28, autres 52, Space 3, énergie 1 ;
+montants de 0,05 à 173,87 M€ (médiane 1,99 ; 34 projets ≥ 5 M€).
+
+Chaque ligne porte : concept d'origine, appel, montant, titre, résumé
+court, **ma proposition de label et sa raison en une phrase**.
+
+| Proposition | aircraft | aeronautical eng. | rotorcraft | Total |
+|---|---|---|---|---|
+| `core` | 45 | 26 | 20 | **91** |
+| `enabling` | 10 | 3 | 1 | **14** |
+| `excluded` | 34 | 33 | 6 | **73** |
+| `borderline` | 11 | 8 | 3 | **22** |
+
+**Ce que ces propositions suggèrent, à confirmer par TA revue** : le
+pool taxonomique est à peu près **moitié bon, moitié bruit** (105
+core+enabling contre 73 exclus et 22 douteux). Il se comporte très
+différemment selon le concept — `rotorcraft` semble le plus propre (20
+core sur 30), `aeronautical engineering` le plus bruyant (33 exclus sur
+70, l'éolien et les procédés multi-secteurs y dominent). C'est
+exactement I8 : la confiance s'attache à une règle, pas à une famille.
+
+Deux motifs récurrents relevés pour la suite : les **actions de
+coordination dédiées à l'aéronautique** (PARE, OSCAR, RADIAN, Future
+Sky, SUNJET II, BAANG) que j'ai proposées `core` — leur objet EST la
+recherche aéronautique ; et les **projets de développement régional**
+(CARE, AD-ASTRA) que j'ai laissés en `borderline` — leur objet est la
+politique régionale. Ces deux familles méritent une règle de ta part.
+
+La revue est ton travail : tes labels rendus, je mesurerai la précision
+**par concept** (et par règle, I8), et de là seulement je proposerai les
+règles de confirmation et les vetos.

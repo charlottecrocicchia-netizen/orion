@@ -6,6 +6,3 @@ call,HORIZON-JU-Clean-Aviation-,core,,Clean Aviation — le JU successeur (2022 
 call,FP7-AAT-,core,,FP7 Aeronautics and Air Transport — le volet aéronautique du 7e PC,CORDIS (codes d'appel FP7-AAT)
 call,H2020-SESAR-,core,,SESAR 2020 — la recherche ATM européenne ; l'ATM est une composante du système aéronautique (arbitrage F1),CORDIS (codes d'appel H2020 SESAR)
 call,HORIZON-SESAR-,core,,SESAR 3 / Digital European Sky — la suite du programme ATM (arbitrage F1),CORDIS (codes d'appel Horizon SESAR)
-topic,/25/75/461/1239/1737,core,,euroSciVoc « aircraft » — le concept EXACT posé par la source ; jamais son parent aerospace engineering qui mêle spatial et aéronautique (I7),euroSciVoc (code)
-topic,/25/75/461/1239/1737/1829,core,,euroSciVoc « rotorcraft » — nommé explicitement puisque le concept est exact et n'hérite pas de son parent,euroSciVoc (code)
-topic,/25/75/461/1239/1741,core,,euroSciVoc « aeronautical engineering » — le concept EXACT de l'ingénierie aéronautique,euroSciVoc (code)

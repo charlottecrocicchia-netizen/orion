@@ -11,7 +11,7 @@ cordis-horizon,101256972,PHARES,core,positif_certain,Clean Aviation propulsion h
 cordis-horizon,101256789,UNIFIED,core,positif_certain,Clean Aviation moteur intégré 64 M€
 cordis-horizon,101102006,SWITCH,core,positif_certain,Clean Aviation turbofan à injection d'eau 49 M€
 cordis-horizon,101101955,SMR ACAP,core,positif_certain,Clean Aviation architecture avion court-moyen courrier 45 M€
-cordis-h2020,821953,FALCon,excluded,flight_spatial,« Formation flight » pour récupérer un premier étage de LANCEUR — spatial cœur jamais aviation
+cordis-h2020,821953,FALCon,a_arbitrer,frontiere_vol_x_space,Vol en formation pour récupérer un étage de lanceur — technologies de VOL réelles au service du spatial : candidat Space core × Aviation core, il rejoindra le corpus de référence des ponts s'il est confirmé
 cordis-h2020,718119,ASTROCIT,excluded,flight_spatial,Nutrition pour vol SPATIAL habité — « flight » sans avion
 nih,F32GM088994,—,excluded,wing_biologique,Génétique des motifs d'AILES de papillon — « wing » biologique NIH
 nih,R01GM070026,—,excluded,wing_biologique,Évolution de la taille d'AILE chez Nasonia (guêpe) — NIH jamais tagué par motif texte
@@ -20,10 +20,10 @@ cordis-h2020,717278,pressureNose,excluded,engine_automobile,Capteurs pour moteur
 cordis-horizon,101287726,SpeedAPP,excluded,piege_engineering,« AI-driven ENGINEERING simulations » — le motif « engine » attrape « engineering »
 cordis-horizon,101279721,BioHydroCat,excluded,hydrogen_industriel,Électrolyse pour valorisation de biomasse — H2 sans avion
 cordis-horizon,101299919,COHERENT,excluded,hydrogen_industriel,H2 communautaire et marchés carbone — énergie jamais aviation
-cordis-h2020,641498,MAGNIFIC,excluded,navigation_gnss_generique,Diffusion GNSS européenne en Afrique multi-domaines — navigation sans système aérien
+cordis-h2020,641498,MAGNIFIC,excluded,candidat_enabling_futur,Diffusion GNSS européenne en Afrique, multi-domaines — HORS core ; conservé comme candidat enabling futur (la navigation aéronautique est un débouché possible, à démontrer)
 cordis-h2020,663947,SINANN,excluded,navigation_maritime,Navigation SONAR intégrée — maritime
 cordis-h2020,697900,GIDROM,excluded,drone_outil,Drone OUTIL de surveillance agricole — l'objet est la mesure pas l'aéronef
-cordis-h2020,761656,DroneHopper,excluded,drone_outil,Drone de lutte incendie — service par drone (cas dur car l'aéronef est le produit) tenu EXCLU tant que la frontière UAS n'est pas arbitrée
+cordis-h2020,761656,DroneHopper,core,positif_f2,Drone de lutte incendie — le projet DÉVELOPPE l'aéronef : core par l'arbitrage F2 (l'étiquette d'exclusion lui était antérieure)
 cordis-fp7,618756,UNAELCO,excluded,aero_eolien,Contrôle aéroélastique d'ÉOLIENNES multi-MW — les méthodes aéro ne font pas l'aviation
 cordis-fp7,624646,ACTAGREEN,excluded,aero_eolien,Aéroélasticité pour transport et énergie verte — éolien
 nsf,0938820,—,excluded,nsf_avion_outil,Avion de recherche NSF comme INSTRUMENT atmosphérique
