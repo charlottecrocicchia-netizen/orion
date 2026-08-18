@@ -645,3 +645,120 @@ d'autre** :
 **Aucun apprentissage des règles avant cette mesure.** Les règles de
 confirmation, les vetos et l'enabling ne se conçoivent qu'après — et
 par règle, jamais par famille (I8).
+
+
+---
+
+# La définition conceptuelle DÉFINITIVE (gravée le 2026-08-18, après revue)
+
+Elle remplace toutes les formulations antérieures de ce document.
+
+- **CORE** — ce que le projet développe est **intrinsèquement un
+  élément, une fonction, une opération ou une infrastructure du système
+  aérien**, ou **l'écosystème de R&I aéronautique**.
+- **ENABLING** — une technologie **intrinsèquement multisectorielle**,
+  avec une **application aéronautique explicite ET substantielle**.
+- **EXCLUDED** — l'aviation n'est qu'un **exemple**, un **marché
+  possible**, un **instrument**, ou une **classification trop large**.
+- **BORDERLINE** — les pièces **ne permettent pas de trancher
+  honnêtement**.
+
+Conséquence directe, mesurée : la barre de l'`enabling` est **beaucoup
+plus haute** qu'on ne l'imaginait — une technologie dont l'objet déclaré
+est aéronautique (bruit d'avion, collage de structures d'avion,
+composants aérospatiaux) est **core**, pas enabling. L'enabling ne reste
+que pour le vraiment multisectoriel (5 cas sur 200).
+
+**Sous-branche ajoutée à la taxonomie interne : 10. Ground operations &
+airport systems** — équipements sol, assistance en escale, sûreté et
+exploitation aéroportuaire. Ils sont `core` : ce sont des opérations et
+des infrastructures du système aérien.
+
+# La mesure de la revue (protocole gelé, exécuté le 2026-08-18)
+
+## 1. Matrice d'accord — proposition (ligne) × revue (colonne)
+
+| proposé \ revue | core | enabling | excluded | borderline | total |
+|---|---|---|---|---|---|
+| **core** | **91** | 0 | 0 | 0 | 91 |
+| **enabling** | 11 | 1 | 2 | 0 | 14 |
+| **excluded** | 1 | 0 | **72** | 0 | 73 |
+| **borderline** | 9 | 4 | 8 | 1 | 22 |
+| total | 112 | 5 | 82 | 1 | 200 |
+
+**Accord exact : 165/200 = 82,5 %.** Accord sur la seule question qui
+engage le produit — taguer ou non — : **184/200 = 92 %**.
+
+**Le résultat qui compte : mes 91 propositions `core` sont confirmées
+`core` à 91 sur 91.** Aucune sur-classification. Symétriquement, 72 de
+mes 73 `excluded` sont confirmés.
+
+## 2. Précision brute par concept (vérité = revue)
+
+| concept | n | core | enabling | excluded | borderline | **précision core** | core+enabling |
+|---|---|---|---|---|---|---|---|
+| `rotorcraft` | 30 | 21 | 1 | 8 | 0 | **70,0 %** | 73,3 % |
+| `aircraft` | 100 | 59 | 3 | 38 | 0 | **59,0 %** | 62,0 % |
+| `aeronautical engineering` | 70 | 32 | 1 | 36 | 1 | **45,7 %** | 47,1 % |
+| **total** | 200 | 112 | 5 | 82 | 1 | **56,0 %** | 58,5 % |
+
+Les trois concepts sont **très différents** — c'est I8 démontré : la
+confiance s'attache à une règle, jamais à une famille.
+
+## 3. Répartition de la revue
+
+`core` 112 (56,0 %) · `enabling` 5 (2,5 %) · `excluded` 82 (41,0 %) ·
+`borderline` 1 (0,5 %).
+
+## 4. Par famille d'appel, et par montant
+
+| famille d'appel | n | taux core+enabling |
+|---|---|---|
+| Clean Sky 2 GAM | 7 | **100 %** |
+| transport / mobilité | 29 | **93,1 %** |
+| Space / GNSS | 5 | 60,0 % |
+| PME / innovation | 57 | 59,6 % |
+| autres | 42 | 45,2 % |
+| MSCA / ERC | 59 | **44,1 %** |
+
+| tranche | n | taux core+enabling | M€ retenus |
+|---|---|---|---|
+| ≥ 20 M€ | 6 | **100 %** | 610 |
+| 2 – 5 M€ | 64 | 65,6 % | 133 |
+| 0,5 – 2 M€ | 33 | 60,6 % | 29 |
+| 5 – 20 M€ | 28 | 57,1 % | 121 |
+| < 0,5 M€ | 69 | **47,8 %** | 3 |
+
+**En nombre le pool est bon à 58,5 % ; en VALEUR il l'est à 81,2 %**
+(896 M€ retenus sur 1 103 M€). Le bruit se concentre dans les petits
+montants et les appels de mobilité de chercheurs.
+
+*Note de cohérence : les 7 projets « Clean Sky 2 GAM » de l'échantillon
+étaient dans le pool parce que le préfixe `H2020-IBA-CS2-GAMS-` n'était
+pas encore une règle au moment du tirage. La revue les confirme core à
+100 % — l'arbitrage ① est validé par la mesure, indépendamment.*
+
+## 5. Les erreurs les plus fréquentes — 35 désaccords
+
+| Motif | Cas | Ce qu'il révèle |
+|---|---|---|
+| `enabling` → **core** | **11** | J'ai placé la barre de l'enabling BEAUCOUP trop bas. Deux familles : les **équipements sol** (Aerowash II, Runway-Star, ACES) — d'où la sous-branche 10 — et les **technos à objet aéronautique déclaré** (ThermoTON, HiBONTE, CompSTLar, ICARUS, MORPHO, EMUSIC, AIRPOXY, ComBoNDT) |
+| `borderline` → **core** | **9** | J'ai hésité là où les pièces suffisaient (AMOS, AIRSCAN, CARE, TMC Brake, LINING, AiRT, NEEDED, SPRINT, NI HTS) |
+| `borderline` → **excluded** | **8** | J'ai hésité là où les pièces manquaient franchement : mécanique des fluides et physique génériques (HAPI, ConFlex, VIPER, FLOCON, VORTSHEET, SPANDRELS, Rotary Wing CLFC) et PSR94 (I9) |
+| `borderline` → **enabling** | 4 | Le vrai multisectoriel : SPE, WakeOpColl, FrictionHarmonic, FLOVISP |
+| `enabling` → **excluded** | 2 | J'ai lu un débouché là où l'aviation n'est qu'un exemple (FULLCOMP, Aeropaft) |
+| `excluded` → **core** | **1** | DUF — j'ai appliqué I5 (le drone-outil) alors que le projet DÉVELOPPE le réseau de drones : F2 tranche core. Mon seul manqué |
+
+**Le motif dominant est unique et systématique : j'ai sous-classé.**
+21 de mes 22 `borderline` étaient tranchables, et 11 de mes 14
+`enabling` étaient des core. Dans l'autre sens — sur-classer — je n'ai
+qu'**un seul cas** sur 200.
+
+## 6. Ce que la revue implique pour le pool (estimation, pas une règle)
+
+En repondérant les taux mesurés sur la population réelle du pool
+(400 aircraft, 128 aeronautical engineering, 80 rotorcraft) :
+**≈ 367 des 608 projets** seraient à retenir (60,4 %) — 248 par
+`aircraft`, 60 par `aeronautical engineering`, 59 par `rotorcraft`.
+C'est une estimation d'échantillon, pas une décision : **aucune règle
+n'est écrite.**
