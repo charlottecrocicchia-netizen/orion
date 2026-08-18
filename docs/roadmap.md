@@ -385,7 +385,12 @@ ouverts) — **aucun code M1 écrit**.
   (sur Space × Aviation, c'est le quadrant sain : ~101 projets contre
   ~1 369 toutes combinaisons), les autres combinaisons restant
   accessibles explicitement. À instruire quand les intersections
-  entreront à la grammaire, jamais avant.* Le modèle de données la permet
+  entreront à la grammaire, jamais avant. Les relations **Enabling** se
+  distingueront explicitement, jamais par défaut. Les **101 projets
+  Space core × Aviation core** relevés le 2026-08-18 restent le
+  **corpus de référence du chevauchement** — les vrais ponts : CNS
+  satellitaire (PJ14 EECNS, MIAR), alertes cendres (EUNADICS-AV),
+  connectivité (SaT5G), aéro-structures à antennes (ACASIAS).* Le modèle de données la permet
   (plusieurs tags par projet, souhaité) ; la grammaire produit ne
   l'expose pas : D3 reste strict — une seule lentille active par vue,
   aucune syntaxe multi-lentilles, aucun opérateur AND/OU, aucun

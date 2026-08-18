@@ -545,13 +545,16 @@ const resources = {
             groups: "industrial groups",
             cta: "Explore space",
           },
+          changelog: {
+            v2: "The parent theme « aerospace engineering » left the lens: 99 % of what it collected was aeronautics, not space — and Orion classifies what a project DEVELOPS, not the equipment it uses. Its aviation children (aircraft, rotorcraft, aeronautical engineering) now serve the aviation lens. Precision over the historical figure.",
+          },
           about: {
             method:
               "The space sector is identified project by project by a versioned, auditable lens — every rule with its evidence: programme rules (FP7-SPACE, H2020's space strand, NSF astronomy…), theme rules (by euroSciVoc code, never by label) and hand-checked text patterns framed by source.",
             direct:
               "projects at the core of space (launchers, satellites, debris, Earth observation…)",
             enabling:
-              "the core plus the technologies the lens rules identify as enabling (aerospace engineering at large, microgravity, geospatial-atmospheric)",
+              "the core plus the technologies the lens rules identify as enabling (microgravity, geospace-atmospheric)",
           },
         },
       },
@@ -647,7 +650,7 @@ const resources = {
           },
           spaceDirect: {
             title: "Direct or enabling?",
-            desc: "The same world under two perimeters. Space direct is the core alone; enabling adds the technologies around it — wide aerospace engineering, microgravity, geospace. The paired maps share the same named scale: the gap IS the story.",
+            desc: "The same world under two perimeters. Space direct is the core alone; enabling adds the technologies around it — microgravity and geospace. The paired maps share the same named scale: the gap IS the story.",
             a1: "The whole lens: direct + enabling",
             a2: "The core alone: space direct",
             a3: "By country — enabling included",
@@ -750,6 +753,9 @@ const resources = {
         and: "and",
         lensRules: "{{total}} rules, each with its evidence: {{programme}} programme rules, {{theme}} theme rules (by code, never by label) and {{text}} hand-checked text patterns framed by source. Nothing inflated, nothing deleted: every run re-tags the whole corpus from the rules file.",
         lensLastRun: "Last run: {{date}}.",
+        lensVersion: "Methodology v{{version}}",
+        lensBeforeAfter:
+          "Before: {{coreBefore}} core · {{enablingBefore}} enabling · {{fundingBefore}}. After: {{coreAfter}} core · {{enablingAfter}} enabling · {{fundingAfter}}.",
         lensUrls: "A framed view carries its perimeter as a chip, and the URL says it (« {{direct}} » / « {{enabling}} »).",
         lensMethodFallback:
           "The {{lens}} lens identifies its projects one by one from a versioned, auditable rules file.",
@@ -1324,13 +1330,16 @@ const resources = {
             groups: "groupes industriels",
             cta: "Explorer l\u2019espace",
           },
+          changelog: {
+            v2: "Le thème parent « aerospace engineering » quitte la lentille : 99 % de ce qu\u2019il récoltait était de l\u2019aéronautique, pas du spatial — et Orion classe ce qu\u2019un projet DÉVELOPPE, pas l\u2019équipement qu\u2019il utilise. Ses enfants aviation (aircraft, rotorcraft, aeronautical engineering) servent désormais la lentille aéronautique. La précision prime sur le chiffre historique.",
+          },
           about: {
             method:
               "Le secteur spatial est identifié projet par projet par une lentille versionnée et auditable — chaque règle avec sa preuve : des règles de programme (FP7-SPACE, le volet spatial d\u2019H2020, l\u2019astronomie NSF…), des règles de thème (par code euroSciVoc, jamais par libellé) et des motifs de texte validés à la main et cadrés par source.",
             direct:
               "les projets au cœur du spatial (lanceurs, satellites, débris, observation de la Terre…)",
             enabling:
-              "le cœur plus les technologies identifiées comme habilitantes par les règles de la lentille (ingénierie aérospatiale au sens large, microgravité, géospatial-atmosphérique)",
+              "le cœur plus les technologies identifiées comme habilitantes par les règles de la lentille (micropesanteur, géospatial-atmosphérique)",
           },
         },
       },
@@ -1424,7 +1433,7 @@ const resources = {
           },
           spaceDirect: {
             title: "Direct ou habilitant ?",
-            desc: "Le même monde sous deux périmètres. Le Spatial direct est le cœur seul ; l\u2019habilitant y ajoute les technologies qui l\u2019entourent — aérospatial au sens large, micropesanteur, géospace. Les cartes jumelles partagent la même échelle nommée : l\u2019écart EST le récit.",
+            desc: "Le même monde sous deux périmètres. Le Spatial direct est le cœur seul ; l\u2019habilitant y ajoute les technologies qui l\u2019entourent — micropesanteur et géospace. Les cartes jumelles partagent la même échelle nommée : l\u2019écart EST le récit.",
             a1: "La lentille entière : direct + habilitant",
             a2: "Le cœur seul : Spatial direct",
             a3: "Par pays — l\u2019habilitant compris",
@@ -1570,6 +1579,9 @@ const resources = {
         and: "et",
         lensRules: "{{total}} règles, chacune avec sa preuve : {{programme}} règles de programme, {{theme}} règles de thème (par code, jamais par libellé) et {{text}} motifs de texte validés à la main et cadrés par source. Rien de gonflé, rien de supprimé : chaque exécution retague le corpus entier depuis le fichier de règles.",
         lensLastRun: "Dernier passage : {{date}}.",
+        lensVersion: "Méthodologie v{{version}}",
+        lensBeforeAfter:
+          "Avant : {{coreBefore}} cœur · {{enablingBefore}} habilitant · {{fundingBefore}}. Après : {{coreAfter}} cœur · {{enablingAfter}} habilitant · {{fundingAfter}}.",
         lensUrls: "Une vue cadrée porte son périmètre en chip, et l’URL le dit (« {{direct}} » / « {{enabling}} »).",
         lensMethodFallback:
           "La lentille « {{lens}} » identifie ses projets un à un depuis un fichier de règles versionné et auditable.",

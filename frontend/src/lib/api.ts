@@ -25,6 +25,15 @@ export interface LensMeta {
   slug: string;
   family_key: string;
   rank: number;
+  /** La version de méthodologie en vigueur. */
+  version: number;
+  /** Le journal des versions — date et avant/après chiffré. */
+  changelog: {
+    version: number;
+    changed_on: string;
+    before: { core: number; enabling: number; funding_eur: number };
+    after: { core: number; enabling: number; funding_eur: number };
+  }[];
   /** Le dernier passage réussi du chargeur de CETTE lentille. */
   last_run_at: string | null;
   /** Le compte des règles, posé par le chargeur — jamais écrit à la main. */

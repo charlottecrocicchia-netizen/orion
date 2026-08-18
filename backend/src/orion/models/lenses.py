@@ -9,7 +9,17 @@ porter plusieurs lentilles (D1), chaque vue n'en lit qu'une (D3), et le
 tag reste DÉRIVÉ des fichiers de règles, jamais posé à la main.
 """
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String
+from datetime import date
+
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from orion.models.base import Base
@@ -33,6 +43,25 @@ class Lens(Base):
     rules_programme: Mapped[int] = mapped_column(Integer, server_default="0")
     rules_theme: Mapped[int] = mapped_column(Integer, server_default="0")
     rules_text: Mapped[int] = mapped_column(Integer, server_default="0")
+    # La version de MÉTHODOLOGIE (S1) : un changement de règles qui
+    # déplace des chiffres publics se date et se raconte.
+    version: Mapped[int] = mapped_column(Integer, server_default="1")
+
+
+class LensChangelog(Base):
+    """Une version de méthodologie : sa date, son avant/après chiffré."""
+
+    __tablename__ = "lens_changelog"
+
+    lens: Mapped[str] = mapped_column(String(30), ForeignKey("lenses.slug"), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    changed_on: Mapped[date] = mapped_column(Date)
+    core_before: Mapped[int] = mapped_column(Integer)
+    core_after: Mapped[int] = mapped_column(Integer)
+    enabling_before: Mapped[int] = mapped_column(Integer)
+    enabling_after: Mapped[int] = mapped_column(Integer)
+    funding_before_eur: Mapped[float] = mapped_column(Numeric(18, 2))
+    funding_after_eur: Mapped[float] = mapped_column(Numeric(18, 2))
 
 
 class ProjectLensTag(Base):

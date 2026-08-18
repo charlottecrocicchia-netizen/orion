@@ -65,7 +65,7 @@ test("l'À-propos décrit chaque lentille, et ne montre le recouvrement qu'à de
   const spaceBlock = page.getByRole("region", { name: "Espace" });
   await expect(spaceBlock).toBeVisible({ timeout: 15_000 });
   // Les nombres viennent du chargeur, jamais d'un texte en dur.
-  await expect(spaceBlock.getByText(/23 règles/)).toBeVisible();
+  await expect(spaceBlock.getByText(/22 règles/)).toBeVisible();
   await expect(spaceBlock.getByText(/Spatial direct/)).toBeVisible();
   await expect(spaceBlock.getByText(/Spatial \+ habilitant/)).toBeVisible();
 
@@ -86,5 +86,27 @@ test("l'À-propos ne laisse aucun texte français en mode anglais", async ({ pag
   for (const french of ["règles", "lentille", "périmètres", "cœur", "dernier passage"]) {
     expect(text, `« ${french} » ne doit pas rester en mode EN`).not.toContain(french);
   }
-  await expect(block.getByText(/23 rules/)).toBeVisible();
+  await expect(block.getByText(/22 rules/)).toBeVisible();
+});
+
+test("S1 — la méthodologie se date, et le deck enseigne le vrai périmètre", async ({ page }) => {
+  // Un changement de règles qui déplace des chiffres publics ne peut pas
+  // être silencieux : l'À-propos montre la version, sa date, son
+  // avant/après — et sa raison, dans la langue active.
+  await page.goto("/about-data");
+  const bloc = page.getByRole("region", { name: "Espace" });
+  await expect(bloc).toBeVisible({ timeout: 15_000 });
+  await expect(bloc.getByText(/Méthodologie v2/)).toBeVisible();
+  await expect(bloc.getByText(/Avant\s*:.*10.278 cœur.*5.814 habilitant/)).toBeVisible();
+  await expect(bloc.getByText(/Après\s*:.*10.278 cœur.*4.537 habilitant/)).toBeVisible();
+  await expect(bloc.getByText(/99 % de ce qu.il récoltait était de l.aéronautique/)).toBeVisible();
+  // La méthode dit 22 règles — le compte vient du chargeur, pas d'un texte.
+  await expect(bloc.getByText(/22 règles/)).toBeVisible();
+
+  // Le deck 2 enseigne la distinction : il ne peut plus citer
+  // l'aérospatial au sens large, qui a quitté le périmètre habilitant.
+  await page.goto("/analyses");
+  const espace = page.getByRole("region", { name: "Espace" });
+  await expect(espace.getByText(/micropesanteur et géospace/)).toBeVisible({ timeout: 15_000 });
+  await expect(espace.getByText(/aérospatial au sens large/)).toHaveCount(0);
 });

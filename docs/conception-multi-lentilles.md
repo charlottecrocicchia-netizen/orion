@@ -278,6 +278,15 @@ Le `theme` est taxonomique, le motif `text` est interprétatif. Un
 **jamais une classification obtenue par `call` ou `topic`** : une
 interprétation ne renverse pas un fait de la source.
 
+**I7 — une règle taxonomique utilise le niveau sémantique fiable le
+plus ÉTROIT** (gravé le 2026-08-18, décision S-C). Un nœud parent qui
+couvre plusieurs domaines métier **ne peut pas servir de preuve de
+lentille** : il récolte les voisins. Constat fondateur — le thème
+`aerospace engineering` posé en habilitant spatial ramenait 99 %
+d'aéronautique (1 263 projets, 4,9 Md€). Corollaire opératoire : on ne
+remplace jamais un parent large par un autre parent large — on descend
+au niveau qui parle du sujet, et lui seul.
+
 **I4 — le recalcul indépendant par lentille est une exigence d'A1,
 pas un développement d'aujourd'hui.** Consigné : sélecteur CLI
 (`orion-ingest lenses --lens aviation`), et versions/journaux PAR

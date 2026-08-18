@@ -46,8 +46,8 @@ def global_stats(session: Session) -> dict[str, Any]:
         # en base, retired reste gelée, aucune des deux n'existe ici.
         for lens in session.execute(
             text(
-                "SELECT slug, family_key, rank, rules_total, rules_programme, rules_theme, "
-                "rules_text FROM lenses WHERE status = 'published' ORDER BY rank"
+                "SELECT slug, family_key, rank, version, rules_total, rules_programme, "
+                "rules_theme, rules_text FROM lenses WHERE status = 'published' ORDER BY rank"
             )
         ).all():
             counters = session.execute(
@@ -105,7 +105,37 @@ def global_stats(session: Session) -> dict[str, Any]:
                     "slug": lens.slug,
                     "family_key": lens.family_key,
                     "rank": lens.rank,
+                    "version": lens.version,
                     "last_run_at": last_run.isoformat() if last_run else None,
+                    # Le journal de méthodologie : chaque version dit sa
+                    # date et son avant/après — un changement de règles
+                    # qui déplace des chiffres publics ne peut pas être
+                    # silencieux (S1).
+                    "changelog": [
+                        {
+                            "version": row.version,
+                            "changed_on": row.changed_on.isoformat(),
+                            "before": {
+                                "core": row.core_before,
+                                "enabling": row.enabling_before,
+                                "funding_eur": float(row.funding_before_eur),
+                            },
+                            "after": {
+                                "core": row.core_after,
+                                "enabling": row.enabling_after,
+                                "funding_eur": float(row.funding_after_eur),
+                            },
+                        }
+                        for row in session.execute(
+                            text(
+                                "SELECT version, changed_on, core_before, core_after, "
+                                "enabling_before, enabling_after, funding_before_eur, "
+                                "funding_after_eur FROM lens_changelog WHERE lens = :slug "
+                                "ORDER BY version DESC"
+                            ),
+                            {"slug": lens.slug},
+                        ).all()
+                    ],
                     # Le compte des règles vient du chargeur, jamais d'un
                     # texte écrit à la main.
                     "rules": {

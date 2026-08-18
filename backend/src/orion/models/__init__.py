@@ -10,7 +10,7 @@ from orion.models.groups import (
     UeiLink,
 )
 from orion.models.ingestion import IngestionRun
-from orion.models.lenses import Lens, ProjectLensTag
+from orion.models.lenses import Lens, LensChangelog, ProjectLensTag
 from orion.models.organisations import Organisation, OrganisationAlias, OrganisationIdentifier
 from orion.models.projects import Participation, Project, ProjectText
 from orion.models.reference import Country, ExchangeRate
@@ -30,6 +30,7 @@ __all__ = [
     "LeiRecord",
     "LeiRelationship",
     "Lens",
+    "LensChangelog",
     "Organisation",
     "OrganisationAlias",
     "OrganisationIdentifier",

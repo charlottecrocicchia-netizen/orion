@@ -184,7 +184,9 @@ def test_malformed_rules_refuse_to_tag(tmp_path):
 
 def _registry(tmp_path, rows):
     path = tmp_path / "registry.csv"
-    path.write_text("\n".join(["family_key,slug,rank,status", *rows]) + "\n", encoding="utf-8")
+    path.write_text(
+        "\n".join(["family_key,slug,rank,status,version", *rows]) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -192,17 +194,24 @@ def test_registry_validates_all_or_nothing(tmp_path):
     """Amendement M0 n°1 : famille → lentille, clés techniques stables —
     un registre mal formé ne mire rien. I2 : le statut fait partie de la
     forme validée."""
-    assert parse_registry(_registry(tmp_path, ["aerospace_mobility,space,1,published"])) == [
-        {"family_key": "aerospace_mobility", "slug": "space", "rank": 1, "status": "published"}
+    assert parse_registry(_registry(tmp_path, ["aerospace_mobility,space,1,published,1"])) == [
+        {
+            "family_key": "aerospace_mobility",
+            "slug": "space",
+            "rank": 1,
+            "status": "published",
+            "version": 1,
+        }
     ]
     bad = [
         ["Aérospatial,space,1,published"],  # un libellé n'est pas une clé de famille
         ["aerospace_mobility,Space,1,published"],  # slug en minuscules, toujours
-        ["aerospace_mobility,space-direct,1,published"],  # « -direct » = grammaire D2
-        ["aerospace_mobility,space,0,published"],  # rang ≥ 1
-        ["aerospace_mobility,space,1,soon"],  # statut hors draft|published|retired
-        ["aerospace_mobility,space,1,published", "energy,space,2,published"],  # slug en double
-        ["aerospace_mobility,space,1,published", "energy,solar,1,published"],  # rang en double
+        ["aerospace_mobility,space-direct,1,published,1"],  # « -direct » = grammaire D2
+        ["aerospace_mobility,space,0,published,1"],  # rang ≥ 1
+        ["aerospace_mobility,space,1,soon,1"],  # statut hors draft|published|retired
+        ["aerospace_mobility,space,1,published,0"],  # version ≥ 1
+        ["aerospace_mobility,space,1,published,1", "energy,space,2,published,1"],  # slug en double
+        ["aerospace_mobility,space,1,published,1", "energy,solar,1,published,1"],  # rang en double
     ]
     for rows in bad:
         with pytest.raises(LensError):
@@ -212,7 +221,7 @@ def test_registry_validates_all_or_nothing(tmp_path):
 def test_load_all_refuses_rules_outside_the_registry(db_session, tmp_path):
     """Toute lentille naît au registre — un CSV orphelin comme une entrée
     sans règles refusent de charger, dans les deux sens."""
-    _registry(tmp_path, ["aerospace_mobility,space,1,published"])
+    _registry(tmp_path, ["aerospace_mobility,space,1,published,1"])
     _lens(tmp_path, RULES, name="space.csv")
     _lens(tmp_path, RULES, name="orphan.csv")
     with pytest.raises(LensError):
@@ -233,7 +242,7 @@ def test_a_project_carries_two_lenses_each_read_full(db_session, tmp_path):
     ids = _seed(db_session)
     _registry(
         tmp_path,
-        ["aerospace_mobility,space,1,published", "zz_family,zztest,2,published"],
+        ["aerospace_mobility,space,1,published,1", "zz_family,zztest,2,published,1"],
     )
     _lens(tmp_path, ['text,in-orbit,core,cordis|nsf,"Services en orbite",test'], name="space.csv")
     _lens(
@@ -268,9 +277,9 @@ def test_only_published_lenses_exist_for_the_product(db_session, tmp_path):
     _registry(
         tmp_path,
         [
-            "aerospace_mobility,space,1,published",
-            "zz_family,zzdraft,2,draft",
-            "zz_family2,zzretired,3,retired",
+            "aerospace_mobility,space,1,published,1",
+            "zz_family,zzdraft,2,draft,1",
+            "zz_family2,zzretired,3,retired,1",
         ],
     )
     _lens(tmp_path, RULES, name="space.csv")

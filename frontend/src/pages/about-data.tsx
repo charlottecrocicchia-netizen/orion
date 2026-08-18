@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { lensWords, usePublishedLenses } from "@/lib/lens";
-import { formatInt } from "@/lib/format";
+import { formatCompactEur, formatInt } from "@/lib/format";
 
 const SOURCE_LABELS: Record<string, string> = {
   "cordis-horizon": "CORDIS · Horizon Europe",
@@ -177,6 +177,26 @@ export function AboutDataPage() {
                   ? t("about.lensLastRun", { date: dateFmt.format(new Date(lens.last_run_at)) })
                   : null}
               </p>
+              {/* Le journal de méthodologie (S1) : un changement de
+                  règles qui déplace des chiffres publics se montre —
+                  sa date, sa raison, son avant/après. */}
+              {lens.changelog.map((entry) => (
+                <p key={entry.version} className="border-l-2 border-border-soft pl-3">
+                  <b className="font-medium text-foreground/80">
+                    {t("about.lensVersion", { version: entry.version })}
+                  </b>{" "}
+                  · {dateFmt.format(new Date(entry.changed_on))} —{" "}
+                  {t(`lens.${lens.slug}.changelog.v${entry.version}`, { defaultValue: "" })}{" "}
+                  {t("about.lensBeforeAfter", {
+                    coreBefore: formatInt(entry.before.core, i18n.language),
+                    enablingBefore: formatInt(entry.before.enabling, i18n.language),
+                    fundingBefore: formatCompactEur(entry.before.funding_eur, i18n.language),
+                    coreAfter: formatInt(entry.after.core, i18n.language),
+                    enablingAfter: formatInt(entry.after.enabling, i18n.language),
+                    fundingAfter: formatCompactEur(entry.after.funding_eur, i18n.language),
+                  })}
+                </p>
+              ))}
             </div>
           </section>
         );

@@ -56,7 +56,19 @@ from orion.ingest.runlog import RunStats, record_run
 LENSES_DIR = Path(__file__).resolve().parents[3] / "curation" / "lenses"
 REGISTRY_FILE = LENSES_DIR / "registry.csv"
 
-REGISTRY_COLUMNS = ["family_key", "slug", "rank", "status"]
+REGISTRY_COLUMNS = ["family_key", "slug", "rank", "status", "version"]
+CHANGELOG_FILE_NAME = "changelog.csv"
+CHANGELOG_COLUMNS = [
+    "slug",
+    "version",
+    "changed_on",
+    "core_before",
+    "core_after",
+    "enabling_before",
+    "enabling_after",
+    "funding_before_eur",
+    "funding_after_eur",
+]
 COLUMNS = ["rule_type", "value", "tag", "sources", "evidence", "source"]
 RULE_TYPES = ("programme", "theme", "text")
 TAGS = ("core", "enabling")
@@ -100,7 +112,10 @@ def parse_registry(path: Path) -> list[dict[str, Any]]:
                 _fail(path.name, index, f"rank « {entry['rank']} » (entier ≥ 1)")
             if entry["status"] not in STATUSES:
                 _fail(path.name, index, f"status « {entry['status']} » (draft|published|retired)")
+            if not entry["version"].isdigit() or int(entry["version"]) < 1:
+                _fail(path.name, index, f"version « {entry['version']} » (entier ≥ 1)")
             entry["rank"] = int(entry["rank"])
+            entry["version"] = int(entry["version"])
             entries.append(entry)
         slugs = [e["slug"] for e in entries]
         if len(set(slugs)) != len(slugs):
@@ -148,7 +163,7 @@ def _check_files(entries: list[dict[str, Any]], base: Path) -> None:
     """Registre et fichiers de règles se répondent exactement — dans les
     deux sens : pas de lentille sans règles, pas de règles sans registre."""
     slugs = {e["slug"] for e in entries}
-    files = {f.stem for f in base.glob("*.csv")} - {"registry"}
+    files = {f.stem for f in base.glob("*.csv")} - {"registry", "changelog"}
     orphans = sorted(files - slugs)
     if orphans:
         raise LensError(f"CSV hors registre : {orphans} — toute lentille naît au registre")
@@ -163,11 +178,67 @@ def mirror_registry(session: Session, entries: list[dict[str, Any]]) -> None:
     for entry in entries:
         session.execute(
             text(
-                "INSERT INTO lenses (slug, family_key, rank, status) "
-                "VALUES (:slug, :family_key, :rank, :status) "
+                "INSERT INTO lenses (slug, family_key, rank, status, version) "
+                "VALUES (:slug, :family_key, :rank, :status, :version) "
                 "ON CONFLICT (slug) DO UPDATE "
                 "SET family_key = excluded.family_key, rank = excluded.rank, "
-                "    status = excluded.status"
+                "    status = excluded.status, version = excluded.version"
+            ),
+            entry,
+        )
+
+
+def parse_changelog(path: Path) -> list[dict[str, Any]]:
+    """Le journal de méthodologie : une ligne par version, ses comptes
+    avant/après. La JUSTIFICATION n'est pas ici — elle vit en i18n, dans
+    les deux langues (invariant des surfaces de méthode)."""
+    if not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        if reader.fieldnames != CHANGELOG_COLUMNS:
+            raise LensError(
+                f"changelog : colonnes attendues {CHANGELOG_COLUMNS}, trouvées {reader.fieldnames}"
+            )
+        entries = []
+        for index, raw in enumerate(reader, start=2):
+            entry = {key: (value or "").strip() for key, value in raw.items()}
+            if not _SLUG_RE.fullmatch(entry["slug"]):
+                _fail(path.name, index, f"slug « {entry['slug']} »")
+            if not entry["version"].isdigit() or int(entry["version"]) < 1:
+                _fail(path.name, index, f"version « {entry['version']} » (entier ≥ 1)")
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", entry["changed_on"]):
+                _fail(path.name, index, f"changed_on « {entry['changed_on']}» (AAAA-MM-JJ)")
+            for count in ("core_before", "core_after", "enabling_before", "enabling_after"):
+                if not entry[count].isdigit():
+                    _fail(path.name, index, f"{count} doit être un entier")
+                entry[count] = int(entry[count])
+            for amount in ("funding_before_eur", "funding_after_eur"):
+                try:
+                    entry[amount] = float(entry[amount])
+                except ValueError:
+                    _fail(path.name, index, f"{amount} doit être un nombre")
+            entry["version"] = int(entry["version"])
+            entries.append(entry)
+        return entries
+
+
+def mirror_changelog(session: Session, entries: list[dict[str, Any]], slugs: set[str]) -> None:
+    for entry in entries:
+        if entry["slug"] not in slugs:
+            raise LensError(f"changelog : « {entry['slug']} » n'est pas au registre")
+        session.execute(
+            text(
+                "INSERT INTO lens_changelog (lens, version, changed_on, core_before, core_after, "
+                "enabling_before, enabling_after, funding_before_eur, funding_after_eur) "
+                "VALUES (:slug, :version, :changed_on, :core_before, :core_after, "
+                ":enabling_before, :enabling_after, :funding_before_eur, :funding_after_eur) "
+                "ON CONFLICT (lens, version) DO UPDATE SET "
+                "changed_on = excluded.changed_on, core_before = excluded.core_before, "
+                "core_after = excluded.core_after, enabling_before = excluded.enabling_before, "
+                "enabling_after = excluded.enabling_after, "
+                "funding_before_eur = excluded.funding_before_eur, "
+                "funding_after_eur = excluded.funding_after_eur"
             ),
             entry,
         )
@@ -293,6 +364,9 @@ def load_all(session: Session, stats: RunStats, base_dir: Path | None = None) ->
     entries = parse_registry(base / "registry.csv")
     _check_files(entries, base)
     mirror_registry(session, entries)
+    mirror_changelog(
+        session, parse_changelog(base / CHANGELOG_FILE_NAME), {e["slug"] for e in entries}
+    )
     for entry in entries:
         if entry["status"] == "retired":
             stats.add("lens_retired_skipped")
@@ -306,6 +380,11 @@ def run(force: bool = False) -> dict[str, int]:  # noqa: ARG001 — retag total 
     session = SessionLocal()
     try:
         mirror_registry(session, entries)
+        mirror_changelog(
+            session,
+            parse_changelog(LENSES_DIR / CHANGELOG_FILE_NAME),
+            {e["slug"] for e in entries},
+        )
         session.commit()
     finally:
         session.close()
