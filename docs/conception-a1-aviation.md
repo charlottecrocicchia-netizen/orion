@@ -608,3 +608,40 @@ ils rejoindront le corpus de référence si la revue les confirme.
 n'a été calculée sur les 200 propositions** — ce sont des candidats, pas
 une vérité ; l'échantillon reste inchangé,
 [docs/curation/a1-echantillon-taxonomique.csv](curation/a1-echantillon-taxonomique.csv).
+
+
+---
+
+# A1 GELÉ à l'état `a9024fc` (2026-08-18)
+
+**Ce qui est figé, et ne bouge plus sans décision fondatrice :**
+
+- le **noyau structurel** — 1 592 projets · 5 823 M€, 8 règles d'appel,
+  100 % de preuve structurelle, 0 faux positif au seed adversarial ;
+- `aviation` en **`draft`** : chargée en base, invisible du produit
+  (`?sector=aviation` → 400, comme un slug inconnu) ;
+- **aucune** règle de confirmation, **aucun** veto, **aucun** enabling ;
+- les **200 labels candidats** de l'échantillon : inchangés, tels quels.
+
+**L'échantillon figé de revue** :
+[docs/curation/a1-echantillon-taxonomique.csv](curation/a1-echantillon-taxonomique.csv)
+— 200 lignes, tirage déterministe reproductible, stratifié
+100 aircraft / 70 aeronautical engineering / 30 rotorcraft.
+
+## Le protocole de mesure — à exécuter quand les labels seront rendus
+
+La revue est le travail de la fondatrice, informée d'une seconde
+opinion externe. Les labels rendus, la mesure produira, **et rien
+d'autre** :
+
+1. la **matrice d'accord** propositions × revue (4 × 4 labels) ;
+2. la **précision brute par concept** — `aircraft`,
+   `aeronautical engineering`, `rotorcraft` ;
+3. la **répartition des quatre labels** dans la revue ;
+4. les **résultats par famille d'appel** (MSCA/ERC, PME/innovation,
+   transport, Space, énergie, autres) **et par tranche de montant** ;
+5. les **erreurs les plus fréquentes** — les motifs qui reviennent.
+
+**Aucun apprentissage des règles avant cette mesure.** Les règles de
+confirmation, les vetos et l'enabling ne se conçoivent qu'après — et
+par règle, jamais par famille (I8).
