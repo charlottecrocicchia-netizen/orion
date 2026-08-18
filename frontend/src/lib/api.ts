@@ -16,6 +16,9 @@ export interface Stats {
   /** Le registre des lentilles PUBLIÉES, en ordre de rang (M0/M1) —
    *  l'API est le registre du front, qui n'a aucune liste en dur. */
   lenses: LensMeta[];
+  /** Les projets lus par PLUSIEURS lentilles publiées (D3) — le
+   *  recouvrement n'a de sens qu'à deux lentilles. */
+  overlap_projects: number;
   /** La lentille spatiale : les compteurs de preuve de la home, et le
    *  hero spatial (lot 2) — « direct + habilitant » = core + enabling
    *  (le registre technique de la paire unique, I3). Alias historique :
@@ -35,6 +38,10 @@ export interface LensMeta {
   slug: string;
   family_key: string;
   rank: number;
+  /** Le dernier passage réussi du chargeur de CETTE lentille. */
+  last_run_at: string | null;
+  /** Le compte des règles, posé par le chargeur — jamais écrit à la main. */
+  rules: { total: number; programme: number; theme: number; text: number };
   core: number;
   enabling: number;
   core_funding_eur: number;
@@ -321,6 +328,9 @@ export interface ProjectDetail {
   call: { code: string; title: string | null } | null;
   texts: { lang: string; title: string; abstract: string | null }[];
   topics: { scheme: string; code: string; label: string }[];
+  /** Les appartenances de lentille — plusieurs possibles (D1) : la
+   *  fiche projet est la surface du chevauchement. Publiées seulement. */
+  lens_tags: { lens: string; tag: "core" | "enabling" }[];
   participants: {
     organisation_id: number;
     name: string;

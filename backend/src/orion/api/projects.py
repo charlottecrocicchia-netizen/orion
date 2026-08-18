@@ -71,6 +71,18 @@ def project_detail(project_id: int, db: Annotated[Session, Depends(get_db)]) -> 
         {"pid": project_id},
     ).all()
 
+    # Les appartenances de lentille (M1.3) : la fiche projet est LA
+    # surface du chevauchement — un projet peut être lu par plusieurs
+    # lentilles, plein dans chacune (D1/D3). Publiées seulement (I2).
+    lens_tags = db.execute(
+        text(
+            "SELECT plt.lens, plt.tag FROM project_lens_tags plt "
+            "JOIN lenses l ON l.slug = plt.lens AND l.status = 'published' "
+            "WHERE plt.project_id = :pid ORDER BY l.rank"
+        ),
+        {"pid": project_id},
+    ).all()
+
     return {
         "id": project.id,
         "source": project.source,
@@ -108,6 +120,7 @@ def project_detail(project_id: int, db: Annotated[Session, Depends(get_db)]) -> 
         "call": {"code": call.code, "title": call.title} if call else None,
         "texts": [{"lang": t.lang, "title": t.title, "abstract": t.abstract} for t in texts],
         "topics": [{"scheme": s, "code": c, "label": label} for s, c, label in topics],
+        "lens_tags": [{"lens": lens, "tag": tag} for lens, tag in lens_tags],
         "participants": [
             {
                 "organisation_id": org_id,

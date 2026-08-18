@@ -59,6 +59,14 @@ export function usePublishedLenses(): LensMeta[] {
   return data?.lenses ?? [];
 }
 
+/** La lentille VEDETTE : le rang 1 du registre publié. C'est elle que
+ *  l'accueil raconte — jamais un slug écrit en dur. Sans lentille
+ *  publiée, l'accueil garde son visage général : une base sans lentille
+ *  reste honnête. */
+export function useLeadLens(): LensMeta | null {
+  return usePublishedLenses()[0] ?? null;
+}
+
 /** La lentille active de la vue courante, lue dans l'URL. */
 export function useActiveLens(): ActiveLens | null {
   const [params] = useSearchParams();
@@ -80,6 +88,30 @@ export function lensWords(slug: string, t: Translate) {
     chipLabel: t(`lens.${slug}.chipLabel`, {
       defaultValue: t("explorer.sector.chipLabel"),
     }),
+  };
+}
+
+/** Les mots ÉDITORIAUX d'une lentille à l'accueil. Ils sont sa
+ *  curation : tant que l'espace est la vedette, l'accueil parle
+ *  spatial — la mécanique est générique, la voix ne s'aplatit pas. À
+ *  défaut de mots curés, des motifs qui nomment la lentille. */
+export function lensHeroWords(slug: string, t: Translate) {
+  const name = t(`lens.${slug}.name`, { defaultValue: slug });
+  return {
+    sub: (from: number, to: number) =>
+      t(`lens.${slug}.hero.sub`, {
+        from,
+        to,
+        defaultValue: t("hero.subLens", { lens: name, from, to }),
+      }),
+    projects: t(`lens.${slug}.hero.projects`, {
+      defaultValue: t("hero.lensProjects", { lens: name }),
+    }),
+    orgs: t(`lens.${slug}.hero.orgs`, {
+      defaultValue: t("hero.lensOrgs", { lens: name }),
+    }),
+    groups: t(`lens.${slug}.hero.groups`, { defaultValue: t("hero.lensGroups") }),
+    cta: t(`lens.${slug}.hero.cta`, { defaultValue: t("home.lensCta", { lens: name }) }),
   };
 }
 

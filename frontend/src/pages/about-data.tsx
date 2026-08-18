@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+import { lensWords, usePublishedLenses } from "@/lib/lens";
 import { formatInt } from "@/lib/format";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -18,6 +19,8 @@ const SOURCE_LABELS: Record<string, string> = {
 
 export function AboutDataPage() {
   const { t, i18n } = useTranslation();
+  const lenses = usePublishedLenses();
+  const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
   const { data: sources, isPending } = useQuery({ queryKey: ["sources"], queryFn: api.sources });
   const { data: health } = useQuery({ queryKey: ["health"], queryFn: api.health, retry: false });
 
@@ -132,38 +135,65 @@ export function AboutDataPage() {
         </ul>
       </section>
 
-      <section className="mt-10">
-        <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-          La lentille spatiale
-        </h2>
-        {/* Exigence fondatrice (2026-08-17) : la définition des deux
-            périmètres figure en clair ici, pas seulement en code. */}
-        <div className="space-y-3 text-sm text-muted-foreground">
-          <p>
-            Le secteur spatial est identifié projet par projet par une
-            lentille <b className="font-medium text-foreground/80">versionnée et auditable</b> —
-            23 règles, chacune avec sa preuve : 4 règles de programme
-            (FP7-SPACE, le volet spatial d&rsquo;H2020, l&rsquo;astronomie NSF…),
-            5 règles de thème (par code euroSciVoc, jamais par libellé) et
-            14 motifs de texte validés à la main et cadrés par source.
-            Rien de gonflé, rien de supprimé : chaque exécution retague le
-            corpus entier depuis le fichier de règles.
+      {/* Un bloc MÉTHODE par lentille publiée (M1.3) — périmètres,
+          méthode, règles, dernier passage. Générique de structure,
+          curé de contenu : les mots d'une lentille sont sa curation,
+          et tout passe par l'i18n (invariant gravé). */}
+      {lenses.map((lens) => {
+        const words = lensWords(lens.slug, t);
+        const about = (key: string, fallback: string) =>
+          t(`lens.${lens.slug}.about.${key}`, { defaultValue: fallback });
+        return (
+          <section className="mt-10" key={lens.slug} aria-label={words.name}>
+            <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+              {t("about.lensTitle", { lens: words.name })}
+            </h2>
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <p>{about("method", t("about.lensMethodFallback", { lens: words.name }))}</p>
+              <p>
+                {t("about.lensPerimeters")}{" "}
+                <b className="font-medium text-foreground/80">«&nbsp;{words.direct}&nbsp;»</b>
+                {" — "}
+                {about("direct", t("about.lensDirectFallback"))} ;{" "}
+                {t("about.and")}{" "}
+                <b className="font-medium text-foreground/80">«&nbsp;{words.enabling}&nbsp;»</b>
+                {" — "}
+                {about("enabling", t("about.lensEnablingFallback"))}.{" "}
+                {t("about.lensUrls", {
+                  direct: `sector=${lens.slug}-direct`,
+                  enabling: `sector=${lens.slug}`,
+                })}
+              </p>
+              <p>
+                {lens.rules.total > 0
+                  ? t("about.lensRules", {
+                      total: lens.rules.total,
+                      programme: lens.rules.programme,
+                      theme: lens.rules.theme,
+                      text: lens.rules.text,
+                    })
+                  : null}{" "}
+                {lens.last_run_at
+                  ? t("about.lensLastRun", { date: dateFmt.format(new Date(lens.last_run_at)) })
+                  : null}
+              </p>
+            </div>
+          </section>
+        );
+      })}
+
+      {/* Le recouvrement n'a de sens qu'à DEUX lentilles publiées — sinon
+          il n'apparaît pas du tout : jamais un compteur qui attend. */}
+      {lenses.length > 1 && stats ? (
+        <section className="mt-10" aria-label={t("about.overlapTitle")}>
+          <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+            {t("about.overlapTitle")}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {t("about.overlapBody", { count: stats.overlap_projects })}
           </p>
-          <p>
-            Deux périmètres en découlent, toujours nommés à l&rsquo;écran :{" "}
-            <b className="font-medium text-foreground/80">« Spatial direct »</b> —
-            les projets au cœur du spatial (lanceurs, satellites, débris,
-            observation de la Terre…) ; et{" "}
-            <b className="font-medium text-foreground/80">« Spatial + habilitant »</b> —
-            le cœur plus les technologies identifiées comme habilitantes
-            par les règles de la lentille
-            (ingénierie aérospatiale au sens large, microgravité,
-            géospatial-atmosphérique). Une vue cadrée porte son périmètre
-            en chip, et l&rsquo;URL le dit (« sector=space-direct » /
-            « sector=space »).
-          </p>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="mt-10">
         <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">

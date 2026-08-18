@@ -12,6 +12,7 @@ import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { useDossier } from "@/lib/dossier";
 import { formatCompactEur } from "@/lib/format";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 
 /** The geographic-scope selector. HIDDEN while a single zone exists
  *  (fondatrice, 2026-08-02): a selector with one option says nothing.
@@ -112,6 +113,9 @@ function Footer() {
 }
 
 export function Layout() {
+  // Le titre du document et la langue du document suivent la navigation,
+  // la langue active et la lentille de la vue (M1.3) — sans rechargement.
+  useDocumentTitle();
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const [paletteOpen, setPaletteOpen] = useState(false);

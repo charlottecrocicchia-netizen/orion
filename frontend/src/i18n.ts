@@ -81,17 +81,19 @@ const resources = {
       hero: {
         eyebrow: "Orion Space Intelligence",
         sub: "of public R&D funding, mapped. {{from}} → {{to}}.",
-        subSpace: "of public space funding (direct + enabling), mapped. {{from}} → {{to}}.",
-        spaceProjects: "space projects",
-        spaceOrgs: "space organisations",
-        spaceGroups: "industrial groups",
+        // Motifs de repli : une lentille publiée sans mots curés reste
+        // lisible, et nomme ce qu'elle montre.
+        subLens: "of public {{lens}} funding (direct + enabling), mapped. {{from}} → {{to}}.",
+        lensProjects: "{{lens}} projects",
+        lensOrgs: "{{lens}} organisations",
+        lensGroups: "industrial groups",
         projects: "funded projects",
         organisations: "organisations",
         countries: "participating countries",
         chips: "Try",
       },
       home: {
-        spaceCta: "Explore space",
+        lensCta: "Explore {{lens}}",
         corpusKicker: "The full corpus",
         corpusLead:
           "Backed by a corpus of {{projects}} public R&D projects — {{funding}}, official sources: the generalist depth that spots technologies coming from other sectors.",
@@ -366,6 +368,7 @@ const resources = {
         coordinator: "Coordinator",
         participant: "Participant",
         topics: "Topics",
+        lenses: "Lens memberships",
         abstract: "Abstract",
         viewSource: "View the project on {{site}}",
       },
@@ -524,6 +527,7 @@ const resources = {
         searchProjects: "Search projects in {{code}}",
       },
       lens: {
+        tag: { core: "core", enabling: "enabling" },
         // Les MOTS d'une lentille sont sa curation (I3) — pour l'espace,
         // les libellés recettés au chantier Space natif, verbatim.
         space: {
@@ -531,6 +535,23 @@ const resources = {
           direct: "Space direct",
           enabling: "Space + enabling",
           chipLabel: "Space perimeter of this view",
+          // L'éditorial de la vedette : la mécanique est générique, la
+          // voix reste celle du sujet (fondatrice, 2026-08-18).
+          hero: {
+            sub: "of public space funding (direct + enabling), mapped. {{from}} → {{to}}.",
+            projects: "space projects",
+            orgs: "space organisations",
+            groups: "industrial groups",
+            cta: "Explore space",
+          },
+          about: {
+            method:
+              "The space sector is identified project by project by a versioned, auditable lens — every rule with its evidence: programme rules (FP7-SPACE, H2020's space strand, NSF astronomy…), theme rules (by euroSciVoc code, never by label) and hand-checked text patterns framed by source.",
+            direct:
+              "projects at the core of space (launchers, satellites, debris, Earth observation…)",
+            enabling:
+              "the core plus the technologies the lens rules identify as enabling (aerospace engineering at large, microgravity, geospatial-atmospheric)",
+          },
         },
       },
       explorer: {
@@ -723,6 +744,19 @@ const resources = {
         operational: "Operational",
         down: "Unreachable",
         licences: "Licences and attribution",
+        lensTitle: "The {{lens}} lens",
+        lensPerimeters: "Two perimeters follow, always named on screen:",
+        and: "and",
+        lensRules: "{{total}} rules, each with its evidence: {{programme}} programme rules, {{theme}} theme rules (by code, never by label) and {{text}} hand-checked text patterns framed by source. Nothing inflated, nothing deleted: every run re-tags the whole corpus from the rules file.",
+        lensLastRun: "Last run: {{date}}.",
+        lensUrls: "A framed view carries its perimeter as a chip, and the URL says it (« {{direct}} » / « {{enabling}} »).",
+        lensMethodFallback:
+          "The {{lens}} lens identifies its projects one by one from a versioned, auditable rules file.",
+        lensDirectFallback: "the projects at the core",
+        lensEnablingFallback: "the core plus the technologies the rules identify as enabling",
+        overlapTitle: "Overlap",
+        overlapBody:
+          "{{count}} projects are read by more than one lens. A lens is a reading of the corpus, never a partition: such a project counts in full under each lens — which is why two lenses' figures are never added up.",
       },
       footer: {
         data: "About the data",
@@ -831,17 +865,17 @@ const resources = {
       hero: {
         eyebrow: "Orion Space Intelligence",
         sub: "de financements R&D publics, cartographiés. {{from}} → {{to}}.",
-        subSpace: "de financements spatiaux publics (direct + habilitant), cartographiés. {{from}} → {{to}}.",
-        spaceProjects: "projets spatiaux",
-        spaceOrgs: "organisations spatiales",
-        spaceGroups: "groupes industriels",
+        subLens: "de financements publics {{lens}} (direct + habilitant), cartographiés. {{from}} → {{to}}.",
+        lensProjects: "projets {{lens}}",
+        lensOrgs: "organisations {{lens}}",
+        lensGroups: "groupes industriels",
         projects: "projets financés",
         organisations: "organisations",
         countries: "pays participants",
         chips: "Essayez",
       },
       home: {
-        spaceCta: "Explorer l\u2019espace",
+        lensCta: "Explorer : {{lens}}",
         corpusKicker: "Le corpus entier",
         corpusLead:
           "Adossé à un corpus de {{projects}} projets de R&D publique — {{funding}}, sources officielles : la profondeur généraliste qui repère les technologies venues d\u2019autres secteurs.",
@@ -1116,6 +1150,7 @@ const resources = {
         coordinator: "Coordinateur",
         participant: "Participant",
         topics: "Thématiques",
+        lenses: "Appartenances de lentille",
         abstract: "Résumé",
         viewSource: "Voir le projet sur {{site}}",
       },
@@ -1274,11 +1309,27 @@ const resources = {
         searchProjects: "Chercher les projets {{code}}",
       },
       lens: {
+        tag: { core: "cœur", enabling: "habilitant" },
         space: {
           name: "Espace",
           direct: "Spatial direct",
           enabling: "Spatial + habilitant",
           chipLabel: "Périmètre spatial de cette vue",
+          hero: {
+            sub: "de financements spatiaux publics (direct + habilitant), cartographiés. {{from}} → {{to}}.",
+            projects: "projets spatiaux",
+            orgs: "organisations spatiales",
+            groups: "groupes industriels",
+            cta: "Explorer l\u2019espace",
+          },
+          about: {
+            method:
+              "Le secteur spatial est identifié projet par projet par une lentille versionnée et auditable — chaque règle avec sa preuve : des règles de programme (FP7-SPACE, le volet spatial d\u2019H2020, l\u2019astronomie NSF…), des règles de thème (par code euroSciVoc, jamais par libellé) et des motifs de texte validés à la main et cadrés par source.",
+            direct:
+              "les projets au cœur du spatial (lanceurs, satellites, débris, observation de la Terre…)",
+            enabling:
+              "le cœur plus les technologies identifiées comme habilitantes par les règles de la lentille (ingénierie aérospatiale au sens large, microgravité, géospatial-atmosphérique)",
+          },
         },
       },
       explorer: {
@@ -1512,6 +1563,20 @@ const resources = {
         operational: "Opérationnel",
         down: "Injoignable",
         licences: "Licences et attribution",
+        lensTitle: "La lentille « {{lens}} »",
+        lensPerimeters: "Deux périmètres en découlent, toujours nommés à l’écran :",
+        and: "et",
+        lensRules: "{{total}} règles, chacune avec sa preuve : {{programme}} règles de programme, {{theme}} règles de thème (par code, jamais par libellé) et {{text}} motifs de texte validés à la main et cadrés par source. Rien de gonflé, rien de supprimé : chaque exécution retague le corpus entier depuis le fichier de règles.",
+        lensLastRun: "Dernier passage : {{date}}.",
+        lensUrls: "Une vue cadrée porte son périmètre en chip, et l’URL le dit (« {{direct}} » / « {{enabling}} »).",
+        lensMethodFallback:
+          "La lentille « {{lens}} » identifie ses projets un à un depuis un fichier de règles versionné et auditable.",
+        lensDirectFallback: "les projets au cœur du sujet",
+        lensEnablingFallback:
+          "le cœur plus les technologies identifiées comme habilitantes par les règles",
+        overlapTitle: "Recouvrement",
+        overlapBody:
+          "{{count}} projets sont lus par plus d’une lentille. Une lentille est une lecture du corpus, jamais une partition : un tel projet compte PLEIN sous chacune — c’est pourquoi les chiffres de deux lentilles ne s’additionnent jamais.",
       },
       footer: {
         data: "À propos des données",

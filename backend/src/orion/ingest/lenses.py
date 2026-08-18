@@ -262,6 +262,19 @@ def load_lens(session: Session, stats: RunStats, slug: str, path: Path) -> None:
                     {"src_likes": like_sources, "needle": f"%{rule['value']}%"},
                 )
             stats.add(f"tagged_{wanted}", touched)
+    # Le compte des règles voyage avec la lentille : l'À-propos le lit,
+    # il ne l'écrit plus (M1.3).
+    session.execute(
+        text(
+            "UPDATE lenses SET rules_total = :total, rules_programme = :programme, "
+            "rules_theme = :theme, rules_text = :text WHERE slug = :slug"
+        ),
+        {
+            "slug": slug,
+            "total": len(rules),
+            **{kind: sum(1 for rule in rules if rule["rule_type"] == kind) for kind in RULE_TYPES},
+        },
+    )
     session.commit()
     for tag in TAGS:
         count = session.execute(

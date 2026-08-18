@@ -46,7 +46,8 @@ def global_stats(session: Session) -> dict[str, Any]:
         # en base, retired reste gelée, aucune des deux n'existe ici.
         for lens in session.execute(
             text(
-                "SELECT slug, family_key, rank FROM lenses WHERE status = 'published' ORDER BY rank"
+                "SELECT slug, family_key, rank, rules_total, rules_programme, rules_theme, "
+                "rules_text FROM lenses WHERE status = 'published' ORDER BY rank"
             )
         ).all():
             counters = session.execute(
@@ -90,11 +91,29 @@ def global_stats(session: Session) -> dict[str, Any]:
                 """),
                 {"slug": lens.slug},
             ).all()
+            # Le dernier passage du chargeur de CETTE lentille — la page
+            # méthode le montre plutôt que de le promettre (M1.3).
+            last_run = session.execute(
+                text(
+                    "SELECT max(finished_at) FROM ingestion_runs "
+                    "WHERE source = :run AND status = 'succeeded'"
+                ),
+                {"run": f"{lens.slug}-lens"},
+            ).scalar()
             lenses.append(
                 {
                     "slug": lens.slug,
                     "family_key": lens.family_key,
                     "rank": lens.rank,
+                    "last_run_at": last_run.isoformat() if last_run else None,
+                    # Le compte des règles vient du chargeur, jamais d'un
+                    # texte écrit à la main.
+                    "rules": {
+                        "total": lens.rules_total,
+                        "programme": lens.rules_programme,
+                        "theme": lens.rules_theme,
+                        "text": lens.rules_text,
+                    },
                     "core": counters.core or 0,
                     "enabling": counters.enabling or 0,
                     "core_funding_eur": float(counters.core_funding or 0),
@@ -104,7 +123,18 @@ def global_stats(session: Session) -> dict[str, Any]:
                     "by_year": [{"year": y, "amount_eur": float(a or 0)} for y, a in lens_by_year],
                 }
             )
+        # Le recouvrement : les projets que PLUSIEURS lentilles publiées
+        # lisent (D3 — une lecture, jamais une partition). Il n'a de sens
+        # qu'à deux lentilles ; la surface décide de le montrer ou non.
+        overlap = session.execute(
+            text(
+                "SELECT count(*) FROM (SELECT plt.project_id FROM project_lens_tags plt "
+                "JOIN lenses l ON l.slug = plt.lens AND l.status = 'published' "
+                "GROUP BY plt.project_id HAVING count(*) > 1) AS shared"
+            )
+        ).scalar()
         payload = {
+            "overlap_projects": overlap or 0,
             "totals": {
                 "projects": totals.projects,
                 "organisations": totals.organisations,

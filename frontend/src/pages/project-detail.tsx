@@ -7,6 +7,7 @@ import { ExploreExits } from "@/components/explore-exits";
 import { KpiStatic } from "@/components/kpi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
+import { LENS_PARAM, lensValue, lensWords } from "@/lib/lens";
 import {
   countryFlag,
   formatCompactEur,
@@ -80,6 +81,29 @@ export function ProjectDetailPage() {
       <h1 className="display-tight mt-1 max-w-[28ch] text-[clamp(24px,3.4vw,34px)] font-semibold leading-tight">
         {text?.title ?? data.title}
       </h1>
+
+      {/* Les appartenances de lentille (M1.3) : LA surface du
+          chevauchement — un projet peut être lu par plusieurs lentilles,
+          plein dans chacune (D1/D3). Chaque badge ouvre la vue la plus
+          serrée qui contient ce projet : le cœur seul pour un cœur, le
+          périmètre entier pour une technologie habilitante. */}
+      {data.lens_tags.length > 0 ? (
+        <p className="mt-3 flex flex-wrap items-center gap-2" aria-label={t("project.lenses")}>
+          {data.lens_tags.map((entry) => {
+            const words = lensWords(entry.lens, t);
+            return (
+              <Link
+                key={`${entry.lens}-${entry.tag}`}
+                to={`/projects?${LENS_PARAM}=${lensValue(entry.lens, entry.tag === "core")}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-accent/50 bg-accent-soft/40 px-3 py-1 text-[12.5px] font-medium transition-colors hover:border-accent"
+              >
+                <i aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-accent" />
+                {words.name} · {t(`lens.tag.${entry.tag}`)}
+              </Link>
+            );
+          })}
+        </p>
+      ) : null}
 
       <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-4">
         <KpiStatic

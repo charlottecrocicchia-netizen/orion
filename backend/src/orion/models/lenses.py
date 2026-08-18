@@ -27,6 +27,12 @@ class Lens(Base):
     # I2 (2026-08-18) : seule une lentille `published` existe pour le
     # produit ; `draft` se vérifie en base, `retired` reste gelée.
     status: Mapped[str] = mapped_column(String(12), server_default="published")
+    # Le compte des règles, posé par le chargeur (M1.3) : l'À-propos le
+    # LIT au lieu de l'écrire en dur.
+    rules_total: Mapped[int] = mapped_column(Integer, server_default="0")
+    rules_programme: Mapped[int] = mapped_column(Integer, server_default="0")
+    rules_theme: Mapped[int] = mapped_column(Integer, server_default="0")
+    rules_text: Mapped[int] = mapped_column(Integer, server_default="0")
 
 
 class ProjectLensTag(Base):

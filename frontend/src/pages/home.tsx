@@ -18,6 +18,7 @@ import { HOME_CAPS, useDestinations } from "@/lib/destinations";
 import type { DestinationGroup } from "@/lib/destinations";
 import { useDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
+import { lensHeroWords, useLeadLens } from "@/lib/lens";
 import { STORIES } from "@/lib/stories";
 import { formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 import { useRevealProgress } from "@/hooks/use-reveal-progress";
@@ -229,13 +230,17 @@ export function HomePage() {
   const years = stats?.funding_by_year ?? [];
   const from = years[0]?.year;
   const to = years[years.length - 1]?.year;
-  // Le hero spatial (lot 2) : dès que la lentille est chargée, le
-  // produit se présente par son sujet — repli général sinon (une base
-  // sans lentille reste honnête).
-  const spaceHero = (stats?.space?.core ?? 0) > 0;
-  const spaceYears = stats?.space?.by_year ?? [];
-  const spaceFrom = spaceYears[0]?.year;
-  const spaceTo = spaceYears[spaceYears.length - 1]?.year;
+  // Le hero de la VEDETTE (lot 2, généralisé M1.3) : le produit se
+  // présente par son sujet — la lentille de rang 1 du registre, ses
+  // chiffres et ses mots. Repli général s'il n'y en a aucune : une base
+  // sans lentille reste honnête.
+  const lead = useLeadLens();
+  const leadWords = lensHeroWords(lead?.slug ?? "", t);
+  const leadYears = lead?.by_year ?? [];
+  const leadFrom = leadYears[0]?.year;
+  const leadTo = leadYears[leadYears.length - 1]?.year;
+  // La porte « Analyser » ouvre le premier deck de la vedette.
+  const leadDeck = STORIES.find((story) => story.deck && story.lens === lead?.slug);
   const cueOpacity = scrub == null ? 0 : Math.max(0, 1 - ((scrub - SCRUB_BASE) / 0.3) * 1.2);
 
   return (
@@ -247,34 +252,31 @@ export function HomePage() {
       >
         <div className="mx-auto w-full max-w-[1240px]">
           <p className="mb-4 text-sm font-medium text-accent">{t("hero.eyebrow")}</p>
-          {stats && spaceHero ? (
-            /* Le hero SPATIAL (lot 2, validé 2026-08-17) : le produit se
-               présente par son sujet. Le grand chiffre dit son périmètre
-               DANS la phrase même — « direct + habilitant » (exigence
-               fondatrice ①) — et la courbe se dessine sur les années du
-               spatial, jamais sur le corpus entier maquillé. */
+          {stats && lead ? (
+            /* Le hero de la vedette (lot 2, validé 2026-08-17 ;
+               généralisé M1.3) : le grand chiffre dit son périmètre DANS
+               la phrase même — « direct + habilitant » (exigence
+               fondatrice ①) — et la courbe se dessine sur les années de
+               LA lentille, jamais sur le corpus entier maquillé. */
             <>
               <StatHero
-                funding={stats.space.funding_eur}
-                sub={spaceFrom && spaceTo ? t("hero.subSpace", { from: spaceFrom, to: spaceTo }) : " "}
+                funding={lead.funding_eur}
+                sub={leadFrom && leadTo ? leadWords.sub(leadFrom, leadTo) : " "}
                 kpis={[
-                  {
-                    value: stats.space.core + stats.space.enabling,
-                    label: t("hero.spaceProjects"),
-                  },
-                  { value: stats.space.organisations, label: t("hero.spaceOrgs") },
-                  { value: stats.space.groups, label: t("hero.spaceGroups") },
+                  { value: lead.core + lead.enabling, label: leadWords.projects },
+                  { value: lead.organisations, label: leadWords.orgs },
+                  { value: lead.groups, label: leadWords.groups },
                 ]}
-                years={spaceYears}
+                years={leadYears}
                 progress={scrub}
                 basis={t("coverage.heroBasis")}
               />
               <p className="mt-7">
                 <Link
-                  to="/explore?sector=space&by=country&split=0"
+                  to={`/explore?sector=${lead.slug}&by=country&split=0`}
                   className="rounded-full bg-foreground px-5 py-2.5 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
                 >
-                  {t("home.spaceCta")} →
+                  {leadWords.cta} →
                 </Link>
               </p>
             </>
@@ -436,7 +438,7 @@ export function HomePage() {
               s'inversent — le hero raconte le spatial, le corpus général
               devient l'assise discrète, avec sa porte vers Toute la R&D.
               Rien n'est retiré : l'avantage généraliste reste dit. */}
-          {stats && spaceHero ? (
+          {stats && lead ? (
             <section
               aria-label={t("home.corpusKicker")}
               className="mt-16 border-y border-border-soft py-6 text-left"
@@ -481,7 +483,7 @@ export function HomePage() {
               })}
             />
             <EditorialEntry
-              to="/explore?angles=spaceMoney"
+              to={leadDeck ? `/explore?angles=${leadDeck.key}` : "/analyses"}
               title={t("nav.analyse")}
               desc={t("home.doorAnalyseDesc")}
               figure={t("home.doorAnalyseFigure", { count: STORIES.length })}
