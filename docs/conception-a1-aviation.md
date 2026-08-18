@@ -1194,9 +1194,12 @@ motifs l'admission dépend-elle *exclusivement* ?
 | 712667 — *Hybrid multi copter with 6 times more flight time* | 0,05 M€ | **core** (revue des 200) | `flight` |
 | 779576 — *Fuel CelL HYdrogen System for AircraFt Emergency operation* | 5,06 M€ | **core** (holdout) | `aircraft` |
 
-**Les deux motifs sont blanchis.** `airborne` porte exactement un
-projet, et c'est un vrai `core`. `maintenance` en porte quatre, tous
-`core` — 100 % de précision marginale sur ses dépendants exclusifs.
+**Ce que la mesure dit, et rien de plus** : `airborne` et
+`maintenance` **ne présentent aucun faux positif observé parmi leurs
+dépendants exclusifs connus au moment du gel**. `airborne` porte
+exactement un projet, `maintenance` en porte quatre. **n = 1 et n = 4
+ne généralisent rien** — ces chiffres écartent une inquiétude précise,
+ils ne fondent aucune confiance sur le corpus entier.
 
 Et par conséquent : après l'arbitrage sur Ampyx, la recalibration
 n'a introduit **aucun** faux positif doctrinal. Ce que j'avais déclaré

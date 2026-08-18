@@ -447,5 +447,20 @@ deux sorts opposés, et la distinction tient en une phrase :
   d'éoliennes : **rien ne vole**. Le mot « aéro » y désigne
   l'aérodynamique, pas l'aéronautique.
 
-La question n'est donc jamais « est-ce de l'énergie ? » mais
-**« quelque chose vole-t-il, et le projet le fait-il voler ? »**
+**La doctrine, dans sa formulation exacte :**
+
+> Un projet est Aviation `core` lorsqu'il développe directement un
+> **aéronef/UAS** ou une **capacité intrinsèquement aéronautique de cet
+> aéronef** — vol, contrôle, navigation, navigabilité,
+> lancement/atterrissage, opérations — **même lorsque sa mission finale
+> appartient à un autre secteur**.
+
+Une formulation plus large — « quelque chose vole-t-il ? » — a été
+écartée : elle ferait entrer un lanceur ou un ballon. Ce n'est pas le
+fait de quitter le sol qui classe, c'est la nature **aéronautique** de
+la capacité développée.
+
+**UNAELCO et FALCon restent les deux bornes du seed** : le premier ne
+développe aucune capacité de vol (des rotors d'éoliennes), le second en
+développe de vraies malgré un appel spatial et une mission de
+lancement.
