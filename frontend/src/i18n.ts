@@ -540,6 +540,11 @@ const resources = {
         overTime: "over time",
         entityScoped: "scoped to one entity",
         // Même vocabulaire que la bande d'accueil (home.spaceKicker).
+        lensUnavailable: {
+          title: "This lens is not available",
+          body: "Orion cannot reproduce this view with the lens named in the link.",
+          action: "View all R&D",
+        },
         sector: {
           // Génériques : le chip ne sait plus ce qu'est « space ». Les
           // motifs servent de repli à une lentille sans ses mots.
@@ -1283,6 +1288,11 @@ const resources = {
         overTime: "dans le temps",
         entityScoped: "cadré sur une entité",
         // Même vocabulaire que la bande d'accueil (home.spaceKicker).
+        lensUnavailable: {
+          title: "Cette lentille n'est pas disponible",
+          body: "Orion ne peut pas reproduire cette vue avec la lentille indiquée dans le lien.",
+          action: "Voir toute la R&D",
+        },
         sector: {
           chipLabel: "Périmètre de cette vue",
           directHint: "les projets cœur seuls, par la lentille versionnée",

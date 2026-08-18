@@ -10,8 +10,9 @@ import { BumpChart } from "@/components/bump-chart";
 import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
 import { CoverageNote } from "@/components/coverage-note";
+import { LensUnavailable } from "@/components/lens-unavailable";
 import { SectorChip } from "@/components/sector-chip";
-import { LENS_PARAM } from "@/lib/lens";
+import { LENS_PARAM, useActiveLensState } from "@/lib/lens";
 import { ExploreTable } from "@/components/explore-table";
 import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -144,6 +145,7 @@ function MenuItem({
 /* ————— The page ————— */
 
 export function ExplorerPage() {
+  const lensState = useActiveLensState();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -217,6 +219,8 @@ export function ExplorerPage() {
     queryKey: ["explore", apiParams.toString()],
     queryFn: () => api.explore(apiParams),
     placeholderData: keepPreviousData,
+    // Une vue déjà refusée ne demande rien : l'API dirait la même chose.
+    enabled: lensState.kind !== "invalid",
   });
   const { data: countries } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: programmes } = useQuery({
@@ -340,6 +344,12 @@ export function ExplorerPage() {
     }
     form.reset();
   };
+
+  // Le refus unifié (M1.2) : une lentille inconnue, indisponible, vide
+  // ou répétée ne cadre rien — et ne se replie JAMAIS en silence sur le
+  // corpus entier. Un registre illisible, lui, n'est pas un verdict :
+  // l'état `pending` laisse la vue se rendre, l'API tranchera.
+  if (lensState.kind === "invalid") return <LensUnavailable />;
 
   return (
     <div className="mx-auto w-full max-w-[1240px] px-6 pt-12">

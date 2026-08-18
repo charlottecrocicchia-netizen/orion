@@ -1,8 +1,9 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
+from orion.api.lens_param import resolve_lens_param
 from orion.core.db import get_db
 from orion.search.service import (
     OrganisationFilters,
@@ -10,7 +11,6 @@ from orion.search.service import (
     search_organisations,
     search_projects,
     suggest,
-    valid_sector,
 )
 
 router = APIRouter()
@@ -18,6 +18,7 @@ router = APIRouter()
 
 @router.get("/search/projects")
 def search_projects_endpoint(
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     q: str | None = None,
     funder: Annotated[list[str] | None, Query()] = None,
@@ -43,7 +44,7 @@ def search_projects_endpoint(
         programmes=programme or [],
         countries=country or [],
         scope=scope or None,
-        sector=sector if sector and valid_sector(db, sector) else None,
+        sector=resolve_lens_param(request, db, sector),
         year_from=year_from,
         year_to=year_to,
         amount_min=amount_min,

@@ -136,8 +136,34 @@ tests suivent. Témoins API avant/après : la différence exacte est
   sur le corpus entier ment sur ce qu'il montre.
 - **U4 — le silence.** L'état non cadré n'écrit rien dans l'URL ; le
   chip disparaît. Jamais un `sector=` vide, jamais un cadrage muet.
-- **U5 — une seule lentille par vue.** Le paramètre est scalaire ;
-  aucune liste, aucun opérateur (amendement M0 n° 2).
+- **U5 — une seule lentille par vue, STRICTEMENT** (renforcé le
+  2026-08-18). Le paramètre est scalaire ; aucune liste, aucun
+  opérateur (amendement M0 n° 2). La validation lit **toutes les
+  occurrences**, jamais la première ni la dernière :
+  `sector=x&sector=y` est **invalide** — réduire silencieusement à une
+  valeur, c'est répondre à une autre question que celle du lien.
+  `sector=` **vide est invalide** : le paramètre a été envoyé, il doit
+  dire quelque chose ; son absence, elle, est la vue non cadrée.
+
+## 3 bis. Les quatre états de l'autorité de lentille
+
+*(invariant gravé le 2026-08-18)*
+
+L'autorité distingue **quatre** états, jamais trois :
+
+| État | Quand | Ce qui s'affiche |
+|---|---|---|
+| **none** | aucun paramètre | la vue non cadrée |
+| **loading / error** | le registre n'est pas (encore) lisible | la vue se rend normalement — **l'API reste l'autorité** |
+| **valid** | exactement une valeur, publiée | la vue cadrée |
+| **invalid** | inconnue, draft, retirée, vide ou multiple | le refus explicite (M1.2) |
+
+**Une impossibilité temporaire de charger le registre n'est JAMAIS
+interprétée comme une lentille invalide, ni comme une absence de
+lentille.** Une panne de lecture n'est pas un verdict : le front
+s'abstient et laisse l'API trancher. Corollaire testé : un registre en
+panne ne produit jamais `INVALID_LENS` — il produit une erreur de
+service, ce qui est une autre vérité.
 
 ## 4. Les arbitrages — TRANCHÉS le 2026-08-18
 

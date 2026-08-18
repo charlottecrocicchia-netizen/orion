@@ -18,6 +18,24 @@ const STATS = {
     { year: 2023, amount_eur: 18.3e9 },
     { year: 2027, amount_eur: 0.9e9 },
   ],
+  // Le registre publié — ce que l'API sert vraiment depuis M0.
+  lenses: [
+    {
+      slug: "space",
+      family_key: "aerospace_mobility",
+      rank: 1,
+      core: 812,
+      enabling: 2140,
+      core_funding_eur: 3.1e9,
+      funding_eur: 5.2e9,
+      organisations: 1450,
+      groups: 21,
+      by_year: [
+        { year: 2019, amount_eur: 1.1e9 },
+        { year: 2024, amount_eur: 2.3e9 },
+      ],
+    },
+  ],
   space: {
     core: 812,
     enabling: 2140,

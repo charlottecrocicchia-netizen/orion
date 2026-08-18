@@ -268,17 +268,25 @@ PROJECTS = [
 # pas de curation), et le projet spatial qu'elle tague aussi démontre le
 # chevauchement (D1) — plein dans chaque lentille, jamais additionné.
 SEED_LENS_SLUG = "test-lens"
+# Et une lentille en PRÉPARATION : elle se charge, se vérifie en base,
+# mais n'existe pas pour le produit (I2). La recette du refus s'appuie
+# dessus — l'écran dit « indisponible », jamais « en préparation ».
+SEED_DRAFT_LENS_SLUG = "test-draft"
 
 
 def _seed_synthetic_lens(session: Session) -> None:
-    session.execute(
-        text(
-            "INSERT INTO lenses (slug, family_key, rank, status) "
-            "VALUES (:slug, 'zz_seed_family', 99, 'published') "
-            "ON CONFLICT (slug) DO NOTHING"
-        ),
-        {"slug": SEED_LENS_SLUG},
-    )
+    for slug, rank, status in (
+        (SEED_LENS_SLUG, 99, "published"),
+        (SEED_DRAFT_LENS_SLUG, 98, "draft"),
+    ):
+        session.execute(
+            text(
+                "INSERT INTO lenses (slug, family_key, rank, status) "
+                "VALUES (:slug, 'zz_seed_family', :rank, :status) "
+                "ON CONFLICT (slug) DO NOTHING"
+            ),
+            {"slug": slug, "rank": rank, "status": status},
+        )
     for source_id, tag in (("e2e-aeroserv", "core"), ("e2e-orbit", "enabling")):
         session.execute(
             text(

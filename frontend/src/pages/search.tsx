@@ -6,7 +6,8 @@ import { CountryFlags } from "@/components/country-flags";
 import { ExploreExits } from "@/components/explore-exits";
 import { SearchComposer } from "@/components/search-composer";
 import { SectorChip } from "@/components/sector-chip";
-import { LENS_PARAM, useLensGate } from "@/lib/lens";
+import { LensUnavailable } from "@/components/lens-unavailable";
+import { LENS_PARAM, useActiveLensState } from "@/lib/lens";
 import { Sparkline } from "@/components/sparkline";
 import { TrendDelta } from "@/components/trend-delta";
 import { Button } from "@/components/ui/button";
@@ -265,8 +266,11 @@ function Pager({
 
 export function ProjectsSearchPage() {
   const { t, i18n } = useTranslation();
-  // Le registre publié tranche ce qui cadre une vue (M1.1).
-  const lensGate = useLensGate();
+  // Les quatre états de la lentille (M1.1 puis M1.2) : le registre
+  // tranche ce qui cadre une vue, et un registre illisible n'est jamais
+  // un verdict.
+  const lensState = useActiveLensState();
+  const framed = lensState.kind === "valid" || lensState.kind === "pending";
   const countryName = useCountryName();
   const { params, update, toggleMulti, replaceAll } = useSearchState();
   const q = params.get("q") ?? "";
@@ -278,6 +282,7 @@ export function ProjectsSearchPage() {
     queryKey: ["search-projects", apiParams.toString()],
     queryFn: () => api.searchProjects(apiParams),
     placeholderData: keepPreviousData,
+    enabled: lensState.kind !== "invalid",
   });
 
   const activeFunders = params.getAll("funder");
@@ -293,8 +298,12 @@ export function ProjectsSearchPage() {
     // La lentille est un filtre à part entière : une URL cadrée
     // (?sector=<lentille publiée>) encadre une vraie liste, jamais
     // l'invite. Le registre tranche — le front ne connaît aucun slug.
-    lensGate(params.get(LENS_PARAM));
+    framed;
   const composed = Boolean(q) || hasFilters;
+
+  // Le refus unifié (M1.2) : mêmes mots qu'à l'Explorateur, jamais un
+  // repli silencieux sur le corpus entier.
+  if (lensState.kind === "invalid") return <LensUnavailable />;
 
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
@@ -335,7 +344,7 @@ export function ProjectsSearchPage() {
         {/* Le périmètre spatial, nommé sur la liste cadrée (Space natif,
             lot 1) — trois états, l'URL comme seule vérité. */}
         <SectorChip
-          sector={lensGate(params.get(LENS_PARAM)) ? (params.get(LENS_PARAM) as string) : ""}
+          sector={framed ? (params.get(LENS_PARAM) ?? "") : ""}
           onChange={(next) => update({ sector: next || null })}
         />
       </div>

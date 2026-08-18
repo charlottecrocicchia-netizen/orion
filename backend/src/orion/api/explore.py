@@ -1,9 +1,10 @@
 from datetime import date, timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
+from orion.api.lens_param import resolve_lens_param
 from orion.core.db import get_db
 from orion.ingest import subdivisions
 from orion.search import aggregates, explore, groups_hub
@@ -13,6 +14,7 @@ router = APIRouter()
 
 @router.get("/explore/aggregate")
 def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every composed view
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     metric: str = "funding",
     by: str = "country",
@@ -53,7 +55,7 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         limit=limit,
         programme=programme,
         organisation=organisation or None,
-        sector=sector or None,
+        sector=resolve_lens_param(request, db, sector),
         subdivision=subdivision or None,
     )
     if result is None:

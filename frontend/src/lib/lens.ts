@@ -91,19 +91,62 @@ export function lensPhrase(value: string | null | undefined, t: Translate): stri
   return active.coreOnly ? words.direct : words.enabling;
 }
 
-/** « Cette valeur cadre-t-elle vraiment une vue ? » — la question que
- *  posent la recherche (liste cadrée ou invite ?) et le chip.
+/** Les QUATRE états de la lentille d'une vue (invariant ①, 2026-08-18).
  *
- *  Tant que le registre n'est pas chargé, une valeur bien formée est
- *  admise : sans cela, une vue cadrée clignoterait en « non cadrée » au
- *  premier rendu. Le verdict sur une valeur inconnue, draft ou retirée
- *  appartient au lot M1.2 (refus explicite), pas à ce socle. */
-export function useLensGate(): (value: string | null | undefined) => boolean {
-  const { data, isPending } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
-  return (value) => {
-    const active = parseLens(value);
-    if (!active) return false;
-    if (isPending || !data) return true;
-    return data.lenses.some((lens) => lens.slug === active.slug);
-  };
+ *  `pending` couvre le chargement ET la panne : une impossibilité de
+ *  lire le registre n'est JAMAIS un verdict — ni « invalide », ni
+ *  « pas de lentille ». Le front s'abstient alors et rend la vue :
+ *  l'API reste l'autorité, et c'est elle qui refusera s'il le faut.
+ *  Sans cette distinction, un incident d'infrastructure ferait mentir
+ *  des liens parfaitement justes. */
+export type LensState =
+  | { kind: "none" }
+  | { kind: "pending" }
+  | { kind: "valid"; lens: ActiveLens }
+  | { kind: "invalid"; value: string; reason?: "multiple_values" };
+
+/** L'état du registre, vu par la décision — trois cas seulement. */
+export type LensRegistry =
+  | { status: "pending" }
+  | { status: "ready"; slugs: string[] };
+
+/** La décision, PURE : toutes les occurrences du paramètre d'un côté,
+ *  l'état du registre de l'autre. U5 strict — deux occurrences sont un
+ *  refus, jamais une réduction à la première ou à la dernière ; une
+ *  valeur vide est un refus, car le paramètre a bel et bien été envoyé. */
+export function decideLensState(values: string[], registry: LensRegistry): LensState {
+  if (values.length === 0) return { kind: "none" };
+  if (values.length > 1) {
+    return { kind: "invalid", value: values.join(","), reason: "multiple_values" };
+  }
+  const raw = values[0];
+  const active = parseLens(raw);
+  if (!active) return { kind: "invalid", value: raw };
+  if (registry.status === "pending") return { kind: "pending" };
+  return registry.slugs.includes(active.slug)
+    ? { kind: "valid", lens: active }
+    : { kind: "invalid", value: raw };
+}
+
+/** L'état de la vue courante — l'URL d'un côté, le registre de l'autre. */
+export function useActiveLensState(): LensState {
+  const [params] = useSearchParams();
+  const { data, isPending, isError } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
+  // Chargement ET erreur donnent le MÊME état : pas de verdict.
+  // Un payload sans registre lisible n'est pas non plus un verdict.
+  const registry: LensRegistry =
+    isPending || isError || !data?.lenses
+      ? { status: "pending" }
+      : { status: "ready", slugs: data.lenses.map((lens) => lens.slug) };
+  return decideLensState(params.getAll(LENS_PARAM), registry);
+}
+
+/** L'URL courante SANS le paramètre de lentille — toutes ses
+ *  occurrences retirées, tout le reste préservé : requête, filtres,
+ *  années, comparaisons. C'est la porte de sortie du refus. */
+export function withoutLens(pathname: string, search: string): string {
+  const next = new URLSearchParams(search);
+  next.delete(LENS_PARAM);
+  const query = next.toString();
+  return query ? `${pathname}?${query}` : pathname;
 }

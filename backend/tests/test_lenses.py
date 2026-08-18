@@ -348,9 +348,74 @@ def test_the_seed_lens_can_never_come_from_the_production_registry():
     seed = (Path(__file__).resolve().parents[1] / "scripts" / "seed_e2e.py").read_text(
         encoding="utf-8"
     )
-    match = re.search(r'^SEED_LENS_SLUG = "([^"]+)"', seed, re.M)
-    assert match, "la graine doit nommer sa lentille synthétique"
-    seed_slug = match.group(1)
+    slugs = re.findall(r'^SEED_(?:DRAFT_)?LENS_SLUG = "([^"]+)"', seed, re.M)
+    assert len(slugs) == 2, "la graine nomme sa lentille publiée ET sa draft"
 
-    assert seed_slug not in {entry["slug"] for entry in parse_registry(REGISTRY_FILE)}
-    assert not (LENSES_DIR / f"{seed_slug}.csv").exists()
+    registry = {entry["slug"] for entry in parse_registry(REGISTRY_FILE)}
+    for seed_slug in slugs:
+        assert seed_slug not in registry
+        assert not (LENSES_DIR / f"{seed_slug}.csv").exists()
+
+
+def _refusal(response) -> dict:
+    assert response.status_code == 400, response.status_code
+    body = response.json()["detail"]
+    assert body["error"] == "INVALID_LENS"
+    assert body["parameter"] == "sector"
+    return body
+
+
+def test_the_refusal_is_the_same_on_every_surface(client):
+    """M1.2 : une valeur inconnue, vide ou multiple est REFUSÉE — jamais
+    un repli silencieux sur le corpus entier (un tel lien mentirait sur
+    ce qu'il montre). Même règle à l'Explorateur et à la recherche."""
+    for url in ("/api/search/projects", "/api/explore/aggregate?metric=projects&by=funder"):
+        joiner = "&" if "?" in url else "?"
+        # Inconnue.
+        body = _refusal(client.get(f"{url}{joiner}sector=martien"))
+        assert body["value"] == "martien"
+        # Vide : le paramètre a été ENVOYÉ, il doit dire quelque chose.
+        assert _refusal(client.get(f"{url}{joiner}sector="))["value"] == ""
+        # Multiple : jamais réduit à la première ni à la dernière valeur.
+        body = _refusal(client.get(f"{url}{joiner}sector=space&sector=martien"))
+        assert body["reason"] == "multiple_values"
+        # Deux valeurs VALIDES restent un refus : la vue est scalaire.
+        assert _refusal(client.get(f"{url}{joiner}sector=space&sector=space-direct"))
+
+
+def test_the_refusal_never_says_why_nor_lists_the_registry(client, db_session):
+    """Un draft est « indisponible », jamais « en préparation » : le
+    corps du refus ne trahit ni le statut, ni les slugs valides."""
+    db_session.execute(
+        text(
+            "INSERT INTO lenses (slug, family_key, rank, status) "
+            "VALUES ('zzquietlens', 'zz_family', 77, 'draft') ON CONFLICT (slug) DO NOTHING"
+        )
+    )
+    db_session.commit()
+    try:
+        body = client.get("/api/search/projects?sector=zzquietlens").json()["detail"]
+        assert body == {"error": "INVALID_LENS", "parameter": "sector", "value": "zzquietlens"}
+        # Rien du statut, rien du registre : ni « draft », ni le slug
+        # d'une lentille publiée. Seule la valeur reçue est renvoyée.
+        for secret in ("draft", "retired", "published", "status", "space"):
+            assert secret not in str(body)
+    finally:
+        db_session.execute(text("DELETE FROM lenses WHERE slug = 'zzquietlens'"))
+        db_session.commit()
+
+
+def test_a_registry_outage_is_never_an_invalid_lens(client, monkeypatch):
+    """Invariant ① : une panne de lecture du registre n'est PAS un
+    verdict. Elle ne peut donc jamais se déguiser en INVALID_LENS —
+    sinon un incident d'infrastructure ferait mentir des liens justes."""
+    from sqlalchemy.exc import OperationalError
+
+    from orion.api import lens_param
+
+    def registry_down(*args, **kwargs):
+        raise OperationalError("registry unreachable", None, Exception())
+
+    monkeypatch.setattr(lens_param, "valid_sector", registry_down)
+    with pytest.raises(OperationalError):
+        client.get("/api/search/projects?sector=space")
