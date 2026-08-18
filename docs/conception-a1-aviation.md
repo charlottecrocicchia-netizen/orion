@@ -155,9 +155,22 @@ surface produit — elle ordonne les règles et l'échantillonnage) :
 
 1. architecture & intégration avion ; 2. aérodynamique & structures ;
 3. propulsion — turbomachines · hybride-électrique · H₂/SAF ;
-4. systèmes & avionique ; 5. ATM / CNS *(si F1 la retient)* ;
-6. voilure tournante ; 7. UAS / AAM *(si F2 la retient)* ;
-8. essais, moyens d'essais & industrialisation.
+4. systèmes & avionique ; 5. ATM / CNS — « Air transport system »
+*(F1 : cœur)* ; 6. voilure tournante ; 7. UAS / AAM *(F2 : cœur)* ;
+8. essais, moyens d'essais & industrialisation ; **9. écosystème R&I &
+coordination** *(ajoutée le 2026-08-18)* — feuilles de route,
+coordination de programme, science ouverte, réseaux internationaux et
+jumelages dont l'objet explicite est la R&I aéronautique.
+
+**La définition unifiée du core** (2026-08-18) : **l'OBJET du projet
+est l'aviation — technique ou sectoriel.** Technique, c'est l'aéronef,
+ses systèmes, sa navigabilité, ses opérations, son intégration
+ATM/U-space, l'AAM. Sectoriel, c'est la R&I aéronautique elle-même :
+PARE, RADIAN, OSCAR, SUNJET II, Future Sky Safety, BAANG, CARE et
+analogues sont `core` **parce que leur objet est le secteur**, jamais
+parce qu'ils seraient des actions de coordination. **Il n'existera
+jamais de règle « CSA → core »** : le schéma de financement ne
+classe rien, l'objet sectoriel classe.
 
 **Les règles, par ordre de confiance** :
 
@@ -554,3 +567,44 @@ politique régionale. Ces deux familles méritent une règle de ta part.
 La revue est ton travail : tes labels rendus, je mesurerai la précision
 **par concept** (et par règle, I8), et de là seulement je proposerai les
 règles de confirmation et les vetos.
+
+
+---
+
+# Arbitrages du 2026-08-18 (soir) — exécutés
+
+**① Les Clean Sky 2 manquants sont core.** Le préfixe contrôlé
+`H2020-IBA-CS2-GAMS-` entre comme huitième preuve structurelle, avec
+son **audit de pureté** ([call_prefix_audit.py](../backend/scripts/call_prefix_audit.py),
+rejouable) : il atteint **2 codes (2017, 2019), 18 projets, tous Clean
+Sky 2** — les ITD Airframe, Engines, Systems, Fast Rotorcraft, Large
+Passenger Aircraft et éco-conception. Le niveau est le plus étroit
+possible (I7) : le voisinage `H2020-IBA-` porte ARF, CHAIR, GEOSS et
+NCP, sans rapport.
+
+**Le noyau draft recalculé** (`--lens aviation`, 0,5 s) :
+
+| | Avant | Après |
+|---|---|---|
+| Projets | 1 574 | **1 592** |
+| Montant | 4 558 M€ | **5 823 M€** |
+| Preuve structurelle | 100 % | **100 %** |
+| Seed adversarial | 0 faux positif | **0 faux positif** (1 manqué, 9 à arbitrer, 27 OK) |
+
+**② et ③ — l'écosystème R&I.** Branche 9 ajoutée à la taxonomie,
+définition unifiée du core écrite ci-dessus. CARE est `core` (catégorie
+écosystème R&I) ; **AD-ASTRA reste `borderline`, non tagué en V1** —
+c'est I9 : « Aerospace Districts » ne dit pas laquelle des deux
+lentilles.
+
+**Le corpus de référence des ponts, mis à jour.** Avec le noyau
+d'appels seuls, le chevauchement Space core × Aviation core est de
+**34 projets · 103 M€** — et non plus 101. Les 67 autres venaient des
+concepts, aujourd'hui dans le **pool candidat en attente de revue** :
+ils rejoindront le corpus de référence si la revue les confirme.
+
+**Aucune règle de confirmation, aucun veto, aucun enabling** n'a été
+écrit : ils attendent les labels de la revue. Et **aucune précision
+n'a été calculée sur les 200 propositions** — ce sont des candidats, pas
+une vérité ; l'échantillon reste inchangé,
+[docs/curation/a1-echantillon-taxonomique.csv](curation/a1-echantillon-taxonomique.csv).

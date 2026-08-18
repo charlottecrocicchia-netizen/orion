@@ -139,6 +139,15 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
             raise LensError(f"colonnes attendues {COLUMNS}, trouvées {reader.fieldnames}")
         rules = []
         for index, raw in enumerate(reader, start=2):
+            # Une virgule non échappée dans une évidence ajoute des
+            # colonnes : le dire franchement plutôt que planter plus loin.
+            if None in raw:
+                _fail(
+                    path.name,
+                    index,
+                    f"{len(COLUMNS) + len(raw[None])} champs pour "
+                    f"{len(COLUMNS)} colonnes — une valeur contient une virgule non échappée",
+                )
             rule = {key: (value or "").strip() for key, value in raw.items()}
             if rule["rule_type"] not in RULE_TYPES:
                 _fail(path.name, index, f"rule_type « {rule['rule_type']} » (programme|theme|text)")

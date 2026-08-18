@@ -618,3 +618,10 @@ def test_a_draft_lens_owes_no_changelog(db_session, tmp_path):
     _lens(tmp_path, ['text,absent-motif,core,cordis|nsf,"Plus rien",test'], name="zzdraft.csv")
     load_all(db_session, RunStats(), base_dir=tmp_path)
     assert db_session.execute(text("SELECT count(*) FROM lens_changelog")).scalar() == 0
+
+
+def test_an_unescaped_comma_says_so_plainly(tmp_path):
+    """Une virgule non échappée dans une évidence ajoute des colonnes :
+    le chargeur le dit, au lieu de planter obscurément plus loin."""
+    with pytest.raises(LensError, match="virgule non échappée"):
+        parse_rules(_lens(tmp_path, ["call,X-,core,,une évidence, avec virgule,test"]))

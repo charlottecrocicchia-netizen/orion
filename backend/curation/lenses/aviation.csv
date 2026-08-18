@@ -1,5 +1,6 @@
 rule_type,value,tag,sources,evidence,source
 call,SP1-JTI-CS-,core,,Clean Sky 1 — appels du JU aéronautique FP7 (SP1-JTI-CS-2009-01 à 2013-03) : le financeur est l'aéronautique elle-même,CORDIS (codes d'appel FP7 Clean Sky)
+call,H2020-IBA-CS2-GAMS-,core,,"Clean Sky 2 — les conventions aux MEMBRES (GAM) qui portent les ITD Airframe, Engines, Systems, Fast Rotorcraft, Large Passenger Aircraft et éco-conception ; préfixe vérifié PUR le 2026-08-18 (2 codes, 18 projets, tous Clean Sky 2) et pris au niveau le plus étroit — le voisinage H2020-IBA- porte ARF, CHAIR, GEOSS, NCP sans rapport (I7)",CORDIS (codes d'appel H2020 Clean Sky 2 GAM)
 call,JTI-CS-,core,,Clean Sky 1 — conventions de subvention aux membres (JTI-CS-GAM) : les ITD moteurs voilure systèmes régional rotorcraft,CORDIS (codes d'appel FP7 Clean Sky GAM)
 call,H2020-CS2-,core,,Clean Sky 2 — les onze appels à propositions du JU (CFP01 à CFP11),CORDIS (codes d'appel H2020 Clean Sky 2)
 call,HORIZON-JU-Clean-Aviation-,core,,Clean Aviation — le JU successeur (2022 2023 2025) : démonstrateurs open fan hydrogène hybride,CORDIS (codes d'appel Horizon Clean Aviation)

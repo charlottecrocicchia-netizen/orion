@@ -299,6 +299,15 @@ une preuve NÉGATIVE — un appel d'un autre domaine ne disqualifie rien
 (DroneHopper, appel agriculture, développe bien un aéronef ; FALCon,
 appel Space, porte de vraies technologies de vol).
 
+**I9 — « aerospace » générique n'est une preuve NI d'Aviation NI de
+Space** (gravé le 2026-08-18). Le mot, le thème et le nœud qui disent
+« aérospatial » recouvrent deux mondes : chaque lentille doit gagner sa
+classification par une preuve PLUS SPÉCIFIQUE — un appel qui la
+finance, un concept qui la nomme, un texte qui la démontre. C'est
+l'application directe d'I7 au cas le plus fréquent du domaine, et la
+raison pour laquelle un projet comme AD-ASTRA (« Aerospace Districts »)
+reste sans tag : rien n'y dit LAQUELLE des deux.
+
 **I4 — le recalcul indépendant par lentille est une exigence d'A1,
 pas un développement d'aujourd'hui.** Consigné : sélecteur CLI
 (`orion-ingest lenses --lens aviation`), et versions/journaux PAR
