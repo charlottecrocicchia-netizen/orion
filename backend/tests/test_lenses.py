@@ -810,3 +810,39 @@ def test_all_text_is_never_enough_for_the_v1_policy(tmp_path):
                 ],
             )
         )
+
+
+def test_a_token_matches_the_whole_word_never_a_fragment(db_session, tmp_path):
+    """« uas » attrape « quasi » en sous-chaîne ; en token, jamais. Le
+    résumé de graine est « abstract. » : le token `act` ne doit pas y
+    mordre, le token `abstract` doit."""
+    ids = _seed(db_session)
+    _in_pool(db_session, ids, "zzsl-3")
+
+    def charge(motif):
+        load_lens(
+            db_session,
+            RunStats(),
+            "space",
+            _lens(
+                tmp_path,
+                [
+                    CAND,
+                    'confirm,in-orbit,,cordis,av-test,title,"Le titre",test',
+                    f'confirm,{motif},,cordis,av-test,body_text,"Le corps",test',
+                ],
+            ),
+        )
+        return _tags(db_session, ids)["zzsl-3"]
+
+    assert charge("token:act") is None  # « abstract » n'est pas « act »
+    assert charge("token:abstract") == "core"
+
+
+def test_the_short_motif_guard_still_stands_for_phrases(tmp_path):
+    """Le mode token ne desserre PAS la garde du mode phrase."""
+    with pytest.raises(LensError, match="motif trop court"):
+        parse_rules(_lens(tmp_path, ['text,orbit,core,cordis,,,"Motif court en phrase",test']))
+    for mauvais in ("token:", "token:a", "token:deux mots"):
+        with pytest.raises(LensError):
+            parse_rules(_lens(tmp_path, [f'text,{mauvais},core,cordis,,,"Token invalide",test']))

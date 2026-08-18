@@ -404,3 +404,18 @@ c'est exactement le mot que ce registre sert à dire. Un projet où
 l'aviation n'apparaît que dans une **liste de marchés visés** est
 `excluded`. La frontière est le poids réel du cas d'usage, pas la
 présence du mot.
+
+
+**I14 — l'aéronef SURVEILLÉ n'est pas une preuve, comme l'aéronef
+instrument** (gravé le 2026-08-18, symétrique d'I5). Un projet qui
+détecte, piste, intercepte ou se protège d'aéronefs ne développe pas
+d'aviation : l'aéronef y est la CIBLE, pas l'objet. La surveillance
+frontalière contre les avions de contrebande, la lutte anti-drone au
+service d'un site industriel, la détection acoustique d'aéronefs pour
+un usage militaire terrestre : `excluded`. La preuve exige que la
+fonction serve le système aérien, pas qu'elle le prenne pour cible.
+
+Les deux moitiés d'I5 se disent donc d'un trait : **l'aéronef comme
+OUTIL ne prouve rien, l'aéronef comme CIBLE non plus** — seule sa
+conception, son exploitation, sa sécurisation ou la structuration de
+sa R&I prouvent quelque chose.

@@ -1057,3 +1057,115 @@ sens contraire : 5D-AeroSafe (drones pour la sécurité des aéroports
 (l'autonomie développée est une capacité d'aéronef, l'objectif ne parle
 que de la mer) et la détection d'aéronefs à basse altitude (surveiller
 l'espace aérien, ou protéger une frontière ?).
+
+---
+
+## A1 · Recalibration conditionnelle des motifs de corps (2026-08-18)
+
+**Le constat qui change tout.** Sur les 200 revus, conditionné à
+*candidat + titre fort*, le pool est **70 core / 0 enabling / 7
+excluded** : le titre fait déjà 91 % du travail. Un motif de corps
+n'est donc plus un classifieur — il n'a plus qu'à ne pas laisser entrer
+ces 7. La bonne métrique n'est pas P(core | motif), c'est
+**P(core | candidat + titre fort + motif)**.
+
+Et la liste de corps d'origine, calibrée en signal autonome, admet
+**0 excluded** sur ce pool. Le socle est propre ; c'est le rappel qui
+manquait.
+
+### Les 7 excluded à ne pas laisser entrer
+
+| Projet | Pourquoi il est exclu | Motifs qui l'ouvriraient |
+|---|---|---|
+| AIRFORS | aéronef-instrument (science forestière) | `aircraft`, `airborne` |
+| ICARE-2010 | conférence, recherche aéroportée environnementale | `aircraft`, `airport`, `wing`, `flight` |
+| ASICA | aéronef-instrument (bilan carbone amazonien) | `aircraft` |
+| FORTAPE | fabrication composite, aéronautique en application | `aeronautic` |
+| NUMIWING | éolien aéroporté | `wing`, `flight`, `aerodynamic`, `rotor` |
+| YawSTOP (×2) | dispositif de stabilisation de charge | `helicopter`, `pilot` |
+
+### Règle d'admission appliquée
+
+**Un motif entre s'il apporte ≥ 1 nouveau vrai `core` ET 0 nouvel
+`excluded` sur les 200.** Douze règles par groupe :
+
+| Motif | Mode | Admis | P(core) | Entrants neufs |
+|---|---|---|---|---|
+| `maintenance` | phrase | 10 | 100 % | 4 core, 0 excluded |
+| `certification` | phrase | 12 | 100 % | 3 core, 0 excluded |
+| `drone` + `drones` | **token** | 11 | 100 % | 3 core, 0 excluded |
+| `air vehicle` | phrase | 1 | 100 % | 1 core |
+| `icao` | **token** | 2 | 100 % | 1 core (CaBilAvi revient) |
+| `sesar` | **token** | 4 | 100 % | 1 core |
+| `mro` | **token** | 1 | 100 % | 1 core |
+| `rpas` | **token** | 1 | 100 % | 1 core |
+| `uav` / `vtol` / `easa` | **token** | 3 / 1 / 2 | 100 % | **0** — propres, gain nul en échantillon |
+
+### Ce qui est REFUSÉ, et pourquoi
+
+- **`aircraft`** — 14 entrants neufs dont **11 core et 3 excluded**
+  (AIRFORS, ICARE-2010, ASICA : les trois sont des aéronefs-instruments).
+  Précision conditionnelle 95 %, exactement au seuil. **Le prix est
+  3 faux positifs ; le gain, 11 core. Arbitrage à rendre.**
+- **`airport`** — 2 entrants neufs, 1 core et 1 excluded (ICARE-2010).
+- **`wing`** (10 neufs, 2 excluded), **`aeronautic`** (7 neufs,
+  1 excluded), **`airborne`** (3 neufs, 0 core) : refusés sur mesure.
+- **`token:uas`** — 1 admis, **0 core, 1 excluded**. L'acronyme le plus
+  attendu est celui que la donnée refuse.
+- **`token:atm`** — non chargé : le sigle entre en collision avec
+  l'unité de pression « atm », et les 200 ne contiennent pas assez
+  d'occurrences pour mesurer la collision. `air traffic` couvre déjà
+  le besoin.
+- **`token:utm`, `token:gse`, `token:ata`** — absents du corpus revu.
+- **`propulsion`** (13 admis, 100 %) et **`passenger`** (8 admis,
+  100 %) : propres, mais **0 entrant neuf mesuré**. Non chargés.
+
+### Le mode token
+
+Nouvelle syntaxe `token:xxx` : le moteur cherche le **mot entier**
+(`\m…\M` en Postgres) au lieu d'une sous-chaîne. La garde des motifs
+courts reste **intacte** pour le mode phrase — elle devient inutile en
+mode token, puisqu'un sigle ne peut plus se cacher dans un mot plus
+long. Deux tests le prouvent : `token:act` ne mord pas sur
+« abstract », `token:abstract` mord.
+
+### Reprojection
+
+| | avant | après |
+|---|---|---|
+| Aviation core | 1 737 | **1 754** (+17) |
+| dont taxonomique confirmée | 145 | **162** |
+| Financement | 6 267 683 967 € | **6 307 772 443,38 €** |
+| **Seed adversarial** | 0 faux positif, 1 manqué | **0 faux positif, 0 manqué** |
+| **Space** | — | **inchangé** |
+
+**Le seed est parfait pour la première fois** : DroneHopper revient par
+`token:drone`. Les 37 spécimens passent tous.
+
+### Critère de réussite : 2 sur 3
+
+- **CompSTLar** revient (par `maintenance`) ✔
+- **CaBilAvi** revient (par `token:icao`) ✔
+- **AVIATOR** ne revient pas ✘ — son résumé ne dit que « aircraft » et
+  « airports », les deux motifs dont le prix est un faux positif. Il
+  est **inatteignable sans admettre ICARE-2010**. C'est la mesure, pas
+  un choix.
+
+### Une entrée à tort, déclarée
+
+La recalibration fait entrer **Ampyx Power** (éolien aéroporté) dans le
+holdout, par `airborne` au titre et `maintenance` au corps. Le maillon
+faible est le motif de TITRE `airborne`, jamais mesuré séparément —
+il n'a pas été touché ici. C'est le seul faux positif doctrinal ajouté,
+et il est classé `excluded` dans le holdout.
+
+### Holdout final — [a1-holdout-groupes-lies.csv](curation/a1-holdout-groupes-lies.csv)
+
+**102 projets, 357,6 M€** (84 aircraft, 11 rotorcraft, 7 aeronautical
+engineering) : **91 `core`, 3 `enabling`, 8 `excluded`, 0 réserve**.
+Les trois réserves de la v2 sont tranchées (5D-AeroSafe → core,
+MarineUAS → core, ALFA → excluded par I14).
+
+**11 projets divergent du tag de la règle**, qui les met tous en `core`.
+Conformément à l'arbitrage ④, **aucun veto ni aucune règle `enabling`
+n'a été écrit** — I10 continue de s'appliquer.

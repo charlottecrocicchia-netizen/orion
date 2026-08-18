@@ -74,6 +74,17 @@ SCOPES = ("title", "body_text", "all_text")
 # le corps. `all_text` reste disponible, jamais suffisant.
 REQUIRED_SCOPES = ("title", "body_text")
 
+# Deux MODES de recherche d'un motif texte :
+# - `phrase` (défaut) : sous-chaîne, gardée contre les motifs trop
+#   courts — « uas » attraperait « quasi », « aero » attraperait
+#   « aerosol » ;
+# - `token` (préfixe « token: ») : le MOT ENTIER, aux frontières de
+#   mot. C'est le seul mode honnête pour les sigles courts — ICAO,
+#   RPAS, SESAR — et il rend la garde inutile parce que le sigle ne
+#   peut plus se cacher dans un mot plus long.
+TOKEN_PREFIX = "token:"
+TOKEN_RE = re.compile(r"^[a-z0-9][a-z0-9./-]*$")
+
 SCOPE_FIELDS = {
     "title": "ptx.title",
     "body_text": "coalesce(ptx.abstract, '')",
@@ -173,6 +184,7 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
                     f"{len(COLUMNS)} colonnes — une valeur contient une virgule non échappée",
                 )
             rule = {key: (value or "").strip() for key, value in raw.items()}
+            rule["match"] = "phrase"
             if rule["rule_type"] not in RULE_TYPES:
                 _fail(
                     path.name, index, f"rule_type « {rule['rule_type']} » ({'|'.join(RULE_TYPES)})"
@@ -198,8 +210,20 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
                 unknown = set(sources) - TEXT_SOURCES
                 if unknown:
                     _fail(path.name, index, f"sources inconnues : {sorted(unknown)}")
-                if len(rule["value"]) < 6 and " " not in rule["value"]:
-                    _fail(path.name, index, "motif trop court et sans espace — trop ambigu")
+                if rule["value"].startswith(TOKEN_PREFIX):
+                    rule["match"] = "token"
+                    rule["value"] = rule["value"][len(TOKEN_PREFIX) :].strip().lower()
+                    if not TOKEN_RE.match(rule["value"]):
+                        _fail(path.name, index, "un token est UN mot — sans espace ni ponctuation")
+                    if len(rule["value"]) < 2:
+                        _fail(path.name, index, "un token d'une seule lettre ne prouve rien")
+                elif len(rule["value"]) < 6 and " " not in rule["value"]:
+                    _fail(
+                        path.name,
+                        index,
+                        "motif trop court et sans espace — trop ambigu "
+                        "(« token:xxx » cherche le MOT ENTIER)",
+                    )
             elif sources:
                 _fail(path.name, index, "sources ne cadre que texte, veto et confirmation")
             # Les GROUPES liés (V1 aviation) : un `candidate` taxonomique et
@@ -346,21 +370,35 @@ def _confirm_clause(
     if not confs:
         return None
     field = SCOPE_FIELDS[scope]
-    by_source: dict[tuple[str, ...], list[str]] = {}
+    by_source: dict[tuple[str, ...], tuple[list[str], list[str]]] = {}
     for rule in confs:
-        by_source.setdefault(tuple(rule["sources_list"]), []).append(f"%{rule['value']}%")
+        phrases, tokens = by_source.setdefault(tuple(rule["sources_list"]), ([], []))
+        if rule["match"] == "token":
+            tokens.append(_token_regex(rule["value"]))
+        else:
+            phrases.append(f"%{rule['value']}%")
     parts = []
-    for index, (sources, needles) in enumerate(by_source.items()):
+    for index, (sources, (needles, tokens)) in enumerate(by_source.items()):
         key_src, key_needle = f"{gid}_{scope}_s{index}", f"{gid}_{scope}_n{index}"
         key_src, key_needle = key_src.replace("-", "_"), key_needle.replace("-", "_")
+        key_token = f"{key_needle}_t"
         params[key_src] = [f"{src}%" for src in sources]
         params[key_needle] = needles
+        params[key_token] = tokens
         # Le cadre de sources reste À L'EXTÉRIEUR de la sous-requête :
         # à l'intérieur il la corrèle, et Postgres la rejoue par projet.
+        trouve = " OR ".join(
+            filter(
+                None,
+                [
+                    f"{field} ILIKE ANY(:{key_needle})" if needles else "",
+                    f"{field} ~* ANY(:{key_token})" if tokens else "",
+                ],
+            )
+        )
         parts.append(
             f"(p.source LIKE ANY(:{key_src}) AND p.id IN ("
-            f" SELECT ptx.project_id FROM project_texts ptx"
-            f" WHERE {field} ILIKE ANY(:{key_needle})))"
+            f" SELECT ptx.project_id FROM project_texts ptx WHERE {trouve}))"
         )
     return "(" + " OR ".join(parts) + ")"
 
@@ -423,18 +461,31 @@ def _rule_clause(
             )""",
             {"code": value, "prefix": value + "/%"},
         )
-    return (
-        """p.source LIKE ANY(:src_likes) AND p.id IN (
-            SELECT ptx.project_id FROM project_texts ptx
-            WHERE ptx.title ILIKE :needle OR ptx.abstract ILIKE :needle
-        )""",
-        {"src_likes": [f"{src}%" for src in rule["sources_list"]], "needle": f"%{value}%"},
+    op, needle = (
+        ("~*", _token_regex(value)) if rule["match"] == "token" else ("ILIKE", f"%{value}%")
     )
+    return (
+        f"""p.source LIKE ANY(:src_likes) AND p.id IN (
+            SELECT ptx.project_id FROM project_texts ptx
+            WHERE ptx.title {op} :needle OR ptx.abstract {op} :needle
+        )""",
+        {"src_likes": [f"{src}%" for src in rule["sources_list"]], "needle": needle},
+    )
+
+
+def _token_regex(value: str) -> str:
+    """Le MOT ENTIER : « icao » ne se cache pas dans un mot plus long."""
+    return r"\m" + re.escape(value) + r"\M"
 
 
 def _apply_veto(session: Session, slug: str, rule: dict[str, Any]) -> int:
     """Un veto retire un tag — jamais un tag STRUCTUREL (I6) : une
     interprétation ne renverse pas un fait de la source."""
+    op, needle = (
+        ("~*", _token_regex(rule["value"]))
+        if rule["match"] == "token"
+        else ("ILIKE", f"%{rule['value']}%")
+    )
     result = session.execute(
         text(
             "DELETE FROM project_lens_tags plt USING projects p "
@@ -442,12 +493,12 @@ def _apply_veto(session: Session, slug: str, rule: dict[str, Any]) -> int:
             "AND plt.proof <> 'structural' "
             "AND p.source LIKE ANY(:src_likes) AND p.id IN ("
             "  SELECT ptx.project_id FROM project_texts ptx "
-            "  WHERE ptx.title ILIKE :needle OR ptx.abstract ILIKE :needle)"
+            f"  WHERE ptx.title {op} :needle OR ptx.abstract {op} :needle)"
         ),
         {
             "lens": slug,
             "src_likes": [f"{src}%" for src in rule["sources_list"]],
-            "needle": f"%{rule['value']}%",
+            "needle": needle,
         },
     )
     return result.rowcount or 0
