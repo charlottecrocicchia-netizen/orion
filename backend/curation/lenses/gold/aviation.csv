@@ -1,0 +1,38 @@
+source,source_id,acronym,expected,cas,evidence
+cordis-fp7,999902,SAGE,core,positif_certain,Clean Sky 1 ITD Sustainable And Green Engines — moteurs d'avion 157 M€ le plus gros du noyau
+cordis-fp7,999903,SFWA,core,positif_certain,Clean Sky 1 ITD Smart Fixed Wing Aircraft — voilure intelligente 148 M€
+cordis-fp7,999904,SGO,core,positif_certain,Clean Sky 1 ITD Systems for Green Operations — systèmes avion 110 M€
+cordis-fp7,999901,GRA,core,positif_certain,Clean Sky 1 ITD Green Regional Aircraft — avion régional 69 M€
+cordis-fp7,999907,GRC,core,positif_certain,Clean Sky 1 ITD Green Rotorcraft — voilure tournante 57 M€
+cordis-horizon,101102011,OFELIA,core,positif_certain,Clean Aviation open fan (soufflante non carénée) 100 M€
+cordis-horizon,101256962,TAKE OFF,core,positif_certain,Clean Aviation open fan 100 M€
+cordis-horizon,101102019,HYDEA,core,positif_certain,Clean Aviation démonstrateur HYDROGÈNE pour l'avion 80 M€ — l'avion est l'objet le H2 son moyen
+cordis-horizon,101256972,PHARES,core,positif_certain,Clean Aviation propulsion hybride régionale 69 M€
+cordis-horizon,101256789,UNIFIED,core,positif_certain,Clean Aviation moteur intégré 64 M€
+cordis-horizon,101102006,SWITCH,core,positif_certain,Clean Aviation turbofan à injection d'eau 49 M€
+cordis-horizon,101101955,SMR ACAP,core,positif_certain,Clean Aviation architecture avion court-moyen courrier 45 M€
+cordis-h2020,821953,FALCon,excluded,flight_spatial,« Formation flight » pour récupérer un premier étage de LANCEUR — spatial cœur jamais aviation
+cordis-h2020,718119,ASTROCIT,excluded,flight_spatial,Nutrition pour vol SPATIAL habité — « flight » sans avion
+nih,F32GM088994,—,excluded,wing_biologique,Génétique des motifs d'AILES de papillon — « wing » biologique NIH
+nih,R01GM070026,—,excluded,wing_biologique,Évolution de la taille d'AILE chez Nasonia (guêpe) — NIH jamais tagué par motif texte
+cordis-h2020,652816,GasOn,excluded,engine_automobile,Moteurs à combustion GAZ pour VÉHICULES — « engine » automobile
+cordis-h2020,717278,pressureNose,excluded,engine_automobile,Capteurs pour moteurs à combustion automobiles
+cordis-horizon,101287726,SpeedAPP,excluded,piege_engineering,« AI-driven ENGINEERING simulations » — le motif « engine » attrape « engineering »
+cordis-horizon,101279721,BioHydroCat,excluded,hydrogen_industriel,Électrolyse pour valorisation de biomasse — H2 sans avion
+cordis-horizon,101299919,COHERENT,excluded,hydrogen_industriel,H2 communautaire et marchés carbone — énergie jamais aviation
+cordis-h2020,641498,MAGNIFIC,excluded,navigation_gnss_generique,Diffusion GNSS européenne en Afrique multi-domaines — navigation sans système aérien
+cordis-h2020,663947,SINANN,excluded,navigation_maritime,Navigation SONAR intégrée — maritime
+cordis-h2020,697900,GIDROM,excluded,drone_outil,Drone OUTIL de surveillance agricole — l'objet est la mesure pas l'aéronef
+cordis-h2020,761656,DroneHopper,excluded,drone_outil,Drone de lutte incendie — service par drone (cas dur car l'aéronef est le produit) tenu EXCLU tant que la frontière UAS n'est pas arbitrée
+cordis-fp7,618756,UNAELCO,excluded,aero_eolien,Contrôle aéroélastique d'ÉOLIENNES multi-MW — les méthodes aéro ne font pas l'aviation
+cordis-fp7,624646,ACTAGREEN,excluded,aero_eolien,Aéroélasticité pour transport et énergie verte — éolien
+nsf,0938820,—,excluded,nsf_avion_outil,Avion de recherche NSF comme INSTRUMENT atmosphérique
+nsf,1126361,—,excluded,nsf_avion_outil,Instrument temps réel embarqué sur avion de recherche — l'avion est le porteur pas l'objet
+cordis-horizon,101286541,HAVEN,a_arbitrer,frontiere_sesar_atm,SESAR 3 plateforme ATS virtualisée — cœur du système aérien ou hors lentille (décision F1)
+cordis-horizon,101288834,ARTEMISA,a_arbitrer,frontiere_sesar_atm,SESAR 3 plateformes en-route/TMA — décision F1
+cordis-horizon,101114844,MIAR,a_arbitrer,frontiere_gnss_x_space,SESAR I-CNS satellite — chevauchement nominal Space×Aviation SI SESAR retenu (F1)
+cordis-horizon,101114789,Green-GEAR,a_arbitrer,frontiere_gnss_x_space,SESAR altitude géométrique par satellite — chevauchement nominal si F1 retient SESAR
+cordis-horizon,101062923,OPENSRUM,a_arbitrer,frontiere_uas_aam,Conversion de puissance pour eVTOL — décision F2 (UAS/AAM)
+cordis-horizon,101075332,HAIKU,a_arbitrer,frontiere_uas_aam,Facteur humain IA pour aviation et UAM — décision F2
+cordis-horizon,101056818,OVERLEAF,a_arbitrer,frontiere_h2_avion,Réservoir H2 liquide cryogénique POUR AVION hors noyau JU — décision F3 (ligne hydrogène)
+cordis-horizon,101096286,MYTHOS,a_arbitrer,frontiere_h2_avion,Moteur flexi-fuel/H2 moyen-courrier hors noyau — décision F3
