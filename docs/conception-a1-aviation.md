@@ -1621,3 +1621,126 @@ ouvertes : le **recensement des ≥ 20 M€** (26 revus sur 63, les
 organisations**.
 
 Aucune règle n'a bougé. Aviation reste `draft`.
+
+---
+
+## A1 · Corrections de rapport et construction de l'intervalle (2026-08-19)
+
+### ① Deux métriques taxonomiques, nommées séparément
+
+| Métrique | Valeur | Ce qu'elle dit |
+|---|---|---|
+| **current-corpus precision** | **154/162 = 95,06 %** | la voie exhaustivement relue — décrit **l'état servi**, variance d'échantillonnage **nulle** (c'est un recensement) |
+| **independent holdout precision** | **94/102 = 92,16 %** | hors échantillon de conception — **seule mesure de généralisation** |
+
+Les deux sont vraies et ne répondent pas à la même question. La
+première dit ce que le corpus actuel contient ; la seconde dit ce que
+la règle ferait sur des projets qu'elle n'a jamais vus.
+
+### ② Les 7 structurels déjà revus, réintégrés comme certains
+
+Sept projets à preuve structurelle avaient été relus lors des campagnes
+précédentes — **tous `core`**, et six d'entre eux pèsent plus de 20 M€
+(GAM AIR 2018, GAM-2020-LPA, -FRC, -AIR, -ENG, -SYS, ECO GAM 2018).
+
+Ils forment une **neuvième strate exhaustive** : N = n = 7, correction
+de population finie nulle, contribution nulle à la variance.
+
+Population structurelle = **1 585 sondés + 7 certains = 1 592**.
+
+### ③ La construction de l'intervalle, reproductible
+
+**Estimateur.** Précision stratifiée par allocation :
+`P = Σ_h W_h · p_h`, avec `W_h = N_h / N` et `p_h = (n_h − e_h) / n_h`.
+
+**Variance.** `V(P) = Σ_h W_h² · (1 − n_h/N_h) · p_h(1−p_h) / (n_h − 1)`,
+où `(1 − n_h/N_h)` est la **correction de population finie de la
+strate**. Les strates exhaustives (`H2020-IBA-CS2-GAMS-` 11/11,
+`JTI-CS-` 7/7, et les 7 certains) ont un CPF **nul** et disparaissent
+de la somme.
+
+**Effet de plan.** `deff = V(P) / V_SRS` avec
+`V_SRS = p̂(1−p̂)/n` sur l'agrégat.
+Mesuré : **V(P) = 8,801 × 10⁻⁵**, **V_SRS = 7,388 × 10⁻⁵**,
+**deff = 1,1914**. Le plan est *moins* efficace qu'un tirage simple
+parce que `Clean-Aviation` a été sur-échantillonnée au plancher.
+
+**Taille effective.** `n_eff = n / deff = 200 / 1,1914 = **167,9**`.
+
+**Wilson modifié.** L'intervalle de Wilson est calculé **sur `n_eff`**,
+pas sur `n` — c'est ce qui transporte l'effet de plan dans une borne
+qui ne dépasse jamais 100 % :
+
+```
+centre = (p̂ + z²/2n_eff) / (1 + z²/n_eff)
+demi   = z/(1 + z²/n_eff) · √( p̂(1−p̂)/n_eff + z²/(4·n_eff²) )
+```
+
+puis les bornes sont **mélangées avec les strates certaines** au poids
+des populations : `borne = (N_sondé · borne_Wilson + N_certain · 1) / N`.
+
+### Les chiffres qui en découlent
+
+| | Point | IC normal stratifié | Borne basse Wilson modifié |
+|---|---|---|---|
+| **Structurelle** (N = 1 592) | **98,29 %** | [96,45 % ; 100 %] | **95,32 %** |
+| **Globale — corpus actuel** | **97,99 %** | [96,33 % ; 99,65 %] | **95,29 %** |
+| **Globale — prudente** | **97,72 %** | [96,03 % ; 99,41 %] | **94,73 %** |
+
+Poids : structurel 1 592 (90,76 %), taxonomique 162 (9,24 %).
+
+### Verdict P1, dit sans arrondi favorable
+
+- **Lecture « corpus actuel » : le seuil de 95 % est franchi par les
+  deux bornes** — normale (96,33 %) et Wilson modifiée (95,29 %).
+- **Lecture « généralisation » : le point (97,72 %) et la borne normale
+  (96,03 %) franchissent le seuil ; la borne Wilson modifiée s'arrête à
+  94,73 %, soit 0,27 point en dessous.**
+
+C'est la seule des six bornes qui ne passe pas, et elle est la plus
+sévère des six : elle cumule l'effet de plan et l'hypothèse que la
+généralisation taxonomique vaut 92,16 %. **P1 est franchie**, et cette
+réserve est consignée telle quelle plutôt qu'arrondie.
+
+### Recensement des ≥ 20 M€ — décompte corrigé
+
+Mon chiffre précédent de « 37 restants » était **faux** : il ignorait
+les 7 structurels déjà revus (dont 6 pèsent ≥ 20 M€) et le projet
+taxonomique ≥ 20 M€, lui aussi déjà relu.
+
+| | Projets | Masse |
+|---|---|---|
+| ≥ 20 M€ dans la lentille | 63 | 3,423 Md€ (54,3 % du financement) |
+| **déjà revus** | **33** | **tous `core`** |
+| **restent à contrôler (P2)** | **30** | **1,100 Md€** |
+
+---
+
+## A1 · P2 — le contrôle des gros montants (2026-08-19)
+
+`docs/curation/a1-p2-gros-montants.csv` — **30 projets, 1 100 M€**,
+tous à preuve structurelle. Colonnes : `n, source_id, acronym, meur,
+titre, resume_complet, label_propose, raison, mon_label, note`.
+
+Cette table **n'est pas aveugle** : elle porte ma proposition et sa
+raison, comme demandé. Les 30 raisons sont écrites à la main, une par
+projet.
+
+**Toutes mes propositions sont `core`.** Les 30 se répartissent en
+quatre familles sans ambiguïté :
+
+- **démonstrateurs Clean Aviation** — OFELIA et TAKE OFF (soufflante
+  non carénée, 100 M€ chacun), HYDEA, PHARES, SWITCH, HE-ART, DEMETRA,
+  FAME, NEWBORN, HEAVEN, HERFUSE, TheMa4HERA, FASTER-H2, HERWINGT,
+  CONCERTO ;
+- **aéronautique FP7** — MAAXIMUS, LEMCOTEC, CRESCENDO, SARISTU,
+  ALICIA, ENOVAL, ESPOSA, SCARLETT, ASHLEY, ACTUATION2015 ;
+- **ATM SESAR** — HAVEN, PJ10 PROSA, PJ18 4DTM, PJ14 EECNS,
+  PJ10-W2 PROSA.
+
+**Le critère qui compte — aucun ≥ 20 M€ hors domaine aviation — est
+respecté dans ma lecture.** C'est ta relecture qui le tranche.
+
+Avec les 33 déjà revus, les **63 gros projets seront tous recettés**.
+Aucune règle n'a bougé. Aviation reste `draft`. P3 — le top 50 des
+organisations — suit.
