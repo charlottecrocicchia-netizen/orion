@@ -1744,3 +1744,53 @@ respecté dans ma lecture.** C'est ta relecture qui le tranche.
 Avec les 33 déjà revus, les **63 gros projets seront tous recettés**.
 Aucune règle n'a bougé. Aviation reste `draft`. P3 — le top 50 des
 organisations — suit.
+
+---
+
+## A1 · Statut de P1, arrêté (2026-08-19)
+
+**P1 est franchie sur le gate historique, réserve publiée.**
+
+Le **Wilson modifié structurel est conservé** comme instrument. La
+valeur de **94,73 % est documentée comme *conservative generalisation
+bound*** — **pas** comme la borne d'un intervalle de confiance global
+formel : les variances des deux composantes ne sont pas combinées dans
+un estimateur unique, et l'assembler comme si elles l'étaient serait
+une confusion de nature.
+
+**Le seuil ne change pas après observation.** La doctrine « la borne
+basse doit être ≥ 95 % » est consignée comme **question de conception
+pour les lentilles futures** — elle ne s'applique pas rétroactivement à
+celle-ci. Déplacer une porte après avoir vu le résultat n'est pas de la
+rigueur, c'en est le contraire.
+
+---
+
+## A1 · P2 — la revue aveugle des gros montants (2026-08-19)
+
+`docs/curation/a1-p2-revue-aveugle.csv` — **30 projets**, protocole
+V2-A : `review_id, source_id, acronym, titre, resume_complet,
+mon_label, note`.
+
+Ni montant, ni appel, ni strate, ni proposition, ni raison. Résumés
+entiers — médiane 1 952 caractères, max 3 285.
+
+**L'ordre est mélangé de façon reproductible.** Le classement par
+montant décroissant aurait rétabli l'information que la colonne
+`meur` retire : un ordre monotone est une colonne cachée.
+
+Ma table motivée reste dans `a1-p2-gros-montants.csv`, pour la
+confrontation après revue.
+
+### Ce que la mesure fournira
+
+1. **Réassociation** des labels.
+2. **Mesure exhaustive des 63** projets ≥ 20 M€ — `core` / `enabling` /
+   `excluded`, **montants par catégorie**, et **part du financement
+   correctement classifiée**. La métrique en euros prime : un taux de
+   projets ne dit rien quand la moitié de la masse tient sur soixante
+   lignes.
+3. **Verdict P2-A** : *zéro projet ≥ 20 M€ hors domaine aviation*.
+
+Aucune règle ne bouge avant clôture. P3 — le top 50 des organisations —
+attend.
