@@ -1364,3 +1364,101 @@ nommé.
 Aucun veto, aucune règle `enabling`, aucun élargissement de motif,
 aucune publication. **Les 102 rejoignent les 200 dans le jeu
 consommé** (I10) : plus jamais ils ne valideront quoi que ce soit.
+
+---
+
+## A1 · V2-A — mesurer la preuve structurelle (2026-08-19)
+
+**Gel total des règles.** Rien n'a été modifié, ni ne le sera à partir
+des erreurs observées. V2-B est en attente, **V2-C est écartée
+définitivement** : exiger un co-signal structurel contredirait
+DroneHopper, MarineUAS, THRUST et Ampyx — *le financement n'est pas la
+taxonomie de la technologie*.
+
+### Métrique descriptive des 162 taxonomic-confirmed
+
+Tous sont désormais revus au moins une fois (102 par le holdout,
+60 par l'échantillon des 200) :
+
+| | | |
+|---|---|---|
+| `core` | 154 | 95,1 % |
+| `enabling` | 3 | 1,9 % |
+| `excluded` | 5 | 3,1 % |
+
+**Ce n'est pas une validation indépendante.** 60 de ces 162 ont servi à
+concevoir les règles ; leur justesse est un artefact de conception.
+**Le chiffre hors échantillon reste 94/102 = 92,2 %.** Ces 95,1 % ne
+décrivent que la population taguée, ils ne prédisent rien.
+
+### Le tirage — 200 parmi les 1 585 structurels jamais revus
+
+Stratification par les huit règles d'appel. Allocation
+proportionnelle au volume réel, plancher de 15 pour les petites
+strates, **revue exhaustive** quand la strate est minuscule.
+
+| Strate | Population | n | Taux | Mode |
+|---|---|---|---|---|
+| `H2020-CS2-` | 543 | 59 | 10,9 % | proportionnelle |
+| `SP1-JTI-CS-` | 486 | 53 | 10,9 % | proportionnelle |
+| `FP7-AAT-` | 233 | 26 | 11,2 % | proportionnelle |
+| `H2020-SESAR-` | 149 | 16 | 10,7 % | proportionnelle |
+| `HORIZON-SESAR-` | 116 | 13 | 11,2 % | proportionnelle |
+| `HORIZON-JU-Clean-Aviation-` | 40 | 15 | 37,5 % | **plancher** |
+| `H2020-IBA-CS2-GAMS-` | 11 | 11 | 100 % | **exhaustive** |
+| `JTI-CS-` | 7 | 7 | 100 % | **exhaustive** |
+| **Total** | **1 585** | **200** | 12,6 % | |
+
+Tirage **reproductible** — `random.Random(20260819)` sur les
+identifiants triés. Aucun chevauchement de préfixe (résolution par le
+préfixe le plus long, 0 cas).
+
+### La revue est en aveugle
+
+`docs/curation/a1-v2a-echantillon-structurel.csv` — colonnes
+`n, source_id, acronym, meur, titre, resume_court, label_propose,
+raison`. **Ni l'appel, ni la strate.** L'ordre des lignes est mélangé
+de façon reproductible pour que la provenance ne transparaisse pas non
+plus dans la succession.
+
+La correspondance vit dans un fichier séparé,
+`a1-v2a-cle-strates-a-ne-pas-ouvrir-avant-revue.csv`, qui porte la
+strate, la population et le poids de chaque projet. Il est versionné
+pour survivre aux sessions — **le nom est l'avertissement**.
+
+### Comment les propositions ont été produites
+
+- **196 `core`, 4 `a_arbitrer`.** La proposition par défaut est celle
+  de la règle chargée.
+- Les **21 projets sans aucun vocabulaire aéronautique** dans leur
+  texte ont été lus un par un et leur raison est écrite à la main :
+  presque tous sont indiscutables à la lecture (aubes de turbomachine,
+  buffet transsonique, protection givre d'aile laminaire, impact
+  d'oiseau, régulation carburant, lubrification CROR).
+- Les **4 `a_arbitrer`** sont ceux dont le texte seul n'établit pas
+  l'objet aéronautique : MultiModX (air + rail), HITECA (automobile,
+  aérospatial et énergie), ISINTHER (thermoplastiques sans objet
+  explicite), COMPOSLEEVE (manchon de moteur électrique).
+- Les **26 projets ≥ 20 M€** ont été lus : tous sont des démonstrateurs
+  aéronautiques indiscutables — ITD Clean Sky, GAM, démonstrateurs
+  Clean Aviation, ATM SESAR. Le plus gros pèse 185 M€.
+- Pour les autres, la raison est une **signature de contenu** — les
+  termes aéronautiques effectivement présents dans le texte. Elle dit
+  ce que le texte porte, elle ne prétend pas à une lecture approfondie.
+
+L'échantillon pèse **1 973 M€**.
+
+### Ce que la mesure fournira, une fois la revue rendue
+
+n et erreurs par strate · précision par strate · **précision
+structurelle pondérée par la population réelle** · intervalle de
+confiance · **précision globale pondérée de la lentille** (structurel
++ taxonomique combinés) · le sort des projets ≥ 20 M€ et l'impact des
+erreurs éventuelles sur les KPI.
+
+### Ce qui ne se fera pas
+
+Aucune règle ne sera modifiée à partir des erreurs observées.
+L'échantillon des 430 rejetés, s'il vient, sera une mesure séparée de
+**candidate-pool recall** — jamais présentée comme un rappel global.
+Aviation reste `draft`.
