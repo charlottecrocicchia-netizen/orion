@@ -117,7 +117,30 @@ def seeded(db_session):
     # refresh them, exactly as the ingestion chain does in production.
     db_session.execute(text("REFRESH MATERIALIZED VIEW country_stats"))
     db_session.execute(text("REFRESH MATERIALIZED VIEW country_pair_stats"))
-    return {"hydro": hydro.id, "wind": wind.id, "org_fr": org_fr.id}
+    # Une lentille PUBLIÉE qui ne tague QUE le projet hydrogène : elle
+    # permet de prouver qu'une liste cadrée ne montre que son monde.
+    db_session.execute(
+        text(
+            "INSERT INTO lenses (slug, family_key, rank, status) "
+            "VALUES (:s, 'zz_test_family', 98, 'published') ON CONFLICT (slug) DO NOTHING"
+        ),
+        {"s": f"zz{MARK}"},
+    )
+    db_session.execute(
+        text(
+            "INSERT INTO project_lens_tags (project_id, lens, tag) VALUES (:p, :s, 'core') "
+            "ON CONFLICT (project_id, lens) DO NOTHING"
+        ),
+        {"p": hydro.id, "s": f"zz{MARK}"},
+    )
+    db_session.flush()
+    return {
+        "hydro": hydro.id,
+        "wind": wind.id,
+        "org_fr": org_fr.id,
+        "org_de": org_de.id,
+        "lens": f"zz{MARK}",
+    }
 
 
 def _ids(result):
@@ -192,3 +215,50 @@ def test_organisation_aggregates(db_session, seeded):
     hit = next(r for r in result["results"] if r["id"] == seeded["org_fr"])
     assert hit["projects_count"] == 1
     assert hit["total_funding_eur"] == 5_000_000.0
+
+
+def test_a_framed_organisation_list_shows_only_the_lens_world(db_session, seeded):
+    """Bug de doctrine du 2026-08-19 : la page portait le cadrage sans
+    l'appliquer — l'URL disait aviation, la liste montrait le corpus.
+    Une URL qui ment sur son périmètre est l'interdit d'U2."""
+    framed = search_organisations(
+        db_session, OrganisationFilters(sector=seeded["lens"], sort="funding", size=50)
+    )
+    ids = _ids(framed)
+    # L'organisation du projet tagué est là ; celle du projet hors
+    # lentille ne l'est pas.
+    assert seeded["org_fr"] in ids
+    assert seeded["org_de"] not in ids
+    # Et le total dit le monde de la LENTILLE, jamais le corpus.
+    assert framed["total"] < 50
+
+
+def test_a_framed_list_shows_the_lens_figures_not_the_world_figures(db_session, seeded):
+    """Le compte de projets et le financement d'une organisation, sous
+    cadrage, sont ses chiffres DE LA LENTILLE."""
+    # Hors cadrage, l'organisation porte ses deux mondes.
+    db_session.execute(
+        text(
+            "INSERT INTO participations (project_id, organisation_id, role, country_code, "
+            "amount_eur, source, source_uid) VALUES (:p, :o, 'partner', 'FR', 2000000, "
+            ":src, :uid) ON CONFLICT DO NOTHING"
+        ),
+        {"p": seeded["wind"], "o": seeded["org_fr"], "src": f"test-{MARK}", "uid": f"{MARK}-p3"},
+    )
+    db_session.flush()
+
+    monde = search_organisations(db_session, OrganisationFilters(q=f"{MARK} Institut Hydrogène"))
+    hit_monde = next(r for r in monde["results"] if r["id"] == seeded["org_fr"])
+    assert hit_monde["projects_count"] == 2
+    assert hit_monde["total_funding_eur"] == 7_000_000.0
+
+    cadre = search_organisations(
+        db_session,
+        OrganisationFilters(q=f"{MARK} Institut Hydrogène", sector=seeded["lens"]),
+    )
+    hit_cadre = next(r for r in cadre["results"] if r["id"] == seeded["org_fr"])
+    # Le projet éolien n'est pas de la lentille : il sort des chiffres.
+    assert hit_cadre["projects_count"] == 1
+    assert hit_cadre["total_funding_eur"] == 5_000_000.0
+    # La trajectoire aussi est cadrée : la seule année du projet tagué.
+    assert [y["year"] for y in hit_cadre["funding_by_year"]] == [2023]

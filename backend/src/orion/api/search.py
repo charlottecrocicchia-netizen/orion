@@ -69,6 +69,7 @@ def suggest_endpoint(
 
 @router.get("/search/organisations")
 def search_organisations_endpoint(
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     q: str | None = None,
     country: Annotated[list[str] | None, Query()] = None,
@@ -76,6 +77,7 @@ def search_organisations_endpoint(
     sort: str = "relevance",
     page: int = 1,
     size: int = 20,
+    sector: str | None = None,
 ) -> dict[str, Any]:
     filters = OrganisationFilters(
         q=q or None,
@@ -84,5 +86,8 @@ def search_organisations_endpoint(
         sort=sort,
         page=page,
         size=size,
+        # Le même contrat que partout : un cadrage invalide est REFUSÉ,
+        # jamais un repli silencieux sur le corpus.
+        sector=resolve_lens_param(request, db, sector),
     )
     return search_organisations(db, filters)

@@ -491,6 +491,7 @@ export function ProjectsSearchPage() {
 
 export function OrganisationsSearchPage() {
   const carriedTop = useCarriedLens();
+  const orgLensState = useActiveLensState();
   const { t, i18n } = useTranslation();
   const countryName = useCountryName();
   const { params, update, toggleMulti, replaceAll } = useSearchState();
@@ -514,6 +515,10 @@ export function OrganisationsSearchPage() {
       ? data?.results[0]
       : null;
   const rest = bestMatch ? (data?.results.slice(1) ?? []) : (data?.results ?? []);
+
+  // Le refus unifié (M1.2), ici aussi : jamais un repli silencieux sur
+  // le corpus entier sous une URL qui annonce une lentille.
+  if (orgLensState.kind === "invalid") return <LensUnavailable />;
 
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
@@ -547,13 +552,20 @@ export function OrganisationsSearchPage() {
         {!composed ? <ComposerExamples kind="organisations" replaceAll={replaceAll} /> : null}
       </div>
 
-      <div className="mt-5 flex items-baseline gap-3">
-        <h1 className="display-tight tnum text-[26px] font-semibold">
+      <div className="mt-5 flex flex-wrap items-baseline gap-3">
+        <h1 data-testid="orgs-total" className="display-tight tnum text-[26px] font-semibold">
           {isPending ? "…" : t("search.results", { count: data?.total ?? 0 })}
         </h1>
         {q ? (
           <span className="text-sm text-muted-foreground">{t("search.resultsFor", { q })}</span>
         ) : null}
+        {/* Le périmètre, nommé ici aussi (bug de doctrine 2026-08-19) :
+            une liste cadrée DIT son cadre et le SERT — les chiffres de
+            chaque organisation sont ceux de la lentille. */}
+        <SectorChip
+          sector={orgLensState.kind === "valid" ? (params.get(LENS_PARAM) ?? "") : ""}
+          onChange={(next) => update({ sector: next || null })}
+        />
       </div>
 
       {composed ? (

@@ -93,3 +93,21 @@ describe("withLens — la propagation de la lentille active", () => {
     expect(withLens("", null)).toBe("");
   });
 });
+
+describe("les surfaces qui ne consomment pas ne reçoivent pas", () => {
+  it("exclut les fiches et les hubs — porter sans servir est interdit", () => {
+    expect(withLens("/organisations/42", "aviation")).toBe("/organisations/42");
+    expect(withLens("/projects/7", "aviation")).toBe("/projects/7");
+    expect(withLens("/groups/3", "aviation")).toBe("/groups/3");
+    expect(withLens("/explore/countries/FR", "aviation")).toBe("/explore/countries/FR");
+  });
+  it("exclut les artefacts de l'utilisateur", () => {
+    expect(withLens("/dossier", "aviation")).toBe("/dossier");
+    expect(withLens("/workspace", "aviation")).toBe("/workspace");
+  });
+  it("mais les LISTES qui consomment reçoivent bien le cadre", () => {
+    expect(withLens("/organisations", "aviation")).toBe("/organisations?sector=aviation");
+    expect(withLens("/projects", "aviation")).toBe("/projects?sector=aviation");
+    expect(withLens("/analyses", "aviation")).toBe("/analyses?sector=aviation");
+  });
+});

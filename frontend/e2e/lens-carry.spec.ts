@@ -104,3 +104,36 @@ test("fuite ② colmatée : deck Aviation → logo → home cadrée Aviation", a
     timeout: 15_000,
   });
 });
+
+test("bug de doctrine : /organisations cadrée montre le monde de la lentille", async ({ page }) => {
+  // 2026-08-19 : la page PORTAIT le cadrage sans l'appliquer — l'URL
+  // disait aviation, la liste montrait le corpus entier. Une URL qui
+  // ment sur son périmètre est l'interdit d'U2.
+  // Cadré sur la lentille qui PORTE des projets dans la graine.
+  await page.goto("/organisations?sector=space&sort=funding");
+  // Le chip de périmètre est là, comme partout.
+  await expect(page.getByRole("button", { name: /Périmètre spatial de cette vue/ })).toBeVisible({
+    timeout: 15_000,
+  });
+  // Le compte est celui de la lentille, jamais celui du corpus.
+  const framedCount = await page.getByTestId("orgs-total").innerText();
+  const framed = Number(framedCount.replace(/\D/g, ""));
+  expect(framed).toBeGreaterThan(0);
+
+  // Et une lentille publiée SANS projet tagué dit honnêtement zéro —
+  // jamais le corpus entier sous une URL qui annonce l'aéronautique.
+  await page.goto("/organisations?sector=aviation&sort=funding");
+  await expect(page.getByTestId("orgs-total")).toBeVisible({ timeout: 15_000 });
+  const emptyCount = await page.getByTestId("orgs-total").innerText();
+  expect(Number(emptyCount.replace(/\D/g, ""))).toBe(0);
+
+  // Le corpus nu reste intact : sans paramètre, rien ne change. On
+  // ATTEND la valeur au lieu de la lire une fois — la liste arrive
+  // après sa requête.
+  await page.goto("/organisations?sort=funding");
+  await expect
+    .poll(async () =>
+      Number((await page.getByTestId("orgs-total").innerText()).replace(/\D/g, "")),
+    )
+    .toBeGreaterThan(framed);
+});

@@ -576,6 +576,36 @@ class OrganisationFilters:
     sort: str = "relevance"
     page: int = 1
     size: int = 20
+    #: Le cadrage de lentille. Une liste cadrée ne montre QUE les
+    #: organisations de la lentille, et leurs chiffres sont ceux de la
+    #: lentille — porter le paramètre sans l'appliquer serait une URL
+    #: qui ment sur son périmètre (U2 ; bug de doctrine 2026-08-19).
+    sector: str | None = None
+
+
+def _lens_participation_clause(sector: str, params: dict[str, Any]) -> str:
+    """L'organisation participe à un projet de la lentille. Même idiome
+    semi-join que partout ailleurs — et le tag `core` seul quand le
+    cadrage dit `-direct`."""
+    lens_slug, core_only = parse_sector(sector)
+    params["sector_lens"] = lens_slug
+    tag_clause = " AND plt.tag = 'core'" if core_only else ""
+    return (
+        "o.id IN (SELECT pa.organisation_id FROM participations pa "
+        "JOIN project_lens_tags plt ON plt.project_id = pa.project_id "
+        f"WHERE plt.lens = :sector_lens{tag_clause})"
+    )
+
+
+def _lens_project_filter(sector: str) -> str:
+    """Le filtre à poser sur les agrégats d'une organisation : ses
+    chiffres CADRÉS, jamais ses chiffres monde."""
+    _, core_only = parse_sector(sector)
+    tag_clause = " AND plt2.tag = 'core'" if core_only else ""
+    return (
+        " AND pa.project_id IN (SELECT plt2.project_id FROM project_lens_tags plt2 "
+        f"WHERE plt2.lens = :sector_lens{tag_clause})"
+    )
 
 
 def _organisation_where(f: OrganisationFilters, params: dict[str, Any]) -> tuple[str, str]:
@@ -599,6 +629,8 @@ def _organisation_where(f: OrganisationFilters, params: dict[str, Any]) -> tuple
     if f.org_types:
         clauses.append("o.org_type = ANY(:org_types)")
         params["org_types"] = f.org_types
+    if f.sector:
+        clauses.append(_lens_participation_clause(f.sector, params))
     where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
     return where, rank
 
@@ -665,7 +697,26 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
 
     # Step 1 — pick the page of organisations WITHOUT aggregate joins: the
     # lateral sums over every candidate were the main cost of this search.
-    if f.sort in ("funding", "projects"):
+    if f.sort in ("funding", "projects") and f.sector:
+        # CADRÉ : `organisation_stats` est un agrégat MONDE — s'en servir
+        # ici classerait Johns Hopkins en tête d'une liste aviation. Le
+        # classement se calcule sur le périmètre de la lentille.
+        lens_agg = "sum(pa.amount_eur)" if f.sort == "funding" else "count(DISTINCT pa.project_id)"
+        page_rows = session.execute(
+            text(f"""
+            SELECT pa.organisation_id AS id
+            FROM participations pa
+            WHERE pa.organisation_id IN (SELECT o.id FROM organisations o {where})
+              {_lens_project_filter(f.sector)}
+            GROUP BY pa.organisation_id
+            ORDER BY {lens_agg} DESC NULLS LAST
+            LIMIT :size OFFSET :offset
+            """),
+            params,
+        ).all()
+        page_ids = [r.id for r in page_rows]
+        aggregates = {}
+    elif f.sort in ("funding", "projects"):
         agg_order = "total_funding_eur" if f.sort == "funding" else "projects_count"
         # organisation_stats is refreshed after each dedup pass; slightly stale
         # ordering is fine, displayed numbers below stay live.
@@ -697,17 +748,24 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
         aggregates = {}
 
     # Step 2 — details and aggregates for the page only.
+    # Les chiffres AFFICHÉS suivent le cadrage : sous lentille, le compte
+    # de projets et le financement d'une organisation sont ses chiffres
+    # DE LA LENTILLE — jamais ses chiffres monde sous une URL cadrée.
+    lens_filter = _lens_project_filter(f.sector) if f.sector else ""
+    detail_params: dict[str, Any] = {"ids": page_ids}
+    if f.sector:
+        detail_params["sector_lens"] = parse_sector(f.sector)[0]
     detail_rows = (
         session.execute(
-            text("""
+            text(f"""
             SELECT o.id, o.name, o.country_code, o.org_type,
                    (SELECT count(DISTINCT pa.project_id) FROM participations pa
-                    WHERE pa.organisation_id = o.id) AS projects_count,
+                    WHERE pa.organisation_id = o.id{lens_filter}) AS projects_count,
                    (SELECT sum(pa.amount_eur) FROM participations pa
-                    WHERE pa.organisation_id = o.id) AS total_funding
+                    WHERE pa.organisation_id = o.id{lens_filter}) AS total_funding
             FROM organisations o WHERE o.id = ANY(CAST(:ids AS integer[]))
             """),
-            {"ids": page_ids},
+            detail_params,
         )
         .mappings()
         .all()
@@ -721,7 +779,7 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
     years_by_org: dict[int, list[dict[str, Any]]] = {}
     if page_ids:
         year_rows = session.execute(
-            text("""
+            text(f"""
             SELECT pa.organisation_id AS org_id,
                    extract(year FROM p.start_date)::int AS y,
                    sum(pa.amount_eur) AS amount
@@ -729,9 +787,10 @@ def search_organisations(session: Session, f: OrganisationFilters) -> dict[str, 
             WHERE pa.organisation_id = ANY(CAST(:ids AS integer[]))
               AND p.start_date IS NOT NULL
               AND extract(year FROM p.start_date) BETWEEN 2000 AND 2035
+              {lens_filter}
             GROUP BY 1, 2 ORDER BY 1, 2
             """),
-            {"ids": page_ids},
+            detail_params,
         ).all()
         for org_id, year, amount in year_rows:
             years_by_org.setdefault(org_id, []).append(

@@ -196,8 +196,36 @@ export function withoutLens(pathname: string, search: string): string {
  *
  *  Un lien qui porte DÉJÀ un `sector=` garde le sien : la propagation
  *  ne réécrit jamais un cadrage explicite. */
+/** Les surfaces qui ne peuvent pas honnêtement CONSOMMER une lentille
+ *  ne la reçoivent pas : porter le paramètre sans l'appliquer serait
+ *  une URL qui ment sur son périmètre (U2 ; bug de doctrine du
+ *  2026-08-19). Deux familles :
+ *
+ *  - les FICHES d'une entité et les hubs, dont les chiffres sont
+ *    encore des chiffres monde — tant qu'ils ne savent pas se cadrer,
+ *    ils restent nus plutôt que menteurs ;
+ *  - les ARTEFACTS de l'utilisateur (dossier, atelier) et les pages de
+ *    service, qui n'ont pas de périmètre à porter.
+ *
+ *  Retirer une entrée d'ici est un ENGAGEMENT : la surface consomme. */
+const LENS_BLIND = [
+  /^\/projects\/[^/]+$/,
+  /^\/organisations\/[^/]+$/,
+  /^\/groups\//,
+  /^\/compare$/,
+  /^\/explore\/countries\/[^/]+$/,
+  /^\/explore\/regions\//,
+  /^\/explore\/programmes\/[^/]+$/,
+  /^\/dossier$/,
+  /^\/workspace/,
+  /^\/calls$/,
+  /^\/lenses$/,
+];
+
 export function withLens(to: string, slug: string | null): string {
   if (!slug) return to;
+  const route = to.split("?", 1)[0].split("#", 1)[0];
+  if (LENS_BLIND.some((pattern) => pattern.test(route))) return to;
   const [beforeHash, hash] = to.split("#", 2);
   const [path, search] = beforeHash.split("?", 2);
   const params = new URLSearchParams(search ?? "");
