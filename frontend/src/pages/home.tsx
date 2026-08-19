@@ -514,7 +514,16 @@ export function HomePage() {
             <EditorialEntry
               to={leadDeck ? `/explore?angles=${leadDeck.key}` : "/analyses"}
               title={t("nav.analyse")}
-              desc={t("home.doorAnalyseDesc")}
+              /* La porte suit la lentille active (A2) : sa description
+                 dit le deck qu'elle OUVRE — jamais un titre en dur. */
+              desc={
+                leadDeck
+                  ? t("home.doorAnalyseDesc", {
+                      deck: t(`explorer.stories.${leadDeck.key}.title`),
+                      count: leadDeck.deck?.length ?? 0,
+                    })
+                  : t("home.doorAnalyseLibrary")
+              }
               figure={t("home.doorAnalyseFigure", { count: STORIES.length })}
             />
             <EditorialEntry

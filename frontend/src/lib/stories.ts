@@ -93,6 +93,80 @@ export const STORIES: Story[] = [
       },
     ],
   },
+  // ——— Les decks aéronautiques (A2, 2026-08-19) — le modèle des
+  // spatiaux, cadrés sector=aviation. PAS de miroir du deck
+  // « direct vs habilitant » : l'entrée unique vaut aussi ici — tant
+  // qu'Aviation n'a aucun habilitant, ce deck n'aurait pas d'objet.
+  {
+    key: "aviationMoney",
+    lens: "aviation",
+    params: "metric=funding&by=year&sector=aviation",
+    deck: [
+      {
+        params: "metric=funding&by=year&sector=aviation",
+        titleKey: "explorer.stories.aviationMoney.a1",
+      },
+      {
+        params: "metric=funding&by=programme&sector=aviation&view=donut&limit=6",
+        titleKey: "explorer.stories.aviationMoney.a2",
+      },
+      {
+        params: "metric=funding&by=country&split=0&sector=aviation&limit=8",
+        titleKey: "explorer.stories.aviationMoney.a3",
+      },
+      {
+        params: "metric=funding&by=organisation&split=1&sector=aviation&limit=6",
+        titleKey: "explorer.stories.aviationMoney.a4",
+      },
+    ],
+  },
+  {
+    key: "aviationRising",
+    lens: "aviation",
+    params: "metric=funding&by=organisation&split=1&sector=aviation&limit=5&view=bump",
+    deck: [
+      {
+        params: "metric=funding&by=organisation&split=1&sector=aviation&limit=5&view=bump",
+        titleKey: "explorer.stories.aviationRising.a1",
+      },
+      {
+        params: "metric=funding&by=organisation&split=1&sector=aviation&limit=7&view=delta",
+        titleKey: "explorer.stories.aviationRising.a2",
+      },
+      {
+        params: "metric=funding&by=country&split=1&sector=aviation&limit=5&view=bump",
+        titleKey: "explorer.stories.aviationRising.a3",
+      },
+    ],
+  },
+  {
+    // Clean Aviation et le pari du vol propre : la famille Clean pèse
+    // 60 % du financement de la lentille (CS1 0,8 → CS2 1,8 →
+    // Clean Aviation 1,2 Md€ dès 2022) ; l'hydrogène 0,6 Md€,
+    // l'électrique 1,6 — mesuré le 2026-08-19. Les angles suivent le
+    // motif, cadré aviation — la loi du deck hydrogène généraliste.
+    key: "aviationClean",
+    lens: "aviation",
+    params: "metric=funding&by=year&q=hydrogen&sector=aviation",
+    deck: [
+      {
+        params: "metric=funding&by=year&q=hydrogen&sector=aviation",
+        titleKey: "explorer.stories.aviationClean.a1",
+      },
+      {
+        params: "metric=funding&by=organisation&split=1&q=electric&sector=aviation&limit=6",
+        titleKey: "explorer.stories.aviationClean.a2",
+      },
+      {
+        params: "metric=funding&by=programme&q=hydrogen&sector=aviation&view=donut&limit=6",
+        titleKey: "explorer.stories.aviationClean.a3",
+      },
+      {
+        params: "metric=funding&by=country&split=0&q=hydrogen&sector=aviation&limit=8",
+        titleKey: "explorer.stories.aviationClean.a4",
+      },
+    ],
+  },
   {
     key: "hydrogen",
     params: "metric=funding&by=programme&q=hydrogen&view=donut&limit=6",
