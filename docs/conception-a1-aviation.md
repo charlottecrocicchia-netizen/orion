@@ -1462,3 +1462,61 @@ Aucune règle ne sera modifiée à partir des erreurs observées.
 L'échantillon des 430 rejetés, s'il vient, sera une mesure séparée de
 **candidate-pool recall** — jamais présentée comme un rappel global.
 Aviation reste `draft`.
+
+### Correction du paquet de revue — l'aveugle était incomplet
+
+Le premier fichier livré portait `label_propose` et `raison` : il
+**orientait le second lecteur**. Une copie strictement aveugle des
+**mêmes 200 lignes** est livrée —
+`docs/curation/a1-v2a-revue-aveugle.csv` :
+
+| Colonne | |
+|---|---|
+| `review_id` | 1 à 200, dans l'ordre mélangé reproductible |
+| `source_id`, `acronym`, `titre` | l'identité |
+| `resume_complet` | **le résumé ENTIER** — médiane 1 821 caractères, max 2 797 |
+| `mon_label`, `note` | vides, à remplir |
+
+Rien d'autre. Ni proposition, ni raison, ni appel, ni strate, ni
+population, ni montant, ni indicateur de doute ou d'absence de
+vocabulaire — **aucune trace de la première lecture**.
+
+Mes propositions restent dans
+`a1-v2a-echantillon-structurel.csv` : elles serviront à la
+confrontation à trois, après les deux revues aveugles. La clé des
+strates reste versionnée pour la reproductibilité, hors du paquet de
+revue.
+
+**Le tirage est gelé** : les 200 restent exactement ceux-là, ni ajout
+ni retrait.
+
+### Le protocole de mesure, arrêté d'avance
+
+1. **Réassociation** par la clé des strates.
+2. **Précision par strate** : n, erreurs, taux.
+3. **Précision structurelle pondérée** par les populations réelles,
+   `w = N/n` par strate.
+4. **Variance et intervalle stratifiés**, avec **correction de
+   population finie**. Les deux strates exhaustives —
+   `H2020-IBA-CS2-GAMS-` 11/11 et `JTI-CS-` 7/7 — ont une **incertitude
+   d'échantillonnage nulle** : leur `1 − n/N` vaut zéro, elles ne
+   contribuent pas à la variance.
+5. **Précision globale pondérée de la lentille**, structurel et
+   taxonomique combinés.
+6. **Croisement labels × montants**, avec **contrôle de tous les
+   ≥ 20 M€ hors échantillonnage**.
+
+### Le recensement des ≥ 20 M€, dimensionné
+
+| | Projets | |
+|---|---|---|
+| ≥ 20 M€ dans la lentille | **63** | dont 62 structurels, 1 taxonomique |
+| déjà dans les 200 tirés | 26 | |
+| **à contrôler hors échantillonnage** | **37** | 36 structurels + 1 taxonomique |
+
+**Ces 63 projets portent 3,423 Md€ — 54,3 % du financement de la
+lentille.** C'est la raison même du recensement : l'échantillonnage
+mesure la précision *par projet*, il ne protège pas le KPI en euros,
+que la moitié de la masse concentre sur soixante lignes.
+
+Aucune règle ne bouge pendant la revue.
