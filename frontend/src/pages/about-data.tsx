@@ -231,6 +231,15 @@ export function AboutDataPage() {
           participations sont historiques, la consolidation décrit la
           propriété d'aujourd'hui. Sans cette phrase, un lecteur informé
           prend la convention pour une erreur. */}
+      {/* ① (2026-08-19) : la question qu'un lecteur d'Horizon se
+          posera devant les cartes — participer n'est pas être financé. */}
+      <section className="mt-10" aria-label={t("about.thirdCountriesTitle")}>
+        <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+          {t("about.thirdCountriesTitle")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("about.thirdCountriesBody")}</p>
+      </section>
+
       <section className="mt-10" aria-label={t("about.groupsTitle")}>
         <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
           {t("about.groupsTitle")}

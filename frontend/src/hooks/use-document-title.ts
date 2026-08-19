@@ -45,12 +45,21 @@ export function useDocumentTitle(): void {
   useEffect(() => {
     const entry = VIEW_KEYS.find(([pattern]) => pattern.test(location.pathname));
     if (!entry) {
-      document.title = BRAND;
+      // Une page sans nom de vue (la home) compose quand même son
+      // identité quand une lentille la cadre : ORION / AÉRONAUTIQUE.
+      document.title =
+        lensState.kind === "valid"
+          ? `ORION / ${lensWords(lensState.lens.slug, t).name.toUpperCase()}`
+          : BRAND;
       return;
     }
     const view = t(entry[1]);
+    // L'identité composée (D5) : une vue cadrée dit ORION / <LENTILLE>,
+    // comme la Lens Room et le header.
     const lens =
       lensState.kind === "valid" ? lensWords(lensState.lens.slug, t).name : null;
-    document.title = lens ? `${lens} · ${view} — Orion` : `${view} — Orion`;
+    document.title = lens
+      ? `ORION / ${lens.toUpperCase()} · ${view}`
+      : `${view} — Orion`;
   }, [location.pathname, location.search, lensState, t, i18n.language]);
 }

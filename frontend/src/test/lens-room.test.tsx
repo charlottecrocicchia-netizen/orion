@@ -54,7 +54,7 @@ function mount(url: string) {
       <MemoryRouter initialEntries={[url]}>
         <Routes>
           <Route path="/lenses" element={<LensRoomPage />} />
-          <Route path="/explore" element={<p>EXPLORER CADRÉ</p>} />
+          <Route path="/" element={<p>HOME CADRÉE</p>} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -83,11 +83,11 @@ test("le focus vit dans l'URL et bascule l'identité composée", async () => {
   expect(screen.queryByText("SPACE")).toBeNull();
 });
 
-test("la règle de la carte : le second clic descend vers l'explorateur cadré", async () => {
+test("la règle de la carte : le second clic entre dans la home cadrée", async () => {
   mount("/lenses?focus=space");
   const space = await screen.findByRole("button", { name: /Space/ });
   // L'objet focalisé porte aria-pressed, et son second clic NAVIGUE.
   expect(space).toHaveAttribute("aria-pressed", "true");
   fireEvent.click(space);
-  expect(await screen.findByText("EXPLORER CADRÉ")).toBeInTheDocument();
+  expect(await screen.findByText("HOME CADRÉE")).toBeInTheDocument();
 });

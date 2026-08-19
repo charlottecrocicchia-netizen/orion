@@ -20,7 +20,9 @@ test("la home raconte le spatial : le hero dit son périmètre, la ligne corpus 
   // (exigence fondatrice ①) ; le corpus général devient la ligne
   // discrète, avec sa porte vers Toute la R&D.
   await page.goto("/");
-  await expect(page.getByText("Orion Space Intelligence").first()).toBeVisible();
+  // D5 exécutée (2026-08-19) : le jeton est « Orion », l'identité
+  // composée vit sur les vues cadrées — plus jamais le nom soudé.
+  await expect(page.getByText("Orion", { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/direct \+ habilitant/)).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText("projets spatiaux", { exact: true })).toBeVisible();
   await expect(page.getByText("groupes industriels", { exact: true })).toBeVisible();

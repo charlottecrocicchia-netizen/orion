@@ -41,7 +41,8 @@ test("le titre du document dit la lentille, la vue, et suit la navigation", asyn
 
   // Cadrée : la lentille passe devant, sans rechargement.
   await page.goto("/explore?sector=space&by=country&split=0");
-  await expect(page).toHaveTitle("Espace · Explorateur — Orion");
+  // D5 exécutée (2026-08-19) : la vue cadrée porte l'identité composée.
+  await expect(page).toHaveTitle("ORION / ESPACE · Explorateur");
 
   // Navigation interne (pas de rechargement) : le titre suit.
   await page.getByRole("link", { name: /Analyses prêtes|bibliothèque/ }).first().click();

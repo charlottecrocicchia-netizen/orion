@@ -193,7 +193,9 @@ export function LensRoomPage() {
                 onClick={() => {
                   // La règle de la carte : sélectionner, puis descendre.
                   if (isFocused) {
-                    navigate(`/explore?sector=${lens.slug}&by=country&split=0`);
+                    // On entre dans une LENTILLE — la home cadrée —
+                    // jamais directement sur un graphique (2026-08-19).
+                    navigate(`/?sector=${lens.slug}`);
                   } else {
                     setParams({ focus: lens.slug });
                   }

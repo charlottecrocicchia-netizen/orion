@@ -28,9 +28,12 @@ test("home → Lens Room → focus → l'explorateur cadré", async ({ page }) =
   await expect(page).toHaveURL(/focus=space/);
   await expect(page.getByText("ESPACE", { exact: true })).toBeVisible();
 
-  // Second clic : on DESCEND dans l'explorateur, cadré spatial.
+  // Second clic : on ENTRE dans la lentille — la home cadrée, jamais
+  // directement un graphique (2026-08-19).
   await page.getByRole("button", { name: /Espace/ }).click();
-  await expect(page).toHaveURL(/\/explore\?sector=space/);
+  await expect(page).toHaveURL(/\/\?sector=space/);
+  // Le header compose : ORION / ESPACE.
+  await expect(page.getByRole("link", { name: "Les lentilles", exact: true })).toContainText("ESPACE");
 });
 
 test("l'état focalisé est reproductible par URL, et la salle n'a pas de barre horizontale", async ({
@@ -52,4 +55,31 @@ test("la sortie du chip mène à la salle", async ({ page }) => {
   await chip.click();
   await page.getByRole("menuitem", { name: /Les lentilles/ }).click();
   await expect(page).toHaveURL(/\/lenses$/);
+});
+
+test("la home apprend l'URL : sans paramètre le rang 1, cadrée la lentille demandée", async ({
+  page,
+}) => {
+  // Sans paramètre : le hero de rang 1 — le spatial — inchangé (D4).
+  await page.goto("/");
+  await expect(page.getByText("projets spatiaux", { exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
+
+  // Cadrée : le hero d'Aviation — mots curés, mécanique M1.3.
+  await page.goto("/?sector=aviation");
+  await expect(page.getByText("projets aéronautiques", { exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText("Explorer l’aéronautique →")).toBeVisible();
+  // L'identité composée, dans le header et le titre du document.
+  await expect(page.getByRole("link", { name: "Les lentilles", exact: true })).toContainText("AÉRONAUTIQUE");
+  await expect(page).toHaveTitle(/ORION \/ AÉRONAUTIQUE/);
+
+  // Le refus M1.2 s'applique tel quel : une lentille inconnue ne rend
+  // jamais un hero — le refus unifié, sans détour.
+  await page.goto("/?sector=zzinconnue");
+  await expect(page.getByText(/n'est pas disponible|is not available/)).toBeVisible({
+    timeout: 15_000,
+  });
 });

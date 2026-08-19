@@ -11,6 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { useDossier } from "@/lib/dossier";
+import { lensWords, useActiveLensState } from "@/lib/lens";
 import { formatCompactEur } from "@/lib/format";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 
@@ -31,6 +32,25 @@ function ScopeBadge() {
       <span aria-hidden="true">🌍</span>
       {t("scope.coverage")}
     </span>
+  );
+}
+
+/** Le second terme de la marque : la lentille qui cadre la vue. Un
+ *  lien vers la Lens Room — l'identité EST la porte de la salle. */
+function ComposedIdentity() {
+  const { t } = useTranslation();
+  const lensState = useActiveLensState();
+  if (lensState.kind !== "valid") return null;
+  const name = lensWords(lensState.lens.slug, t).name.toUpperCase();
+  return (
+    <Link
+      to="/lenses"
+      className="display-tight -ml-3 hidden text-[15px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline"
+      aria-label={t("lensRoom.open")}
+    >
+      <span aria-hidden="true" className="mx-1 text-muted-foreground/50">/</span>
+      <span className="text-accent">{name}</span>
+    </Link>
   );
 }
 
@@ -133,6 +153,11 @@ export function Layout() {
           <Link to="/" aria-label={`${BRAND} — home`}>
             <Logo />
           </Link>
+          {/* L'identité composée (D5, exécutée à la publication
+              d'Aviation) : sur une vue cadrée, la marque dit la
+              lentille — ORION / ESPACE — cohérente avec la Lens Room.
+              Le chip, lui, continue de dire le périmètre précis. */}
+          <ComposedIdentity />
           <div className="ml-2">
             <IntentNav />
           </div>

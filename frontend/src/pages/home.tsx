@@ -18,7 +18,13 @@ import { HOME_CAPS, useDestinations } from "@/lib/destinations";
 import type { DestinationGroup } from "@/lib/destinations";
 import { useDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
-import { lensHeroWords, useLeadLens } from "@/lib/lens";
+import { LensUnavailable } from "@/components/lens-unavailable";
+import {
+  lensHeroWords,
+  useActiveLensState,
+  useLeadLens,
+  usePublishedLenses,
+} from "@/lib/lens";
 import { STORIES } from "@/lib/stories";
 import { formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 import { useRevealProgress } from "@/hooks/use-reveal-progress";
@@ -234,7 +240,18 @@ export function HomePage() {
   // présente par son sujet — la lentille de rang 1 du registre, ses
   // chiffres et ses mots. Repli général s'il n'y en a aucune : une base
   // sans lentille reste honnête.
-  const lead = useLeadLens();
+  // La home apprend l'URL (2026-08-19) : sans paramètre, le hero de
+  // rang 1 (D4, inchangé) ; avec ?sector=<slug> publié, le hero de
+  // CETTE lentille — mêmes mécanismes M1.3, mots et chiffres du
+  // registre. On ENTRE dans une lentille, on ne tombe plus sur un
+  // graphique. Le refus des lentilles invalides s'applique tel quel.
+  const lensState = useActiveLensState();
+  const rankOne = useLeadLens();
+  const lenses = usePublishedLenses();
+  const lead =
+    lensState.kind === "valid"
+      ? (lenses.find((lens) => lens.slug === lensState.lens.slug) ?? rankOne)
+      : rankOne;
   const leadWords = lensHeroWords(lead?.slug ?? "", t);
   const leadYears = lead?.by_year ?? [];
   const leadFrom = leadYears[0]?.year;
@@ -242,6 +259,8 @@ export function HomePage() {
   // La porte « Analyser » ouvre le premier deck de la vedette.
   const leadDeck = STORIES.find((story) => story.deck && story.lens === lead?.slug);
   const cueOpacity = scrub == null ? 0 : Math.max(0, 1 - ((scrub - SCRUB_BASE) / 0.3) * 1.2);
+
+  if (lensState.kind === "invalid") return <LensUnavailable />;
 
   return (
     <div>

@@ -79,7 +79,7 @@ const resources = {
         heroBasis: "from official sources — Europe (EU framework programmes), United States (NIH, NSF)",
       },
       hero: {
-        eyebrow: "Orion Space Intelligence",
+        eyebrow: "Orion",
         sub: "of public R&D funding, mapped. {{from}} → {{to}}.",
         // Motifs de repli : une lentille publiée sans mots curés reste
         // lisible, et nomme ce qu'elle montre.
@@ -552,6 +552,13 @@ const resources = {
           changelog: {
             v1: "First publication. Four gates crossed: sampled precision of 97.99% on the current corpus (97.72% under the prudent generalisation reading, reserve published); all 63 projects of €20M or more re-read one by one — €3.42B, zero outside the aviation domain; the top 50 organisations audited, five consolidation gaps fixed (RTX, GE, GKN, Leonardo, Honeywell); 48 projects legitimately shared with the Space lens, all core on both sides. One assumed false negative (AVIATOR) stays on record.",
           },
+          hero: {
+            sub: "of public aviation R&D funding, mapped. {{from}} → {{to}}.",
+            projects: "aviation projects",
+            orgs: "aviation organisations",
+            groups: "industrial groups",
+            cta: "Explore aviation",
+          },
           about: {
             method:
               "The aviation sector is identified project by project by a versioned, auditable lens — every rule with its evidence: call rules (Clean Sky, Clean Aviation, SESAR, FP7-AAT — structural proof, the fact of who funded), and linked rule groups where an exact euroSciVoc concept opens a pool that only double lexical corroboration (title AND objective body) can close: a taxonomic candidate plus lexical corroboration, never two independent proofs.",
@@ -771,6 +778,9 @@ const resources = {
         source: "Source",
         projects: "Projects",
         updated: "Updated",
+        thirdCountriesTitle: "Third countries on the maps",
+        thirdCountriesBody:
+          "In the European framework programmes, organisations from industrialised third countries (China, the United States outside our NIH/NSF coverage, Japan…) usually take part WITHOUT European funding: they appear in consortiums with no amount, or a small one. Their near-absence from the funding maps is the data itself — participation is not funding — and their own domestic budgets live outside this corpus until their national funders are loaded.",
         groupsTitle: "Industrial groups",
         groupsTemporal:
           "Participations are historical — they span 2007 to 2025 — while group consolidation reflects present-day ownership: a 2010 participation is attributed to today's owner.",
@@ -905,7 +915,7 @@ const resources = {
         heroBasis: "sur des sources officielles — Europe (programmes-cadres de l\u2019UE), États-Unis (NIH, NSF)",
       },
       hero: {
-        eyebrow: "Orion Space Intelligence",
+        eyebrow: "Orion",
         sub: "de financements R&D publics, cartographiés. {{from}} → {{to}}.",
         subLens: "de financements publics {{lens}} (direct + habilitant), cartographiés. {{from}} → {{to}}.",
         lensProjects: "projets {{lens}}",
@@ -1374,6 +1384,13 @@ const resources = {
           changelog: {
             v1: "Première publication. Quatre portes franchies : précision échantillonnée de 97,99 % sur le corpus actuel (97,72 % en lecture prudente de généralisation, réserve publiée) ; les 63 projets d’au moins 20 M€ relus un par un — 3,42 Md€, zéro hors domaine aéronautique ; le top 50 des organisations audité, cinq défauts de consolidation corrigés (RTX, GE, GKN, Leonardo, Honeywell) ; 48 projets légitimement partagés avec la lentille spatiale, tous au cœur des deux côtés. Un faux négatif assumé (AVIATOR) reste consigné.",
           },
+          hero: {
+            sub: "de financements publics de R&D aéronautique, cartographiés. {{from}} → {{to}}.",
+            projects: "projets aéronautiques",
+            orgs: "organisations aéronautiques",
+            groups: "groupes industriels",
+            cta: "Explorer l’aéronautique",
+          },
           about: {
             method:
               "Le secteur aéronautique est identifié projet par projet par une lentille versionnée et auditable — chaque règle avec sa preuve : des règles d’appel (Clean Sky, Clean Aviation, SESAR, FP7-AAT — preuve structurelle, le fait de qui a financé), et des groupes de règles liés où un concept euroSciVoc exact ouvre un pool que seule la double corroboration lexicale (titre ET corps de l’objectif) referme : un candidat taxonomique plus une corroboration lexicale, jamais deux preuves indépendantes.",
@@ -1632,6 +1649,9 @@ const resources = {
         source: "Source",
         projects: "Projets",
         updated: "Mise à jour",
+        thirdCountriesTitle: "Les pays tiers sur les cartes",
+        thirdCountriesBody:
+          "Dans les programmes-cadres européens, les organisations des pays tiers industrialisés (Chine, États-Unis hors de notre couverture NIH/NSF, Japon…) participent le plus souvent SANS financement européen : elles figurent aux consortiums avec un montant nul ou faible. Leur quasi-absence des cartes de financement est la donnée elle-même — participer n’est pas être financé — et leurs budgets domestiques vivent hors de ce corpus tant que leurs bailleurs nationaux ne sont pas chargés.",
         groupsTitle: "Les groupes industriels",
         groupsTemporal:
           "Les participations sont historiques — elles courent de 2007 à 2025 — tandis que la consolidation des groupes reflète la propriété actuelle : une participation de 2010 est attribuée au propriétaire d'aujourd'hui.",
