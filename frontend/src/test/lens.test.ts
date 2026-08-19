@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { decideLensState, withoutLens, type LensRegistry } from "@/lib/lens";
+import { decideLensState, withLens, withoutLens, type LensRegistry } from "@/lib/lens";
 
 const READY: LensRegistry = { status: "ready", slugs: ["space"] };
 const PENDING: LensRegistry = { status: "pending" };
@@ -70,5 +70,22 @@ describe("la porte de sortie du refus", () => {
 
   it("sans autre paramètre, il ne reste que le chemin", () => {
     expect(withoutLens("/explore", "?sector=martien")).toBe("/explore");
+  });
+});
+
+describe("withLens — la propagation de la lentille active", () => {
+  it("transporte le slug sur un chemin nu", () => {
+    expect(withLens("/analyses", "aviation")).toBe("/analyses?sector=aviation");
+  });
+  it("préserve la requête existante", () => {
+    expect(withLens("/explore?by=theme&split=1", "space")).toBe(
+      "/explore?by=theme&split=1&sector=space",
+    );
+  });
+  it("ne réécrit JAMAIS un cadrage explicite", () => {
+    expect(withLens("/explore?sector=space", "aviation")).toBe("/explore?sector=space");
+  });
+  it("sans lentille, rien ne change — le site nu est un état de plein droit", () => {
+    expect(withLens("/projects", null)).toBe("/projects");
   });
 });

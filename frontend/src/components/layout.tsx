@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { useDossier } from "@/lib/dossier";
-import { lensWords, useActiveLensState } from "@/lib/lens";
+import { lensWords, useActiveLensState, useCarriedLens, withLens } from "@/lib/lens";
 import { formatCompactEur } from "@/lib/format";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 
@@ -59,10 +59,11 @@ function ComposedIdentity() {
 function DossierBadge() {
   const { t } = useTranslation();
   const dossier = useDossier();
+  const carried = useCarriedLens();
   if (dossier.items.length === 0) return null;
   return (
     <Link
-      to="/dossier"
+      to={withLens("/dossier", carried)}
       className="hidden items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] text-foreground transition-colors hover:border-accent hover:text-accent sm:inline-flex"
     >
       <span aria-hidden="true">▤</span>
@@ -74,6 +75,7 @@ function DossierBadge() {
 /** The dense parchment footer (doctrine: "dense et assumé", Apple's) — the
  *  whole information architecture exposed, corpus figures in tabular nums. */
 function Footer() {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
   const columnTitle = "text-label uppercase text-muted-foreground";
@@ -90,23 +92,23 @@ function Footer() {
         <nav aria-label={t("footer.product")}>
           <h2 className={columnTitle}>{t("footer.product")}</h2>
           <ul className="mt-3">
-            <li><Link to="/projects" className={link}>{t("footer.projects")}</Link></li>
-            <li><Link to="/organisations" className={link}>{t("footer.organisations")}</Link></li>
-            <li><Link to="/explore" className={link}>{t("footer.explorer")}</Link></li>
-            <li><Link to="/compare" className={link}>{t("footer.compareOrgs")}</Link></li>
-            <li><Link to="/dossier" className={link}>{t("footer.dossierLink")}</Link></li>
+            <li><Link to={withLens("/projects", carried)} className={link}>{t("footer.projects")}</Link></li>
+            <li><Link to={withLens("/organisations", carried)} className={link}>{t("footer.organisations")}</Link></li>
+            <li><Link to={withLens("/explore", carried)} className={link}>{t("footer.explorer")}</Link></li>
+            <li><Link to={withLens("/compare", carried)} className={link}>{t("footer.compareOrgs")}</Link></li>
+            <li><Link to={withLens("/dossier", carried)} className={link}>{t("footer.dossierLink")}</Link></li>
           </ul>
         </nav>
         <nav aria-label={t("footer.exploreCol")}>
           <h2 className={columnTitle}>{t("footer.exploreCol")}</h2>
           <ul className="mt-3">
-            <li><Link to="/explore/countries" className={link}>{t("footer.countries")}</Link></li>
-            <li><Link to="/explore/programmes" className={link}>{t("footer.programmes")}</Link></li>
-            <li><Link to="/explore/themes" className={link}>{t("footer.themesLink")}</Link></li>
-            <li><Link to="/analyses" className={link}>{t("footer.analysesLink")}</Link></li>
-            <li><Link to="/calls" className={link}>{t("footer.callsLink")}</Link></li>
-            <li><Link to="/workspace" className={link}>{t("footer.workspaceLink")}</Link></li>
-            <li><Link to="/about-data" className={link}>{t("footer.data")}</Link></li>
+            <li><Link to={withLens("/explore/countries", carried)} className={link}>{t("footer.countries")}</Link></li>
+            <li><Link to={withLens("/explore/programmes", carried)} className={link}>{t("footer.programmes")}</Link></li>
+            <li><Link to={withLens("/explore/themes", carried)} className={link}>{t("footer.themesLink")}</Link></li>
+            <li><Link to={withLens("/analyses", carried)} className={link}>{t("footer.analysesLink")}</Link></li>
+            <li><Link to={withLens("/calls", carried)} className={link}>{t("footer.callsLink")}</Link></li>
+            <li><Link to={withLens("/workspace", carried)} className={link}>{t("footer.workspaceLink")}</Link></li>
+            <li><Link to={withLens("/about-data", carried)} className={link}>{t("footer.data")}</Link></li>
           </ul>
         </nav>
         <div>
@@ -138,6 +140,9 @@ export function Layout() {
   useDocumentTitle();
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  // La lentille TRANSPORTÉE (lot navigation) : celle d'une vue
+  // validement cadrée — jamais un paramètre invalide.
+  const carried = useCarriedLens();
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   return (
@@ -150,7 +155,10 @@ export function Layout() {
       </a>
       <header>
         <nav className="mx-auto flex h-16 w-full max-w-[1240px] items-center gap-6 px-6">
-          <Link to="/" aria-label={`${BRAND} — home`}>
+          {/* Le logo TRANSPORTE la lentille (lot navigation) : depuis
+              une vue cadrée il ramène à la home cadrée — les sorties du
+              monde sont ailleurs, explicites. */}
+          <Link to={withLens("/", carried)} aria-label={`${BRAND} — home`}>
             <Logo />
           </Link>
           {/* L'identité composée (D5, exécutée à la publication

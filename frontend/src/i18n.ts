@@ -206,6 +206,7 @@ const resources = {
         honest: "This page says the date, and stops there.",
       },
       analyses: {
+        seeAll: "See all analyses",
         eyebrow: "Orion · Analyses",
         title: "The ready-made analyses",
         lead: "One question, several angles — click, slide, then make it your own: every analysis is a real Explorer state, hence a URL.",
@@ -1064,6 +1065,7 @@ const resources = {
         honest: "Cette page dit la date, et s'arrête là.",
       },
       analyses: {
+        seeAll: "Voir toutes les analyses",
         eyebrow: "Orion · Analyses",
         title: "Les analyses prêtes",
         lead: "Une question, plusieurs angles — cliquez, glissez, puis faites-en votre vue : chaque analyse est un état réel de l'Explorateur, donc une URL.",

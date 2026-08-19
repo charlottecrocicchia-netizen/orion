@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
@@ -122,6 +124,9 @@ function useIntents(): { key: string; label: string; entries: Entry[] }[] {
 }
 
 export function IntentNav() {
+  // La lentille transportée (lot navigation) : chaque entrée du header
+  // conserve le cadre de la vue courante — l'URL reste la vérité.
+  const carried = useCarriedLens();
   const intents = useIntents();
   const { pathname, search } = useLocation();
   const [open, setOpen] = useState<string | null>(null);
@@ -215,7 +220,7 @@ export function IntentNav() {
                 return entry.to ? (
                   <Link
                     key={entry.label}
-                    to={entry.to}
+                    to={withLens(entry.to, carried)}
                     className={cn(rowClass, "transition-colors hover:bg-surface")}
                   >
                     {body}

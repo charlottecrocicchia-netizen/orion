@@ -1,7 +1,8 @@
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import { lensWords, usePublishedLenses } from "@/lib/lens";
+import { LensUnavailable } from "@/components/lens-unavailable";
+import { lensWords, useActiveLensState, usePublishedLenses } from "@/lib/lens";
 import { STORIES } from "@/lib/stories";
 
 /** /analyses — the ready-made analyses get their own library (site
@@ -14,15 +15,24 @@ export function AnalysesPage() {
   // (M1.1) — les decks généralistes restent dessous, jamais retirés.
   // Aucune lentille n'est nommée ici : la bibliothèque suit le registre.
   const lenses = usePublishedLenses();
+  // Cadrée par ?sector=<slug> (lot navigation, 2026-08-19) : la
+  // bibliothèque n'affiche que la section de CETTE lentille, avec une
+  // porte discrète vers la bibliothèque complète. Sans paramètre, tout
+  // s'affiche — rien ne change. Le refus M1.2 s'applique tel quel.
+  const lensState = useActiveLensState();
+  const framedSlug = lensState.kind === "valid" ? lensState.lens.slug : null;
   const lensSections = lenses
+    .filter((lens) => framedSlug === null || lens.slug === framedSlug)
     .map((lens) => ({
       slug: lens.slug,
       title: lensWords(lens.slug, t).name,
       stories: STORIES.filter((story) => story.deck && story.lens === lens.slug),
     }))
     .filter((section) => section.stories.length > 0);
-  const decks = STORIES.filter((story) => story.deck && !story.lens);
-  const simple = STORIES.filter((story) => !story.deck);
+  const decks = framedSlug ? [] : STORIES.filter((story) => story.deck && !story.lens);
+  const simple = framedSlug ? [] : STORIES.filter((story) => !story.deck);
+
+  if (lensState.kind === "invalid") return <LensUnavailable />;
 
   return (
     <div className="mx-auto w-full max-w-[880px] px-6 pt-16">
@@ -35,6 +45,17 @@ export function AnalysesPage() {
       <p className="mt-4 max-w-[52ch] text-[16px] leading-relaxed text-muted-foreground">
         {t("analyses.lead")}
       </p>
+
+      {framedSlug ? (
+        <p className="mt-8">
+          <Link
+            to="/analyses"
+            className="text-[13px] text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+          >
+            {t("analyses.seeAll")} →
+          </Link>
+        </p>
+      ) : null}
 
       {lensSections.map((section) => (
       <section key={section.slug} className="mt-14" aria-label={section.title}>

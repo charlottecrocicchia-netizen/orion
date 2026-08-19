@@ -182,3 +182,32 @@ export function withoutLens(pathname: string, search: string): string {
   const query = next.toString();
   return query ? `${pathname}?${query}` : pathname;
 }
+
+/** La propagation de la lentille active (lot navigation, 2026-08-19).
+ *
+ *  L'URL reste la SEULE vérité — mais tant qu'une vue porte
+ *  `sector=<slug>`, la navigation le transporte : header, recherche,
+ *  portes internes. Les SORTIES du monde restent explicites — la Lens
+ *  Room par l'identité composée, « Toute la R&D » par le chip — et ne
+ *  passent jamais par ici. Sans paramètre, rien ne change : le site nu
+ *  est un état de plein droit, sans défaut, sans session, sans
+ *  mémoire.
+ *
+ *  Un lien qui porte DÉJÀ un `sector=` garde le sien : la propagation
+ *  ne réécrit jamais un cadrage explicite. */
+export function withLens(to: string, slug: string | null): string {
+  if (!slug) return to;
+  const [beforeHash, hash] = to.split("#", 2);
+  const [path, search] = beforeHash.split("?", 2);
+  const params = new URLSearchParams(search ?? "");
+  if (!params.has(LENS_PARAM)) params.set(LENS_PARAM, slug);
+  const query = params.toString();
+  return `${path}${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
+}
+
+/** Le slug à transporter : celui d'une vue VALIDEMENT cadrée, sinon
+ *  rien — un paramètre invalide ne se propage jamais, il se refuse. */
+export function useCarriedLens(): string | null {
+  const state = useActiveLensState();
+  return state.kind === "valid" ? state.lens.slug : null;
+}

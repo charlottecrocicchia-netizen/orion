@@ -1,0 +1,78 @@
+import { expect, test } from "@playwright/test";
+
+/** Le lot navigation (2026-08-19) : la lentille active se PROPAGE.
+ *  L'URL reste la seule vérité — mais tant qu'une vue porte
+ *  sector=<slug>, la navigation le transporte. Les sorties du monde
+ *  restent explicites, et le site nu est un état de plein droit. */
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("orion.lang", "fr");
+    window.localStorage.setItem("orion.theme", "light");
+  });
+});
+
+test("le header transporte la lentille ; le logo ramène à la home cadrée", async ({ page }) => {
+  await page.goto("/?sector=aviation");
+  await expect(page.getByText("projets aéronautiques", { exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
+  // Le menu Analyser → la bibliothèque, cadrée (le motif du spec
+  // navigation : scope à la bannière, pas de role menu).
+  const banner = page.getByRole("banner");
+  await banner.getByRole("button", { name: "Analyse" }).click();
+  await banner.getByRole("link", { name: /Analyses prêtes|Ready-made/ }).click();
+  await expect(page).toHaveURL(/\/analyses\?sector=aviation/);
+  // Le logo ramène à la HOME CADRÉE — la sortie du monde est ailleurs.
+  await page.getByRole("link", { name: /Orion — home/ }).click();
+  await expect(page).toHaveURL(/\/\?sector=aviation/);
+});
+
+test("la bibliothèque cadrée : une seule section, et la porte vers tout", async ({ page }) => {
+  await page.goto("/analyses?sector=aviation");
+  await expect(page.getByRole("region", { name: "Aéronautique" })).toBeVisible({
+    timeout: 15_000,
+  });
+  // La section spatiale n'y est pas — et les generalistes non plus.
+  await expect(page.getByRole("region", { name: "Espace" })).toHaveCount(0);
+  // La porte discrète mène à la bibliothèque complète.
+  await page.getByRole("link", { name: "Voir toutes les analyses →" }).click();
+  await expect(page).toHaveURL(/\/analyses$/);
+  await expect(page.getByRole("region", { name: "Espace" })).toBeVisible();
+});
+
+test("la recherche transporte ; la sortie chip nettoie ; le site nu reste nu", async ({
+  page,
+}) => {
+  // La recherche depuis la home cadrée : le résultat garde le cadre.
+  await page.goto("/?sector=aviation");
+  // Le champ vit sous le hero pinné : on l'atteint au clavier de la
+  // page, pas au scroll du pin.
+  const ask = page.locator("input[aria-label]").first();
+  await ask.scrollIntoViewIfNeeded();
+  await ask.fill("hydrogen");
+  await ask.press("Enter");
+  await expect(page).toHaveURL(/sector=aviation/);
+  await expect(page).toHaveURL(/q=hydrogen/);
+
+  // La sortie explicite : « Toute la R&D » du chip retire le paramètre
+  // et préserve le reste (M1.2, inchangé).
+  await page.goto("/explore?sector=aviation&by=country&split=0");
+  const chip = page.getByRole("button", { name: /Périmètre aéronautique de cette vue/ });
+  await expect(chip).toBeVisible({ timeout: 15_000 });
+  await chip.click();
+  await page.getByRole("menuitemradio", { name: /Toute la R&D/ }).click();
+  await expect(page).not.toHaveURL(/sector=/);
+  // Le reste de l'état survit (M1.2) — l'explorer normalise seulement
+  // sa valeur par défaut by=country hors de l'URL, comme toujours.
+  await expect(page).toHaveURL(/split=0/);
+
+  // Le site nu : aucune lentille par défaut, aucune mémoire — le menu
+  // du header ne fabrique JAMAIS un sector spontané.
+  await page.goto("/");
+  const nakedBanner = page.getByRole("banner");
+  await nakedBanner.getByRole("button", { name: "Analyse" }).click();
+  await nakedBanner.getByRole("link", { name: /Analyses prêtes|Ready-made/ }).click();
+  await expect(page).toHaveURL(/\/analyses$/);
+  await expect(page).not.toHaveURL(/sector=/);
+});

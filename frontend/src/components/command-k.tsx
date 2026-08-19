@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { useCarriedLens, withLens } from "@/lib/lens";
+
 import { PALETTE_CAPS, useDebouncedValue, useDestinations } from "@/lib/destinations";
 import type { DestinationGroup } from "@/lib/destinations";
 import { cn } from "@/lib/utils";
@@ -93,11 +95,16 @@ export function CommandK({ open, onOpenChange }: CommandKProps) {
     if (id) listRef.current?.querySelector(`#${id}`)?.scrollIntoView?.({ block: "nearest" });
   }, [active, options]);
 
+  // La palette transporte la lentille de la vue courante (lot
+  // navigation) — un lien déjà cadré garde le sien. Le hook vit AVANT
+  // l'early-return : l'ordre des hooks ne varie jamais.
+  const carried = useCarriedLens();
+
   if (!open) return null;
 
   const go = (to: string) => {
     onOpenChange(false);
-    navigate(to);
+    navigate(withLens(to, carried));
   };
 
   const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {

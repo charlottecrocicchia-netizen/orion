@@ -22,8 +22,10 @@ import { LensUnavailable } from "@/components/lens-unavailable";
 import {
   lensHeroWords,
   useActiveLensState,
+  useCarriedLens,
   useLeadLens,
   usePublishedLenses,
+  withLens,
 } from "@/lib/lens";
 import { STORIES } from "@/lib/stories";
 import { formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
@@ -78,10 +80,13 @@ function useHeroPin(ready: boolean, onScrub: (p: number) => void) {
 function useIntentNavigate() {
   const navigate = useNavigate();
   const { i18n } = useTranslation();
+  const carried = useCarriedLens();
   return (text: string) => {
     const intent = parseIntent(text, i18n.language);
     if (!intent) return;
-    navigate(`/${intent.to === "projects" ? "projects" : intent.to}?${intent.params}`);
+    navigate(
+      withLens(`/${intent.to === "projects" ? "projects" : intent.to}?${intent.params}`, carried),
+    );
   };
 }
 
@@ -225,7 +230,7 @@ export function HomePage() {
     } else if (event.key === "Enter" && askOpen && askActive > 0) {
       event.preventDefault();
       const destination = askDestinations[askActive - 1];
-      if (destination) navigate(destination.to);
+      if (destination) navigate(withLens(destination.to, carried));
     } else if (event.key === "Escape" && askOpen) {
       setAskFocused(false);
     }
@@ -246,6 +251,7 @@ export function HomePage() {
   // registre. On ENTRE dans une lentille, on ne tombe plus sur un
   // graphique. Le refus des lentilles invalides s'applique tel quel.
   const lensState = useActiveLensState();
+  const carried = lensState.kind === "valid" ? lensState.lens.slug : null;
   const rankOne = useLeadLens();
   const lenses = usePublishedLenses();
   const lead =
@@ -412,7 +418,7 @@ export function HomePage() {
                     badge:
                       destination.group === "groups" ? t("ck.groupBadge") : undefined,
                     type: askType(destination.group),
-                    action: () => navigate(destination.to),
+                    action: () => navigate(withLens(destination.to, carried)),
                   })),
                 ].map((option, index) => (
                   <div
