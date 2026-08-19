@@ -1794,3 +1794,123 @@ confrontation après revue.
 
 Aucune règle ne bouge avant clôture. P3 — le top 50 des organisations —
 attend.
+
+---
+
+## A1 · P2 clôturée — dossier de publication (2026-08-19)
+
+Vérité : `docs/curation/a1-p2-revue-aveugle-revue-chatgpt.csv` —
+**30/30 `core`, unanimité des trois lectures.**
+
+### Mesure exhaustive des 63 projets ≥ 20 M€
+
+| | Projets | Masse | Part |
+|---|---|---|---|
+| `core` | **63** | **3,423 Md€** | **100,00 %** |
+| `enabling` | 0 | — | — |
+| `excluded` | 0 | — | — |
+
+### **VERDICT P2-A : zéro projet ≥ 20 M€ hors domaine aviation.**
+
+Les 63 plus gros projets de la lentille — 54,3 % de son financement —
+ont été relus un par un et sont **tous** au cœur du domaine.
+
+### Masse vérifiée sur toute la lentille
+
+| | Projets | Masse |
+|---|---|---|
+| lentille entière | 1 754 | 6,308 Md€ |
+| **revus par un humain** | **399** | **4,171 Md€ — 66,1 % de la masse** |
+| dont classés `core` | 388 | 4,143 Md€ |
+
+- **Part du financement revu correctement classifiée : 99,34 %.**
+- **Part du financement total vérifiée correcte : 65,69 %.**
+- Les 11 erreurs pèsent **27,62 M€ = 0,662 %** de la masse revue.
+
+La métrique en euros dit ce qu'un taux de projets cache : les erreurs
+sont toutes petites. Les plus lourdes sont HELENA (8,25 M€) et
+SAFEMODE (6,99 M€), toutes deux `enabling` — pas `excluded`.
+
+---
+
+## A1 · P3 — audit de vraisemblance du top 50 des organisations
+
+`docs/curation/a1-p3-top50-organisations.csv` — rang, entité, pays,
+consolidation, montant, projets, **projets déterminants**, cohérence
+sectorielle, drapeau. Le top 50 pèse **4 012 M€** sur 2 778 entités
+identifiées.
+
+### Cohérence sectorielle : rien à signaler
+
+Le classement est la carte de l'aéronautique européenne : les avionneurs
+et motoristes (Airbus 795,5 M€, Safran 476,4, Leonardo 233,2,
+Rolls-Royce 171,2, MTU, ITP, GE Avio, P&W Canada), les centres de
+recherche (DLR 292,0, ONERA, NLR, CIRA, VKI, Fraunhofer, SINTEF,
+Tecnalia), les prestataires de navigation aérienne issus de SESAR
+(ENAIRE, NATS, DFS, DSNA, ENAV, LFV), les universités à chaire
+aéronautique (Delft, Cranfield, Nottingham, Braunschweig, Milan) et les
+équipementiers spécialisés (Liebherr, Collins, Honeywell, Frequentis,
+Aernnova, Ratier Figeac, GKN, Romaero).
+
+**Aucune entité invraisemblable dans les 50.** Conformément à la
+consigne, je ne détaille pas les évidences.
+
+### ① Les rangs ne dépendent pas d'une classification douteuse
+
+Douze entités du top 50 comptent au moins un projet relabellisé. Leur
+exposition en euros :
+
+| Entité | Total | dont douteux | Part |
+|---|---|---|---|
+| Deep Blue SRL (rang 37) | 20,1 M€ | 1,140 M€ | **5,68 %** |
+| Von Karman Institute (42) | 18,5 M€ | 0,546 M€ | 2,96 % |
+| TU Braunschweig (44) | 17,6 M€ | 0,495 M€ | 2,81 % |
+| CNRS (43) | 17,7 M€ | 0,263 M€ | 1,49 % |
+| DLR (3) | 292,0 M€ | 1,479 M€ | 0,51 % |
+| Airbus (1) | 795,5 M€ | 0,131 M€ | **0,02 %** |
+
+**L'exposition maximale est de 5,68 %**, sur une entité de rang 37 dont
+le rang glisserait à ~39. **Aucun rang du top 50 ne repose sur une
+classification douteuse.**
+
+### ② Cinq familles corporate éclatées — le vrai défaut
+
+C'est ici que l'audit trouve quelque chose, et ce n'est pas dans la
+classification mais dans la **consolidation**.
+
+| Famille | Entrées | Cumul | Rang consolidé |
+|---|---|---|---|
+| **RTX** — P&W Canada (23) + Collins Ireland (26) + RTX Corp. (27) | 3 | **102,6 M€** | **~11** |
+| **General Electric** — GE Avio (11) + GE Company (20) | 2 | **136,8 M€** | **~7** |
+| **Honeywell** — Honeywell International (17) + Honeywell Aerospace (40) | 2 | 72,8 M€ | ~13 |
+| **GKN Aerospace** — GKN Sweden (16) + GKN Fokker (49) | 2 | 69,7 M€ | ~13 |
+| **Leonardo** — Leonardo (4) + AgustaWestland (22) | 2 | 272,1 M€ | 4 (sous-estimé de 17 %) |
+
+Deux natures de défaut, à ne pas confondre :
+
+- **Rattachement manquant** (RTX, GE, GKN, Leonardo) : le groupe existe
+  mais des filiales évidentes ne lui sont pas mappées. **Le cas RTX est
+  le plus grave** — le groupe compte déjà 16 entités, et les deux
+  filiales qui lui échappent pèsent chacune plus que lui.
+- **Doublon de groupe** (Honeywell) : **deux groupes distincts** pour
+  la même famille coexistent dans la table `groups`. Ce n'est pas un
+  mapping manquant, c'est une entrée en trop.
+
+### ③ Un drapeau de méthode, plus discret et plus profond
+
+**La consolidation est un instantané, les participations sont
+historiques.** Les projets couvrent 2007–2025 ; la table `groups`
+décrit la propriété d'aujourd'hui. Rockwell Collins a rejoint UTC en
+2018 puis RTX en 2020 ; ITP Aero a quitté Rolls-Royce pour Bain Capital
+en 2022.
+
+Attribuer une participation de 2010 au propriétaire de 2026 est une
+convention **défendable** — c'est même celle qu'attend un utilisateur
+qui cherche « qui possède quoi aujourd'hui ». Mais elle est
+actuellement **implicite**. Elle doit être déclarée avant publication,
+sous peine qu'un lecteur informé la prenne pour une erreur.
+
+### Ce que P3 ne fait pas
+
+Aucune règle ne bouge, aucun mapping n'est corrigé : c'est un audit,
+les correctifs relèvent de tes arbitrages. Aviation reste `draft`.

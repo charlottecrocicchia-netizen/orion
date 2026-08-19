@@ -1,0 +1,51 @@
+rang,entite,pays,consolide,n_entites,montant_meur,n_projets,projets_determinants,coherence_sectorielle,drapeau
+1,AIRBUS SE,NL,oui,27,795.50,247,SGO (43.0 M€); FRC GAM 2018 (36.6 M€); TAKE OFF (34.3 M€),cohérente,
+2,SAFRAN,FR,oui,34,476.39,111,OFELIA (36.3 M€); TAKE OFF (24.6 M€); GAM-2020-ENG (17.8 M€),cohérente,
+3,Deutsches Zentrum für Luft- und Raumfahrt e.V.,DE,non,1,291.96,293,LPA GAM 2018 (19.4 M€); GAM-2020-LPA (16.9 M€); SFWA (15.4 M€),cohérente,
+4,LEONARDO - SOCIETA' PER AZIONI,IT,oui,9,233.19,110,GRA (28.2 M€); REG GAM 2018 (18.8 M€); GAM-2020-FRC (16.7 M€),cohérente,
+5,THALES,FR,oui,21,225.26,122,SYS GAM 2018 (23.3 M€); HAVEN (18.0 M€); GAM-2020-LPA (8.4 M€),cohérente,
+6,ROLLS-ROYCE HOLDINGS PLC,GB,oui,4,171.21,65,UNIFIED (21.2 M€); LPA GAM 2018 (16.8 M€); UNIFIED (15.7 M€),cohérente,
+7,STICHTING KONINKLIJK NEDERLANDS LUCHT - EN RUIMTEVAARTCENTRUM,NL,non,1,125.78,219,GAM-2020-LPA (13.6 M€); HEROPS (3.6 M€); UP Wing (3.1 M€),cohérente,
+8,OFFICE NATIONAL D'ETUDES ET DE RECHERCHES AEROSPATIALES,FR,non,1,122.22,158,GAM-2020-LPA (8.8 M€); GAM-2020-AIR (7.6 M€); LPA GAM 2018 (7.6 M€),cohérente,
+9,INDRA SISTEMAS SA,ES,non,1,112.93,83,ARTEMISA (22.1 M€); iSNAP (9.8 M€); NEURON (4.5 M€),cohérente,
+10,LIEBHERR-INTERNATIONAL AG,CH,oui,2,110.36,24,TE (14.8 M€); ED (11.7 M€); TE (11.2 M€),cohérente,
+11,GE AVIO SRL,IT,non,1,97.44,27,GAM-2020-FRC (14.7 M€); OFELIA (12.6 M€); AMBER (11.0 M€),cohérente,"consolidation — filiale GE Aerospace non rattachée au groupe General Electric (rang 20) : 136,8 M€ éclatés"
+12,FRAUNHOFER-GESELLSCHAFT ZUR FOERDERUNG DER ANGEWANDTEN FORSCHUNG E.V,DE,non,1,88.02,77,GAM-2020-LPA (7.2 M€); GAM AIR 2018 (6.7 M€); NEWBORN (6.6 M€),cohérente,
+13,MTU AERO ENGINES AG,DE,non,1,68.85,23,SWITCH (23.2 M€); HEROPS (18.9 M€); GAM-2020-ENG (8.3 M€),cohérente,
+14,C.I.R.A. CENTRO ITALIANO RICERCHE AEROSPAZIALI SCPA,IT,non,1,64.46,115,GRC (6.7 M€); GRA (4.3 M€); GAM AIR 2018 (3.0 M€),cohérente,
+15,GROUPE INDUSTRIEL MARCEL DASSAULT,FR,oui,3,59.55,73,GAM AIR 2018 (15.7 M€); GAM-2020-AIR (7.8 M€); CONCERTO (4.4 M€),cohérente,
+16,GKN AEROSPACE SWEDEN AB,SE,non,1,54.46,30,GAM-2020-ENG (11.4 M€); ENG GAM 2018 (9.4 M€); OFELIA (7.0 M€),cohérente,"consolidation — GKN Fokker (rang 49) appartient au même ensemble, non consolidé"
+17,HONEYWELL INTERNATIONAL INC.,US,oui,3,54.00,60,NEWBORN (8.9 M€); LPA GAM 2018 (6.7 M€); GAM-2020-LPA (6.7 M€),cohérente,consolidation — DEUX groupes Honeywell distincts coexistent dans la table (rangs 17 et 40)
+18,TECHNISCHE UNIVERSITEIT DELFT,NL,non,1,51.35,124,GAM-2020-LPA (2.9 M€); MORASINA (2.0 M€); LPA GAM 2018 (1.9 M€),cohérente,
+19,INDUSTRIA DE TURBO PROPULSORES S.A.U.,ES,non,1,39.51,19,ENG GAM 2018 (12.3 M€); GAM-2020-ENG (8.4 M€); UNIFIED (7.0 M€),cohérente,
+20,GENERAL ELECTRIC COMPANY,US,oui,2,39.40,19,OFELIA (11.7 M€); ENG GAM 2018 (6.5 M€); HYDEA (5.9 M€),cohérente,consolidation — GE Avio (rang 11) lui échappe
+21,ENAIRE,ES,non,1,39.08,85,ISLAND (2.5 M€); ARTEMISA (2.2 M€); PJ10-W2 PROSA (1.6 M€),cohérente,
+22,AGUSTAWESTLAND LIMITED,GB,non,1,38.87,5,TE (28.2 M€); GRC (6.3 M€); ALICIA (4.1 M€),cohérente,consolidation — Leonardo Helicopters non rattaché au groupe Leonardo (rang 4)
+23,PRATT & WHITNEY CANADA CORP./CIE.,CA,non,1,36.95,3,PHARES (36.2 M€); DEMETRA (0.8 M€); HERACLES (0.0 M€),cohérente,consolidation — filiale RTX non rattachée au groupe RTX (rang 27)
+24,The University of Nottingham,GB,non,1,36.30,52,GAM AIR 2018 (3.7 M€); SYS GAM 2018 (3.2 M€); PROTEUSS (2.3 M€),cohérente,
+25,SAAB Aktiebolag,SE,oui,2,34.40,53,SYS GAM 2018 (5.4 M€); GAM AIR 2018 (4.7 M€); SFWA (4.3 M€),cohérente,
+26,"COLLINS AEROSPACE IRELAND, LIMITED",IE,non,1,33.70,42,SWITCH (5.4 M€); HECATE (2.3 M€); GAM-2020-SYS (2.2 M€),cohérente,consolidation — filiale RTX non rattachée au groupe RTX (rang 27)
+27,RTX CORPORATION,US,oui,16,31.99,37,PHARES (6.9 M€); LEIA (5.0 M€); TheMa4HERA (3.7 M€),cohérente,"consolidation — le groupe existe (16 entités) mais P&W Canada et Collins Ireland lui échappent : 102,6 M€ éclatés sur trois rangs"
+28,STICHTING DUITS-NEDERLANDSE WINDTUNNELS,NL,non,1,31.08,19,HEAVEN (9.1 M€); DEMETRA (3.7 M€); L-CROR OTS (2.4 M€),cohérente,
+29,FREQUENTIS AG,AT,oui,2,29.87,47,NATICA (8.9 M€); PARADISE (2.0 M€); PJ14-W2 I-CNSS (1.5 M€),cohérente,
+30,NATS (EN ROUTE) PUBLIC LIMITED COMPANY,GB,non,1,27.20,66,PJ37-W3 ITARO (2.2 M€); PJ01 EAD (1.9 M€); PJ10 PROSA (1.7 M€),cohérente,
+31,DFS DEUTSCHE FLUGSICHERUNG GMBH,DE,non,1,26.76,54,NATICA (3.5 M€); PJ10-W2 PROSA (2.3 M€); PJ10 PROSA (1.6 M€),cohérente,
+32,Direction des Services de la Navigation Aérienne,FR,non,1,25.80,70,PJ13 - W2 ERICA (1.3 M€); HAVEN (1.2 M€); PJ09-W2 DNMS (1.2 M€),cohérente,
+33,AERNNOVA AEROSPACE SA,ES,non,1,25.59,9,GAM-2020-LPA (9.2 M€); LPA GAM 2018 (8.9 M€); GAM-2020-AIR (3.1 M€),cohérente,
+34,ENAV SPA,IT,non,1,23.57,64,PJ10 PROSA (1.6 M€); PJ05-W2 DTT (1.1 M€); PJ02 EARTH (1.0 M€),cohérente,
+35,CRANFIELD UNIVERSITY,GB,non,1,21.77,66,EXAELIA (1.2 M€); ENABLEH2 (1.2 M€); FUTPRINT50 (1.0 M€),cohérente,
+36,ISRAEL AEROSPACE INDUSTRIES LTD.,IL,non,1,20.25,28,ED (7.8 M€); GAM AIR 2018 (3.1 M€); GAM-2020-AIR (3.1 M€),cohérente,
+37,DEEP BLUE SRL,IT,non,1,20.06,71,Engage 2 (2.1 M€); ACROSS (1.5 M€); SAFEMODE (1.1 M€),cohérente,"classification — 5,68 % de son total vient de SAFEMODE, relabellisé enabling ; son rang glisserait de 37 à ~39"
+38,Siemens Aktiengesellschaft,DE,oui,9,19.92,34,GRC (4.1 M€); HYPSTAIR (1.7 M€); NEWBORN (1.6 M€),cohérente,
+39,STIFTELSEN SINTEF,NO,oui,3,19.78,51,PARADISE (1.7 M€); TULIPS (1.1 M€); UPBEAT (1.0 M€),cohérente,
+40,HONEYWELL AEROSPACE INC.,US,oui,3,18.82,31,PJ31 DIGITS (2.1 M€); PJ14 EECNS (1.8 M€); PJ14-W2 I-CNSS (1.8 M€),cohérente,consolidation — doublon de groupe avec Honeywell International (rang 17)
+41,AIRCRAFT RESEARCH ASSOCIATION LIMITED,GB,non,1,18.53,23,SUBLIME (2.6 M€); POLITE (2.4 M€); ODIN (1.9 M€),cohérente,
+42,VON KARMAN INSTITUTE FOR FLUID DYNAMICS,BE,non,1,18.46,49,SPLEEN (2.0 M€); LEMCOTEC (1.4 M€); ASTORIA (1.1 M€),cohérente,
+43,CENTRE NATIONAL DE LA RECHERCHE SCIENTIFIQUE CNRS,FR,non,1,17.69,59,HAIC (2.2 M€); COMANOID (1.2 M€); AIRCRAFTFIRE (0.9 M€),cohérente,
+44,TECHNISCHE UNIVERSITAET BRAUNSCHWEIG,DE,non,1,17.63,45,FAME (2.0 M€); DISPROP (1.0 M€); CA3ViAR (0.9 M€),cohérente,
+45,FUNDACION TECNALIA RESEARCH & INNOVATION,ES,non,1,17.44,49,Bionic Aircraft (1.1 M€); LOCOMACHS (0.9 M€); ESPOSA (0.8 M€),cohérente,
+46,RATIER FIGEAC,FR,non,1,16.70,6,PHARES (9.5 M€); HE-ART (4.5 M€); DEMETRA (2.0 M€),cohérente,
+47,POLITECNICO DI MILANO,IT,non,1,16.28,44,AMATHO (1.2 M€); NITROS (1.0 M€); RoCS (1.0 M€),cohérente,
+48,LUFTFARTSVERKET,SE,non,1,16.09,61,PJ05 Remote Tower (2.0 M€); PJ02 EARTH (1.8 M€); PJ01 EAD (1.0 M€),cohérente,
+49,GKN FOKKER AEROSPACE BV,NL,non,1,15.20,15,GAM-2020-LPA (3.6 M€); GAM-2020-AIR (2.9 M€); GAM AIR 2018 (1.8 M€),cohérente,consolidation — même ensemble que GKN Aerospace Sweden (rang 16)
+50,ROMAERO SA,RO,non,1,14.86,5,SFWA (9.9 M€); FRC GAM 2018 (2.8 M€); GAM-2020-FRC (1.8 M€),cohérente,
