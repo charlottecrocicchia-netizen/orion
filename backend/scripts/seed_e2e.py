@@ -225,6 +225,24 @@ PROJECTS = [
         [("aero_services", 0.4)],
         {"en": ("Aerostellar services platform", "MRO data services for regional fleets.")},
     ),
+    # Le projet HABILITANT de la graine : le motif réel « microgravity »
+    # (enabling, cadré cordis|nsf) doit le taguer — sans lui, Space
+    # n'aurait aucun habilitant en graine et le chip n'offrirait qu'une
+    # entrée (règle de l'entrée unique, 2026-08-19) : les tests des deux
+    # libellés perdraient leur objet.
+    (
+        "e2e-microg",
+        "MICROGROW",
+        2023,
+        "he-child",
+        [("cnrs", 0.9)],
+        {
+            "en": (
+                "Microgravity protein crystal growth",
+                "Protein crystallisation in microgravity for structural biology.",
+            )
+        },
+    ),
     # Le projet SPATIAL de la graine : la lentille (motif « in-orbit »)
     # doit le taguer core — la home et ?sector=space se testent dessus.
     (
