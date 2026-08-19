@@ -187,14 +187,26 @@ export function AboutDataPage() {
                   </b>{" "}
                   · {dateFmt.format(new Date(entry.changed_on))} —{" "}
                   {t(`lens.${lens.slug}.changelog.v${entry.version}`, { defaultValue: "" })}{" "}
-                  {t("about.lensBeforeAfter", {
-                    coreBefore: formatInt(entry.before.core, i18n.language),
-                    enablingBefore: formatInt(entry.before.enabling, i18n.language),
-                    fundingBefore: formatCompactEur(entry.before.funding_eur, i18n.language),
-                    coreAfter: formatInt(entry.after.core, i18n.language),
-                    enablingAfter: formatInt(entry.after.enabling, i18n.language),
-                    fundingAfter: formatCompactEur(entry.after.funding_eur, i18n.language),
-                  })}
+                  {entry.before.core === entry.after.core &&
+                  entry.before.enabling === entry.after.enabling &&
+                  entry.before.funding_eur === entry.after.funding_eur
+                    ? // La NAISSANCE d'une lentille : le run mesure un
+                      // avant/après identiques (rien ne bougeait, elle
+                      // devenait simplement publique). On dit l'état,
+                      // jamais un mouvement nul.
+                      t("about.lensPublishedWith", {
+                        core: formatInt(entry.after.core, i18n.language),
+                        enabling: formatInt(entry.after.enabling, i18n.language),
+                        funding: formatCompactEur(entry.after.funding_eur, i18n.language),
+                      })
+                    : t("about.lensBeforeAfter", {
+                        coreBefore: formatInt(entry.before.core, i18n.language),
+                        enablingBefore: formatInt(entry.before.enabling, i18n.language),
+                        fundingBefore: formatCompactEur(entry.before.funding_eur, i18n.language),
+                        coreAfter: formatInt(entry.after.core, i18n.language),
+                        enablingAfter: formatInt(entry.after.enabling, i18n.language),
+                        fundingAfter: formatCompactEur(entry.after.funding_eur, i18n.language),
+                      })}
                 </p>
               ))}
             </div>

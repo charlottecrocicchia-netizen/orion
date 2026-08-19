@@ -67,3 +67,34 @@ test("la bibliothèque ne fabrique aucune section vide", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Espace" })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("region", { name: "test-lens" })).toHaveCount(0);
 });
+
+test("une lentille sans habilitant n'offre qu'une entrée ; -direct reste une URL valide", async ({
+  page,
+}) => {
+  // La graine porte les DEUX états réels : Aviation publiée sans aucun
+  // projet habilitant, test-lens avec. La règle (2026-08-19) : on ne
+  // montre jamais une capacité vide — l'entrée unique porte le nom nu,
+  // et les deux périmètres réapparaîtront d'eux-mêmes au premier
+  // habilitant. Le contrat d'URL, lui, ne change pas.
+  await page.goto("/explore?sector=space&by=country&split=0");
+  const chip = page.getByRole("button", { name: /Périmètre spatial de cette vue/ });
+  await expect(chip).toBeVisible({ timeout: 15_000 });
+  await chip.click();
+
+  await expect(page.getByRole("menuitemradio", { name: "Aéronautique" })).toBeVisible();
+  await expect(page.getByRole("menuitemradio", { name: /Aéronautique direct/ })).toHaveCount(0);
+  await expect(page.getByRole("menuitemradio", { name: /Aéronautique \+/ })).toHaveCount(0);
+
+  // L'URL au suffixe -direct reste comprise : le chip s'affiche, au nom
+  // nu, et l'entrée unique est cochée pour cette forme aussi.
+  await page.goto("/explore?sector=aviation-direct&by=country&split=0");
+  const aviationChip = page.getByRole("button", { name: /Périmètre aéronautique de cette vue/ });
+  await expect(aviationChip).toBeVisible({ timeout: 15_000 });
+  await expect(aviationChip).toContainText("Aéronautique");
+  await expect(aviationChip).not.toContainText("direct");
+  await aviationChip.click();
+  await expect(page.getByRole("menuitemradio", { name: "Aéronautique" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+});

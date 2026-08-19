@@ -2100,3 +2100,30 @@ publierait en v1, sans historique à raconter.
 - **La décision d'affichage** du couple `aviation` / `aviation-direct`
   tant qu'il n'existe aucun `enabling`.
 - **AVIATOR**, faux négatif assumé et consigné.
+
+---
+
+## A1 · PUBLICATION (2026-08-19)
+
+**`aviation` passe `published` au registre**, version 1 — CI verte de
+`6b22108` vérifiée en préalable ([run 32261398674]). Le changement de
+statut est **journalisé** : le run du chargeur écrit la ligne v1 du
+`lens_changelog` (date, chiffres mesurés), et la justification
+éditoriale — les quatre portes et leurs chiffres — est curée en i18n
+(`lens.aviation.changelog.v1`, FR/EN), comme S1 l'a établi pour Space.
+
+Le rendu du journal apprend la **naissance** : quand une entrée mesure
+un avant/après identiques (la lentille devenait simplement publique),
+l'À-propos dit « Publiée avec : X cœur · Y habilitant · Z » — l'état,
+jamais un mouvement nul.
+
+Les mots d'Aviation sont curés (I3) : « Aéronautique » /
+« Aéronautique direct » / « Aéronautique + habilitant » en français,
+« Aviation » en anglais, avec le bloc méthode de l'À-propos qui dit la
+grammaire réelle — appels structurels + « candidat taxonomique +
+corroboration lexicale, jamais deux preuves indépendantes » (I11).
+
+Les quatre ouverts restent au registre : le LEI de Melrose, le résidu
+Honeywell (→ Industrial Graph), AVIATOR (faux négatif assumé), la
+doctrine borne-basse (conception des lentilles futures). Pas de Lens
+Room dans ce lot.

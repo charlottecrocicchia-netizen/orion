@@ -531,6 +531,24 @@ const resources = {
         tag: { core: "core", enabling: "enabling" },
         // Les MOTS d'une lentille sont sa curation (I3) — pour l'espace,
         // les libellés recettés au chantier Space natif, verbatim.
+        // Aviation — publiée le 2026-08-19, quatre portes franchies.
+        aviation: {
+          name: "Aviation",
+          direct: "Aviation direct",
+          enabling: "Aviation + enabling",
+          chipLabel: "Aviation perimeter of this view",
+          changelog: {
+            v1: "First publication. Four gates crossed: sampled precision of 97.99% on the current corpus (97.72% under the prudent generalisation reading, reserve published); all 63 projects of €20M or more re-read one by one — €3.42B, zero outside the aviation domain; the top 50 organisations audited, five consolidation gaps fixed (RTX, GE, GKN, Leonardo, Honeywell); 48 projects legitimately shared with the Space lens, all core on both sides. One assumed false negative (AVIATOR) stays on record.",
+          },
+          about: {
+            method:
+              "The aviation sector is identified project by project by a versioned, auditable lens — every rule with its evidence: call rules (Clean Sky, Clean Aviation, SESAR, FP7-AAT — structural proof, the fact of who funded), and linked rule groups where an exact euroSciVoc concept opens a pool that only double lexical corroboration (title AND objective body) can close: a taxonomic candidate plus lexical corroboration, never two independent proofs.",
+            direct:
+              "projects at the core of aviation (aircraft, rotorcraft, engines and airframes, air traffic management, airport operations…)",
+            enabling:
+              "the core plus the technologies the lens rules identify as enabling — none yet: the lens currently carries no enabling project, so both perimeters coincide",
+          },
+        },
         space: {
           name: "Space",
           direct: "Space direct",
@@ -757,6 +775,8 @@ const resources = {
         lensRules: "{{total}} rules, each with its evidence: {{programme}} programme rules, {{theme}} theme rules (by code, never by label) and {{text}} hand-checked text patterns framed by source. Nothing inflated, nothing deleted: every run re-tags the whole corpus from the rules file.",
         lensLastRun: "Last run: {{date}}.",
         lensVersion: "Methodology v{{version}}",
+        lensPublishedWith:
+          "Published with: {{core}} core · {{enabling}} enabling · {{funding}}.",
         lensBeforeAfter:
           "Before: {{coreBefore}} core · {{enablingBefore}} enabling · {{fundingBefore}}. After: {{coreAfter}} core · {{enablingAfter}} enabling · {{fundingAfter}}.",
         lensUrls: "A framed view carries its perimeter as a chip, and the URL says it (« {{direct}} » / « {{enabling}} »).",
@@ -1321,6 +1341,24 @@ const resources = {
       },
       lens: {
         tag: { core: "cœur", enabling: "habilitant" },
+        // Aviation — publiée le 2026-08-19, quatre portes franchies.
+        aviation: {
+          name: "Aéronautique",
+          direct: "Aéronautique direct",
+          enabling: "Aéronautique + habilitant",
+          chipLabel: "Périmètre aéronautique de cette vue",
+          changelog: {
+            v1: "Première publication. Quatre portes franchies : précision échantillonnée de 97,99 % sur le corpus actuel (97,72 % en lecture prudente de généralisation, réserve publiée) ; les 63 projets d’au moins 20 M€ relus un par un — 3,42 Md€, zéro hors domaine aéronautique ; le top 50 des organisations audité, cinq défauts de consolidation corrigés (RTX, GE, GKN, Leonardo, Honeywell) ; 48 projets légitimement partagés avec la lentille spatiale, tous au cœur des deux côtés. Un faux négatif assumé (AVIATOR) reste consigné.",
+          },
+          about: {
+            method:
+              "Le secteur aéronautique est identifié projet par projet par une lentille versionnée et auditable — chaque règle avec sa preuve : des règles d’appel (Clean Sky, Clean Aviation, SESAR, FP7-AAT — preuve structurelle, le fait de qui a financé), et des groupes de règles liés où un concept euroSciVoc exact ouvre un pool que seule la double corroboration lexicale (titre ET corps de l’objectif) referme : un candidat taxonomique plus une corroboration lexicale, jamais deux preuves indépendantes.",
+            direct:
+              "les projets au cœur de l’aéronautique (aéronefs, giravions, moteurs et structures, gestion du trafic aérien, opérations aéroportuaires…)",
+            enabling:
+              "le cœur plus les technologies identifiées comme habilitantes par les règles de la lentille — aucune à ce jour : la lentille ne porte aucun projet habilitant, les deux périmètres coïncident",
+          },
+        },
         space: {
           name: "Espace",
           direct: "Spatial direct",
@@ -1586,6 +1624,8 @@ const resources = {
         lensRules: "{{total}} règles, chacune avec sa preuve : {{programme}} règles de programme, {{theme}} règles de thème (par code, jamais par libellé) et {{text}} motifs de texte validés à la main et cadrés par source. Rien de gonflé, rien de supprimé : chaque exécution retague le corpus entier depuis le fichier de règles.",
         lensLastRun: "Dernier passage : {{date}}.",
         lensVersion: "Méthodologie v{{version}}",
+        lensPublishedWith:
+          "Publiée avec : {{core}} cœur · {{enabling}} habilitant · {{funding}}.",
         lensBeforeAfter:
           "Avant : {{coreBefore}} cœur · {{enablingBefore}} habilitant · {{fundingBefore}}. Après : {{coreAfter}} cœur · {{enablingAfter}} habilitant · {{fundingAfter}}.",
         lensUrls: "Une vue cadrée porte son périmètre en chip, et l’URL le dit (« {{direct}} » / « {{enabling}} »).",

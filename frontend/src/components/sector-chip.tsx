@@ -43,26 +43,42 @@ export function SectorChip({
   if (!active) return null;
 
   const activeWords = lensWords(active.slug, t);
+  // Une lentille sans AUCUN habilitant n'offre qu'une entrée : son nom
+  // nu. On ne montre jamais une capacité vide parce que l'architecture
+  // sait la gérer — les deux périmètres réapparaissent d'eux-mêmes au
+  // premier projet habilitant, et `sector=<slug>-direct` reste une URL
+  // valide dans tous les cas : le contrat ne change pas, seul
+  // l'affichage suit le contenu.
+  const solo = (slug: string) => {
+    const meta = lenses.find((lens) => lens.slug === slug);
+    return meta ? meta.enabling === 0 : false;
+  };
   // Le menu suit le registre ; la lentille active y figure toujours,
   // même si le registre n'est pas encore arrivé.
   const slugs = lenses.map((lens) => lens.slug);
   if (!slugs.includes(active.slug)) slugs.unshift(active.slug);
-  const entries = slugs.flatMap((slug) => {
+  type Entry = { value: string; label: string; hint: string; slug: string | null };
+  const entries: Entry[] = slugs.flatMap((slug): Entry[] => {
     const words = lensWords(slug, t);
+    if (solo(slug)) {
+      return [{ value: lensValue(slug, false), label: words.name, hint: "", slug }];
+    }
     return [
       {
         value: lensValue(slug, true),
         label: words.direct,
         hint: t("explorer.sector.directHint"),
+        slug: null,
       },
       {
         value: lensValue(slug, false),
         label: words.enabling,
         hint: t("explorer.sector.enablingHint"),
+        slug: null,
       },
     ];
   });
-  entries.push({ value: "", label: t("explorer.sector.all"), hint: "" });
+  entries.push({ value: "", label: t("explorer.sector.all"), hint: "", slug: null });
 
   return (
     <span ref={rootRef} className="relative inline-flex items-center">
@@ -74,7 +90,11 @@ export function SectorChip({
         className="inline-flex items-center gap-1.5 rounded-full border border-accent/50 bg-accent-soft/40 px-3 py-1 text-[12.5px] font-medium text-foreground transition-colors hover:border-accent"
       >
         <i aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-accent" />
-        {active.coreOnly ? activeWords.direct : activeWords.enabling}
+        {solo(active.slug)
+          ? activeWords.name
+          : active.coreOnly
+            ? activeWords.direct
+            : activeWords.enabling}
         <span aria-hidden="true" className="text-muted-foreground">
           ▾
         </span>
@@ -89,14 +109,14 @@ export function SectorChip({
               key={entry.value || "all"}
               type="button"
               role="menuitemradio"
-              aria-checked={sector === entry.value}
+              aria-checked={entry.slug ? entry.slug === active.slug : sector === entry.value}
               onClick={() => {
                 setOpen(false);
                 onChange(entry.value);
               }}
               className={cn(
                 "block w-full rounded-lg px-3 py-1.5 text-left text-[13px] transition-colors",
-                sector === entry.value
+                (entry.slug ? entry.slug === active.slug : sector === entry.value)
                   ? "bg-accent-soft/60 font-medium"
                   : "text-muted-foreground hover:bg-surface hover:text-foreground",
               )}

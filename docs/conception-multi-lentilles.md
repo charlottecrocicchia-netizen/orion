@@ -464,3 +464,30 @@ la capacité développée.
 développe aucune capacité de vol (des rotors d'éoliennes), le second en
 développe de vraies malgré un appel spatial et une mission de
 lancement.
+
+## La règle de l'entrée unique (fondatrice, 2026-08-19 — générique)
+
+Le menu du chip n'affiche qu'**une entrée unique** — le nom nu de la
+lentille — quand elle ne porte **aucun** projet habilitant. Les deux
+entrées (« X direct » / « X + habilitant ») apparaissent
+**d'elles-mêmes dès le premier projet `enabling`** : aucun réglage,
+l'affichage suit le contenu.
+
+`sector=<slug>-direct` reste une **URL valide dans tous les cas** — le
+contrat ne change pas (U1-U5 intacts), seul l'affichage suit le
+contenu. C'est la doctrine du projet : **ne jamais montrer une capacité
+vide parce que l'architecture sait la gérer.**
+
+Trois conséquences d'implémentation, testées :
+
+- le **bouton actif** dit le nom nu (jamais « + habilitant » pour une
+  capacité vide), y compris quand l'URL porte `-direct` ;
+- l'**entrée unique est cochée** pour les deux formes d'URL de sa
+  lentille ;
+- une lentille **absente du registre** (chargement en cours) garde le
+  comportement générique à deux entrées — l'ignorance n'est pas un
+  zéro.
+
+Couverture : deux tests unitaires (Aviation `enabling: 0`, test-lens
+`enabling: 2`) et un parcours e2e sur la graine, qui porte
+naturellement les deux états.
