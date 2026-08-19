@@ -1914,3 +1914,189 @@ sous peine qu'un lecteur informé la prenne pour une erreur.
 
 Aucune règle ne bouge, aucun mapping n'est corrigé : c'est un audit,
 les correctifs relèvent de tes arbitrages. Aviation reste `draft`.
+
+---
+
+## A1 · Corrections de consolidation et DOSSIER DE PUBLICATION (2026-08-19)
+
+### ⓪ Une correction de mon propre audit, d'abord
+
+L'audit P3 livré comptait **plusieurs fois** les organisations
+rattachées à plusieurs groupes — les **coentreprises** : Telespazio
+(Leonardo / Thales), ArianeGroup (Airbus / Safran). Neuf d'entre elles
+participent à des projets Aviation.
+
+Recalculé avec la **pondération par la part (`share`)**, conformément à
+la doctrine de curation (« un 67/33 reste un 67/33 ») :
+
+| Entité | audit livré | corrigé |
+|---|---|---|
+| Airbus SE | 795,5 M€ | **781,6 M€** |
+| Safran | 476,4 M€ | **473,5 M€** |
+| Leonardo | 233,2 M€ | **218,9 M€** |
+| Thales | 225,3 M€ | **221,8 M€** |
+
+Thales et Leonardo **échangent leurs rangs 4 et 5**. Les cinq familles
+éclatées restaient vraies ; leurs cumuls sont ici recalculés.
+
+### ① Les cinq familles corrigées — 11 rattachements curés
+
+`backend/curation/groups.csv` passe de 399 à **410 lignes**, chacune
+sourcée :
+
+| Famille | Rattachements | Source citée |
+|---|---|---|
+| **RTX** | Collins Aerospace Ireland, P&W Canada, P&W Rzeszów, Pratt & Whitney | rtx.com · prattwhitney.com · GLEIF |
+| **General Electric** | GE Avio Srl | geaerospace.com · GLEIF |
+| **Leonardo** | AgustaWestland Limited | leonardo.com · GLEIF |
+| **Melrose (GKN Aerospace)** | GKN Aerospace Sweden, Services, Fokker, Norway, Applied Composites | melroseplc.net · gknaerospace.com |
+| **Honeywell** | les deux lignes existantes visent la TÊTE, plus la filiale intermédiaire | honeywell.com · GLEIF |
+
+**Deux précautions prises :**
+
+- **GKN Driveline, Powder Metallurgy et Hydrogen sont EXCLUS.** Ils
+  sont partis chez **Dowlais** à la scission de 2023 ; les rattacher à
+  Melrose aurait été une erreur de fait. Seules les cinq entités
+  *Aerospace* sont rattachées.
+- Le groupe **MELROSE INDUSTRIES PLC est créé sans LEI** — la curation
+  le permet pour une tête absente des registres chargés. **Le LEI doit
+  être complété depuis GLEIF** ; sans lui, un import futur portant le
+  même nom recréerait le doublon que nous venons de corriger.
+
+**Ce que la curation ne peut pas faire.** Le doublon Honeywell n'est
+qu'à moitié résolu : les deux filiales curées visent désormais la tête,
+mais **CIVITANAVI SYSTEMS SPA reste rattachée à `HONEYWELL AEROSPACE
+INC.` par GLEIF** (0,76 M€, hors top 50). Un `refuse` de curation ne
+bloque que les rapprochements par homonymie, pas une hiérarchie GLEIF.
+Faire disparaître le groupe intermédiaire demande une règle « une tête
+de groupe est un parent ultime » — **c'est un point d'Industrial Graph,
+pas de curation.**
+
+### ② La convention temporelle, déclarée
+
+À-propos, nouveau bloc **« Les groupes industriels » / « Industrial
+groups »** :
+
+> Les participations sont historiques — elles courent de 2007 à 2025 —
+> tandis que la consolidation des groupes reflète la propriété
+> actuelle : une participation de 2010 est attribuée au propriétaire
+> d'aujourd'hui.
+
+L'*ownership* historisé reste au registre des évolutions (Industrial
+Graph) : rien n'est implémenté.
+
+### ③ L'effet mesuré, avant / après
+
+**Top 50 Aviation** — la masse du top 50 passe de 3 978 à **4 083 M€** :
+
+| Entité | avant | après |
+|---|---|---|
+| **General Electric** | rang 20 · 39,4 M€ | **rang 7 · 136,8 M€** |
+| **RTX Corporation** | rang 27 · 32,0 M€ | **rang 10 · 114,3 M€** |
+| **Melrose (GKN Aerospace)** | hors top 50 | **rang 14 · 78,6 M€** |
+| **Honeywell International** | rang 17 · 54,0 M€ | **rang 15 · 72,1 M€** |
+| **Leonardo** | rang 5 · 218,9 M€ | **rang 4 · 257,7 M€** |
+
+Sept entrées disparaissent (les filiales absorbées) et six entrent par
+le bas — Stuttgart, CTA, Patras, Munich, une fondation espagnole et
+Skyguide.
+
+**Space** — le top 50 est **identique au centime près** (9 840 M€,
+aucune ligne déplacée). Un seul compteur bouge :
+
+| Compteur Space | avant | après |
+|---|---|---|
+| core / enabling | 10 278 / 4 537 | **inchangés** |
+| financement | 18 816 721 695 € | **inchangé** |
+| organisations | 7 540 | **inchangé** |
+| **groupes (hero)** | **169** | **170** |
+
+**Cause unique et vérifiée** : Melrose (GKN Aerospace) participe à
+**2 projets Space** pour 1,00 M€. Le hero Space affichera 170 groupes.
+
+---
+
+# DOSSIER DE PUBLICATION — lentille Aviation
+
+## Les quatre portes
+
+### P1 — précision par échantillonnage ✔
+
+| | Point | IC / borne |
+|---|---|---|
+| **Globale, corpus actuel** | **97,99 %** | IC normal [96,33 ; 99,65] · Wilson modifié 95,29 % |
+| **Globale, prudente** | **97,72 %** | IC normal [96,03 ; 99,41] · Wilson modifié 94,73 % |
+| structurelle (N = 1 592) | 98,29 % | 200 sondés + 7 certains |
+| taxonomique, corpus actuel | 95,06 % | 154/162, recensement |
+| taxonomique, holdout indépendant | 92,16 % | 94/102 |
+
+**Réserve publiée** : la borne Wilson modifiée de la lecture
+*généralisation* s'arrête à **94,73 %**, documentée comme
+*conservative generalisation bound* et non comme la borne d'un IC
+global formel.
+
+**Le seuil enabling (≥ 90 %) est sans objet : Aviation ne porte
+aucun projet `enabling`.** À déclarer plutôt qu'à cocher.
+
+### P2 — 100 % des projets ≥ 20 M€ revus ✔
+
+**63/63 revus · 3,423 Md€ · 100 % `core` · zéro hors domaine.**
+Ces 63 projets portent 54,3 % du financement de la lentille.
+
+### P3 — top 50 des organisations contrôlé ✔
+
+Cohérence sectorielle sans anomalie. Aucun rang ne dépend d'une
+classification douteuse (exposition maximale 5,68 %, rang 37). Cinq
+défauts de consolidation trouvés **et corrigés**. Un défaut résiduel
+déclaré (Honeywell/Civitanavi) et un LEI à compléter (Melrose).
+
+### P4 — chevauchements Space analysés ✔
+
+**48 projets portent les deux lentilles · 129,5 M€ · tous
+`core` / `core`.** Soit 2,7 % d'Aviation et 0,3 % de Space.
+
+Trois familles, toutes doctrinalement nominales : la **navigation par
+satellite au service de l'ATM** (PJ14 EECNS, SPESAR, GRICAS, U-EXPAND),
+le **lancement aéroporté** (ALTAIR, FALCon — un aéronef qui emporte un
+lanceur développe de vraies capacités de vol), et les **services
+spatiaux pour l'aviation** (EUNADICS-AV, DAEDALUS). Le chevauchement
+n'est pas un défaut : c'est I3 qui fonctionne — un projet peut
+légitimement appartenir aux deux.
+
+## Masse vérifiée
+
+**399 projets relus par un humain · 4,171 Md€ · 66,1 % du financement
+de la lentille · 99,34 % correctement classifié.**
+
+## Ce qui devient visible au passage `draft` → `published`
+
+1. **La lentille dans le sélecteur** — Aviation apparaît comme
+   deuxième entrée de la famille `aerospace_mobility`, rang 2.
+2. **Le hero Aviation** — 1 754 projets au cœur, 6 307 772 443 € ,
+   ses organisations, ses groupes, sa courbe par année.
+3. **Les deux périmètres dans l'URL** — `sector=aviation` et
+   `sector=aviation-direct`. Aviation n'ayant **aucun projet
+   `enabling`**, les deux périmètres donnent aujourd'hui le même
+   résultat : à dire, ou à masquer.
+4. **Les badges d'appartenance** sur les fiches projet — les 48
+   projets du chevauchement afficheront **deux** badges.
+5. **L'À-propos** — le bloc méthode Aviation : 176 règles (8 `call`,
+   3 `candidate`, 78 `confirm` titre, 87 `confirm` corps), la date du
+   dernier run, la version 1.
+6. **Le compteur de chevauchement** de l'À-propos passe de 0 à **48**.
+7. **Le compteur de groupes du hero Space : 169 → 170.**
+8. **Les fiches organisation et groupe** — les nouveaux rangs Aviation
+   pour RTX, GE, Melrose, Honeywell et Leonardo.
+
+**Ce qui ne devient PAS visible** : la Lens Room (hors périmètre),
+l'éditorial de la lentille, et le journal de version — Aviation
+publierait en v1, sans historique à raconter.
+
+## Ce qui reste ouvert avant de publier
+
+- **Le LEI de Melrose Industries PLC**, à compléter depuis GLEIF.
+- **Le doublon Honeywell résiduel**, qui demande une règle Industrial
+  Graph.
+- **La décision d'affichage** du couple `aviation` / `aviation-direct`
+  tant qu'il n'existe aucun `enabling`.
+- **AVIATOR**, faux négatif assumé et consigné.

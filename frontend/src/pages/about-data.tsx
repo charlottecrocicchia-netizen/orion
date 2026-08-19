@@ -215,6 +215,17 @@ export function AboutDataPage() {
         </section>
       ) : null}
 
+      {/* La convention temporelle des groupes. Elle se DÉCLARE : les
+          participations sont historiques, la consolidation décrit la
+          propriété d'aujourd'hui. Sans cette phrase, un lecteur informé
+          prend la convention pour une erreur. */}
+      <section className="mt-10" aria-label={t("about.groupsTitle")}>
+        <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+          {t("about.groupsTitle")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("about.groupsTemporal")}</p>
+      </section>
+
       <section className="mt-10">
         <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
           {t("about.systemStatus")}

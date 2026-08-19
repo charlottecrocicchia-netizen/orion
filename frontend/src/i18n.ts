@@ -741,6 +741,9 @@ const resources = {
         source: "Source",
         projects: "Projects",
         updated: "Updated",
+        groupsTitle: "Industrial groups",
+        groupsTemporal:
+          "Participations are historical — they span 2007 to 2025 — while group consolidation reflects present-day ownership: a 2010 participation is attributed to today's owner.",
         systemStatus: "System status",
         api: "API",
         database: "Database",
@@ -1567,6 +1570,9 @@ const resources = {
         source: "Source",
         projects: "Projets",
         updated: "Mise à jour",
+        groupsTitle: "Les groupes industriels",
+        groupsTemporal:
+          "Les participations sont historiques — elles courent de 2007 à 2025 — tandis que la consolidation des groupes reflète la propriété actuelle : une participation de 2010 est attribuée au propriétaire d'aujourd'hui.",
         systemStatus: "État du système",
         api: "API",
         database: "Base de données",

@@ -315,8 +315,8 @@ group_lei,group_name,org_name,org_country,decision,confidence,is_jv,share,status
 ,ABB Ltd,ABB E-MOBILITY SPOLKA Z OGRANICZONAODPOWIEDZIALNOSCIA,PL,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
 ,ABB Ltd,ABB E-MOBILITY GMBH,DE,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
 ,ABB Ltd,ABB SA,CL,attach,0.9,false,,,,,Filiale ABB — dénomination du groupe,global.abb · registres nationaux
-,HONEYWELL AEROSPACE INC.,HONEYWELL AEROSPACE,FR,attach,0.9,false,,,,,Filiale Honeywell Aerospace — dénomination du groupe,honeywell.com
-,HONEYWELL AEROSPACE INC.,HONEYWELL AEROSPACE GMBH,DE,attach,0.9,false,,,,,Filiale Honeywell Aerospace — dénomination du groupe,honeywell.com
+,HONEYWELL INTERNATIONAL INC.,HONEYWELL AEROSPACE,FR,attach,0.9,false,,,,,"Filiale du groupe Honeywell — rattachée à la TÊTE et non à Honeywell Aerospace Inc., qui est une entité intermédiaire du même ensemble",honeywell.com · GLEIF
+,HONEYWELL INTERNATIONAL INC.,HONEYWELL AEROSPACE GMBH,DE,attach,0.9,false,,,,,"Filiale du groupe Honeywell — rattachée à la TÊTE et non à Honeywell Aerospace Inc., qui est une entité intermédiaire du même ensemble",honeywell.com · GLEIF
 ,THALES,THALES COMMUNICATION & SECURITE NUMERIQUES SA,FR,attach,0.9,false,,,,,"Gemalto acquise par Thales (avril 2019) — double appartenance : l'adhésion au groupe Gemalto Holding B.V. reste, celle-ci s'ajoute","thalesgroup.com (acquisition Gemalto, 2019)"
 ,THALES,THALES DIS FINLAND OY,FI,attach,0.9,false,,,,,"Gemalto acquise par Thales (avril 2019) — double appartenance : l'adhésion au groupe Gemalto Holding B.V. reste, celle-ci s'ajoute","thalesgroup.com (acquisition Gemalto, 2019)"
 ,Siemens Energy AG,SIEMENS GAMESA RENEWABLE ENERGY AS,DK,attach,0.9,false,,,2020-09-28,,"Siemens Gamesa détenue par Siemens Energy AG (majoritaire à la scission de 2020, 100 % depuis 2023) — jamais Siemens AG","siemens-energy.com (scission 2020, rachat SGRE 2023)"
@@ -398,3 +398,14 @@ group_lei,group_name,org_name,org_country,decision,confidence,is_jv,share,status
 ,Confédération suisse,BEYOND GRAVITY GERMANY GMBH,DE,attach,0.85,false,,,,,"Beyond Gravity (ex-RUAG Space), RUAG International détenue par la Confédération suisse — même tête que les entités déjà rattachées",beyondgravity.com · admin.ch
 ,Confédération suisse,Beyond Gravity Schweiz AG,CH,attach,0.85,false,,,,,"Beyond Gravity (ex-RUAG Space), RUAG International détenue par la Confédération suisse — même tête que les entités déjà rattachées",beyondgravity.com · admin.ch
 ,Confédération suisse,RUAG Schweiz AG,CH,attach,0.9,false,,,,,RUAG détenue par la Confédération suisse,ruag.com · admin.ch
+I07WOS4YJ0N7YRFE7309,RTX CORPORATION,"COLLINS AEROSPACE IRELAND, LIMITED",IE,attach,0.95,false,,,,,"Collins Aerospace est une division de RTX depuis la fusion Raytheon–United Technologies (2020)",rtx.com · GLEIF
+I07WOS4YJ0N7YRFE7309,RTX CORPORATION,PRATT & WHITNEY CANADA CORP./CIE.,CA,attach,0.95,false,,,,,"Pratt & Whitney Canada, filiale de Pratt & Whitney, division de RTX",rtx.com · prattwhitney.com · GLEIF
+I07WOS4YJ0N7YRFE7309,RTX CORPORATION,PRATT & WHITNEY RZESZOW SPOLKA AKCYJNA,PL,attach,0.95,false,,,,,"Pratt & Whitney Rzeszów, filiale polonaise de Pratt & Whitney, division de RTX",rtx.com · prattwhitney.com · GLEIF
+I07WOS4YJ0N7YRFE7309,RTX CORPORATION,Pratt & Whitney,US,attach,0.95,false,,,,,"Pratt & Whitney, division de RTX",rtx.com · GLEIF
+3C7474T6CDKPR9K6YT90,GENERAL ELECTRIC COMPANY,GE AVIO SRL,IT,attach,0.95,false,,,,,"Avio Aero, activité aéronautique italienne de GE Aerospace depuis le rachat de 2013",geaerospace.com · GLEIF
+529900X4EEX1U9LN3U39,LEONARDO - SOCIETA' PER AZIONI,AGUSTAWESTLAND LIMITED,GB,attach,0.95,false,,,,,"AgustaWestland, devenue Leonardo Helicopters, division de Leonardo depuis la réorganisation de 2016",leonardo.com · GLEIF
+,MELROSE INDUSTRIES PLC,GKN AEROSPACE SWEDEN AB,SE,attach,0.95,false,,,,,"GKN Aerospace, seule branche de GKN conservée par Melrose après la scission Dowlais de 2023 — Driveline et Powder Metallurgy en sont exclues",melroseplc.net · gknaerospace.com
+,MELROSE INDUSTRIES PLC,GKN AEROSPACE SERVICES LIMITED,GB,attach,0.95,false,,,,,"GKN Aerospace, branche conservée par Melrose après la scission Dowlais de 2023",melroseplc.net · gknaerospace.com
+,MELROSE INDUSTRIES PLC,GKN FOKKER AEROSPACE BV,NL,attach,0.95,false,,,,,"Fokker Technologies, acquise par GKN Aerospace en 2015, branche conservée par Melrose",melroseplc.net · gknaerospace.com
+,MELROSE INDUSTRIES PLC,GKN AEROSPACE NORWAY AS,NO,attach,0.95,false,,,,,"GKN Aerospace Norway, branche conservée par Melrose après la scission Dowlais de 2023",melroseplc.net · gknaerospace.com
+,MELROSE INDUSTRIES PLC,GKN AEROSPACE APPLIED COMPOSITES AB,SE,attach,0.95,false,,,,,"GKN Aerospace Applied Composites, branche conservée par Melrose",melroseplc.net · gknaerospace.com
