@@ -19,6 +19,9 @@ concurrency:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # Garde-fou absolu (incident du 2026-08-19 : un job e2e bloqué a
+    # tourné 360 min, deux fois — 1 995 min de quota brûlées).
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -52,6 +55,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
@@ -72,6 +76,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -115,8 +120,21 @@ jobs:
         working-directory: frontend
       - run: pnpm build
         working-directory: frontend
-      - run: pnpm exec playwright install --with-deps chromium firefox
+      # Le blocage du 2026-08-19 : `--with-deps` lance un apt-get qui
+      # peut attendre un verrou dpkg sans fin. Les bibliothèques
+      # système des navigateurs sont déjà présentes sur ubuntu-latest :
+      # on installe les navigateurs SEULS, en cache, avec son propre
+      # timeout court — l'échec est alors franc, jamais une attente.
+      - id: playwright-version
+        run: echo "v=$(pnpm exec playwright --version | tr ' ' '-')" >> "$GITHUB_OUTPUT"
         working-directory: frontend
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.v }}
+      - run: pnpm exec playwright install chromium firefox
+        working-directory: frontend
+        timeout-minutes: 6
       - run: pnpm exec vite preview --port 4173 &
         working-directory: frontend
       - name: Run the Playwright journeys
@@ -139,6 +157,7 @@ jobs:
 
   images:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [backend, frontend, e2e]
     permissions:
       contents: read
@@ -189,6 +208,7 @@ jobs:
   deploy:
     if: github.event_name == 'workflow_dispatch' && inputs.deploy
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: images
     environment: production
     steps:
