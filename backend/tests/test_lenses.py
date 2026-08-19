@@ -846,3 +846,33 @@ def test_the_short_motif_guard_still_stands_for_phrases(tmp_path):
     for mauvais in ("token:", "token:a", "token:deux mots"):
         with pytest.raises(LensError):
             parse_rules(_lens(tmp_path, [f'text,{mauvais},core,cordis,,,"Token invalide",test']))
+
+
+def test_the_rule_counters_sum_to_the_total(db_session, tmp_path):
+    """La vitrine dit « N règles : a + b + c » — la somme DOIT faire N.
+    Les groupes liés comptent : candidate en taxonomique, confirm en
+    textuel (constat de publication Aviation, 2026-08-19)."""
+    _seed(db_session)
+    load_lens(
+        db_session,
+        RunStats(),
+        "space",
+        _lens(
+            tmp_path,
+            [
+                'call,ZZ-CALL-,core,,,,"Un appel",test',
+                CAND,
+                'confirm,in-orbit,,cordis,av-test,title,"Titre",test',
+                'confirm,abstract,,cordis,av-test,body_text,"Corps",test',
+            ],
+        ),
+    )
+    row = db_session.execute(
+        text(
+            "SELECT rules_total, rules_programme, rules_theme, rules_text "
+            "FROM lenses WHERE slug = 'space'"
+        )
+    ).one()
+    assert row.rules_total == 4
+    assert (row.rules_programme, row.rules_theme, row.rules_text) == (1, 1, 2)
+    assert row.rules_programme + row.rules_theme + row.rules_text == row.rules_total

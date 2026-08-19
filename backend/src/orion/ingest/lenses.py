@@ -561,9 +561,14 @@ def load_lens(session: Session, stats: RunStats, slug: str, path: Path) -> None:
         {
             "slug": slug,
             "total": len(rules),
+            # Les compteurs suivent la CLASSE de preuve, pour que la
+            # somme des trois dise le total : structurel (call, topic,
+            # programme), taxonomique (theme, candidate), textuel
+            # (text, confirm, veto). Sans les groupes liés, Aviation
+            # afficherait « 176 règles : 8 + 0 + 0 » — incohérent.
             "programme": sum(1 for r in rules if PROOF_OF_RULE.get(r["rule_type"]) == "structural"),
-            "theme": sum(1 for r in rules if r["rule_type"] == "theme"),
-            "text": sum(1 for r in rules if r["rule_type"] in ("text", "veto")),
+            "theme": sum(1 for r in rules if r["rule_type"] in ("theme", "candidate")),
+            "text": sum(1 for r in rules if r["rule_type"] in ("text", "confirm", "veto")),
         },
     )
     session.commit()
