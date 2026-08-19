@@ -36,3 +36,23 @@ class ResizeObserverStub {
   disconnect() {}
 }
 vi.stubGlobal("ResizeObserver", ResizeObserverStub);
+
+// Le localStorage de jsdom est dégénéré ici (pas de clear/getItem
+// fiables) : une vraie implémentation Map, remise à zéro entre les
+// tests — la mémoire d'entrée (révision D4) se teste pour de bon.
+import { beforeEach } from "vitest";
+const storageMap = new Map<string, string>();
+Object.defineProperty(window, "localStorage", {
+  configurable: true,
+  value: {
+    getItem: (k: string) => storageMap.get(k) ?? null,
+    setItem: (k: string, v: string) => void storageMap.set(k, String(v)),
+    removeItem: (k: string) => void storageMap.delete(k),
+    clear: () => void storageMap.clear(),
+    get length() {
+      return storageMap.size;
+    },
+    key: (i: number) => [...storageMap.keys()][i] ?? null,
+  },
+});
+beforeEach(() => storageMap.clear());

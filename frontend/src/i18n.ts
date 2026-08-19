@@ -532,7 +532,9 @@ const resources = {
       lensRoom: {
         title: "Choose your lens",
         sub: "The same corpus. A different way to see it.",
-        subFocused: "First click focuses — click again to enter.",
+        allName: "All R&D",
+        allFigures: "{{formatted}} projects · the whole corpus",
+        enterAll: "Explore the whole corpus",
         projects_one: "{{formatted}} project",
         projects_other: "{{formatted}} projects",
         enter: "Explore",
@@ -614,6 +616,8 @@ const resources = {
           // motifs servent de repli à une lentille sans ses mots.
           chipLabel: "Perimeter of this view",
           directHint: "core projects only, by the versioned lens",
+        soloHint:
+          "a single qualified perimeter today — “+ enabling” will appear when enabling projects have passed review",
           enablingHint: "core + enabling technologies",
           directPattern: "{{lens}} direct",
           enablingPattern: "{{lens}} + enabling",
@@ -1391,7 +1395,9 @@ const resources = {
       lensRoom: {
         title: "Choisis ta lentille",
         sub: "Le même corpus. Une autre façon de le regarder.",
-        subFocused: "Le premier clic met au point — reclique pour entrer.",
+        allName: "Toute la R&D",
+        allFigures: "{{formatted}} projets · le corpus entier",
+        enterAll: "Explorer le corpus entier",
         projects_one: "{{formatted}} projet",
         projects_other: "{{formatted}} projets",
         enter: "Explorer",
@@ -1467,6 +1473,8 @@ const resources = {
         sector: {
           chipLabel: "Périmètre de cette vue",
           directHint: "les projets cœur seuls, par la lentille versionnée",
+        soloHint:
+          "un seul périmètre qualifié à ce jour — « + habilitant » apparaîtra quand des projets habilitants auront passé la recette",
           enablingHint: "cœur + technologies habilitantes",
           directPattern: "{{lens}} direct",
           enablingPattern: "{{lens}} + habilitant",

@@ -72,3 +72,61 @@ utilitaire discrète pourra exister plus tard, pas maintenant ». Pas
 d'empilement de lentilles (SPACE × QUANTUM) : le geste signature de la
 vision attendra d'avoir deux lentilles qui se croisent utilement. Pas
 de familles en éventail : deux lentilles réelles, deux objets.
+
+---
+
+## La scène optique — exécution (feu vert du 2026-08-20)
+
+Les cinq arbitrages exécutés dans l'ordre ② → ④ → ⑤ → ① → ③.
+
+**② S2 + halo.** La signature cinétique est L'ÉVÉNEMENT d'entrée : le
+glyphe du monde joue une fois (~2 s) dans le header au changement de
+monde, puis se fige — jamais une boucle. Le halo — deux pixels de
+teinte lentille sous ORION / <LENTILLE> — est la seule trace
+permanente ; aucune page n'est teintée. Teintes : Espace indigo,
+Aéronautique cyan d'horizon, clair/sombre par thème
+(`lib/world-tints.ts`). L'alphabet vit dans `components/lens-glyphs.tsx`
+— un dessin par monde, partagé par la salle, le header et l'overlay.
+
+**④ Le chip explique.** La ligne d'aide vit sous l'entrée unique, au
+registre des aides existantes : un seul périmètre qualifié, la
+définition par symétrie, la promesse que la seconde entrée viendra
+d'elle-même. Jamais d'entrée fantôme.
+
+**⑤ Un seul langage.** `lib/world-reveal.ts` — l'anneau teinté qui
+s'ouvre sur le monde réel (un trou à box-shadow géant, un seul
+transform : le chemin 60 fps). 900 ms depuis le verre de la salle,
+380 ms au changement de monde (déclenché par le Layout au passage
+monde → autre monde). Interruptible au clic ; reduced-motion : rien.
+
+**① La porte.** La racine nue passe par la salle ; la mémoire
+(`lib/lens-memory.ts`, locale, effaçable) pré-cadre ou saute — racine
+nue SEULEMENT, jamais une URL qui porte son contexte. « Toute la
+R&D » est un choix mémorisé de plein droit. Une mémoire devenue
+fausse (lentille dépubliée) : le refus M1.2 s'affiche une fois, la
+mémoire se purge, la prochaine racine nue repasse par la salle.
+
+**③ La scène.** Trois verres montés — Espace, Aéronautique, et le
+corpus entier avec SON objet (la constellation), chiffres servis. Un
+clic ENTRE : mémoire écrite, navigation immédiate, révélation
+par-dessus la vraie home — jamais une copie. Le `?focus=` du premier
+jet disparaît : l'arbitrage a tranché, un clic = entrer.
+
+### Trois décisions de stabilité, prises en exécution
+
+1. **La parallaxe ne touche jamais une cible cliquable** — le champ
+   respire, les verres non : une cible qui fuit sous le curseur est un
+   geste raté (et Playwright le confirme : il refuse de cliquer une
+   boîte instable).
+2. **Les verres ne dérivent pas en boucle** : des instruments
+   d'optique montés, pas des bulles. L'entrée en scène se joue une
+   fois (fondu + montée, décalée par profondeur), puis l'immobilité.
+3. **Le survol éveille** : glyphes animés, halo teinté — le mouvement
+   appartient à l'intention de l'utilisateur, pas au décor.
+
+### Révisions de comportement déclarées
+
+- La racine nue redirige (porte) : tous les specs e2e qui visitent `/`
+  simulent désormais un visiteur au choix fait (`orion.lens.entry=all`).
+- `?focus=` supprimé de la salle, ses tests réécrits (un clic entre).
+- Le titre composé voyage déjà (lot navigation) — inchangé ici.

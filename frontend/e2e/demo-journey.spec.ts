@@ -8,6 +8,7 @@ import { expect, test } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   // Deterministic language and theme; animations are irrelevant to the flow.
   await page.addInitScript(() => {
+    window.localStorage.setItem("orion.lens.entry", "all");
     window.localStorage.setItem("orion.lang", "en");
     window.localStorage.setItem("orion.theme", "light");
   });

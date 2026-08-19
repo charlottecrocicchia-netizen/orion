@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
+    window.localStorage.setItem("orion.lens.entry", "all");
     window.localStorage.setItem("orion.lang", "en");
     window.localStorage.setItem("orion.theme", "light");
   });

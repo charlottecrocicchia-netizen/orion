@@ -1,27 +1,29 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate } from "react-router";
 
+import { ConstellationGlyph, WORLD_GLYPHS } from "@/components/lens-glyphs";
 import { Logo } from "@/components/logo";
 import { formatCompactEur, formatInt } from "@/lib/format";
+import { useQuery } from "@tanstack/react-query";
+
+import { api } from "@/lib/api";
 import { lensWords, usePublishedLenses } from "@/lib/lens";
-import { cn } from "@/lib/utils";
+import { ENTRY_ALL, writeEntry } from "@/lib/lens-memory";
+import { playWorldReveal } from "@/lib/world-reveal";
+import { worldTintVars } from "@/lib/world-tints";
 
-/** La Lens Room (chantier 2026-08-19, vision docs/vision-lens-room.md,
- *  décisions fondatrice ①-④). Une page dédiée, un moment immersif — la
- *  home reste l'entrée fonctionnelle. DEUX objets seulement, réels,
- *  servis par le registre publié : les lentilles vides ou futures
- *  n'existent pas à l'écran — règle d'honnêteté définitive.
+/** La Lens Room — scène optique (feu vert du 2026-08-20, prototype
+ *  validé). La PORTE d'Orion : des verres wireframe flottent, on en
+ *  choisit un, il vient devant l'œil et on voit le monde à travers —
+ *  le vrai monde : la navigation part tout de suite, la révélation
+ *  s'ouvre par-dessus la home réelle (arbitrage : rien de simulé).
  *
- *  La salle est SOMBRE dans les deux thèmes, comme une salle de
- *  projection : les tokens du thème sombre sont posés localement sur sa
- *  racine, le système de thème global n'est pas touché.
- *
- *  Le geste est celui de la carte (loi du projet) : le premier clic
- *  SÉLECTIONNE (le focus entre dans l'URL — chaque état est
- *  reproductible), le second DESCEND vers l'explorateur cadré. */
+ *  Un clic = entrer (900 ms, interruptible). Changer de monde ailleurs
+ *  rejoue la même scène en 380 ms : un seul langage. La salle reste
+ *  sombre dans les deux thèmes, pseudo-3D CSS/SVG, zéro dépendance —
+ *  le budget d'une porte. `prefers-reduced-motion` fige tout. */
 
-/** Les tokens de la salle : le thème sombre d'index.css, verbatim. */
 const ROOM_TOKENS = {
   "--background": "#0b0d12",
   "--foreground": "#f5f5f7",
@@ -33,190 +35,137 @@ const ROOM_TOKENS = {
   "--surface": "#11141b",
 } as React.CSSProperties;
 
-/** L'orbite — le symbole de la lentille spatiale : une ellipse
- *  inclinée, un corps central discret, un satellite-point qui la
- *  parcourt. Wireframe, trait fin — jamais une fusée. */
-function OrbitGlyph({ awake }: { awake: boolean }) {
-  return (
-    <svg viewBox="0 0 320 320" className="h-full w-full" aria-hidden="true">
-      <g stroke="var(--foreground)" fill="none" strokeWidth="1.1">
-        <circle cx="160" cy="160" r="26" strokeOpacity=".55" />
-        <circle cx="160" cy="160" r="3" fill="var(--foreground)" stroke="none" />
-        {/* L'ellipse orbitale, inclinée — elle se dessine à l'éveil. */}
-        <ellipse
-          cx="160"
-          cy="160"
-          rx="126"
-          ry="54"
-          strokeOpacity=".8"
-          transform="rotate(-24 160 160)"
-          pathLength={1}
-          className={cn("lens-room-draw", awake && "lens-room-draw-awake")}
-        />
-        <ellipse
-          cx="160"
-          cy="160"
-          rx="88"
-          ry="112"
-          strokeOpacity=".18"
-          transform="rotate(-24 160 160)"
-        />
-      </g>
-      {/* Le satellite : un point en accent qui parcourt l'orbite. */}
-      <circle r="4" fill="var(--accent)" className={cn(awake && "lens-room-orbiter")}>
-        <animateMotion
-          dur="9s"
-          repeatCount="indefinite"
-          path="M 44.9 211.2 A 126 54 24 1 1 275.1 108.8 A 126 54 24 1 1 44.9 211.2 Z"
-        />
-      </circle>
-    </svg>
-  );
-}
-
-/** Le profil d'aile — le symbole de la lentille aéronautique : un
- *  profil en coupe réduit à ses lignes, trois flux qui le contournent.
- *  Abstrait, technique — jamais un avion. */
-function WingGlyph({ awake }: { awake: boolean }) {
-  return (
-    <svg viewBox="0 0 320 320" className="h-full w-full" aria-hidden="true">
-      <g fill="none" strokeWidth="1.1">
-        {/* Les flux : trois lignes qui passent, défilement continu. */}
-        {[104, 160, 216].map((y, i) => (
-          <path
-            key={y}
-            d={
-              i === 1
-                ? "M 6 160 C 70 160 88 130 160 130 C 232 130 250 160 314 160"
-                : `M 6 ${y} C 84 ${y} 116 ${y + (i === 0 ? 14 : -14)} 160 ${y + (i === 0 ? 14 : -14)} C 204 ${y + (i === 0 ? 14 : -14)} 236 ${y} 314 ${y}`
-            }
-            stroke="var(--accent)"
-            strokeOpacity=".38"
-            strokeDasharray="7 9"
-            className={cn(awake && "lens-room-flow")}
-            style={{ animationDelay: `${i * 0.45}s` }}
-          />
-        ))}
-        {/* Le profil : extrados, intrados, corde — trois traits. */}
-        <path
-          d="M 56 176 C 92 138 180 126 264 152 C 228 174 120 186 56 176 Z"
-          stroke="var(--foreground)"
-          strokeOpacity=".85"
-          pathLength={1}
-          className={cn("lens-room-draw", awake && "lens-room-draw-awake")}
-        />
-        <path d="M 56 176 L 264 152" stroke="var(--foreground)" strokeOpacity=".3" />
-      </g>
-    </svg>
-  );
-}
-
-const GLYPHS: Record<string, (props: { awake: boolean }) => React.ReactElement> = {
-  space: OrbitGlyph,
-  aviation: WingGlyph,
-};
+/** Trois profondeurs (pseudo-3D) : échelle au repos + amplitude de
+ *  parallaxe. Le monde du milieu est le plus proche de l'œil. */
+const DEPTH: Record<string, number> = { space: 0.4, aviation: 0.9, all: 0.25 };
 
 export function LensRoomPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [params, setParams] = useSearchParams();
   const lenses = usePublishedLenses();
-  // Seuls les objets DESSINÉS existent : une lentille publiée sans son
-  // glyphe n'apparaît pas ici (la graine e2e en publie une synthétique).
-  const room = lenses.filter((lens) => GLYPHS[lens.slug]);
-  const focus = params.get("focus");
-  const focused = room.find((lens) => lens.slug === focus) ?? null;
+  const room = lenses.filter((lens) => WORLD_GLYPHS[lens.slug]);
+  // Le corpus entier : SES chiffres sont servis, jamais écrits.
+  const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
+  const stageRef = useRef<HTMLDivElement>(null);
 
-  // L'identité composée (D5, actée à la publication d'Aviation) : le
-  // titre du document la porte aussi.
   useEffect(() => {
-    document.title = focused
-      ? `ORION / ${lensWords(focused.slug, t).name.toUpperCase()}`
-      : `ORION — ${t("lensRoom.title")}`;
-  }, [focused, t, i18n.language]);
+    document.title = `ORION — ${t("lensRoom.title")}`;
+  }, [t, i18n.language]);
+
+  // La parallaxe : le CHAMP respire avec le pointeur — jamais les
+  // verres : une cible cliquable ne fuit pas sous le curseur (qualité
+  // du geste, 2026-08-20). Transform-only, rAF, reduced-motion coupé.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    const onMove = (event: PointerEvent) => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const dx = event.clientX / window.innerWidth - 0.5;
+        const dy = event.clientY / window.innerHeight - 0.5;
+        stage.querySelectorAll<HTMLElement>("[data-depth]").forEach((el) => {
+          const z = Number(el.dataset.depth);
+          el.style.setProperty("--par-x", `${(-dx * 26 * z).toFixed(1)}px`);
+          el.style.setProperty("--par-y", `${(-dy * 18 * z).toFixed(1)}px`);
+        });
+      });
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [room.length]);
+
+  // LE GESTE : un clic entre. La mémoire s'écrit (raccourci de racine),
+  // la navigation part, la révélation s'ouvre depuis le verre choisi —
+  // sur le monde RÉEL qui rend dessous.
+  const enter = (slug: string, event: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    writeEntry(slug);
+    playWorldReveal({
+      slug,
+      duration: 900,
+      origin: {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        radius: rect.width / 2,
+      },
+    });
+    navigate(slug === ENTRY_ALL ? "/" : `/?sector=${slug}`);
+  };
 
   return (
     <div
       style={ROOM_TOKENS}
       className="flex min-h-dvh flex-col overflow-x-clip bg-background text-foreground"
     >
-      {/* Le header minimal de la salle : ORION ramène à l'entrée
-          fonctionnelle. Pas de nav — le moment est distinct. */}
       <header className="flex items-center justify-between px-6 py-5">
         <Link to="/" aria-label={t("lensRoom.backHome")}>
           <Logo />
         </Link>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col justify-center px-6 pb-16">
-        {/* L'identité composée — le second terme suit le focus. */}
-        <h1 className="display-tight text-center text-[clamp(28px,4.6vw,56px)] font-medium">
-          ORION
-          <span
-            aria-hidden={!focused}
-            className={cn(
-              "inline-block transition-all duration-500",
-              focused ? "translate-x-0 opacity-100" : "-translate-x-2 opacity-0",
-            )}
-          >
-            {focused ? (
-              <>
-                <span className="mx-3 text-muted-foreground/60">/</span>
-                <span className="text-accent">
-                  {lensWords(focused.slug, t).name.toUpperCase()}
-                </span>
-              </>
-            ) : null}
-          </span>
-        </h1>
-        <p className="mt-3 text-center text-[15px] text-muted-foreground">
-          {focused ? t("lensRoom.subFocused") : t("lensRoom.sub")}
-        </p>
+      <main
+        ref={stageRef}
+        className="relative mx-auto flex w-full max-w-[1240px] flex-1 flex-col justify-center px-6 pb-16"
+      >
+        {/* Le monde d'Orion, flou, derrière les verres. */}
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full opacity-50 blur-[1.5px]"
+          data-depth="0.12"
+          style={{ transform: "translate3d(var(--par-x,0),var(--par-y,0),0)" }}
+          viewBox="0 0 1200 700"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <g fill="currentColor">
+            <circle cx="140" cy="120" r="1.6" /><circle cx="320" cy="520" r="1.3" />
+            <circle cx="540" cy="90" r="1.2" /><circle cx="820" cy="600" r="1.6" />
+            <circle cx="1020" cy="180" r="1.4" /><circle cx="1130" cy="420" r="1.2" />
+            <circle cx="240" cy="330" r="1.1" /><circle cx="700" cy="260" r="1.1" />
+            <circle cx="920" cy="380" r="1.3" />
+          </g>
+          <g stroke="var(--accent)" fill="none">
+            <path d="M140 120 320 260 540 210 700 260 920 380 1130 420" strokeOpacity=".16" />
+            <path d="M240 330 320 520 820 600" strokeOpacity=".1" />
+          </g>
+        </svg>
 
-        {/* Deux grands objets, composition ample — jamais une grille. */}
-        <div className="mt-14 flex flex-col items-stretch justify-center gap-10 md:flex-row md:gap-6">
+        <div className="text-center">
+          <h1 className="display-tight text-[clamp(28px,4.6vw,54px)] font-medium">
+            {t("lensRoom.title")}
+          </h1>
+          <p className="mt-3 text-[15px] text-muted-foreground">{t("lensRoom.sub")}</p>
+        </div>
+
+        {/* Les verres — composition ample, jamais une grille. */}
+        <div className="mt-12 flex flex-col items-center justify-center gap-8 md:flex-row md:items-stretch md:gap-4">
           {room.map((lens) => {
             const words = lensWords(lens.slug, t);
-            const Glyph = GLYPHS[lens.slug];
-            const isFocused = focused?.slug === lens.slug;
-            const dimmed = focused !== null && !isFocused;
+            const Glyph = WORLD_GLYPHS[lens.slug];
+            const depth = DEPTH[lens.slug] ?? 0.5;
             return (
               <button
                 key={lens.slug}
                 type="button"
-                aria-pressed={isFocused}
-                aria-label={
-                  isFocused
-                    ? t("lensRoom.enterLens", { lens: words.name })
-                    : t("lensRoom.focusLens", { lens: words.name })
-                }
-                onClick={() => {
-                  // La règle de la carte : sélectionner, puis descendre.
-                  if (isFocused) {
-                    // On entre dans une LENTILLE — la home cadrée —
-                    // jamais directement sur un graphique (2026-08-19).
-                    navigate(`/?sector=${lens.slug}`);
-                  } else {
-                    setParams({ focus: lens.slug });
-                  }
-                }}
-                className={cn(
-                  "group flex flex-1 flex-col items-center rounded-2xl px-6 py-10 text-center transition-all duration-500",
-                  "hover:bg-surface/60 focus-visible:outline-2 focus-visible:outline-accent",
-                  isFocused && "bg-surface/60",
-                  dimmed && "scale-[.94] opacity-40 hover:opacity-70",
-                )}
+                aria-label={t("lensRoom.enterLens", { lens: words.name })}
+                onClick={(event) => enter(lens.slug, event)}
+                className="lens-glass group"
+                style={{
+                  ...worldTintVars(lens.slug),
+                  "--rest-scale": String(0.88 + depth * 0.24),
+                  "--drift-delay": `${(1 - depth) * 0.22}s`,
+                } as React.CSSProperties}
               >
-                <div
-                  className={cn(
-                    "h-[240px] w-[240px] transition-transform duration-500 md:h-[300px] md:w-[300px]",
-                    isFocused && "scale-105",
-                  )}
-                >
+                <span aria-hidden="true" className="lens-glass-glyph">
                   <Glyph awake />
-                </div>
-                <span className="display-tight mt-6 text-[22px] font-medium">{words.name}</span>
-                <span className="mt-2 text-[14px] text-muted-foreground tabular-nums">
+                </span>
+                <span className="display-tight mt-4 text-[19px] font-medium">{words.name}</span>
+                <span className="mt-1.5 text-[13px] text-muted-foreground tabular-nums">
                   {t("lensRoom.projects", {
                     count: lens.core + lens.enabling,
                     formatted: formatInt(lens.core + lens.enabling, i18n.language),
@@ -224,17 +173,35 @@ export function LensRoomPage() {
                   <span className="mx-2 text-muted-foreground/50">·</span>
                   {formatCompactEur(lens.funding_eur, i18n.language)}
                 </span>
-                <span
-                  className={cn(
-                    "mt-5 text-[14px] font-medium text-accent transition-opacity duration-300",
-                    isFocused ? "opacity-100" : "opacity-0 group-hover:opacity-60",
-                  )}
-                >
-                  {t("lensRoom.enter")} →
-                </span>
               </button>
             );
           })}
+
+          {/* Toute la R&D — le troisième monde, avec SON objet. */}
+          <button
+            type="button"
+            aria-label={t("lensRoom.enterAll")}
+            onClick={(event) => enter(ENTRY_ALL, event)}
+            className="lens-glass group"
+            style={{
+              "--rest-scale": String(0.88 + DEPTH.all * 0.24),
+              "--drift-delay": `${(1 - DEPTH.all) * 0.22}s`,
+            } as React.CSSProperties}
+          >
+            <span aria-hidden="true" className="lens-glass-glyph">
+              <ConstellationGlyph awake />
+            </span>
+            <span className="display-tight mt-4 text-[19px] font-medium">
+              {t("lensRoom.allName")}
+            </span>
+            <span className="mt-1.5 text-[13px] text-muted-foreground tabular-nums">
+              {stats
+                ? t("lensRoom.allFigures", {
+                    formatted: formatInt(stats.totals.projects, i18n.language),
+                  })
+                : " "}
+            </span>
+          </button>
         </div>
       </main>
     </div>

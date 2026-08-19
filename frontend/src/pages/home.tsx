@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 import { gsap } from "gsap";
@@ -20,6 +20,7 @@ import { useDossier } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { LensUnavailable } from "@/components/lens-unavailable";
 import {
+  LENS_PARAM,
   lensHeroWords,
   useActiveLensState,
   useCarriedLens,
@@ -27,6 +28,7 @@ import {
   usePublishedLenses,
   withLens,
 } from "@/lib/lens";
+import { clearEntry, ENTRY_ALL, readEntry } from "@/lib/lens-memory";
 import { STORIES } from "@/lib/stories";
 import { formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 import { useRevealProgress } from "@/hooks/use-reveal-progress";
@@ -251,6 +253,7 @@ export function HomePage() {
   // registre. On ENTRE dans une lentille, on ne tombe plus sur un
   // graphique. Le refus des lentilles invalides s'applique tel quel.
   const lensState = useActiveLensState();
+  const [searchParams] = useSearchParams();
   const carried = lensState.kind === "valid" ? lensState.lens.slug : null;
   const rankOne = useLeadLens();
   const lenses = usePublishedLenses();
@@ -266,7 +269,23 @@ export function HomePage() {
   const leadDeck = STORIES.find((story) => story.deck && story.lens === lead?.slug);
   const cueOpacity = scrub == null ? 0 : Math.max(0, 1 - ((scrub - SCRUB_BASE) / 0.3) * 1.2);
 
-  if (lensState.kind === "invalid") return <LensUnavailable />;
+  // ① — la racine nue passe par la porte (révision D4, 2026-08-20) :
+  // sans paramètre ni mémoire → la Lens Room ; avec une mémoire de
+  // monde → la home cadrée de ce monde ; mémoire « all » → la home
+  // nue, un choix de plein droit. Une URL qui porte un paramètre
+  // n'est JAMAIS touchée — la mémoire n'est qu'un raccourci d'entrée.
+  const bare = ![...searchParams.keys()].length;
+  const entry = bare ? readEntry() : null;
+  if (bare && entry === null) return <Navigate to="/lenses" replace />;
+  if (bare && entry && entry !== ENTRY_ALL) {
+    return <Navigate to={`/?${LENS_PARAM}=${entry}`} replace />;
+  }
+  // Une mémoire devenue fausse (lentille dépubliée) se purge : le refus
+  // s'affiche une fois, la prochaine racine nue repasse par la salle.
+  if (lensState.kind === "invalid") {
+    if (readEntry() === lensState.value) clearEntry();
+    return <LensUnavailable />;
+  }
 
   return (
     <div>

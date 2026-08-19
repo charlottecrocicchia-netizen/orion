@@ -43,6 +43,10 @@ const STATS = {
 };
 
 beforeEach(() => {
+  // Révision D4 (2026-08-20) : la racine nue passe par la porte. Ces
+  // tests regardent la HOME — on simule un visiteur qui a déjà choisi
+  // le corpus entier.
+  window.localStorage.setItem("orion.lens.entry", "all");
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {

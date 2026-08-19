@@ -326,3 +326,74 @@
     display: none;
   }
 }
+
+/* ── L'alphabet des mondes : dessins et signatures. `awake` boucle
+   (la salle) ; `-once` joue ~2 s puis SE FIGE (l'entrée de monde,
+   arbitrage ② — l'événement, jamais la boucle). Reduced-motion fige
+   tout, états finaux dessinés. ── */
+.glyph-draw{stroke-dasharray:1; stroke-dashoffset:1; animation:glyph-draw 1.4s ease-out forwards}
+@keyframes glyph-draw{to{stroke-dashoffset:0}}
+.glyph-flow{stroke-dashoffset:0; animation:glyph-flow 1.5s linear infinite}
+.glyph-flow-once{stroke-dashoffset:0; animation:glyph-flow .5s linear 4}
+@keyframes glyph-flow{to{stroke-dashoffset:-16}}
+.glyph-orbit{}
+.glyph-orbit-once animateMotion{/* l'animateMotion SMIL tourne toujours ;
+  la signature « une fois » se joue par remontage du nœud (key) et
+  l'opacité s'éteint après 2 s : */}
+.glyph-orbit-once{animation:glyph-settle 2s ease-out forwards}
+.glyph-twinkle{animation:glyph-twinkle 3.2s ease-in-out infinite}
+.glyph-twinkle-once{animation:glyph-twinkle 1s ease-in-out 2}
+@keyframes glyph-twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes glyph-settle{0%,85%{opacity:1}100%{opacity:.55}}
+@media (prefers-reduced-motion: reduce){
+  .glyph-draw{animation:none; stroke-dashoffset:0}
+  .glyph-flow,.glyph-flow-once,.glyph-twinkle,.glyph-twinkle-once,.glyph-orbit-once{animation:none}
+}
+
+/* ── ② arbitré : l'identité de monde au header. Le HALO — deux pixels
+   de teinte lentille sous ORION / <LENTILLE> — est la seule trace
+   permanente du monde ; la page, elle, n'est jamais teintée. ── */
+.world-identity{position:relative; --world-tint:var(--world-tint-light)}
+.dark .world-identity{--world-tint:var(--world-tint-dark)}
+.world-identity::after{
+  content:""; position:absolute; left:14px; right:2px; bottom:-6px; height:2px;
+  border-radius:2px; opacity:.85;
+  background:linear-gradient(90deg, var(--world-tint, var(--color-accent)), transparent);
+}
+.world-signature{display:inline-block; width:24px; height:16px; margin-left:7px; color:var(--color-foreground); --glyph-tint:var(--world-tint, var(--color-accent))}
+
+/* ── ③ la scène optique : les verres flottants. Dérive lente et
+   désynchronisée (une respiration, jamais un spectacle), parallaxe
+   par variables (--par-*), éveil au survol. Transform-only : le
+   chemin 60 fps. Reduced-motion : tout immobile. ── */
+.lens-glass{
+  position:relative; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; padding:34px 30px 30px; border-radius:50%;
+  width:min(66vw,300px); aspect-ratio:1; flex:none;
+  border:1px solid rgba(245,245,247,.32);
+  background:
+    radial-gradient(circle at 36% 30%, rgba(139,154,255,.13), rgba(255,255,255,.02) 58%),
+    radial-gradient(circle at 68% 76%, rgba(255,255,255,.05), transparent 55%);
+  box-shadow:inset 0 0 26px rgba(255,255,255,.03);
+  transform:scale(var(--rest-scale,1));
+  transition:border-color .3s ease, box-shadow .3s ease;
+  /* Des verres MONTÉS, stables : des instruments d'optique, pas des
+     bulles. Une cible cliquable ne bouge jamais toute seule (qualité
+     du geste, 2026-08-20) — la respiration vit dans le champ, l'éveil
+     dans le survol, et l'entrée en scène se joue UNE fois. */
+  animation:lens-arrive .6s cubic-bezier(.3,.7,.25,1) var(--drift-delay,0s) backwards;
+  --world-tint:var(--world-tint-dark, var(--accent));
+}
+@keyframes lens-arrive{from{opacity:0; transform:scale(calc(var(--rest-scale,1) * .94)) translateY(10px)}}
+.lens-glass:hover,.lens-glass:focus-visible{
+  border-color:var(--world-tint);
+  box-shadow:inset 0 0 28px rgba(255,255,255,.05), 0 0 44px -14px var(--world-tint);
+}
+.lens-glass-glyph{display:block; width:56%; height:38%; color:var(--foreground); --glyph-tint:var(--world-tint)}
+/* les glyphes ne s'animent qu'à l'éveil : en repos, la salle est calme */
+.lens-glass .glyph-flow,.lens-glass .glyph-twinkle{animation-play-state:paused}
+.lens-glass:hover .glyph-flow,.lens-glass:focus-visible .glyph-flow,
+.lens-glass:hover .glyph-twinkle,.lens-glass:focus-visible .glyph-twinkle{animation-play-state:running}
+@media (prefers-reduced-motion: reduce){
+  .lens-glass{animation:none}
+}

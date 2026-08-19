@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { useDossier } from "@/lib/dossier";
+import { WORLD_GLYPHS } from "@/components/lens-glyphs";
+import { playWorldReveal } from "@/lib/world-reveal";
+import { worldTintVars } from "@/lib/world-tints";
 import { lensWords, useCarriedLens, withLens } from "@/lib/lens";
 import { formatCompactEur } from "@/lib/format";
 import { useDocumentTitle } from "@/hooks/use-document-title";
@@ -45,14 +48,24 @@ function ComposedIdentity() {
   const slug = useCarriedLens();
   if (!slug) return null;
   const name = lensWords(slug, t).name.toUpperCase();
+  const Glyph = WORLD_GLYPHS[slug];
   return (
     <Link
       to="/lenses"
-      className="display-tight -ml-3 hidden text-[15px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline"
+      className="world-identity display-tight -ml-3 hidden items-center text-[15px] font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
       aria-label={t("lensRoom.open")}
+      style={worldTintVars(slug)}
     >
       <span aria-hidden="true" className="mx-1 text-muted-foreground/50">/</span>
       <span className="text-accent">{name}</span>
+      {/* ② arbitré — la signature d'ENTRÉE : le glyphe joue UNE fois
+          (~2 s) au changement de monde, puis se fige. `key` remonte le
+          nœud à chaque monde : c'est l'événement, jamais la boucle. */}
+      {Glyph ? (
+        <span key={slug} aria-hidden="true" className="world-signature">
+          <Glyph once />
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -146,6 +159,18 @@ export function Layout() {
   // La lentille TRANSPORTÉE (lot navigation) : celle d'une vue
   // validement cadrée — jamais un paramètre invalide.
   const carried = useCarriedLens();
+  // ⑤ arbitré : CHANGER de monde rejoue la scène de placement en
+  // accéléré (380 ms) — le même langage que l'entrée par la salle.
+  // Seulement au passage monde → autre monde : jamais au premier
+  // cadrage d'une session ni à la sortie vers le corpus.
+  const previousWorld = useRef<string | null>(null);
+  useEffect(() => {
+    const before = previousWorld.current;
+    previousWorld.current = carried;
+    if (before && carried && before !== carried) {
+      playWorldReveal({ slug: carried });
+    }
+  }, [carried]);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   return (

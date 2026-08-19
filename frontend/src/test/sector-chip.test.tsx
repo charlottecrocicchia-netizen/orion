@@ -75,7 +75,9 @@ test("une lentille sans habilitant n'offre qu'une entrée, son nom nu", async ()
   expect(button.textContent).not.toMatch(/direct|\+/);
   fireEvent.click(button);
   // Aviation : UNE entrée, au nom nu.
-  const single = await screen.findByRole("menuitemradio", { name: /^Aviation$/ });
+  // ④ : l'entrée unique PORTE sa ligne d'aide — un seul périmètre,
+  // et la promesse que la seconde entrée viendra d'elle-même.
+  const single = await screen.findByRole("menuitemradio", { name: /^Aviation.*qualified perimeter/ });
   expect(single).toBeInTheDocument();
   expect(screen.queryByRole("menuitemradio", { name: /Aviation direct/ })).toBeNull();
   expect(screen.queryByRole("menuitemradio", { name: /Aviation \+/ })).toBeNull();
@@ -91,6 +93,6 @@ test("sector=<slug>-direct reste une URL valide — l'affichage seul suit le con
   const label = await screen.findByText("Aviation");
   fireEvent.click(label.closest("button")!);
   // L'entrée unique est bien COCHÉE pour cette forme d'URL aussi.
-  const single = await screen.findByRole("menuitemradio", { name: /^Aviation$/ });
+  const single = await screen.findByRole("menuitemradio", { name: /^Aviation/ });
   expect(single).toHaveAttribute("aria-checked", "true");
 });

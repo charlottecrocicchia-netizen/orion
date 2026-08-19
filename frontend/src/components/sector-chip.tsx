@@ -62,7 +62,13 @@ export function SectorChip({
   const entries: Entry[] = slugs.flatMap((slug): Entry[] => {
     const words = lensWords(slug, t);
     if (solo(slug)) {
-      return [{ value: lensValue(slug, false), label: words.name, hint: "", slug }];
+      // ④ (validé 2026-08-20) : la ligne d'aide dit les trois choses —
+      // un seul périmètre qualifié, ce que « + habilitant » signifie
+      // (par symétrie avec l'entrée voisine), et que la seconde entrée
+      // viendra d'elle-même. JAMAIS d'entrée fantôme sans effet.
+      return [
+        { value: lensValue(slug, false), label: words.name, hint: t("explorer.sector.soloHint"), slug },
+      ];
     }
     return [
       {

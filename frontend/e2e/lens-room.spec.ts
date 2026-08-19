@@ -1,51 +1,37 @@
 import { expect, test } from "@playwright/test";
 
-/** La Lens Room (2026-08-19) : le moment immersif distinct. La home y
- *  mène par un lien sobre, le chip par sa sortie ; le focus vit dans
- *  l'URL ; le premier clic met au point, le second entre dans
- *  l'explorateur cadré — la règle de la carte, réappliquée. */
+/** La scène optique (feu vert 2026-08-20). Un clic ENTRE — le focus
+ *  intermédiaire du premier jet a disparu avec l'arbitrage ③ : la
+ *  salle est une porte, le monde derrière est le vrai. */
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
+    window.localStorage.setItem("orion.lens.entry", "all");
     window.localStorage.setItem("orion.lang", "fr");
     window.localStorage.setItem("orion.theme", "light");
   });
 });
 
-test("home → Lens Room → focus → l'explorateur cadré", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: "Les lentilles →" }).click();
-  await expect(page).toHaveURL(/\/lenses$/);
-
-  // Les DEUX objets réels de la graine (Espace, Aéronautique) — et
-  // jamais la lentille synthétique sans glyphe (règle d'honnêteté ④).
+test("trois objets réels ; un clic entre dans la vraie home cadrée", async ({ page }) => {
+  await page.goto("/lenses");
   await expect(page.getByRole("button", { name: /Espace/ })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole("button", { name: /Aéronautique/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /corpus entier/ })).toBeVisible();
+  // Jamais une lentille sans glyphe, jamais de barre horizontale.
   await expect(page.getByText("test-lens")).toHaveCount(0);
-
-  // Premier clic : le focus entre dans l'URL, l'identité compose.
-  await page.getByRole("button", { name: /Espace/ }).click();
-  await expect(page).toHaveURL(/focus=space/);
-  await expect(page.getByText("ESPACE", { exact: true })).toBeVisible();
-
-  // Second clic : on ENTRE dans la lentille — la home cadrée, jamais
-  // directement un graphique (2026-08-19).
-  await page.getByRole("button", { name: /Espace/ }).click();
-  await expect(page).toHaveURL(/\/\?sector=space/);
-  // Le header compose : ORION / ESPACE.
-  await expect(page.getByRole("link", { name: "Les lentilles", exact: true })).toContainText("ESPACE");
-});
-
-test("l'état focalisé est reproductible par URL, et la salle n'a pas de barre horizontale", async ({
-  page,
-}) => {
-  await page.goto("/lenses?focus=aviation");
-  await expect(page.getByText("AÉRONAUTIQUE", { exact: true })).toBeVisible({ timeout: 15_000 });
-  // Anti-barres horizontales : le document ne déborde jamais.
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
+
+  // LE GESTE : un clic — la mémoire s'écrit, la VRAIE home cadrée rend.
+  await page.getByRole("button", { name: /Aéronautique/ }).click();
+  await expect(page).toHaveURL(/\/\?sector=aviation/);
+  await expect(page.getByText("projets aéronautiques", { exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
+  const entry = await page.evaluate(() => window.localStorage.getItem("orion.lens.entry"));
+  expect(entry).toBe("aviation");
 });
 
 test("la sortie du chip mène à la salle", async ({ page }) => {
@@ -55,31 +41,4 @@ test("la sortie du chip mène à la salle", async ({ page }) => {
   await chip.click();
   await page.getByRole("menuitem", { name: /Les lentilles/ }).click();
   await expect(page).toHaveURL(/\/lenses$/);
-});
-
-test("la home apprend l'URL : sans paramètre le rang 1, cadrée la lentille demandée", async ({
-  page,
-}) => {
-  // Sans paramètre : le hero de rang 1 — le spatial — inchangé (D4).
-  await page.goto("/");
-  await expect(page.getByText("projets spatiaux", { exact: true })).toBeVisible({
-    timeout: 15_000,
-  });
-
-  // Cadrée : le hero d'Aviation — mots curés, mécanique M1.3.
-  await page.goto("/?sector=aviation");
-  await expect(page.getByText("projets aéronautiques", { exact: true })).toBeVisible({
-    timeout: 15_000,
-  });
-  await expect(page.getByText("Explorer l’aéronautique →")).toBeVisible();
-  // L'identité composée, dans le header et le titre du document.
-  await expect(page.getByRole("link", { name: "Les lentilles", exact: true })).toContainText("AÉRONAUTIQUE");
-  await expect(page).toHaveTitle(/ORION \/ AÉRONAUTIQUE/);
-
-  // Le refus M1.2 s'applique tel quel : une lentille inconnue ne rend
-  // jamais un hero — le refus unifié, sans détour.
-  await page.goto("/?sector=zzinconnue");
-  await expect(page.getByText(/n'est pas disponible|is not available/)).toBeVisible({
-    timeout: 15_000,
-  });
 });
