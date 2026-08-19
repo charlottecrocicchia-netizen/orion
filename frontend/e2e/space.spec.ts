@@ -48,9 +48,10 @@ test("la recherche projets parle la lentille : ?sector=space cadre au projet tag
   page,
 }) => {
   await page.goto("/projects?sector=space");
-  // Deux projets spatiaux au seed depuis le lot 2 (ORBITGUARD core +
-  // TERRASCOPE earth observation — la constellation exige deux années).
-  await expect(page.getByText("2 résultats", { exact: true })).toBeVisible({ timeout: 10_000 });
+  // Trois projets spatiaux au seed : ORBITGUARD + TERRASCOPE au cœur,
+  // et MICROGROW — l'habilitant (motif réel « microgravity ») qui donne
+  // à la graine ses deux périmètres distincts (2026-08-19).
+  await expect(page.getByText("3 résultats", { exact: true })).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText("ORBITGUARD")).toBeVisible();
 });
 

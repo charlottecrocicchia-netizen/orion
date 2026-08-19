@@ -56,8 +56,13 @@ test("le vocabulaire à l'écran, en français : les libellés recettés, et rie
 
   // L'À-propos montre la MÉTHODE, jamais l'implémentation (correction
   // de clôture M1.0, fondatrice).
+  // Depuis la publication d'Aviation, l'À-propos porte DEUX blocs de
+  // lentille : l'assertion se resserre sur le bloc SPATIAL — jamais un
+  // .first() aveugle (leçon des sélecteurs, M1.1).
   await expect(
-    page.getByText(/identifiées comme habilitantes par les règles de la lentille/),
+    page
+      .getByText(/identifiées comme habilitantes par les règles de la lentille/)
+      .filter({ hasText: "Spatial direct" }),
   ).toBeVisible();
 });
 

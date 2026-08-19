@@ -56,7 +56,8 @@ test("la recherche cadre sur toute lentille publiée, et le chevauchement compte
   await expect(page.getByText("ORBITGUARD")).toBeVisible();
 
   await page.goto("/projects?sector=space");
-  await expect(page.getByText("2 résultats", { exact: true })).toBeVisible({ timeout: 15_000 });
+  // Cœur (2) + l'habilitant MICROGROW : trois, chacun comptant plein.
+  await expect(page.getByText("3 résultats", { exact: true })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText("ORBITGUARD")).toBeVisible();
 });
 
