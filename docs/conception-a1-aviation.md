@@ -1229,3 +1229,138 @@ marchait, jamais de prouver qu'une règle est juste. Son état au gel —
 `enabling`, aucun élargissement de motif.
 
 Le holdout à relire : **`docs/curation/a1-holdout-groupes-lies.csv`**
+
+---
+
+## A1 · Mesure du holdout et instruction du cycle V2 (2026-08-19)
+
+Vérité de revue : `docs/curation/a1-holdout-groupes-lies-revue-chatgpt.csv`,
+colonne `mon_label` — **94 core / 3 enabling / 5 excluded**, après
+adjudication d'ARCTIC et THRUST en `core`.
+
+### Précision — la porte ne passe pas
+
+| Périmètre | Précision `core` | Verdict |
+|---|---|---|
+| **Holdout entier** | **94/102 = 92,2 %** | **sous le seuil de 95 %** |
+| `av-aeronautical-engineering` | 7/7 = 100 % | n = 7, ne conclut rien |
+| `av-aircraft` | 77/84 = 91,7 % | 3 enabling, 4 excluded |
+| `av-rotorcraft` | 10/11 = 90,9 % | 1 excluded |
+
+La porte ne passe pas, et **c'est le système qui fonctionne** : une
+règle conçue sur un échantillon a été mise à l'épreuve sur des cas
+qu'elle n'avait jamais vus, et elle a été recalée (I10).
+
+Les 8 erreurs avaient toutes été signalées comme divergences dans le
+holdout livré : ma proposition coïncide avec la vérité sur les 8. Ce
+sont les deux cas où j'avais proposé `excluded` à tort — ARCTIC et
+THRUST — qui font la différence, et ils vont dans le sens de
+l'inclusion.
+
+### Les 8 erreurs, instruites
+
+**Trois `enabling` — le multisectoriel (I13) :**
+
+| Projet | Titre | Corps | Nature |
+|---|---|---|---|
+| HELENA — *batteries solides pour véhicules électriques et aéronefs* | `aircraft` | `aviation` | deux secteurs nommés au titre |
+| SAFEMODE — *facteurs humains aviation et maritime* | `aviation` | `aviation`, `drones` | deux secteurs nommés au titre |
+| SmartAnswer — *réduction acoustique multi-secteurs* | `aircraft` | `airframe` | quatre secteurs visés |
+
+Ce **n'est pas un défaut de motif** : les mots sont légitimement là, le
+projet touche vraiment l'aviation. C'est un **trou de grammaire** — un
+groupe lié ne sait dire que `core`, il n'a aucun moyen d'exprimer
+« substantiel mais partagé ».
+
+**Cinq `excluded` — la discrimination doctrinale :**
+
+| Projet | Titre | Corps | Doctrine |
+|---|---|---|---|
+| ESTABLIS-UAS — turbulence atmosphérique | `unmanned aerial` | `unmanned aerial` | I5, aéronef-instrument |
+| PHOENIX-UASL — archéologie au Lidar | `unmanned aerial` | `unmanned aerial`, `drone(s)` | I5, aéronef-instrument |
+| INAS — prestataire de services de drones | `drones` | `aviation`, `drone(s)` | I5, exploite sans développer |
+| ALFA — détection d'aéronefs à basse altitude | `aircraft` | `landing`, `drone(s)`, … | I14, aéronef-cible |
+| PROTEST-AIRT — mouvements d'opposition | `air transport` | `aviation`, `airline` | I5 raffiné, objet d'étude |
+
+### Diagnostic : motifs récurrents pour le repérage, cas isolés pour la correction
+
+La famille **drone/UAS concentre 4 erreurs sur 5**. Au corps, `drones`
+compte **4 erreurs pour 7 justes** et `drone` 3 pour 7 ; au titre,
+`unmanned aerial` compte **2 erreurs pour 2 justes**. Le repérage est
+donc bien récurrent.
+
+Mais la correction ne l'est pas, et c'est le cœur du problème :
+**MarineUAS (mission maritime) est `core`, ESTABLIS-UAS (mission
+atmosphérique) est `excluded`, et leurs mots sont les mêmes.** Le
+discriminant — développe / utilise / vise — n'a **aucune ombre
+lexicale**.
+
+### Corrections candidates, toutes chiffrées, toutes refusées
+
+| Correction | Corrige | Casse | Verdict |
+|---|---|---|---|
+| `veto archaeolog` | 1 | 0 | **refusée** — touche 1 document ; un motif taillé sur un cas n'a pas de précision mesurable (I10, I15) |
+| `veto atmospheric boundary layer` | 1 | 0 | **refusée**, même raison |
+| `veto social movement\|protesting` | 1 | 0 | **refusée**, même raison |
+| `veto detection and tracking` | 1 | 0 | **refusée**, même raison |
+| `veto service provider` | 1 | **4 core** | refusée sur mesure |
+| Exiger un signal de CAPACITÉ au corps | 6 | **41 core** | refusée sur mesure |
+| Veto FAMILLE surveillance (I14 lexicalisé) | 1 | **4 core** | refusée — CERTIFLIGHT, TRACKANT, MoNIfly et AIRSCAN surveillent le ciel *au service* du système aérien |
+| `demote` multisectoriel au titre | 3 | **2 core** (MarineUAS, OSCAR) | refusée — précision marginale 60 % (I15) |
+
+**Aucune correction lexicale ne survit à la mesure.** Les quatre vetos
+« propres » ne le sont qu'en apparence : leur zéro dégât est une
+tautologie, un motif choisi pour matcher un document matche un
+document.
+
+### Le constat qui commande le cycle V2
+
+| Preuve | Projets | Revus | Jamais revus |
+|---|---|---|---|
+| **structurelle** | 1 592 | 7 | **1 585** |
+| **taxonomique** | 162 | 162 | **0** |
+
+**La mesure de 92,2 % porte sur 9 % du noyau.** Les neuf dixièmes
+restants — la preuve structurelle, celle des appels Clean Sky et SESAR —
+n'ont **jamais été mesurés**. Le seuil de 95 % s'applique à `core`,
+c'est-à-dire aux 1 754, pas aux 162.
+
+Et 430 candidats du pool ont été **rejetés** par la double
+confirmation, sans revue : c'est le gisement de faux négatifs, où
+vivent AVIATOR et ses semblables. Le rappel n'a jamais été mesuré non
+plus.
+
+### Le cycle V2 proposé — trois voies, à arbitrer
+
+**V2-A — mesurer là où c'est aveugle (recommandée).** Avant toute
+correction de règle, échantillonner les **1 585 structurels jamais
+revus**. C'est un holdout *naturellement* indépendant : il existe, il
+est intact, et il porte 91 % du noyau. Protocole : tirage stratifié
+par règle d'appel (les 8), n = 150–200, mêmes colonnes que les
+précédents, revue en aveugle, seuils appliqués au noyau ENTIER.
+Effet sur les tags : **aucun**. Ce qu'il produit : la première mesure
+du chiffre qui décide vraiment.
+
+**V2-B — restreindre plutôt que corriger.** Si la précision taxonomique
+ne peut pas monter, la sortir du périmètre publié : publier Aviation
+sur la seule **preuve structurelle** (1 592, un fait de source) et
+garder les 162 en interne jusqu'à mieux. Rappel −9 %, précision fondée
+sur la source et non sur un mot. À n'arbitrer qu'après V2-A.
+
+**V2-C — chercher une preuve, pas un mot.** Pour la famille drone/UAS,
+exiger un co-signal **structurel** (appel ou programme aéronautique)
+plutôt qu'un motif — I6 appliqué là où le lexique échoue. Réserve
+honnête : ces projets sont taxonomy-only *par construction*, donc ce
+co-signal les fera probablement tous tomber. **À chiffrer avant d'y
+croire.**
+
+**Le second holdout, pour le rappel.** Un échantillon des 430 rejetés,
+revu en aveugle, mesurerait ce que la double confirmation coûte. Nous
+n'avons aujourd'hui aucun chiffre de rappel — seulement un faux négatif
+nommé.
+
+### Ce qui ne se fait pas
+
+Aucun veto, aucune règle `enabling`, aucun élargissement de motif,
+aucune publication. **Les 102 rejoignent les 200 dans le jeu
+consommé** (I10) : plus jamais ils ne valideront quoi que ce soit.
