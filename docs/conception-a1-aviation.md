@@ -1520,3 +1520,104 @@ mesure la précision *par projet*, il ne protège pas le KPI en euros,
 que la moitié de la masse concentre sur soixante lignes.
 
 Aucune règle ne bouge pendant la revue.
+
+---
+
+## A1 · V2-A — la mesure (2026-08-19)
+
+Vérité de revue : `docs/curation/a1-v2a-revue-aveugle-revue-chatgpt.csv`,
+colonne `mon_label` — **197 `core` / 3 `enabling` / 0 `excluded`**. Les
+trois `enabling` sont HITECA, MultiModX et MOTIVATE : multisectoriel ou
+multimodal **constitutif de l'objet** (I13). ISINTHER et COMPOSLEEVE
+sont `core` — objet aéronautique déclaré, jurisprudence Q2/AIRPOXY.
+
+Mes propositions coïncident intégralement avec cette vérité.
+
+### ① Précision par strate
+
+| Strate | N | n | erreurs | p_h | w = N/n | CPF |
+|---|---|---|---|---|---|---|
+| `H2020-CS2-` | 543 | 59 | 1 | 98,31 % | 9,20 | 0,891 |
+| `SP1-JTI-CS-` | 486 | 53 | 1 | 98,11 % | 9,17 | 0,891 |
+| `FP7-AAT-` | 233 | 26 | 0 | 100 % | 8,96 | 0,888 |
+| `H2020-SESAR-` | 149 | 16 | 0 | 100 % | 9,31 | 0,893 |
+| `HORIZON-SESAR-` | 116 | 13 | 1 | 92,31 % | 8,92 | 0,888 |
+| `HORIZON-JU-Clean-Aviation-` | 40 | 15 | 0 | 100 % | 2,67 | 0,625 |
+| `H2020-IBA-CS2-GAMS-` | 11 | 11 | 0 | 100 % | 1,00 | **0,000** |
+| `JTI-CS-` | 7 | 7 | 0 | 100 % | 1,00 | **0,000** |
+
+Les deux strates exhaustives ont une correction de population finie
+nulle : elles sont **certaines**, elles ne contribuent pas à la
+variance.
+
+### ② Précision structurelle pondérée
+
+| | |
+|---|---|
+| brute, non pondérée | 197/200 = **98,50 %** |
+| **pondérée par N (w = N/n)** | **98,28 %** |
+| écart-type stratifié (avec CPF) | 0,938 pt |
+| IC 95 % stratifié | [96,45 % ; 100 %] |
+| IC 95 % Wilson sur l'agrégat, avec CPF | **[95,81 % ; 99,36 %]** |
+
+La pondération abaisse légèrement le chiffre brut : `Clean-Aviation`
+était sur-échantillonnée au plancher (37,5 %) et n'a fait aucune
+erreur, son poids réel est plus petit que sa part d'échantillon.
+
+**Sur le choix d'intervalle.** L'intervalle normal stratifié touche
+100 % en borne haute — l'approximation normale se comporte mal quand
+cinq strates sur huit sont à p = 1. J'ai donc calculé aussi l'agrégat
+par la méthode de **Wilson avec correction de population finie**, plus
+prudente et bornée : c'est elle que je retiens. Une troisième borne,
+par règle de trois appliquée simultanément à chaque strate sans erreur,
+donne 91,13 % — mais elle suppose le pire dans toutes les strates *en
+même temps* : c'est un plancher de scénario, pas un intervalle à 95 %.
+
+### ③ Les trois erreurs
+
+| Projet | Label | Montant | Strate |
+|---|---|---|---|
+| MOTIVATE | `enabling` | 0,49 M€ | `H2020-CS2-` |
+| HITECA | `enabling` | 0,24 M€ | `SP1-JTI-CS-` |
+| MultiModX | `enabling` | 1,31 M€ | `HORIZON-SESAR-` |
+
+Trois erreurs, **toutes de degré et non de domaine** : aucune n'est
+`excluded`. La preuve structurelle ne fait entrer aucun projet étranger
+à l'aviation — elle confond seulement, trois fois, le cœur et
+l'habilitant.
+
+### ④ Labels × montants
+
+| | Projets | Masse | Part |
+|---|---|---|---|
+| `core` | 197 | 1 970,84 M€ | **99,90 %** |
+| `enabling` | 3 | 2,04 M€ | 0,10 % |
+
+**Les 26 projets ≥ 20 M€ de l'échantillon sont tous `core`** — ils
+portent 1 688 M€, soit 85,5 % de la masse échantillonnée. Les trois
+erreurs sont les trois petites lignes. **Le KPI en euros est presque
+insensible aux erreurs constatées.**
+
+### ⑤ Précision globale pondérée de la lentille
+
+| Composante | Population | Poids | Précision |
+|---|---|---|---|
+| structurelle (cette mesure) | 1 592 | 90,8 % | 98,28 % |
+| taxonomique (holdout, hors échantillon) | 162 | 9,2 % | 92,16 % |
+
+**Précision globale = 97,72 %**, écart-type 0,865 pt,
+**IC 95 % [96,02 % ; 99,41 %]**.
+
+### Verdict — la porte P1 passe
+
+**Seuil ≥ 95 % sur `core` : la borne basse de l'intervalle est
+96,02 %.** Le seuil est franchi non seulement par l'estimation
+ponctuelle, mais par le bas de l'intervalle — et il le reste même en
+retenant la borne structurelle la plus prudente (Wilson 95,81 %).
+
+**P1 est franchie. Rien ne se publie.** Les portes suivantes restent
+ouvertes : le **recensement des ≥ 20 M€** (26 revus sur 63, les
+**37 restants sont la prochaine porte**) et le **top 50 des
+organisations**.
+
+Aucune règle n'a bougé. Aviation reste `draft`.
