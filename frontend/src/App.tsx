@@ -6,6 +6,7 @@ import "./i18n";
 
 import { Layout } from "@/components/layout";
 import { AboutDataPage } from "@/pages/about-data";
+import { LensRoomPage } from "@/pages/lens-room";
 import { AnalysesPage } from "@/pages/analyses";
 import { CallsPage } from "@/pages/calls";
 import { CountryHubPage } from "@/pages/country-hub";
@@ -44,6 +45,9 @@ export function AppRoutes() {
     <>
       <ScrollToTop />
       <Routes>
+        {/* La Lens Room vit HORS du Layout : un moment immersif
+            distinct — la home reste l'entrée fonctionnelle. */}
+        <Route path="/lenses" element={<LensRoomPage />} />
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/projects" element={<ProjectsSearchPage />} />

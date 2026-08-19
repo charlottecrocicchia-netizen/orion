@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
 import { lensValue, lensWords, parseLens, usePublishedLenses } from "@/lib/lens";
 import { cn } from "@/lib/utils";
@@ -127,6 +128,16 @@ export function SectorChip({
               ) : null}
             </button>
           ))}
+          {/* La sortie vers la Lens Room : un LIEN, pas une entrée
+              radio — il quitte la vue au lieu de la recadrer. */}
+          <Link
+            to="/lenses"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="mt-1 block w-full rounded-lg border-t border-border-soft px-3 pb-1.5 pt-2 text-left text-[12.5px] text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+          >
+            {t("lensRoom.open")} →
+          </Link>
         </span>
       ) : null}
     </span>

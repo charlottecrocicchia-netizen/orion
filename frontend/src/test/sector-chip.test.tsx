@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 // Le composant parle par i18n : sans l'init, les clés sortent nues.
@@ -54,7 +55,11 @@ function mount(sector: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <SectorChip sector={sector} onChange={() => {}} />
+      {/* Le chip porte désormais un lien (la sortie vers la Lens
+          Room) : il exige un routeur, comme en production. */}
+      <MemoryRouter>
+        <SectorChip sector={sector} onChange={() => {}} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }

@@ -279,6 +279,16 @@ export function HomePage() {
                   {leadWords.cta} →
                 </Link>
               </p>
+              {/* La porte de la Lens Room : un lien texte sobre — un
+                  seul CTA plein par hero (doctrine, piège n° 8). */}
+              <p className="mt-4">
+                <Link
+                  to="/lenses"
+                  className="text-[13px] text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+                >
+                  {t("lensRoom.open")} →
+                </Link>
+              </p>
             </>
           ) : stats ? (
             <StatHero

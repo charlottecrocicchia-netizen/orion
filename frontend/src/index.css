@@ -288,3 +288,41 @@
     display: none;
   }
 }
+
+/* ── La Lens Room : le dessin des objets et leurs mouvements. ──────
+   Les traits se dessinent (dashoffset), le satellite parcourt, les
+   flux défilent — et tout se FIGE sous prefers-reduced-motion : la
+   salle reste belle immobile. */
+.lens-room-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.lens-room-draw-awake {
+  animation: lens-room-draw 1.6s ease-out forwards;
+}
+@keyframes lens-room-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.lens-room-flow {
+  animation: lens-room-flow 1.4s linear infinite;
+}
+@keyframes lens-room-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lens-room-draw,
+  .lens-room-draw-awake {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .lens-room-flow {
+    animation: none;
+  }
+  .lens-room-orbiter animateMotion {
+    display: none;
+  }
+}
