@@ -44,9 +44,11 @@ test("le titre du document dit la lentille, la vue, et suit la navigation", asyn
   // D5 exécutée (2026-08-19) : la vue cadrée porte l'identité composée.
   await expect(page).toHaveTitle("ORION / ESPACE · Explorateur");
 
-  // Navigation interne (pas de rechargement) : le titre suit.
+  // Navigation interne (pas de rechargement) : le titre suit — et
+  // depuis le lot navigation (2026-08-19), le CADRE voyage avec :
+  // l'identité composée reste au titre.
   await page.getByRole("link", { name: /Analyses prêtes|bibliothèque/ }).first().click();
-  await expect(page).toHaveTitle(/Analyses prêtes — Orion|Analyses — Orion/);
+  await expect(page).toHaveTitle("ORION / ESPACE · Analyses prêtes");
 });
 
 test("la langue du document suit la langue active", async ({ page }) => {

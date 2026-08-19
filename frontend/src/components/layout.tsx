@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/lib/api";
 import { BRAND } from "@/lib/brand";
 import { useDossier } from "@/lib/dossier";
-import { lensWords, useActiveLensState, useCarriedLens, withLens } from "@/lib/lens";
+import { lensWords, useCarriedLens, withLens } from "@/lib/lens";
 import { formatCompactEur } from "@/lib/format";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 
@@ -39,9 +39,12 @@ function ScopeBadge() {
  *  lien vers la Lens Room — l'identité EST la porte de la salle. */
 function ComposedIdentity() {
   const { t } = useTranslation();
-  const lensState = useActiveLensState();
-  if (lensState.kind !== "valid") return null;
-  const name = lensWords(lensState.lens.slug, t).name.toUpperCase();
+  // La même source que le transport : la lentille de la VUE — par le
+  // paramètre ou par l'angle actif d'un deck. Un header qui transporte
+  // sans l'afficher mentirait par omission.
+  const slug = useCarriedLens();
+  if (!slug) return null;
+  const name = lensWords(slug, t).name.toUpperCase();
   return (
     <Link
       to="/lenses"

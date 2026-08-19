@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
@@ -39,6 +41,7 @@ function ActHeader({ index, title, phrase }: { index: string; title: string; phr
 }
 
 export function GroupHubPage() {
+  const carried = useCarriedLens();
   const { id = "" } = useParams();
   const { t, i18n } = useTranslation();
   const countryName = useCountryName();
@@ -65,7 +68,7 @@ export function GroupHubPage() {
         <p className="font-display text-[clamp(22px,2.6vw,30px)] font-[560]">
           {t("notFound.title")}
         </p>
-        <Link to="/projects" className="mt-3 inline-block text-[14px] text-accent underline-offset-4 hover:underline">
+        <Link to={withLens("/projects", carried)} className="mt-3 inline-block text-[14px] text-accent underline-offset-4 hover:underline">
           {t("notFound.back")}
         </Link>
       </div>
@@ -136,7 +139,7 @@ export function GroupHubPage() {
             title={displayName}
           />
           <Link
-            to={`/compare?orgs=g${hub.id}`}
+            to={withLens(`/compare?orgs=g${hub.id}`, carried)}
             className="rounded-full border px-4 py-1.5 text-[13px] font-medium transition-colors hover:border-accent hover:text-accent"
           >
             ⇄ {t("group.compareCta")}
@@ -310,7 +313,7 @@ export function GroupHubPage() {
                   <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
                     <div className="min-w-0">
                       <Link
-                        to={`/organisations/${entity.id}`}
+                        to={withLens(`/organisations/${entity.id}`, carried)}
                         className="text-[15px] font-medium underline-offset-4 hover:underline"
                       >
                         {entity.country ? `${countryFlag(entity.country)} ` : ""}
@@ -385,7 +388,7 @@ export function GroupHubPage() {
             {hub.partners.map((partner) => (
               <li key={partner.id} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-3.5">
                 <Link
-                  to={`/organisations/${partner.id}`}
+                  to={withLens(`/organisations/${partner.id}`, carried)}
                   className="min-w-0 text-[14.5px] font-medium underline-offset-4 hover:underline"
                 >
                   {partner.country ? `${countryFlag(partner.country)} ` : ""}
@@ -442,7 +445,7 @@ export function GroupHubPage() {
             <div className="mt-7 grid gap-3.5 lg:grid-cols-2">
               {watchpost.signals.accelerating_theme ? (
                 <Link
-                  to={`/explore?by=theme&split=1&compare=${encodeURIComponent(watchpost.signals.accelerating_theme.key)}`}
+                  to={withLens(`/explore?by=theme&split=1&compare=${encodeURIComponent(watchpost.signals.accelerating_theme.key)}`, carried)}
                   className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-3 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
                 >
                   <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-3">

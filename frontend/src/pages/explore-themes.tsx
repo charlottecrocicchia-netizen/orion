@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,6 +54,7 @@ function Spark({ points }: { points: ExplorePoint[] }) {
 }
 
 export function ExploreThemesPage() {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const [sort, setSort] = useState<"funding" | "delta">("funding");
   const { data, isPending } = useQuery({
@@ -131,7 +134,7 @@ export function ExploreThemesPage() {
           : rows.map((row, index) => (
               <Link
                 key={row.key}
-                to={`/explore?by=theme&split=1&compare=${encodeURIComponent(row.key)}`}
+                to={withLens(`/explore?by=theme&split=1&compare=${encodeURIComponent(row.key)}`, carried)}
                 className="group grid grid-cols-[34px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-b border-border-soft py-3 sm:grid-cols-[34px_minmax(0,1fr)_132px_72px_minmax(120px,auto)]"
               >
                 <span

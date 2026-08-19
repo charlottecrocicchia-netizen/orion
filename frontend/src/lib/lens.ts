@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
 
 import { api, type LensMeta } from "@/lib/api";
+import { STORIES } from "@/lib/stories";
 
 /** L'AUTORITÉ de la lentille active (M1.1 du chantier multi-lentilles).
  *
@@ -205,9 +206,43 @@ export function withLens(to: string, slug: string | null): string {
   return `${path}${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
 }
 
-/** Le slug à transporter : celui d'une vue VALIDEMENT cadrée, sinon
- *  rien — un paramètre invalide ne se propage jamais, il se refuse. */
+/** Le périmètre de l'ANGLE actif d'un deck, dérivé de l'URL seule
+ *  (fuite ② de la recette du 2026-08-19) : en mode angles, l'adresse
+ *  dit `angles=<key>&angle=N` — le sector de la vue vit dans les
+ *  params de l'angle. Il est donc DÉRIVABLE de l'URL, et le transport
+ *  doit savoir le dériver : l'URL reste la seule vérité. */
+function useAngleLensSlug(): string | null {
+  const [params] = useSearchParams();
+  const story = STORIES.find(
+    (candidate) => candidate.key === params.get("angles") && candidate.deck,
+  );
+  if (!story) return null;
+  const index = Math.min(
+    Math.max(Number(params.get("angle") ?? "0") || 0, 0),
+    story.deck!.length - 1,
+  );
+  const raw = new URLSearchParams(story.deck![index].params).get(LENS_PARAM);
+  const active = raw ? parseLens(raw) : null;
+  return active?.slug ?? null;
+}
+
+/** Le slug à transporter : celui de la vue — par le paramètre, ou par
+ *  l'angle actif d'un deck — sinon rien.
+ *
+ *  Tant que le registre n'a pas parlé (stats en route), le transport
+ *  fait CONFIANCE au candidat brut : pré-valider contre un registre
+ *  absent faisait perdre le cadre au premier clic rapide (recette du
+ *  2026-08-19, fuite ① sous charge). La validation reste l'affaire des
+ *  pages qui LISENT — un slug invalide sera refusé à l'arrivée (M1.2),
+ *  et une fois le registre là, un slug inconnu ne se propage plus. */
 export function useCarriedLens(): string | null {
-  const state = useActiveLensState();
-  return state.kind === "valid" ? state.lens.slug : null;
+  const [params] = useSearchParams();
+  const fromAngle = useAngleLensSlug();
+  const lenses = usePublishedLenses();
+  const raw = params.getAll(LENS_PARAM);
+  const parsed = raw.length === 1 ? parseLens(raw[0]) : null;
+  const candidate = parsed?.slug ?? fromAngle;
+  if (!candidate) return null;
+  if (lenses.length === 0) return candidate;
+  return lenses.some((lens) => lens.slug === candidate) ? candidate : null;
 }

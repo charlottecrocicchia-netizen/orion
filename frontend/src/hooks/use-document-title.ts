@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import { lensWords, useActiveLensState } from "@/lib/lens";
+import { lensWords, useCarriedLens } from "@/lib/lens";
 
 /** Le titre du document et la langue du document (M1.3).
  *
@@ -36,7 +36,7 @@ const VIEW_KEYS: [RegExp, string][] = [
 export function useDocumentTitle(): void {
   const { t, i18n } = useTranslation();
   const location = useLocation();
-  const lensState = useActiveLensState();
+  const carriedSlug = useCarriedLens();
 
   useEffect(() => {
     document.documentElement.lang = i18n.language.startsWith("fr") ? "fr" : "en";
@@ -47,19 +47,17 @@ export function useDocumentTitle(): void {
     if (!entry) {
       // Une page sans nom de vue (la home) compose quand même son
       // identité quand une lentille la cadre : ORION / AÉRONAUTIQUE.
-      document.title =
-        lensState.kind === "valid"
-          ? `ORION / ${lensWords(lensState.lens.slug, t).name.toUpperCase()}`
-          : BRAND;
+      document.title = carriedSlug
+        ? `ORION / ${lensWords(carriedSlug, t).name.toUpperCase()}`
+        : BRAND;
       return;
     }
     const view = t(entry[1]);
     // L'identité composée (D5) : une vue cadrée dit ORION / <LENTILLE>,
     // comme la Lens Room et le header.
-    const lens =
-      lensState.kind === "valid" ? lensWords(lensState.lens.slug, t).name : null;
+    const lens = carriedSlug ? lensWords(carriedSlug, t).name : null;
     document.title = lens
       ? `ORION / ${lens.toUpperCase()} · ${view}`
       : `${view} — Orion`;
-  }, [location.pathname, location.search, lensState, t, i18n.language]);
+  }, [location.pathname, location.search, carriedSlug, t, i18n.language]);
 }

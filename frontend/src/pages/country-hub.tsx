@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { WorldMap } from "@/components/world-map";
@@ -15,6 +17,7 @@ import { api } from "@/lib/api";
 import { countryFlag, formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 
 export function CountryHubPage() {
+  const carried = useCarriedLens();
   const { code = "" } = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -52,7 +55,7 @@ export function CountryHubPage() {
       {/* Monde › Région › Pays — chaque segment est un lieu réel
           (symétrie, 2026-08-17), le dernier en encre pleine. */}
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/explore/countries" className="transition-colors hover:text-foreground">
+        <Link to={withLens("/explore/countries", carried)} className="transition-colors hover:text-foreground">
           {t("regions.world")}
         </Link>
         {region ? (
@@ -60,7 +63,7 @@ export function CountryHubPage() {
             {" "}
             ›{" "}
             <Link
-              to={`/explore/regions/${region}`}
+              to={withLens(`/explore/regions/${region}`, carried)}
               className="transition-colors hover:text-foreground"
             >
               {t(`regions.${region}`)}
@@ -221,7 +224,7 @@ export function CountryHubPage() {
                     {t("search.projectsCount", { count: selectedMesh.projects_count })}
                   </span>
                   <Link
-                    to={`/explore?by=organisation&split=0&country=${data.code}&subdivision=${selectedMesh.code}`}
+                    to={withLens(`/explore?by=organisation&split=0&country=${data.code}&subdivision=${selectedMesh.code}`, carried)}
                     className="text-accent underline-offset-2 hover:underline"
                   >
                     {t([`country.meshOpen.${data.code}`, "country.meshOpen.default"])} →
@@ -259,7 +262,7 @@ export function CountryHubPage() {
           {data.top_organisations.map((org) => (
             <Link
               key={org.id}
-              to={`/organisations/${org.id}`}
+              to={withLens(`/organisations/${org.id}`, carried)}
               className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
             >
               <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">
@@ -281,7 +284,7 @@ export function CountryHubPage() {
           {data.top_projects.map((project) => (
             <Link
               key={project.id}
-              to={`/projects/${project.id}`}
+              to={withLens(`/projects/${project.id}`, carried)}
               className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
             >
               <span className="min-w-0 leading-snug">
@@ -334,7 +337,7 @@ export function CountryHubPage() {
             </dl>
           </section>
           <Link
-            to={`/projects?country=${data.code}`}
+            to={withLens(`/projects?country=${data.code}`, carried)}
             className="inline-flex rounded-full bg-accent px-4.5 py-2 text-[13.5px] font-medium text-background transition-transform hover:translate-x-0.5"
           >
             {t("country.searchProjects", { name: data.name })} →

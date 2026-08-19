@@ -76,3 +76,31 @@ test("la recherche transporte ; la sortie chip nettoie ; le site nu reste nu", a
   await expect(page).toHaveURL(/\/analyses$/);
   await expect(page).not.toHaveURL(/sector=/);
 });
+
+test("fuite ① colmatée : home Aviation → organisations → fiche → retour, le cadrage survit", async ({
+  page,
+}) => {
+  await page.goto("/?sector=aviation");
+  const banner = page.getByRole("banner");
+  await banner.getByRole("button", { name: "Découvrir" }).click();
+  await banner.getByRole("link", { name: /Organisations/ }).click();
+  await expect(page).toHaveURL(/\/organisations\?sector=aviation/);
+
+  // Les onglets de recherche transportent q ET le cadre.
+  await page.getByRole("link", { name: /Projets/ }).first().click();
+  await expect(page).toHaveURL(/\/projects\?sector=aviation/);
+});
+
+test("fuite ② colmatée : deck Aviation → logo → home cadrée Aviation", async ({ page }) => {
+  await page.goto("/explore?angles=aviationClean");
+  // Le périmètre de l'angle est DÉRIVABLE de l'URL : le header compose
+  // ORION / AÉRONAUTIQUE sur le deck même.
+  const identity = page.getByRole("link", { name: "Les lentilles", exact: true });
+  await expect(identity).toContainText("AÉRONAUTIQUE", { timeout: 15_000 });
+  // Et le logo ramène à la HOME CADRÉE, jamais à la home nue.
+  await page.getByRole("link", { name: /Orion — home/ }).click();
+  await expect(page).toHaveURL(/\/\?sector=aviation/);
+  await expect(page.getByText("projets aéronautiques", { exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
+});

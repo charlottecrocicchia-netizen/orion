@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { BarsChart, LinesChart } from "@/components/charts";
@@ -31,6 +33,7 @@ export function ExploreView({
   title: string;
   active: boolean;
 }) {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const [drill, setDrill] = useState<{ id: string; label: string } | null>(null);
   // Map rule: first click selects (summary line below), second click on
@@ -138,7 +141,7 @@ export function ExploreView({
                   </span>
                 </span>
                 <Link
-                  to={`/explore/countries/${mapSelected}`}
+                  to={withLens(`/explore/countries/${mapSelected}`, carried)}
                   className="text-accent underline-offset-2 hover:underline"
                 >
                   {t("explorer.mapOpenCountry")} →

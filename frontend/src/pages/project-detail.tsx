@@ -7,7 +7,7 @@ import { ExploreExits } from "@/components/explore-exits";
 import { KpiStatic } from "@/components/kpi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { LENS_PARAM, lensValue, lensWords } from "@/lib/lens";
+import { LENS_PARAM, lensValue, lensWords, useCarriedLens, withLens } from "@/lib/lens";
 import {
   countryFlag,
   formatCompactEur,
@@ -17,6 +17,7 @@ import {
 } from "@/lib/format";
 
 export function ProjectDetailPage() {
+  const carried = useCarriedLens();
   const { id = "" } = useParams();
   const { t, i18n } = useTranslation();
   const { data, isPending } = useQuery({
@@ -49,7 +50,7 @@ export function ProjectDetailPage() {
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/projects" className="transition-colors hover:text-foreground">
+        <Link to={withLens("/projects", carried)} className="transition-colors hover:text-foreground">
           {t("nav.projects")}
         </Link>{" "}
         › <span>{data.acronym ?? data.source_id}</span>
@@ -191,7 +192,7 @@ export function ProjectDetailPage() {
                 <tr key={`${p.organisation_id}-${p.role}-${p.amount_eur}`} className="border-b border-border-soft">
                   <td className="py-3 pr-3">
                     <Link
-                      to={`/organisations/${p.organisation_id}`}
+                      to={withLens(`/organisations/${p.organisation_id}`, carried)}
                       className="hover:underline underline-offset-2"
                     >
                       {formatOrgName(p.name)}

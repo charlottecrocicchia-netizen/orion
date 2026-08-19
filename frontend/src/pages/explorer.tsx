@@ -12,7 +12,7 @@ import { DumbbellChart } from "@/components/dumbbell-chart";
 import { CoverageNote } from "@/components/coverage-note";
 import { LensUnavailable } from "@/components/lens-unavailable";
 import { SectorChip } from "@/components/sector-chip";
-import { LENS_PARAM, useActiveLensState } from "@/lib/lens";
+import { LENS_PARAM, useActiveLensState, useCarriedLens, withLens } from "@/lib/lens";
 import { ExploreTable } from "@/components/explore-table";
 import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -145,6 +145,7 @@ function MenuItem({
 /* ————— The page ————— */
 
 export function ExplorerPage() {
+  const carried = useCarriedLens();
   const lensState = useActiveLensState();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -340,7 +341,7 @@ export function ExplorerPage() {
     if (intent.to === "explore") {
       setParams(new URLSearchParams(intent.params), { preventScrollReset: true });
     } else {
-      navigate(`/${intent.to === "projects" ? "projects" : "compare"}?${intent.params}`);
+      navigate(withLens(`/${intent.to === "projects" ? "projects" : "compare"}?${intent.params}`, carried));
     }
     form.reset();
   };
@@ -792,7 +793,7 @@ export function ExplorerPage() {
                       </span>
                     </span>
                     <Link
-                      to={`/explore/countries/${mapSelected}`}
+                      to={withLens(`/explore/countries/${mapSelected}`, carried)}
                       className="text-accent underline-offset-2 hover:underline"
                     >
                       {t("explorer.mapOpenCountry")} →
@@ -858,7 +859,7 @@ export function ExplorerPage() {
           the short renvoi keeps the old habit alive. */}
       <div className="mb-16 mt-14 border-t border-border-soft pt-5">
         <Link
-          to="/analyses"
+          to={withLens("/analyses", carried)}
           className="group flex items-baseline gap-4 text-[14.5px] font-medium"
         >
           <span className="transition-colors group-hover:text-accent">

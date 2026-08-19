@@ -1,6 +1,8 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { CollectButton } from "@/components/collect-button";
@@ -209,6 +211,7 @@ function AddOrganisation({ exclude, onAdd }: { exclude: string[]; onAdd: (ref: s
 }
 
 export function ComparePage() {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const countryName = useCountryName();
   // La couverture par pays vient de l'index — une seule vérité, servie
@@ -595,7 +598,7 @@ export function ComparePage() {
                   {commonPartners.map((partner) => (
                     <li key={partner.id} className="flex flex-wrap items-baseline gap-x-6 gap-y-1 py-2.5">
                       <Link
-                        to={`/organisations/${partner.id}`}
+                        to={withLens(`/organisations/${partner.id}`, carried)}
                         className="min-w-0 flex-1 text-[13.5px] font-medium underline-offset-2 hover:underline"
                       >
                         {partner.country ? <CountryFlags codes={[partner.country]} /> : null}{" "}

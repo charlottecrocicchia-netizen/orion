@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import type { CountryFlow, CountryIndexEntry } from "@/lib/api";
@@ -64,6 +66,7 @@ export function WorldMap({
    *  (« us-states » — lot D : un scope de plus, aucun composant neuf). */
   scope?: RegionSlug | "world" | "us-states";
 }) {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const flatData = useFlatMaps();
@@ -106,7 +109,7 @@ export function WorldMap({
     if (zooming) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
-      navigate(`/explore/countries/${code}`);
+      navigate(withLens(`/explore/countries/${code}`, carried));
       return;
     }
     setZooming(true);
@@ -127,7 +130,7 @@ export function WorldMap({
     // L'arrivée ne dépend JAMAIS du zoom : rAF peut être throttlé
     // (onglet occulté, machine chargée — vu en CI le 2026-08-04), la
     // navigation part sur l'horloge, l'animation reste cosmétique.
-    window.setTimeout(() => navigate(`/explore/countries/${code}`), ZOOM_MS + 50);
+    window.setTimeout(() => navigate(withLens(`/explore/countries/${code}`, carried)), ZOOM_MS + 50);
   };
 
   // First activation selects; the second — on the already-selected

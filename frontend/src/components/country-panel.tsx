@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { useFlatMaps } from "@/lib/flat-geo";
@@ -47,6 +49,7 @@ export function CountryPanel({
   flows: CountryFlow[];
   onClose: () => void;
 }) {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const photo: CountryPhoto | undefined = PHOTOS[code];
@@ -241,7 +244,7 @@ export function CountryPanel({
         ) : null}
 
         <Link
-          to={`/explore/countries/${code}`}
+          to={withLens(`/explore/countries/${code}`, carried)}
           className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5.5 py-3 text-[15px] font-medium text-[#1d1d1f] transition-transform hover:translate-x-0.5"
         >
           {t("home.panelOpen", { name: entry.name })} →

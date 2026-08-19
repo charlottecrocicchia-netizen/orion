@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { useFlatMaps } from "@/lib/flat-geo";
@@ -23,6 +25,7 @@ const STAGE = { width: 900, height: 675 };
 const STEPS = [0.12, 0.28, 0.46, 0.66, 0.88];
 
 export function CollaboratorsMap({ data }: { data: PartnerCountry[] }) {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const countryName = useCountryName();
@@ -66,7 +69,7 @@ export function CollaboratorsMap({ data }: { data: PartnerCountry[] }) {
       setSelected(code);
       return;
     }
-    navigate(`/explore/countries/${code}`);
+    navigate(withLens(`/explore/countries/${code}`, carried));
   };
 
   const moveTip = (event: React.MouseEvent, row: PartnerCountry | undefined, code: string) => {
@@ -193,7 +196,7 @@ export function CollaboratorsMap({ data }: { data: PartnerCountry[] }) {
           </span>
           <button
             type="button"
-            onClick={() => navigate(`/explore/countries/${summary.country}`)}
+            onClick={() => navigate(withLens(`/explore/countries/${summary.country}`, carried))}
             className="ml-auto font-medium text-accent underline-offset-2 hover:underline"
           >
             {t("explorer.mapOpenCountry")} →

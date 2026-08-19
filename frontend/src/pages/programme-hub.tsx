@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { ExploreExits } from "@/components/explore-exits";
@@ -16,6 +18,7 @@ import {
 } from "@/lib/format";
 
 export function ProgrammeHubPage() {
+  const carried = useCarriedLens();
   const { id = "" } = useParams();
   const { t, i18n } = useTranslation();
   const { data, isPending } = useQuery({
@@ -39,7 +42,7 @@ export function ProgrammeHubPage() {
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/explore/programmes" className="transition-colors hover:text-foreground">
+        <Link to={withLens("/explore/programmes", carried)} className="transition-colors hover:text-foreground">
           {t("explore.programmesTitle")}
         </Link>{" "}
         › <span>{data.code}</span>
@@ -72,7 +75,7 @@ export function ProgrammeHubPage() {
           {data.top_beneficiaries.map((org) => (
             <Link
               key={org.id}
-              to={`/organisations/${org.id}`}
+              to={withLens(`/organisations/${org.id}`, carried)}
               className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
             >
               {org.country ? (
@@ -99,7 +102,7 @@ export function ProgrammeHubPage() {
           {data.top_projects.map((project) => (
             <Link
               key={project.id}
-              to={`/projects/${project.id}`}
+              to={withLens(`/projects/${project.id}`, carried)}
               className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
             >
               <span className="min-w-0 leading-snug">

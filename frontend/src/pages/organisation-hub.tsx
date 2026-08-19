@@ -1,5 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { CollaboratorsMap } from "@/components/collaborators-map";
@@ -40,6 +42,7 @@ function ActHeader({ index, title, phrase }: { index: string; title: string; phr
 }
 
 export function OrganisationHubPage() {
+  const carried = useCarriedLens();
   const { id = "" } = useParams();
   const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
@@ -82,7 +85,7 @@ export function OrganisationHubPage() {
   return (
     <div className="mx-auto w-full max-w-[980px] px-6 pt-12">
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/organisations" className="transition-colors hover:text-foreground">
+        <Link to={withLens("/organisations", carried)} className="transition-colors hover:text-foreground">
           {t("nav.organisations")}
         </Link>{" "}
         ›{" "}
@@ -200,7 +203,7 @@ export function OrganisationHubPage() {
                 {partners.map((partner) => (
                   <Link
                     key={partner.id}
-                    to={`/organisations/${partner.id}`}
+                    to={withLens(`/organisations/${partner.id}`, carried)}
                     className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
                   >
                     {partner.country ? <CountryFlags codes={[partner.country]} /> : null}
@@ -267,7 +270,7 @@ export function OrganisationHubPage() {
             <div className="grid gap-3.5 lg:grid-cols-2">
               {data.signals.accelerating_theme ? (
                 <Link
-                  to={`/explore?by=theme&split=1&compare=${encodeURIComponent(data.signals.accelerating_theme.key)}`}
+                  to={withLens(`/explore?by=theme&split=1&compare=${encodeURIComponent(data.signals.accelerating_theme.key)}`, carried)}
                   className="flex items-baseline gap-4 rounded-r-[14px] border-l-[3px] border-series-3 bg-surface px-5 py-3.5 transition-colors hover:bg-accent-soft"
                 >
                   <span className="tnum whitespace-nowrap text-[18px] font-semibold text-series-3">
@@ -335,7 +338,7 @@ export function OrganisationHubPage() {
               {portfolio?.results.map((row) => (
                 <tr key={`${row.id}-${row.role}-${row.amount_eur}`} className="border-b border-border-soft">
                   <td className="max-w-[34ch] py-2.5 pr-3 leading-snug">
-                    <Link to={`/projects/${row.id}`} className="hover:underline underline-offset-2">
+                    <Link to={withLens(`/projects/${row.id}`, carried)} className="hover:underline underline-offset-2">
                       {row.acronym ? <b className="mr-1.5 font-medium">{row.acronym}</b> : null}
                       <span className="text-muted-foreground">{row.title}</span>
                     </Link>
@@ -472,7 +475,7 @@ export function OrganisationHubPage() {
             </a>
           ) : null}
           <Link
-            to={`/compare?orgs=${data.id}`}
+            to={withLens(`/compare?orgs=${data.id}`, carried)}
             className="inline-flex rounded-full bg-accent px-4.5 py-2 text-[13.5px] font-medium text-background transition-transform hover:translate-x-0.5"
           >
             {t("compare.cta")} →

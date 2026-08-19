@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +20,7 @@ const strip = (value: string) =>
   value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export function ExploreProgrammesPage() {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
   const [filter, setFilter] = useState("");
@@ -119,7 +122,7 @@ export function ExploreProgrammesPage() {
             {programmes.map((programme) => (
               <Link
                 key={programme.id}
-                to={`/explore/programmes/${programme.id}`}
+                to={withLens(`/explore/programmes/${programme.id}`, carried)}
                 className="group flex items-baseline gap-4 border-b border-border-soft py-3 text-[14.5px]"
               >
                 <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">

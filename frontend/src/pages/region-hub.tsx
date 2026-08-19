@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { CollectButton } from "@/components/collect-button";
@@ -24,6 +26,7 @@ import { cn } from "@/lib/utils";
  *  Le geste ne change pas : premier clic, le pays se sélectionne ;
  *  second, on descend vers sa fiche. */
 export function RegionHubPage() {
+  const carried = useCarriedLens();
   const { slug = "" } = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -90,7 +93,7 @@ export function RegionHubPage() {
   return (
     <div className="mx-auto w-full max-w-[1080px] px-6 pt-12">
       <nav className="text-[13px] text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/explore/countries" className="transition-colors hover:text-foreground">
+        <Link to={withLens("/explore/countries", carried)} className="transition-colors hover:text-foreground">
           {t("regions.world")}
         </Link>{" "}
         › <span>{t(`regions.${slug}`)}</span>
@@ -113,7 +116,7 @@ export function RegionHubPage() {
       {/* Les autres régions à un clic — la symétrie se parcourt. */}
       <div className="mt-5 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("regions.scopeLabel")}>
         <Link
-          to="/explore/countries"
+          to={withLens("/explore/countries", carried)}
           className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
         >
           {t("regions.world")}
@@ -121,7 +124,7 @@ export function RegionHubPage() {
         {REGION_ORDER.map((candidate) => (
           <Link
             key={candidate}
-            to={`/explore/regions/${candidate}`}
+            to={withLens(`/explore/regions/${candidate}`, carried)}
             aria-current={slug === candidate ? "page" : undefined}
             className={cn(
               "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] transition-colors",
@@ -171,7 +174,7 @@ export function RegionHubPage() {
             flows={flows ?? []}
             selected={selected}
             onSelect={setSelected}
-            onOpen={(code) => navigate(`/explore/countries/${code}`)}
+            onOpen={(code) => navigate(withLens(`/explore/countries/${code}`, carried))}
             scope={slug}
           />
         </div>
@@ -199,7 +202,7 @@ export function RegionHubPage() {
             {countries.map((country, index) => (
               <Link
                 key={country.code}
-                to={`/explore/countries/${country.code}`}
+                to={withLens(`/explore/countries/${country.code}`, carried)}
                 className="group grid grid-cols-[44px_30px_minmax(0,1fr)_auto] items-center gap-3.5 border-b border-border-soft py-3"
               >
                 <span
@@ -249,7 +252,7 @@ export function RegionHubPage() {
             {(topOrgs?.series ?? []).map((org) => (
               <Link
                 key={org.key}
-                to={`/organisations/${org.key}`}
+                to={withLens(`/organisations/${org.key}`, carried)}
                 className="group flex items-baseline gap-3 border-b border-border-soft py-2.5 text-sm"
               >
                 <span className="min-w-0 leading-snug transition-colors group-hover:text-accent">

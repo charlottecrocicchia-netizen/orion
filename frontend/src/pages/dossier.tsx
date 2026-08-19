@@ -11,7 +11,7 @@ import {
   useDossier,
 } from "@/lib/dossier";
 import type { DossierItem } from "@/lib/dossier";
-import { lensPhrase } from "@/lib/lens";
+import { lensPhrase, useCarriedLens, withLens } from "@/lib/lens";
 import { readState } from "@/lib/explore-state";
 
 /** The dossier (lot 4, mockup v2 validated): an EDITORIAL page, not a
@@ -50,6 +50,7 @@ function Block({
   index: number;
   count: number;
 }) {
+  const carried = useCarriedLens();
   const { t } = useTranslation();
   const [renaming, setRenaming] = useState(false);
   const [noting, setNoting] = useState(false);
@@ -161,7 +162,7 @@ function Block({
         <span aria-hidden="true">·</span>
         <span>{t("explorer.sources")}</span>
         <Link
-          to={`/explore?${item.params}`}
+          to={withLens(`/explore?${item.params}`, carried)}
           className="no-print text-accent underline-offset-2 hover:underline"
         >
           {t("dossier.openLive")} ↗
@@ -172,6 +173,7 @@ function Block({
 }
 
 export function DossierPage() {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const dossier = useDossier();
 
@@ -188,7 +190,7 @@ export function DossierPage() {
           {t("dossier.empty")}
         </p>
         <Link
-          to="/explore"
+          to={withLens("/explore", carried)}
           className="mt-8 inline-block rounded-full bg-foreground px-5 py-2.5 text-[14px] text-background hover:opacity-90"
         >
           {t("dossier.emptyCta")} →

@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
+
+import { useCarriedLens, withLens } from "@/lib/lens";
 import { useTranslation } from "react-i18next";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,6 +32,7 @@ function storedView(): GeoView {
  *  activation of the already-selected country. Globe and flat map share
  *  the selection; the ranked list below stays the canonical reading. */
 export function ExploreCountriesPage() {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [view, setView] = useState<GeoView>(storedView);
@@ -58,7 +61,7 @@ export function ExploreCountriesPage() {
   // First activation selects; repeating it on the selected country goes
   // to the file (the panel's CTA is the other door).
   const activate = (code: string) => {
-    if (code === selected) navigate(`/explore/countries/${code}`);
+    if (code === selected) navigate(withLens(`/explore/countries/${code}`, carried));
     else setSelected(code);
   };
 
@@ -107,7 +110,7 @@ export function ExploreCountriesPage() {
         {REGION_ORDER.map((candidate) => (
           <Link
             key={candidate}
-            to={`/explore/regions/${candidate}`}
+            to={withLens(`/explore/regions/${candidate}`, carried)}
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
           >
             <i
@@ -181,7 +184,7 @@ export function ExploreCountriesPage() {
           : data?.map((country, index) => (
               <Link
                 key={country.code}
-                to={`/explore/countries/${country.code}`}
+                to={withLens(`/explore/countries/${country.code}`, carried)}
                 className="group grid grid-cols-[56px_34px_minmax(0,1fr)_auto] items-center gap-4 border-b border-border-soft py-3.5"
               >
                 <span

@@ -88,4 +88,8 @@ describe("withLens — la propagation de la lentille active", () => {
   it("sans lentille, rien ne change — le site nu est un état de plein droit", () => {
     expect(withLens("/projects", null)).toBe("/projects");
   });
+  it("transporte même sur un chemin vide — le suffix des onglets de recherche", () => {
+    expect(withLens("", "aviation")).toBe("?sector=aviation");
+    expect(withLens("", null)).toBe("");
+  });
 });

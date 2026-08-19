@@ -7,7 +7,7 @@ import { ExploreExits } from "@/components/explore-exits";
 import { SearchComposer } from "@/components/search-composer";
 import { SectorChip } from "@/components/sector-chip";
 import { LensUnavailable } from "@/components/lens-unavailable";
-import { LENS_PARAM, useActiveLensState } from "@/lib/lens";
+import { LENS_PARAM, useActiveLensState, useCarriedLens, withLens } from "@/lib/lens";
 import { Sparkline } from "@/components/sparkline";
 import { TrendDelta } from "@/components/trend-delta";
 import { Button } from "@/components/ui/button";
@@ -170,13 +170,14 @@ function groupByFrame(data: ProjectSearchResponse): HitGroup[] {
 }
 
 function ProjectHitRow({ hit }: { hit: ProjectHit }) {
+  const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
   return (
     <article className="group -mx-4 rounded-xl border-b border-border-soft px-4 py-6 transition-colors last:border-b-0 hover:bg-surface/70">
       <div className="flex items-baseline gap-3">
         <h2 className="text-[17px] font-medium">
           {hit.acronym ? <span className="mr-2 text-accent">{hit.acronym}</span> : null}
-          <Link to={`/projects/${hit.id}`} className="hover:underline underline-offset-2">
+          <Link to={withLens(`/projects/${hit.id}`, carried)} className="hover:underline underline-offset-2">
             {hit.title}
           </Link>
         </h2>
@@ -211,7 +212,11 @@ function ProjectHitRow({ hit }: { hit: ProjectHit }) {
 
 function Tabs({ q }: { q: string }) {
   const { t } = useTranslation();
-  const suffix = q ? `?q=${encodeURIComponent(q)}` : "";
+  // Les onglets transportent la REQUÊTE ET LE CADRE (fuite ① de la
+  // recette du 2026-08-19) : q seul faisait retomber l'autre onglet
+  // sur le corpus nu.
+  const carried = useCarriedLens();
+  const suffix = withLens(q ? `?q=${encodeURIComponent(q)}` : "", carried) || "";
   const cls = ({ isActive }: { isActive: boolean }) =>
     cn(
       "rounded-full px-4 py-1.5 text-sm transition-colors",
@@ -265,6 +270,7 @@ function Pager({
 }
 
 export function ProjectsSearchPage() {
+  const carriedTop = useCarriedLens();
   const { t, i18n } = useTranslation();
   // Les quatre états de la lentille (M1.1 puis M1.2) : le registre
   // tranche ce qui cadre une vue, et un registre illisible n'est jamais
@@ -436,7 +442,7 @@ export function ProjectsSearchPage() {
                 </button>
               ) : null}
               <Link
-                to={`/organisations?q=${encodeURIComponent(q)}`}
+                to={withLens(`/organisations?q=${encodeURIComponent(q)}`, carriedTop)}
                 className="text-accent underline-offset-2 hover:underline"
               >
                 {t("search.emptyCross")}
@@ -484,6 +490,7 @@ export function ProjectsSearchPage() {
 }
 
 export function OrganisationsSearchPage() {
+  const carriedTop = useCarriedLens();
   const { t, i18n } = useTranslation();
   const countryName = useCountryName();
   const { params, update, toggleMulti, replaceAll } = useSearchState();
@@ -583,7 +590,7 @@ export function OrganisationsSearchPage() {
                     {t("ck.groupBadge")}
                   </span>
                   <Link
-                    to={`/groups/${group.id}`}
+                    to={withLens(`/groups/${group.id}`, carriedTop)}
                     className="display-tight align-middle text-[17px] font-semibold leading-snug underline-offset-2 hover:underline"
                   >
                     {group.country ? `${countryFlag(group.country)} ` : ""}
@@ -621,7 +628,7 @@ export function OrganisationsSearchPage() {
                 <div className="flex flex-wrap items-center gap-6">
                   <div className="min-w-0 flex-1">
                     <Link
-                      to={`/organisations/${bestMatch.id}`}
+                      to={withLens(`/organisations/${bestMatch.id}`, carriedTop)}
                       className="display-tight text-[19px] font-semibold leading-snug hover:underline underline-offset-2"
                     >
                       {formatOrgName(bestMatch.name)}
@@ -682,7 +689,7 @@ export function OrganisationsSearchPage() {
                   ) : null}
                   <div className="min-w-0">
                     <Link
-                      to={`/organisations/${hit.id}`}
+                      to={withLens(`/organisations/${hit.id}`, carriedTop)}
                       className="font-medium hover:underline underline-offset-2"
                     >
                       {formatOrgName(hit.name)}
