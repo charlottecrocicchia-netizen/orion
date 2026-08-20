@@ -554,6 +554,7 @@ const resources = {
           chipLabel: "Aviation perimeter of this view",
           changelog: {
             v1: "First publication. Four gates crossed: sampled precision of 97.99% on the current corpus (97.72% under the prudent generalisation reading, reserve published); all 63 projects of €20M or more re-read one by one — €3.42B, zero outside the aviation domain; the top 50 organisations audited, five consolidation gaps fixed (RTX, GE, GKN, Leonardo, Honeywell); 48 projects legitimately shared with the Space lens, all core on both sides. One assumed false negative (AVIATOR) stays on record.",
+            v2: "The enabling perimeter opens, by review adjudication (V2-A). HITECA and MOTIVATE switch from core to enabling under I13 — the multisectoral constitutive of the object: high-temperature power electronics, virtual-physical test methodology; aviation is one substantial use case among others. MultiModX, proposed enabling by the same review, was examined and KEPT core by publication decision (Charlotte, 2026-08-20): air-rail passenger planning where aviation is constitutive — recorded so the question is not reopened. Both perimeters now differ; each keeps its own figures.",
           },
           hero: {
             sub: "of public aviation R&D funding, mapped. {{from}} → {{to}}.",
@@ -568,7 +569,7 @@ const resources = {
             direct:
               "projects at the core of aviation (aircraft, rotorcraft, engines and airframes, air traffic management, airport operations…)",
             enabling:
-              "the core plus the technologies the lens rules identify as enabling — none yet: the lens currently carries no enabling project, so both perimeters coincide",
+              "the core plus the technologies the review identifies as enabling — multisectoral bricks whose aviation is one substantial use case among others (I13): power electronics, test methodologies",
           },
         },
         space: {
@@ -823,6 +824,8 @@ const resources = {
         lensPerimeters: "Two perimeters follow, always named on screen:",
         and: "and",
         lensRules: "{{total}} rules, each with its evidence: {{programme}} programme rules, {{theme}} theme rules (by code, never by label) and {{text}} hand-checked text patterns framed by source. Nothing inflated, nothing deleted: every run re-tags the whole corpus from the rules file.",
+        lensRulesWithReview:
+          "{{total}} rules, each with its evidence: {{programme}} programme rules, {{theme}} theme rules (by code, never by label), {{text}} hand-checked text patterns framed by source, and {{review}} review adjudications — named projects judged piece in hand, the last word over every rule. Nothing inflated, nothing deleted: every run re-tags the whole corpus from the rules file.",
         lensLastRun: "Last run: {{date}}.",
         lensVersion: "Methodology v{{version}}",
         lensPublishedWith:
@@ -1722,6 +1725,8 @@ const resources = {
         lensPerimeters: "Deux périmètres en découlent, toujours nommés à l’écran :",
         and: "et",
         lensRules: "{{total}} règles, chacune avec sa preuve : {{programme}} règles de programme, {{theme}} règles de thème (par code, jamais par libellé) et {{text}} motifs de texte validés à la main et cadrés par source. Rien de gonflé, rien de supprimé : chaque exécution retague le corpus entier depuis le fichier de règles.",
+        lensRulesWithReview:
+          "{{total}} règles, chacune avec sa preuve : {{programme}} règles de programme, {{theme}} règles de thème (par code, jamais par libellé), {{text}} motifs de texte validés à la main et cadrés par source, et {{review}} adjudications de revue — des projets nommés, jugés pièce en main, le dernier mot sur toute règle. Rien de gonflé, rien de supprimé : chaque exécution retague le corpus entier depuis le fichier de règles.",
         lensLastRun: "Dernier passage : {{date}}.",
         lensVersion: "Méthodologie v{{version}}",
         lensPublishedWith:

@@ -166,11 +166,12 @@ export function AboutDataPage() {
               </p>
               <p>
                 {lens.rules.total > 0
-                  ? t("about.lensRules", {
+                  ? t(lens.rules.review > 0 ? "about.lensRulesWithReview" : "about.lensRules", {
                       total: lens.rules.total,
                       programme: lens.rules.programme,
                       theme: lens.rules.theme,
                       text: lens.rules.text,
+                      review: lens.rules.review,
                     })
                   : null}{" "}
                 {lens.last_run_at

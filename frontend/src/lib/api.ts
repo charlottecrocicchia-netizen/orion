@@ -37,7 +37,7 @@ export interface LensMeta {
   /** Le dernier passage réussi du chargeur de CETTE lentille. */
   last_run_at: string | null;
   /** Le compte des règles, posé par le chargeur — jamais écrit à la main. */
-  rules: { total: number; programme: number; theme: number; text: number };
+  rules: { total: number; programme: number; theme: number; text: number; review: number };
   core: number;
   enabling: number;
   core_funding_eur: number;

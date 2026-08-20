@@ -47,7 +47,8 @@ def global_stats(session: Session) -> dict[str, Any]:
         for lens in session.execute(
             text(
                 "SELECT slug, family_key, rank, version, rules_total, rules_programme, "
-                "rules_theme, rules_text FROM lenses WHERE status = 'published' ORDER BY rank"
+                "rules_theme, rules_text, rules_review "
+                "FROM lenses WHERE status = 'published' ORDER BY rank"
             )
         ).all():
             counters = session.execute(
@@ -143,6 +144,7 @@ def global_stats(session: Session) -> dict[str, Any]:
                         "programme": lens.rules_programme,
                         "theme": lens.rules_theme,
                         "text": lens.rules_text,
+                        "review": lens.rules_review,
                     },
                     "core": counters.core or 0,
                     "enabling": counters.enabling or 0,

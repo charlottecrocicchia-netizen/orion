@@ -2127,3 +2127,51 @@ Les quatre ouverts restent au registre : le LEI de Melrose, le résidu
 Honeywell (→ Industrial Graph), AVIATOR (faux négatif assumé), la
 doctrine borne-basse (conception des lentilles futures). Pas de Lens
 Room dans ce lot.
+
+---
+
+## A1 · Publication du périmètre habilitant (2026-08-20, lot 2 du chantier Capacités annoncées)
+
+**La décision de revue.** Sur le dossier du lot 1 (les trois projets
+adjugés `enabling` par la vérité V2-A), Charlotte tranche :
+
+- **HITECA** (CORDIS 641553, 0,24 M€) et **MOTIVATE** (CORDIS 754660,
+  0,49 M€) **basculent core → enabling** — I13, le multisectoriel
+  constitutif de l'objet : électronique de puissance haute température
+  dont l'aviation est un débouché parmi l'automobile et l'énergie ;
+  méthodologie d'essais virtuels-physiques dont l'avion est le terrain
+  de démonstration.
+- **MultiModX** (CORDIS 101114815, 1,31 M€) — proposé `enabling` par
+  la revue V2-A — est **examiné et MAINTENU `core`** par décision
+  explicite de Charlotte : la revue de publication prime sur
+  l'adjudication V2-A. Planification passager air-rail où l'aérien
+  est constitutif. **Consigné ici et dans le fichier de règles pour
+  que la question ne se repose pas.**
+
+**Le mécanisme : l'adjudication de revue devient une règle.** La
+grammaire des lentilles gagne le type **`project`** (preuve `review`,
+migration 0029) : un projet NOMMÉ, cadré par sa source, jugé pièce en
+main. Doctrine gravée dans le moteur :
+
+- l'adjudication passe en DERNIER — après règles et vetos — et écrase
+  sans condition : la revue a le dernier mot, y compris sur « core bat
+  enabling » (V2-A l'a mesuré : les erreurs structurelles sont de
+  degré, c'est précisément ce que la revue corrige) ;
+- un veto ne mord jamais sur une preuve `review` (extension d'I6 : une
+  interprétation ne renverse ni un fait de la source, ni le jugement
+  rendu pièce en main) ;
+- le compteur `rules_review` s'ajoute aux classes pour que la somme
+  dise toujours le total (S1 ①) — l'à-propos l'affiche quand il est
+  non nul.
+
+Trois règles `project` entrent dans `aviation.csv` (deux bascules, un
+maintien), le registre passe **aviation v2**, et le changelog v2
+s'écrit au rechargement avec les chiffres MESURÉS (le journal dérivé,
+S1 ①) ; la justification éditoriale vit en i18n, EN et FR. L'à-propos
+d'Aviation cesse de dire « aucun projet habilitant ».
+
+**Le chip n'a pas changé d'une ligne** : « les deux périmètres
+réapparaissent d'eux-mêmes au premier projet habilitant » — la
+mécanique posée au chantier multi-lentilles fait le travail, l'entrée
+solo et sa pédagogie restent pour les futures lentilles à périmètre
+unique.

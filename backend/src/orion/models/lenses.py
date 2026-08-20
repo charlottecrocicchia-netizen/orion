@@ -43,6 +43,8 @@ class Lens(Base):
     rules_programme: Mapped[int] = mapped_column(Integer, server_default="0")
     rules_theme: Mapped[int] = mapped_column(Integer, server_default="0")
     rules_text: Mapped[int] = mapped_column(Integer, server_default="0")
+    # Les adjudications de revue — par projet nommé (lot 2, 2026-08-20).
+    rules_review: Mapped[int] = mapped_column(Integer, server_default="0")
     # La version de MÉTHODOLOGIE (S1) : un changement de règles qui
     # déplace des chiffres publics se date et se raconte.
     version: Mapped[int] = mapped_column(Integer, server_default="1")

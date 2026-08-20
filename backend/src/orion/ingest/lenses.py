@@ -100,6 +100,13 @@ PROOF_OF_RULE = {
     "call": "structural",
     "topic": "structural",
     "programme": "structural",
+    # L'ADJUDICATION DE REVUE (lot 2, 2026-08-20) : un projet NOMMÉ,
+    # jugé pièce en main. C'est la vérité de référence — celle qui a
+    # mesuré la précision des règles (V2-A) — et elle est au-dessus de
+    # toutes : elle requalifie le DEGRÉ d'un tag structurel (core ↔
+    # enabling) sans contester le fait d'entrée, et rien ne la
+    # renverse, ni règle ni veto.
+    "project": "review",
     "theme": "taxonomic",
     # Un candidat CORROBORÉ reste taxonomique : euroSciVoc est lui-même
     # dérivé des textes CORDIS — les deux signaux sont corrélés par
@@ -110,8 +117,10 @@ PROOF_OF_RULE = {
 }
 # Du plus faible au plus fort : l'ordre d'application, pour qu'un tag
 # finisse toujours avec la preuve la plus forte qui le justifie.
-PROOFS = ("textual", "taxonomic", "structural")
-RULE_TYPES = ("call", "topic", "programme", "theme", "text", "veto", "candidate", "confirm")
+PROOFS = ("textual", "taxonomic", "structural", "review")
+RULE_TYPES = (
+    "call", "topic", "programme", "theme", "text", "veto", "candidate", "confirm", "project",
+)
 TAGS = ("core", "enabling")
 # I2 : draft se charge sans être exposée, published est le produit,
 # retired n'est plus rechargée — ses tags restent gelés en base.
@@ -204,7 +213,15 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
             if not rule["evidence"] or not rule["source"]:
                 _fail(path.name, index, "évidence et source sont obligatoires")
             sources = [s for s in rule["sources"].split("|") if s]
-            if rule["rule_type"] in ("text", "veto", "confirm"):
+            if rule["rule_type"] == "project":
+                # Une adjudication vise UN projet : l'identifiant que la
+                # source donne, cadré par elle — jamais un motif.
+                if not sources:
+                    _fail(path.name, index, "une adjudication cadre sa source (cordis|nih|nsf)")
+                unknown = set(sources) - TEXT_SOURCES
+                if unknown:
+                    _fail(path.name, index, f"sources inconnues : {sorted(unknown)}")
+            elif rule["rule_type"] in ("text", "veto", "confirm"):
                 if not sources:
                     _fail(path.name, index, "un motif texte doit CADRER ses sources (cordis|nsf)")
                 unknown = set(sources) - TEXT_SOURCES
@@ -225,7 +242,9 @@ def parse_rules(path: Path) -> list[dict[str, Any]]:
                         "(« token:xxx » cherche le MOT ENTIER)",
                     )
             elif sources:
-                _fail(path.name, index, "sources ne cadre que texte, veto et confirmation")
+                _fail(
+                    path.name, index, "sources ne cadre que texte, veto, confirmation, adjudication"
+                )
             # Les GROUPES liés (V1 aviation) : un `candidate` taxonomique et
             # ses `confirm`. Un confirm ne peut JAMAIS corroborer un candidat
             # d'un autre groupe — le lien est le groupe, pas la proximité.
@@ -418,6 +437,11 @@ def _rule_clause(
             "p.call_id IN (SELECT id FROM calls WHERE code LIKE :call_prefix)",
             {"call_prefix": value + "%"},
         )
+    if kind == "project":
+        return (
+            "p.source LIKE ANY(:adj_src) AND p.source_id = :adj_sid",
+            {"adj_src": [f"{src}%" for src in rule["sources_list"]], "adj_sid": value},
+        )
     if kind == "topic":
         # Le concept EXACT, sans son sous-arbre (I7) : on nomme ce dont
         # on parle, on n'hérite pas des voisins.
@@ -479,8 +503,9 @@ def _token_regex(value: str) -> str:
 
 
 def _apply_veto(session: Session, slug: str, rule: dict[str, Any]) -> int:
-    """Un veto retire un tag — jamais un tag STRUCTUREL (I6) : une
-    interprétation ne renverse pas un fait de la source."""
+    """Un veto retire un tag — jamais un tag STRUCTUREL (I6) ni une
+    ADJUDICATION de revue : une interprétation ne renverse ni un fait
+    de la source, ni le jugement rendu pièce en main."""
     op, needle = (
         ("~*", _token_regex(rule["value"]))
         if rule["match"] == "token"
@@ -490,7 +515,7 @@ def _apply_veto(session: Session, slug: str, rule: dict[str, Any]) -> int:
         text(
             "DELETE FROM project_lens_tags plt USING projects p "
             "WHERE plt.lens = :lens AND plt.project_id = p.id "
-            "AND plt.proof <> 'structural' "
+            "AND plt.proof NOT IN ('structural', 'review') "
             "AND p.source LIKE ANY(:src_likes) AND p.id IN ("
             "  SELECT ptx.project_id FROM project_texts ptx "
             f"  WHERE ptx.title {op} :needle OR ptx.abstract {op} :needle)"
@@ -500,6 +525,26 @@ def _apply_veto(session: Session, slug: str, rule: dict[str, Any]) -> int:
             "src_likes": [f"{src}%" for src in rule["sources_list"]],
             "needle": needle,
         },
+    )
+    return result.rowcount or 0
+
+
+def _apply_adjudication(
+    session: Session, slug: str, tag: str, where: str, params: dict[str, Any]
+) -> int:
+    """Pose le tag adjugé par la revue — le dernier mot, sur les règles
+    comme sur les vetos. Un projet que le corpus ne connaît pas ne pose
+    rien : l'adjudication n'invente jamais une entrée hors lentille…
+    sauf le fait qu'elle L'EST, une entrée : un projet adjugé est dans
+    la lentille par décision de revue, même si aucune règle ne l'y met."""
+    result = session.execute(
+        text(
+            "INSERT INTO project_lens_tags (project_id, lens, tag, proof) "
+            f"SELECT p.id, :lens, :tag, 'review' FROM projects p WHERE ({where}) "
+            "ON CONFLICT (project_id, lens) DO UPDATE "
+            "SET tag = excluded.tag, proof = 'review'"
+        ),
+        {**params, "lens": slug, "tag": tag},
     )
     return result.rowcount or 0
 
@@ -536,7 +581,7 @@ def load_lens(session: Session, stats: RunStats, slug: str, path: Path) -> None:
     for wanted in ("enabling", "core"):
         for proof in PROOFS:
             for rule in rules:
-                if rule["rule_type"] == "veto" or rule["tag"] != wanted:
+                if rule["rule_type"] in ("veto", "project") or rule["tag"] != wanted:
                     continue
                 if PROOF_OF_RULE[rule["rule_type"]] != proof:
                     continue
@@ -552,11 +597,24 @@ def load_lens(session: Session, stats: RunStats, slug: str, path: Path) -> None:
     for rule in rules:
         if rule["rule_type"] == "veto":
             stats.add("vetoed", _apply_veto(session, slug, rule))
+    # Les ADJUDICATIONS de revue ferment la marche : la revue a le
+    # dernier mot, quel que soit le tag et la preuve que les règles ont
+    # posés (V2-A : les erreurs structurelles sont de degré — c'est
+    # précisément ce que la revue corrige).
+    for rule in rules:
+        if rule["rule_type"] == "project":
+            clause = _rule_clause(session, rule, rules)
+            if clause is None:
+                stats.add("rule_skipped_no_match")
+                continue
+            where, params = clause
+            stats.add("adjudicated", _apply_adjudication(session, slug, rule["tag"], where, params))
 
     session.execute(
         text(
             "UPDATE lenses SET rules_total = :total, rules_programme = :programme, "
-            "rules_theme = :theme, rules_text = :text WHERE slug = :slug"
+            "rules_theme = :theme, rules_text = :text, rules_review = :review "
+            "WHERE slug = :slug"
         ),
         {
             "slug": slug,
@@ -569,6 +627,7 @@ def load_lens(session: Session, stats: RunStats, slug: str, path: Path) -> None:
             "programme": sum(1 for r in rules if PROOF_OF_RULE.get(r["rule_type"]) == "structural"),
             "theme": sum(1 for r in rules if r["rule_type"] in ("theme", "candidate")),
             "text": sum(1 for r in rules if r["rule_type"] in ("text", "confirm", "veto")),
+            "review": sum(1 for r in rules if r["rule_type"] == "project"),
         },
     )
     session.commit()
