@@ -419,18 +419,110 @@ du corpus appliquée au code n'a même pas à arbitrer : rien n'entre.
 La seule inconnue de coût est l'email transactionnel : vérifiée AVANT
 la première ligne de code du lot 1.
 
-## Plan d'implémentation du lot 1 — présenté pour validation
+## Plan d'implémentation du lot 1 — validé (GO du 2026-08-20)
 
-Comptes (lien magique) + dossier durable. AUCUNE ligne de code avant
-l'aval de Charlotte sur ce plan — et avant la porte d'entrée.
+Comptes (lien magique) + dossier durable. L'architecture D1–D6 ne se
+rouvre pas. Les cinq verrous ci-dessous s'ajoutent au contrat
+d'implémentation — ils s'intègrent au plan arrêté, sans nouvelle
+phase de conception.
+
+### Les cinq verrous du contrat (arbitrage final, 2026-08-20)
+
+**Verrou 1 — le secret du lien ne traîne nulle part.** Le token
+voyage en FRAGMENT (`/login/verify#token=…`) : jamais envoyé au
+serveur par le GET, lu côté navigateur, transmis par POST, puis
+`history.replaceState()` nettoie l'adresse. En défense en profondeur
+sur la page de vérification : `Referrer-Policy: no-referrer`,
+`Cache-Control: no-store`, et l'interdiction de journaliser la query
+côté serveur.
+
+**Verrou 2 — protection login-CSRF.** Le scénario à tuer : un token
+demandé par un attaquant pour SA propre adresse, consommé par le
+navigateur d'une victime — qui se retrouve connectée au compte de
+l'attaquant et « garde » son travail chez lui. Contrat :
+
+- JAMAIS de consommation invisible : `/login/verify` affiche une
+  confirmation explicite portant l'adresse partiellement masquée
+  (`c••••@company.com`) AVANT le POST de consommation ;
+- `frame-ancestors 'none'` (la page ne s'embarque pas) ;
+- `Origin`/`Sec-Fetch-Site` contrôlés sur le POST de consommation
+  comme sur toute mutation ;
+- un NONCE DE CONTINUITÉ navigateur, déposé en cookie à la demande du
+  lien : même navigateur → vérification silencieusement renforcée
+  (le nonce doit correspondre) ; navigateur différent → la
+  confirmation explicite s'affiche, JAMAIS un blocage — le
+  cross-device (demander sur mobile, ouvrir au bureau) reste un
+  scénario légitime.
+
+**Verrou 3 — le premier login est une transaction atomique.**
+`consume token → create/find user → create personal workspace (si
+premier) → membership owner → session → commit` : un échec en route
+ne laisse RIEN à moitié créé. Contraintes en base, pas en code :
+`UNIQUE(email normalisé)`, `UNIQUE(workspace_id, user_id)`. Le cookie
+de session est `__Host-` (`Secure; HttpOnly; SameSite=Lax; Path=/`) —
+les navigateurs traitent localhost en contexte sécurisé, la prod
+publique passera par HTTPS Caddy ; seul le HASH du secret de session
+vit en base.
+
+**Verrou 4 — l'interface dit la vérité sur la copie.** « Reprendre »
+puis « Sauvegarder » laisserait croire qu'on modifie l'original. Les
+libellés disent la sémantique réelle : « Reprendre comme nouvelle
+version » et « Enregistrer une copie » — dans les deux langues.
+« Mettre à jour le dossier » n'existera que le jour de l'édition
+serveur.
+
+**Verrou 5 — le rate limit ne verrouille pas une victime.** Cinq
+saisies de `victime@entreprise.com` par un inconnu ne doivent pas
+priver la vraie personne de connexion pendant une heure. Combinaison :
+limite FORTE par IP, limite par paire IP×email, limite globale par
+email PLUS GÉNÉREUSE, cooldown court entre deux envois — et toujours
+exactement la même réponse publique, quel que soit le compteur qui a
+mordu.
 
 ### Porte d'entrée (avant tout code)
 
 Trancher la solution d'envoi en prod : quel expéditeur (SMTP du
 domaine ou palier gratuit), SPF/DKIM/DMARC posés sur le domaine
 d'envoi, un email de test qui atterrit en boîte de réception (pas en
-spam) chez un destinataire Outlook ET un Gmail. Tant que ce test ne
-passe pas, le lot ne commence pas.
+spam) chez un destinataire Outlook ET un Gmail, preuves à l'appui.
+Qualification honnête : c'est une RECETTE MINIMALE de délivrabilité,
+pas une preuve de délivrabilité future. Tant que ce test ne passe
+pas, le lot ne commence pas. Si un accès DNS est nécessaire, demander
+à Charlotte avant.
+
+#### Porte ⓪ — instruction du 2026-08-20 : ARRÊT sur décisions
+
+**État des lieux, vérifié sur pièce** : `SITE_ADDRESS=:80` — la prod
+d'Orion est locale (`localhost:8080`), il n'existe ni domaine public,
+ni configuration SMTP, ni DNS accessible. Aucune option ne peut être
+exécutée sans une décision et un geste de Charlotte (création de
+compte, génération de secret ou pose de DNS — rien de tout cela ne se
+délègue). La porte s'arrête donc ici, avec le rapport d'options.
+
+**Les options** (limites et chiffres à l'état de mes connaissances,
+janvier 2026 — à re-vérifier au moment du choix) :
+
+| | Option | Prérequis (gestes de Charlotte) | Limites | Délivrabilité | Image |
+|---|---|---|---|---|---|
+| **A** | SMTP Gmail + mot de passe d'application | 2FA activée sur le compte Google ; générer un app password ; le déposer en `ORION_SMTP_*` | ~500 destinataires/jour (largement au-delà du besoin : dizaines/mois) | excellente — SPF/DKIM/DMARC de Google, alignés par construction, RIEN à poser | expéditeur personnel (`…@gmail.com`) — assumable pré-clients, pas une adresse produit |
+| **B** | domaine + routeur transactionnel gratuit (Brevo ~300/j, Resend ~100/j) | posséder un domaine ; créer le compte chez le fournisseur ; poser SPF/DKIM/DMARC fournis, chez le registrar | palier gratuit, révocable par le fournisseur | bonne, dépend de la pose DNS correcte | `no-reply@domaine` — le chemin produit |
+| **C** | SMTP du registrar (si domaine avec boîte incluse, OVH/Gandi…) | posséder ce domaine ; récupérer les identifiants SMTP | selon l'offre | bonne (SPF souvent pré-posé) | adresse du domaine |
+| **D** | auto-hébergé (postfix sur IP locale/VPS) | — | — | ALÉATOIRE (réputation d'IP) — disqualifiée comme porte | — |
+
+**Recommandation** : **A pour ouvrir la porte maintenant** — c'est la
+seule option exécutable sans domaine, l'épreuve (un email en boîte de
+réception Gmail ET Outlook, preuves à l'appui) peut tourner dès que
+l'app password existe ; **B comme cible d'image** le jour où un
+domaine existe — la bascule est une variable d'environnement, rien
+d'autre (l'envoi est configurable par construction).
+
+**Les décisions attendues** : ① possèdes-tu un domaine (et son DNS)
+à dédier à l'expéditeur — lequel ? ② sinon, valides-tu l'option A au
+lancement (expéditeur = ton adresse Gmail ; TU génères l'app password
+et le déposes en variables d'env — il ne transite jamais par moi) ?
+③ pour l'épreuve, quelle boîte OUTLOOK réelle recevra le test ?
+
+Le code du lot 1 n'attend que le verdict de cette porte.
 
 ### Découpage (ordre de construction)
 
