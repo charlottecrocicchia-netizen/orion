@@ -237,3 +237,23 @@ constat : délais proportionnels au depth = phases trop proches
 et corrélations sont désormais MESURÉES sur la prod avant toute
 déclaration, et la limite du navigateur d'inspection est documentée au
 lieu d'être confondue avec l'état de la page.
+
+## Ajustement final (2026-08-20) : le tempo des ornements
+
+La recette valide tout sauf la hâte des objets volants (1,3 s — on les
+ratait presque). L'avion gagne un vrai TOUR : entrée par la gauche,
+un looping complet sur `offset-path` (deux demi-arcs — tangente
+horizontale au bas du cercle, continuité exacte), `offset-rotate:
+auto` — le nez suit la tangente, l'avion passe sur le dos au sommet —
+puis la sortie à droite, en ~3,8 s. La fusée monte en ~3 s, poussée
+régulière. Repli sans `offset-path` : la traversée droite, au tempo
+calme. Invariants intacts : une fois par arrivée, pointer-events none,
+opacité 0,6, jamais sur la home nue, jamais en reduced-motion.
+
+Mesuré sur la prod (harnais Playwright du projet, échantillonnage
+100 ms) : avion présent 3 683 ms, x −109→1 400 avec trois reculs — la
+signature géométrique de la boucle ; fusée 2 761 ms, y 562→−85.
+Leçon d'outillage : ma sonde maison (chromium.launch nu) ne voyait
+AUCUN ornement sur la prod alors que la page les jouait — le harnais
+e2e du projet, lui, les voit ; toute mesure d'écran passe désormais
+par lui, jamais par une sonde improvisée.
