@@ -24,11 +24,12 @@ test("trois objets réels ; un clic entre dans la vraie home cadrée", async ({ 
   );
   expect(overflow).toBeLessThanOrEqual(0);
 
-  // LE GESTE (recette ③) : au clic, l'AVION part — puis la navigation
-  // s'accomplit vers la vraie home cadrée.
+  // LE GESTE (second retour) : le GROSSISSEMENT teinté ouvre la page —
+  // et l'avion passe ensuite, en ornement d'accueil sur la home cadrée.
   await page.getByRole("button", { name: /Aéronautique/ }).click();
-  await expect(page.locator('[data-world-launch="aviation"]')).toBeVisible({ timeout: 900 });
+  await expect(page.locator('[data-world-reveal="aviation"]')).toBeVisible({ timeout: 500 });
   await expect(page).toHaveURL(/\/\?sector=aviation/);
+  await expect(page.locator('[data-world-ornament="aviation"]')).toBeVisible({ timeout: 1500 });
   await expect(page.getByText("projets aéronautiques", { exact: true })).toBeVisible({
     timeout: 15_000,
   });
@@ -53,10 +54,10 @@ test("⓪ les trois verres, trois destinations exactes — le choix explicite ba
   await page.goto("/lenses");
   await page.evaluate(() => window.localStorage.setItem("orion.lens.entry", "space"));
 
-  // ① Espace → la FUSÉE part, puis la home cadrée space.
+  // ① Espace → le grossissement ouvre, la fusée passe à l'accueil.
   await page.getByRole("button", { name: /Espace/ }).click();
-  await expect(page.locator('[data-world-launch="space"]')).toBeVisible({ timeout: 900 });
   await expect(page).toHaveURL(/\/\?sector=space$/);
+  await expect(page.locator('[data-world-ornament="space"]')).toBeVisible({ timeout: 1500 });
 
   // ② Aéronautique → la home cadrée aviation.
   await page.goto("/lenses");
@@ -68,9 +69,9 @@ test("⓪ les trois verres, trois destinations exactes — le choix explicite ba
   // « all » : revenir plus tard rouvre la vue nue.
   await page.goto("/lenses");
   await page.getByRole("button", { name: /corpus/ }).click();
-  // pas d'objet volant pour le corpus : transition sobre.
-  await expect(page.locator("[data-world-launch]")).toHaveCount(0);
   await expect(page).toHaveURL(/\/$/);
+  // la home NUE n'a pas d'ornement — jamais.
+  await expect(page.locator("[data-world-ornament]")).toHaveCount(0);
   await expect(page).not.toHaveURL(/sector=/);
   await expect(page.locator(".world-word")).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Tout le corpus/ })).toBeVisible({
@@ -80,7 +81,7 @@ test("⓪ les trois verres, trois destinations exactes — le choix explicite ba
   expect(entry).toBe("all");
 });
 
-test("③ reduced-motion : navigation immédiate, jamais d'objet volant", async ({ browser }) => {
+test("③ reduced-motion : navigation immédiate, jamais d'ornement", async ({ browser }) => {
   const context = await browser.newContext({ reducedMotion: "reduce" });
   const page = await context.newPage();
   await page.addInitScript(() => {
@@ -90,6 +91,6 @@ test("③ reduced-motion : navigation immédiate, jamais d'objet volant", async 
   await page.goto("/lenses");
   await page.getByRole("button", { name: /Espace/ }).click({ timeout: 15_000 });
   await expect(page).toHaveURL(/\/\?sector=space/);
-  await expect(page.locator("[data-world-launch]")).toHaveCount(0);
+  await expect(page.locator("[data-world-ornament]")).toHaveCount(0);
   await context.close();
 });

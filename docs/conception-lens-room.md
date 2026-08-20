@@ -196,3 +196,44 @@ l'œil, la souris vise un point qui ne bouge jamais.
 `/?sector=aviation`, fusée → `/?sector=space`, sobre → `/` nue), le
 hero corpus en comptage, la signature du header, la mémoire (`space`
 puis `all` selon le choix), le halo absent du monde nu.
+
+## Recette du 2026-08-20 — troisième retour : le grossissement rendu, l'objet volant déplacé
+
+**La recette refuse l'avion-transition.** L'objet volant au clic
+(deuxième retour) remplaçait le geste fondateur ; Charlotte le rend à
+sa place : la transition des trois verres redevient le GROSSISSEMENT,
+et l'avion/la fusée déménagent sur la home cadrée.
+
+**① Le grossissement est la transition unique.** `world-launch.ts`
+supprimé. Au clic, pour les trois verres : `playWorldReveal` — l'anneau
+teinté au monde (2,5 px, double lueur, `data-world-reveal`) grandit
+depuis la lentille pendant que la navigation part immédiatement — la
+vraie page rend dessous, jamais un sas. 600 ms, interruptible au
+pointeur, reduced-motion : navigation directe.
+
+**② L'objet volant est un ornement d'arrivée.** `world-ornament.ts` :
+à l'arrivée sur la home CADRÉE, l'avion filaire traverse une fois le
+tiers haut (aviation), la fusée grimpe le bord droit (space) — 1,3 s,
+opacité 0,6, `pointer-events: none`, `data-world-ornament`. Joue une
+fois par arrivée de monde (ref `ornamentPlayedFor` sur `carried`),
+jamais sur la home nue, jamais en reduced-motion.
+
+**③ Le flottement, diagnostic sur pièce.** Constat d'abord : mon
+navigateur d'inspection GÈLE les horloges d'animation quand il ne
+composite pas (`currentTime` bloqué à 0) — impossible d'y OBSERVER un
+mouvement, dit tel quel plutôt que « ça marche chez moi ». La mesure
+en navigateur réel (Playwright, 60 échantillons / 15 s sur la prod) a
+tranché : 0,0 px ne venait pas que du gel — ±6 px sur 10,6 s font
+1,8 px/s de pic, sous le seuil de l'œil. Corrections : amplitudes
+±10-16 px par axe, périodes 6,05/6,38/7,48 s, trajectoire en huit
+(`--float-x`/`--float-y`), cible `.lens-hit` élargie (padding 22 px >
+amplitude). Re-mesure : 19-36 px crête à crête par verre. Second
+constat : délais proportionnels au depth = phases trop proches
+(corrélation Y 0,77 — les verres respiraient ensemble). Phases fixées
+à la main (0 / 0,45 / 0,8 tour) ; corrélations finales 0,09 / 0,30 /
+−0,56 : trois flottements en désaccord, mesurés sur la prod.
+
+**Le critère de sortie est l'œil, pas la propriété CSS** : amplitudes
+et corrélations sont désormais MESURÉES sur la prod avant toute
+déclaration, et la limite du navigateur d'inspection est documentée au
+lieu d'être confondue avec l'état de la page.

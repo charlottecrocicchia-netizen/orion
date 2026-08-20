@@ -50,10 +50,11 @@ export function playWorldReveal(options: {
 
   const ring = document.createElement("div");
   ring.setAttribute("aria-hidden", "true");
+  ring.dataset.worldReveal = options.slug;
   ring.style.cssText =
     `position:fixed;z-index:81;pointer-events:none;border-radius:50%;` +
     `left:${cx - r0}px;top:${cy - r0}px;width:${r0 * 2}px;height:${r0 * 2}px;` +
-    `border:1.5px solid ${tint};box-shadow:0 0 60px -14px ${tint};` +
+    `border:2.5px solid ${tint};box-shadow:0 0 80px -10px ${tint}, inset 0 0 40px -20px ${tint};` +
     `transform:scale(1);transform-origin:center;will-change:transform;` +
     `transition:transform ${duration}ms ${EASE}, opacity 200ms ease ${Math.max(duration - 160, 0)}ms;`;
 

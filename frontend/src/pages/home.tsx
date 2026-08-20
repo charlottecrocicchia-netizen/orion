@@ -29,6 +29,7 @@ import {
   withLens,
 } from "@/lib/lens";
 import { clearEntry, ENTRY_ALL, readEntry } from "@/lib/lens-memory";
+import { playWorldOrnament } from "@/lib/world-ornament";
 import { STORIES } from "@/lib/stories";
 import { formatCompactEur, formatInt, formatOrgName } from "@/lib/format";
 import { useRevealProgress } from "@/hooks/use-reveal-progress";
@@ -255,6 +256,22 @@ export function HomePage() {
   const lensState = useActiveLensState();
   const [searchParams] = useSearchParams();
   const carried = lensState.kind === "valid" ? lensState.lens.slug : null;
+  // ② (recette 2026-08-20, second retour) : l'ornement d'ACCUEIL — à
+  // l'arrivée sur la home cadrée (depuis la salle ou par changement de
+  // lentille), l'objet du monde passe une fois. Jamais à chaque
+  // interaction : seulement quand le monde de la home change. La home
+  // nue n'a pas d'ornement ; reduced-motion n'en a pas non plus (le
+  // module s'en charge).
+  const ornamentPlayedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!carried) {
+      ornamentPlayedFor.current = null;
+      return;
+    }
+    if (ornamentPlayedFor.current === carried) return;
+    ornamentPlayedFor.current = carried;
+    playWorldOrnament(carried);
+  }, [carried]);
   const rankOne = useLeadLens();
   const lenses = usePublishedLenses();
   // ⓪ (recette 2026-08-20) : depuis que « Tout le corpus » est un CHOIX

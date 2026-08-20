@@ -10,7 +10,6 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { lensWords, usePublishedLenses } from "@/lib/lens";
 import { ENTRY_ALL, writeEntry } from "@/lib/lens-memory";
-import { playWorldLaunch } from "@/lib/world-launch";
 import { playWorldReveal } from "@/lib/world-reveal";
 import { worldTintVars } from "@/lib/world-tints";
 
@@ -39,6 +38,15 @@ const ROOM_TOKENS = {
 /** Trois profondeurs (pseudo-3D) : échelle au repos + amplitude de
  *  parallaxe. Le monde du milieu est le plus proche de l'œil. */
 const DEPTH: Record<string, number> = { space: 0.4, aviation: 0.9, all: 0.25 };
+// Le DÉSACCORD (recette du 2026-08-20, troisième retour) : la phase de
+// dérive de chaque verre est fixée à la main, écartée d'environ un
+// demi-tour d'un verre à l'autre — un délai proportionnel au depth
+// donnait des verres qui respiraient presque ensemble (corrélation
+// mesurée : 0,77). L'œil doit voir trois flottements en désaccord.
+const PHASE: Record<string, number> = { space: 0, aviation: 0.45, all: 0.8 };
+const driftTime = (depth: number) => 5.5 + depth * 2.2;
+const floatDelay = (slug: string, depth: number) =>
+  -(PHASE[slug] ?? 0.5) * driftTime(depth);
 
 export function LensRoomPage() {
   const { t, i18n } = useTranslation();
@@ -84,21 +92,26 @@ export function LensRoomPage() {
   // LE GESTE : un clic entre. La mémoire s'écrit (raccourci de racine),
   // la navigation part, la révélation s'ouvre depuis le verre choisi —
   // sur le monde RÉEL qui rend dessous.
-  // LE GESTE (recette ③, 2026-08-20) : au clic, l'objet du monde PART —
-  // l'avion, la fusée — puis la navigation s'accomplit. Le corpus n'a
-  // pas d'objet volant : transition sobre. La navigation n'attend
-  // jamais au-delà du vol (clic pendant = fin immédiate ;
-  // reduced-motion = navigation directe).
+  // LE GESTE (recette du 2026-08-20, second retour) : la transition
+  // UNIQUE des trois verres est le GROSSISSEMENT — l'anneau teinté au
+  // monde qui grandit depuis la lentille et ouvre la page. La
+  // navigation part immédiatement : la vraie home rend dessous,
+  // l'anneau s'ouvre par-dessus — jamais un sas. Reduced-motion :
+  // navigation directe, rien ne joue. L'avion et la fusée vivent
+  // désormais sur la home cadrée, en ornement d'arrivée.
   const enter = (slug: string, event: React.MouseEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     writeEntry(slug);
-    const origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-    if (slug === ENTRY_ALL) {
-      playWorldReveal({ slug, origin: { ...origin, radius: rect.width / 2 }, duration: 380 });
-      navigate("/");
-      return;
-    }
-    playWorldLaunch({ slug, origin, onDone: () => navigate(`/?sector=${slug}`) });
+    playWorldReveal({
+      slug,
+      duration: 600,
+      origin: {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        radius: rect.width / 2,
+      },
+    });
+    navigate(slug === ENTRY_ALL ? "/" : `/?sector=${slug}`);
   };
 
   return (
@@ -162,8 +175,10 @@ export function LensRoomPage() {
                   ...worldTintVars(lens.slug),
                   "--rest-scale": String(0.88 + depth * 0.24),
                   "--drift-delay": `${(1 - depth) * 0.22}s`,
-                  "--drift-time": `${9 + depth * 4}s`,
-                  "--float-delay": `${depth * -5}s`,
+                  "--drift-time": `${driftTime(depth)}s`,
+                  "--float-delay": `${floatDelay(lens.slug, depth)}s`,
+                  "--float-x": `${8 + depth * 8}px`,
+                  "--float-y": `${11 + depth * 6}px`,
                 } as React.CSSProperties}
               >
                 <span className="lens-glass">
@@ -193,8 +208,10 @@ export function LensRoomPage() {
             style={{
               "--rest-scale": String(0.88 + DEPTH.all * 0.24),
               "--drift-delay": `${(1 - DEPTH.all) * 0.22}s`,
-              "--drift-time": `${9 + DEPTH.all * 4}s`,
-              "--float-delay": `${DEPTH.all * -5}s`,
+              "--drift-time": `${driftTime(DEPTH.all)}s`,
+              "--float-delay": `${floatDelay("all", DEPTH.all)}s`,
+              "--float-x": `${8 + DEPTH.all * 8}px`,
+              "--float-y": `${11 + DEPTH.all * 6}px`,
             } as React.CSSProperties}
           >
             <span className="lens-glass">

@@ -377,7 +377,8 @@
    sauter une animation. Reduced-motion : tout statique. ── */
 .lens-hit{
   position:relative; border:none; background:none; cursor:pointer;
-  padding:16px; border-radius:50%; flex:none;
+  /* la cible dépasse l'amplitude de dérive (±16 px max) */
+  padding:22px; border-radius:50%; flex:none;
   --world-tint:var(--world-tint-dark, var(--accent));
 }
 .lens-hit:focus-visible{outline:2px solid var(--accent); outline-offset:4px}
@@ -398,11 +399,17 @@
   will-change:transform;
 }
 @keyframes lens-arrive{from{opacity:0}}
-/* la flottaison : quelques pixels, phase propre à chaque verre —
-   jamais un mouvement en chœur */
+/* la flottaison MANIFESTE (diagnostic du 2026-08-20 : ±6 px sur
+   10,6 s = 1,8 px/s au sommet — sous le seuil de l'œil ; le critère
+   de sortie est « on VOIT les trois verres flotter en désaccord »).
+   Amplitude ±--float-x/--float-y (12-16 px), périodes 5,5-7,5 s,
+   trajectoire en huit léger — chaque verre a ses amplitudes, sa
+   période et sa phase : jamais un chœur. */
 @keyframes lens-float{
-  0%,100%{transform:scale(var(--rest-scale,1)) translate(0,5px)}
-  50%{transform:scale(var(--rest-scale,1)) translate(2px,-6px)}
+  0%,100%{transform:scale(var(--rest-scale,1)) translate(0px, var(--float-y,14px))}
+  25%{transform:scale(var(--rest-scale,1)) translate(calc(var(--float-x,10px) * -1), 2px)}
+  50%{transform:scale(var(--rest-scale,1)) translate(2px, calc(var(--float-y,14px) * -1))}
+  75%{transform:scale(var(--rest-scale,1)) translate(var(--float-x,10px), -2px)}
 }
 .lens-hit:hover .lens-glass,.lens-hit:focus-visible .lens-glass{
   border-color:var(--world-tint);
