@@ -159,3 +159,40 @@ l'éveil est au survol).
 lumineux (`text-shadow`), le glyphe est agrandi et épaissi — et la
 barre soulignée disparaît : l'affordance vient du symbole et de la
 couleur.
+
+## Recette du 2026-08-20, second tour — la salle vit, le clic décolle
+
+**③ — l'aveu d'abord.** Le rapport précédent déclarait le vol
+« intact » sur la foi du DOM. Le diagnostic sur pièce a montré la
+vérité : l'animation JOUAIT (l'anneau et le voile apparaissaient bien
+au clic) mais elle était **imperceptible** — un anneau hairline de
+1,5 px, et un voile de la même couleur que les deux écrans qu'il
+sépare : sombre sur sombre, il ne séparait rien à l'œil. « Intact au
+DOM » n'est pas « visible à l'écran ».
+
+Le geste attendu existe désormais (`lib/world-launch.ts`) : au clic,
+**l'objet du monde part** — l'avion wireframe en montée diagonale pour
+l'aéronautique, la fusée à flamme pointillée droit vers le haut pour le
+spatial — ~950 ms, teinté au monde, puis la navigation s'accomplit.
+Le corpus n'a pas d'objet volant : la révélation sobre (380 ms). Un
+clic pendant le vol saute à la fin ; reduced-motion navigue
+immédiatement, sans rien jouer — testé e2e dans les deux états.
+
+**① Le repos est vivant.** L'inversion demandée : le satellite tourne,
+les flux défilent, la constellation scintille EN CONTINU ; le survol
+ACCENTUE (opacité des motifs, lueur du glyphe, halo du verre) sans
+jamais toucher une durée — changer une durée fait sauter l'animation.
+Seule exception : reduced-motion, tout statique.
+
+**② C'est la lentille entière qui dérive.** `lens-breathe` faisait
+respirer le contenu dans un verre immobile — l'objet paraissait collé.
+Remplacé : la CIBLE est un conteneur invisible, fixe, plus grand que
+l'amplitude (`.lens-hit`, padding 16 px) ; le VERRE ENTIER — bord,
+glyphe, libellé — flotte à l'intérieur (`lens-float`, ±6 px), chaque
+verre avec sa phase propre (délais −1,25/−2/−4,5 s). L'objet bouge à
+l'œil, la souris vise un point qui ne bouge jamais.
+
+**④ Vérifié à l'écran, pas supposé** : les trois destinations (avion →
+`/?sector=aviation`, fusée → `/?sector=space`, sobre → `/` nue), le
+hero corpus en comptage, la signature du header, la mémoire (`space`
+puis `all` selon le choix), le halo absent du monde nu.

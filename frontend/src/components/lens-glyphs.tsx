@@ -1,8 +1,9 @@
 import type { ReactElement } from "react";
 
-function cnOrbit(awake: boolean, once: boolean): string {
-  if (once) return "glyph-orbit glyph-orbit-once";
-  return awake ? "glyph-orbit" : "glyph-orbit glyph-orbit-asleep";
+function cnOrbit(_awake: boolean, once: boolean): string {
+  // ① (recette 2026-08-20) : le repos est VIVANT — l'orbite tourne
+  // toujours ; `once` reste la signature d'entrée du header.
+  return once ? "glyph-orbit glyph-orbit-once" : "glyph-orbit";
 }
 
 /** L'alphabet des mondes (chantier scène optique, 2026-08-20).
@@ -93,8 +94,8 @@ export function WingGlyph({
             stroke="var(--glyph-tint, currentColor)"
             strokeOpacity=".42"
             strokeDasharray="7 9"
-            className={play ? (once ? "glyph-flow-once" : "glyph-flow") : undefined}
-            style={play ? { animationDelay: `${i * 0.35}s` } : undefined}
+            className={once ? "glyph-flow-once" : "glyph-flow"}
+            style={{ animationDelay: `${i * 0.35}s` }}
           />
         ))}
         <path
@@ -140,7 +141,7 @@ export function ConstellationGlyph({
         cy="156"
         r="8"
         fill="currentColor"
-        className={play ? (once ? "glyph-twinkle-once" : "glyph-twinkle") : undefined}
+        className={once ? "glyph-twinkle-once" : "glyph-twinkle"}
       />
       <circle cx="278" cy="58" r="10" fill="var(--glyph-tint, currentColor)" />
     </svg>

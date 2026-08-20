@@ -24,8 +24,10 @@ test("trois objets réels ; un clic entre dans la vraie home cadrée", async ({ 
   );
   expect(overflow).toBeLessThanOrEqual(0);
 
-  // LE GESTE : un clic — la mémoire s'écrit, la VRAIE home cadrée rend.
+  // LE GESTE (recette ③) : au clic, l'AVION part — puis la navigation
+  // s'accomplit vers la vraie home cadrée.
   await page.getByRole("button", { name: /Aéronautique/ }).click();
+  await expect(page.locator('[data-world-launch="aviation"]')).toBeVisible({ timeout: 900 });
   await expect(page).toHaveURL(/\/\?sector=aviation/);
   await expect(page.getByText("projets aéronautiques", { exact: true })).toBeVisible({
     timeout: 15_000,
@@ -51,8 +53,9 @@ test("⓪ les trois verres, trois destinations exactes — le choix explicite ba
   await page.goto("/lenses");
   await page.evaluate(() => window.localStorage.setItem("orion.lens.entry", "space"));
 
-  // ① Espace → la home cadrée space.
+  // ① Espace → la FUSÉE part, puis la home cadrée space.
   await page.getByRole("button", { name: /Espace/ }).click();
+  await expect(page.locator('[data-world-launch="space"]')).toBeVisible({ timeout: 900 });
   await expect(page).toHaveURL(/\/\?sector=space$/);
 
   // ② Aéronautique → la home cadrée aviation.
@@ -65,6 +68,8 @@ test("⓪ les trois verres, trois destinations exactes — le choix explicite ba
   // « all » : revenir plus tard rouvre la vue nue.
   await page.goto("/lenses");
   await page.getByRole("button", { name: /corpus/ }).click();
+  // pas d'objet volant pour le corpus : transition sobre.
+  await expect(page.locator("[data-world-launch]")).toHaveCount(0);
   await expect(page).toHaveURL(/\/$/);
   await expect(page).not.toHaveURL(/sector=/);
   await expect(page.locator(".world-word")).toHaveCount(0);
@@ -73,4 +78,18 @@ test("⓪ les trois verres, trois destinations exactes — le choix explicite ba
   });
   const entry = await page.evaluate(() => window.localStorage.getItem("orion.lens.entry"));
   expect(entry).toBe("all");
+});
+
+test("③ reduced-motion : navigation immédiate, jamais d'objet volant", async ({ browser }) => {
+  const context = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await context.newPage();
+  await page.addInitScript(() => {
+    window.localStorage.setItem("orion.lens.entry", "all");
+    window.localStorage.setItem("orion.lang", "fr");
+  });
+  await page.goto("/lenses");
+  await page.getByRole("button", { name: /Espace/ }).click({ timeout: 15_000 });
+  await expect(page).toHaveURL(/\/\?sector=space/);
+  await expect(page.locator("[data-world-launch]")).toHaveCount(0);
+  await context.close();
 });

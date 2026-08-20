@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { lensWords, usePublishedLenses } from "@/lib/lens";
 import { ENTRY_ALL, writeEntry } from "@/lib/lens-memory";
+import { playWorldLaunch } from "@/lib/world-launch";
 import { playWorldReveal } from "@/lib/world-reveal";
 import { worldTintVars } from "@/lib/world-tints";
 
@@ -83,19 +84,21 @@ export function LensRoomPage() {
   // LE GESTE : un clic entre. La mémoire s'écrit (raccourci de racine),
   // la navigation part, la révélation s'ouvre depuis le verre choisi —
   // sur le monde RÉEL qui rend dessous.
+  // LE GESTE (recette ③, 2026-08-20) : au clic, l'objet du monde PART —
+  // l'avion, la fusée — puis la navigation s'accomplit. Le corpus n'a
+  // pas d'objet volant : transition sobre. La navigation n'attend
+  // jamais au-delà du vol (clic pendant = fin immédiate ;
+  // reduced-motion = navigation directe).
   const enter = (slug: string, event: React.MouseEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     writeEntry(slug);
-    playWorldReveal({
-      slug,
-      duration: 900,
-      origin: {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-        radius: rect.width / 2,
-      },
-    });
-    navigate(slug === ENTRY_ALL ? "/" : `/?sector=${slug}`);
+    const origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    if (slug === ENTRY_ALL) {
+      playWorldReveal({ slug, origin: { ...origin, radius: rect.width / 2 }, duration: 380 });
+      navigate("/");
+      return;
+    }
+    playWorldLaunch({ slug, origin, onDone: () => navigate(`/?sector=${slug}`) });
   };
 
   return (
@@ -154,16 +157,16 @@ export function LensRoomPage() {
                 type="button"
                 aria-label={t("lensRoom.enterLens", { lens: words.name })}
                 onClick={(event) => enter(lens.slug, event)}
-                className="lens-glass group"
+                className="lens-hit group"
                 style={{
                   ...worldTintVars(lens.slug),
                   "--rest-scale": String(0.88 + depth * 0.24),
                   "--drift-delay": `${(1 - depth) * 0.22}s`,
                   "--drift-time": `${9 + depth * 4}s`,
-                  "--breathe-delay": `${depth * -5}s`,
+                  "--float-delay": `${depth * -5}s`,
                 } as React.CSSProperties}
               >
-                <span className="lens-visual">
+                <span className="lens-glass">
                   <span aria-hidden="true" className="lens-glass-glyph">
                     <Glyph />
                   </span>
@@ -186,15 +189,15 @@ export function LensRoomPage() {
             type="button"
             aria-label={t("lensRoom.enterAll")}
             onClick={(event) => enter(ENTRY_ALL, event)}
-            className="lens-glass group"
+            className="lens-hit group"
             style={{
               "--rest-scale": String(0.88 + DEPTH.all * 0.24),
               "--drift-delay": `${(1 - DEPTH.all) * 0.22}s`,
               "--drift-time": `${9 + DEPTH.all * 4}s`,
-              "--breathe-delay": `${DEPTH.all * -5}s`,
+              "--float-delay": `${DEPTH.all * -5}s`,
             } as React.CSSProperties}
           >
-            <span className="lens-visual">
+            <span className="lens-glass">
               <span aria-hidden="true" className="lens-glass-glyph">
                 <ConstellationGlyph />
               </span>

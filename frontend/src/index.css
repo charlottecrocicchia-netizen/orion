@@ -338,7 +338,6 @@
 @keyframes glyph-flow{to{stroke-dashoffset:-16}}
 .glyph-orbit{animation:glyph-orbit 9s linear infinite; will-change:offset-distance}
 @keyframes glyph-orbit{to{offset-distance:100%}}
-.glyph-orbit-asleep{animation-play-state:paused}
 .glyph-orbit-once{animation:glyph-orbit 2s cubic-bezier(.3,.7,.35,1) 1 both}
 .glyph-twinkle{animation:glyph-twinkle 3.2s ease-in-out infinite}
 .glyph-twinkle-once{animation:glyph-twinkle 1s ease-in-out 2}
@@ -369,14 +368,23 @@
   filter:drop-shadow(0 0 5px color-mix(in srgb, var(--world-tint, var(--color-accent)) 55%, transparent));
 }
 
-/* ── ③ la scène optique : les verres flottants. Dérive lente et
-   désynchronisée (une respiration, jamais un spectacle), parallaxe
-   par variables (--par-*), éveil au survol. Transform-only : le
-   chemin 60 fps. Reduced-motion : tout immobile. ── */
+/* ── ③ la scène optique (recette du 2026-08-20). La CIBLE est un
+   conteneur invisible, FIXE, plus grand que l'amplitude de dérive ;
+   le VERRE ENTIER (bord, glyphe, libellé) dérive à l'intérieur —
+   l'objet bouge à l'œil, la souris vise un point qui ne bouge jamais.
+   Le repos est VIVANT : les glyphes tournent, défilent et scintillent
+   en continu ; le survol ACCENTUE (halo, intensité) sans jamais faire
+   sauter une animation. Reduced-motion : tout statique. ── */
+.lens-hit{
+  position:relative; border:none; background:none; cursor:pointer;
+  padding:16px; border-radius:50%; flex:none;
+  --world-tint:var(--world-tint-dark, var(--accent));
+}
+.lens-hit:focus-visible{outline:2px solid var(--accent); outline-offset:4px}
 .lens-glass{
-  position:relative; display:flex; flex-direction:column; align-items:center;
-  justify-content:center; padding:34px 30px 30px; border-radius:50%;
-  width:min(66vw,300px); aspect-ratio:1; flex:none;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:34px 30px 30px; border-radius:50%;
+  width:min(62vw,290px); aspect-ratio:1;
   border:1px solid rgba(245,245,247,.32);
   background:
     radial-gradient(circle at 36% 30%, rgba(139,154,255,.13), rgba(255,255,255,.02) 58%),
@@ -384,31 +392,30 @@
   box-shadow:inset 0 0 26px rgba(255,255,255,.03);
   transform:scale(var(--rest-scale,1));
   transition:border-color .3s ease, box-shadow .3s ease;
-  /* Le BOUTON est stable — une cible cliquable ne bouge jamais toute
-     seule (qualité du geste) ; c'est le VISUEL intérieur qui dérive
-     (recette ②, 2026-08-20) : l'œil voit la respiration, la souris
-     vise un point fixe. L'entrée en scène se joue UNE fois. */
-  animation:lens-arrive .6s cubic-bezier(.3,.7,.25,1) var(--drift-delay,0s) backwards;
-  --world-tint:var(--world-tint-dark, var(--accent));
-}
-@keyframes lens-arrive{from{opacity:0; transform:scale(calc(var(--rest-scale,1) * .94)) translateY(10px)}}
-.lens-visual{
-  display:flex; flex-direction:column; align-items:center;
-  animation:lens-breathe var(--drift-time,10s) ease-in-out var(--breathe-delay,0s) infinite;
+  animation:
+    lens-arrive .6s cubic-bezier(.3,.7,.25,1) var(--drift-delay,0s) backwards,
+    lens-float var(--drift-time,10s) ease-in-out var(--float-delay,0s) infinite;
   will-change:transform;
 }
-@keyframes lens-breathe{0%,100%{transform:translateY(5px)}50%{transform:translateY(-6px)}}
-.lens-glass:hover .lens-visual,.lens-glass:focus-visible .lens-visual{animation-play-state:paused}
-.lens-glass:hover,.lens-glass:focus-visible{
+@keyframes lens-arrive{from{opacity:0}}
+/* la flottaison : quelques pixels, phase propre à chaque verre —
+   jamais un mouvement en chœur */
+@keyframes lens-float{
+  0%,100%{transform:scale(var(--rest-scale,1)) translate(0,5px)}
+  50%{transform:scale(var(--rest-scale,1)) translate(2px,-6px)}
+}
+.lens-hit:hover .lens-glass,.lens-hit:focus-visible .lens-glass{
   border-color:var(--world-tint);
   box-shadow:inset 0 0 28px rgba(255,255,255,.05), 0 0 44px -14px var(--world-tint);
 }
 .lens-glass-glyph{display:block; width:56%; height:38%; color:var(--foreground); --glyph-tint:var(--world-tint)}
-/* les glyphes ne s'animent qu'à l'éveil : en repos, la salle est calme */
-.lens-glass .glyph-flow,.lens-glass .glyph-twinkle{animation-play-state:paused}
-.lens-glass:hover .glyph-flow,.lens-glass:focus-visible .glyph-flow,
-.lens-glass:hover .glyph-twinkle,.lens-glass:focus-visible .glyph-twinkle{animation-play-state:running}
+/* ① le repos est vivant — le survol ACCENTUE l'intensité, sans toucher
+   aux durées (changer une durée fait sauter l'animation) */
+.lens-glass .glyph-flow{stroke-opacity:.34}
+.lens-hit:hover .glyph-flow,.lens-hit:focus-visible .glyph-flow{stroke-opacity:.75}
+.lens-hit:hover .lens-glass-glyph,.lens-hit:focus-visible .lens-glass-glyph{
+  filter:drop-shadow(0 0 6px color-mix(in srgb, var(--world-tint) 45%, transparent));
+}
 @media (prefers-reduced-motion: reduce){
   .lens-glass{animation:none}
-  .lens-visual{animation:none}
 }
