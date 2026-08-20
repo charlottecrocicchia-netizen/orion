@@ -159,7 +159,7 @@ test("home leads with the hero, acts follow below", async () => {
   expect(screen.getByRole("link", { name: /Analyse.*space money/ })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /Build/ })).toBeInTheDocument();
   expect(screen.getByText(/alerts and follows/)).toBeInTheDocument();
-  expect(screen.getByText("Phase 5 · autumn 2026")).toBeInTheDocument();
+  expect(screen.getByText("P5–P6 · 2026–2027")).toBeInTheDocument();
   // Act 3 — the proof: the staged globe.
   expect(screen.getByRole("heading", { name: "The world of funding" })).toBeInTheDocument();
 });

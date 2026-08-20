@@ -607,7 +607,7 @@ export function HomePage() {
                 {t("home.doorFollow")}
               </span>
               <span className="ml-4">{t("home.doorFollowNote")}</span>
-              <span className="ml-3 font-mono text-[11px]">{t("home.callsBadge")}</span>
+              <span className="ml-3 font-mono text-[11px]">{t("home.followBadge")}</span>
             </p>
           </div>
         </div>
