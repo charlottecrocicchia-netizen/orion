@@ -130,3 +130,32 @@ jet disparaît : l'arbitrage a tranché, un clic = entrer.
   simulent désormais un visiteur au choix fait (`orion.lens.entry=all`).
 - `?focus=` supprimé de la salle, ses tests réécrits (un clic entre).
 - Le titre composé voyage déjà (lot navigation) — inchangé ici.
+
+## Recette du 2026-08-20 — corrections
+
+**⓪** Le verre « Tout le corpus » livrait la bonne URL (`/`, mémoire
+`all`, le choix explicite battait bien la mémoire) mais le CONTENU
+mentait : la home nue vitrinait la lentille de rang 1. Corrigé au bon
+niveau : depuis que le corpus est un CHOIX de la salle, **la home nue
+raconte le corpus** — grand chiffre des totaux, CTA « Tout le
+corpus », porte vers la salle ; la vitrine de lentille n'existe que
+sous `?sector=` valide. **⓪bis** « Toute la R&D » → **« Tout le
+corpus » / “The whole corpus”** partout (salle, chip, CTA).
+
+**①** La signature d'entrée était invisible : les glyphes, dessinés au
+trait de disque (3.2/320), faisaient un quart de pixel à la taille du
+header. Prop `stroke` — 13 au header — et la signature joue à
+l'arrivée, une fois, ~2 s.
+
+**②** La salle était figée pour trois raisons distinctes : l'orbite
+en SMIL ignorait `animation-play-state` (convertie en CSS
+`offset-path`, dormante par défaut) ; la dérive avait été supprimée
+pour la stabilité du clic (réconciliée : **le bouton est stable, le
+VISUEL intérieur dérive** — l'œil voit la respiration, la souris vise
+un point fixe) ; et les glyphes étaient montés `awake` (ils dorment,
+l'éveil est au survol).
+
+**③** Le header : le mot du monde s'écrit dans SA teinte avec un halo
+lumineux (`text-shadow`), le glyphe est agrandi et épaissi — et la
+barre soulignée disparaît : l'affordance vient du symbole et de la
+couleur.

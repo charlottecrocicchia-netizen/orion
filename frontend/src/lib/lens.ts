@@ -189,7 +189,7 @@ export function withoutLens(pathname: string, search: string): string {
  *  L'URL reste la SEULE vérité — mais tant qu'une vue porte
  *  `sector=<slug>`, la navigation le transporte : header, recherche,
  *  portes internes. Les SORTIES du monde restent explicites — la Lens
- *  Room par l'identité composée, « Toute la R&D » par le chip — et ne
+ *  Room par l'identité composée, « Tout le corpus » par le chip — et ne
  *  passent jamais par ici. Sans paramètre, rien ne change : le site nu
  *  est un état de plein droit, sans défaut, sans session, sans
  *  mémoire.

@@ -65,7 +65,9 @@ test("le hero raconte la lentille vedette, quelle qu'elle soit", async () => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/"]}>
+      {/* ⓪ (2026-08-20) : la home NUE raconte le corpus — le hero de
+          lentille vit sur la home CADRÉE, là où l'URL le déclare. */}
+      <MemoryRouter initialEntries={["/?sector=test-lens"]}>
         <AppRoutes />
       </MemoryRouter>
     </QueryClientProvider>,

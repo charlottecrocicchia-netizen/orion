@@ -78,7 +78,7 @@ test("un clic ENTRE : la mémoire s'écrit, la vraie home cadrée rend", async (
   expect(await screen.findByText("HOME RÉELLE")).toBeInTheDocument();
 });
 
-test("« Toute la R&D » mémorise le choix du corpus entier", async () => {
+test("« Tout le corpus » mémorise le choix du corpus entier", async () => {
   mount();
   fireEvent.click(await screen.findByRole("button", { name: /whole corpus/ }));
   expect(window.localStorage.getItem("orion.lens.entry")).toBe("all");

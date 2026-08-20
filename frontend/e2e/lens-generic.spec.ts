@@ -31,7 +31,7 @@ test("le chip suit le registre : deux lentilles publiées, aucun cas particulier
   // génériques : jamais une clé nue à l'écran.
   await expect(page.getByRole("menuitemradio", { name: "test-lens direct" })).toBeVisible();
   await expect(page.getByRole("menuitemradio", { name: /test-lens \+ habilitant/ })).toBeVisible();
-  await expect(page.getByRole("menuitemradio", { name: /Toute la R&D/ })).toBeVisible();
+  await expect(page.getByRole("menuitemradio", { name: /Tout le corpus/ })).toBeVisible();
 
   // Changer de lentille est le même geste, et l'URL reste la vérité.
   await page.getByRole("menuitemradio", { name: /test-lens \+ habilitant/ }).click();

@@ -56,13 +56,13 @@ test("la recherche transporte ; la sortie chip nettoie ; le site nu reste nu", a
   await expect(page).toHaveURL(/sector=aviation/);
   await expect(page).toHaveURL(/q=hydrogen/);
 
-  // La sortie explicite : « Toute la R&D » du chip retire le paramètre
+  // La sortie explicite : « Tout le corpus » du chip retire le paramètre
   // et préserve le reste (M1.2, inchangé).
   await page.goto("/explore?sector=aviation&by=country&split=0");
   const chip = page.getByRole("button", { name: /Périmètre aéronautique de cette vue/ });
   await expect(chip).toBeVisible({ timeout: 15_000 });
   await chip.click();
-  await page.getByRole("menuitemradio", { name: /Toute la R&D/ }).click();
+  await page.getByRole("menuitemradio", { name: /Tout le corpus/ }).click();
   await expect(page).not.toHaveURL(/sector=/);
   // Le reste de l'état survit (M1.2) — l'explorer normalise seulement
   // sa valeur par défaut by=country hors de l'URL, comme toujours.

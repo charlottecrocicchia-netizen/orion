@@ -15,7 +15,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("home leads with the pinned hero, then the acts follow", async ({ page }) => {
-  await page.goto("/");
+  // ⓪ (2026-08-20) : la vitrine spatiale vit sur la home CADRÉE.
+  await page.goto("/?sector=space");
   // Act 1: the scrub floor already shows a €…B figure before any scroll.
   await expect(page.locator(".hero-gradient")).toContainText(/€\d+B/, { timeout: 10_000 });
   // Le hero est SPATIAL depuis le lot 2 (2026-08-17) : ses KPIs parlent

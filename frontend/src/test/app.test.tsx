@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi, afterEach } from "vitest";
 
 import { AppRoutes } from "../App";
 
@@ -107,6 +107,8 @@ const COUNTRIES = [
   { code: "FR", name: "France", eu_member: true, projects_count: 55973, funding_eur: 32.4e9 },
 ];
 
+afterEach(cleanup);
+
 beforeEach(() => {
   // Révision D4 (2026-08-20) : la racine nue passe par la porte. Ces
   // tests regardent la HOME — on simule un visiteur qui a déjà choisi
@@ -129,7 +131,9 @@ beforeEach(() => {
 });
 
 test("home leads with the hero, acts follow below", async () => {
-  renderAt("/");
+  // ⓪ (2026-08-20) : la vitrine spatiale vit sur la home CADRÉE — la
+  // home nue, elle, raconte le corpus (testée plus bas).
+  renderAt("/?sector=space");
 
   // Header nav: the four intents (the dense footer repeats the product
   // links; page links live inside the disclosure panels).
@@ -184,4 +188,14 @@ test("projects search renders results, count and facets", async () => {
   expect(screen.getByText("Green hydrogen at scale")).toBeInTheDocument();
   expect(screen.getByText(/European Commission/)).toBeInTheDocument();
   expect(screen.getByText(/searched in English & French/)).toBeInTheDocument();
+});
+
+test("⓪ la home NUE raconte le corpus — aucun monde par défaut", async () => {
+  renderAt("/");
+  // Le grand chiffre est celui du CORPUS (211 Md€ du mock), le CTA dit
+  // « The whole corpus », et rien ne parle d'un monde particulier.
+  expect(await screen.findByText("€211B")).toBeInTheDocument();
+  // (le CTA du hero — le socle en a un second : les deux disent le corpus)
+  expect(screen.getAllByRole("link", { name: /The whole corpus/ }).length).toBeGreaterThan(0);
+  expect(screen.queryByText("space projects")).toBeNull();
 });

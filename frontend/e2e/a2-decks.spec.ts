@@ -48,10 +48,10 @@ test("la porte « Analyser » suit la lentille active", async ({ page }) => {
   await door.click();
   await expect(page).toHaveURL(/angles=aviationMoney/);
 
-  // Home nue : la porte reste celle du rang 1 — le deck spatial.
+  // ⓪ (2026-08-20) : la home nue raconte le corpus — sa porte
+  // « Analyser » mène à la bibliothèque entière, sans deck privilégié.
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /Analyser/ })).toContainText(
-    "Où va l’argent spatial ?",
-    { timeout: 15_000 },
-  );
+  const naked = page.getByRole("link", { name: /Analyser/ });
+  await expect(naked).toBeVisible({ timeout: 15_000 });
+  await expect(naked).not.toContainText("spatial");
 });

@@ -16,11 +16,13 @@ test.beforeEach(async ({ page }) => {
 test("la home raconte le spatial : le hero dit son périmètre, la ligne corpus dit l'assise", async ({
   page,
 }) => {
+  // ⓪ (2026-08-20) : la home NUE raconte le corpus — la vitrine
+  // spatiale vit sur la home CADRÉE, là où l'URL la déclare.
   // Lot 2 (validé 2026-08-17) : les rôles s'inversent — le grand chiffre
   // est SPATIAL et dit « direct + habilitant » dans la phrase même
   // (exigence fondatrice ①) ; le corpus général devient la ligne
   // discrète, avec sa porte vers Toute la R&D.
-  await page.goto("/");
+  await page.goto("/?sector=space");
   // D5 exécutée (2026-08-19) : le jeton est « Orion », l'identité
   // composée vit sur les vues cadrées — plus jamais le nom soudé.
   await expect(page.getByText("Orion", { exact: true }).first()).toBeVisible();
@@ -42,7 +44,7 @@ test("la home raconte le spatial : le hero dit son périmètre, la ligne corpus 
 
   // Et la porte corpus mène à Toute la R&D (sans cadrage).
   await page.goto("/");
-  await page.getByRole("link", { name: /Toute la R&D/ }).click();
+  await page.getByRole("link", { name: /Tout le corpus/ }).click();
   await expect(page).toHaveURL(/\/explore\?/);
   await expect(page).not.toHaveURL(/sector=/);
 });
@@ -86,7 +88,7 @@ test("le chip de périmètre : trois états, l'URL comme seule vérité, le cadr
   // « Toute la R&D » : le paramètre disparaît, le chip aussi — le
   // silence est l'état non cadré, jamais un cadrage muet.
   await chip.click();
-  await page.getByRole("menuitemradio", { name: /Toute la R&D/ }).click();
+  await page.getByRole("menuitemradio", { name: /Tout le corpus/ }).click();
   await expect(page).not.toHaveURL(/sector=/);
   await expect(chip).toHaveCount(0);
 });
@@ -133,7 +135,7 @@ test("les decks spatiaux : la section Espace mène, le deck 2 enseigne la distin
 });
 
 test("la porte Analyser de la home ouvre le deck spatial", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?sector=space");
   await page.getByRole("link", { name: /Où va l.argent spatial/ }).click();
   await expect(page).toHaveURL(/angles=spaceMoney/);
   await expect(page.getByText("La trajectoire (direct + habilitant)")).toBeVisible({

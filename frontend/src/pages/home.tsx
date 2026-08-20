@@ -257,10 +257,13 @@ export function HomePage() {
   const carried = lensState.kind === "valid" ? lensState.lens.slug : null;
   const rankOne = useLeadLens();
   const lenses = usePublishedLenses();
+  // ⓪ (recette 2026-08-20) : depuis que « Tout le corpus » est un CHOIX
+  // de la salle, la home NUE raconte le corpus — plus jamais la vedette
+  // de rang 1. Le hero de lentille n'existe que sous ?sector= valide.
   const lead =
     lensState.kind === "valid"
       ? (lenses.find((lens) => lens.slug === lensState.lens.slug) ?? rankOne)
-      : rankOne;
+      : null;
   const leadWords = lensHeroWords(lead?.slug ?? "", t);
   const leadYears = lead?.by_year ?? [];
   const leadFrom = leadYears[0]?.year;
@@ -349,12 +352,33 @@ export function HomePage() {
                  chiffre du hero dit sur QUOI il porte. */
               basis={t("coverage.heroBasis")}
             />
-          ) : (
+          ) : null}
+          {stats && !lead ? (
+            <>
+              <p className="mt-7">
+                <Link
+                  to="/explore?by=country&split=0"
+                  className="rounded-full bg-foreground px-5 py-2.5 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
+                >
+                  {t("home.corpusCta")} →
+                </Link>
+              </p>
+              <p className="mt-4">
+                <Link
+                  to="/lenses"
+                  className="text-[13px] text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+                >
+                  {t("lensRoom.open")} →
+                </Link>
+              </p>
+            </>
+          ) : null}
+          {!stats ? (
             <>
               <Skeleton className="mx-auto h-28 w-[420px] max-w-full" />
               <Skeleton className="mx-auto mt-16 h-40 w-full max-w-[1120px]" />
             </>
-          )}
+          ) : null}
           {scrub != null ? (
             <p
               aria-hidden="true"
@@ -490,7 +514,7 @@ export function HomePage() {
 
           {/* La ligne CORPUS (lot 2, validé 2026-08-17) : les rôles
               s'inversent — le hero raconte le spatial, le corpus général
-              devient l'assise discrète, avec sa porte vers Toute la R&D.
+              devient l'assise discrète, avec sa porte vers Tout le corpus.
               Rien n'est retiré : l'avantage généraliste reste dit. */}
           {stats && lead ? (
             <section

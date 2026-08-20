@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  *  Le composant ne connaît AUCUNE lentille : ses entrées viennent du
  *  registre publié (`stats.lenses`, ordre de rang) et ses mots de
  *  `lens.<slug>.*`. Deux entrées par lentille — le cœur seul, puis le
- *  cœur + habilitant — et « Toute la R&D » pour finir. */
+ *  cœur + habilitant — et « Tout le corpus » pour finir. */
 export function SectorChip({
   sector,
   onChange,
@@ -37,7 +37,7 @@ export function SectorChip({
     return () => window.removeEventListener("pointerdown", away);
   }, [open]);
 
-  // Sans cadrage, pas de chip : « Toute la R&D » est l'état silencieux —
+  // Sans cadrage, pas de chip : « Tout le corpus » est l'état silencieux —
   // un chip permanent ne se lirait bientôt plus (la leçon des notes de
   // couverture vaut ici aussi).
   const active = parseLens(sector);

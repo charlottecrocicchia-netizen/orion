@@ -159,25 +159,29 @@ export function LensRoomPage() {
                   ...worldTintVars(lens.slug),
                   "--rest-scale": String(0.88 + depth * 0.24),
                   "--drift-delay": `${(1 - depth) * 0.22}s`,
+                  "--drift-time": `${9 + depth * 4}s`,
+                  "--breathe-delay": `${depth * -5}s`,
                 } as React.CSSProperties}
               >
-                <span aria-hidden="true" className="lens-glass-glyph">
-                  <Glyph awake />
-                </span>
-                <span className="display-tight mt-4 text-[19px] font-medium">{words.name}</span>
-                <span className="mt-1.5 text-[13px] text-muted-foreground tabular-nums">
-                  {t("lensRoom.projects", {
-                    count: lens.core + lens.enabling,
-                    formatted: formatInt(lens.core + lens.enabling, i18n.language),
-                  })}
-                  <span className="mx-2 text-muted-foreground/50">·</span>
-                  {formatCompactEur(lens.funding_eur, i18n.language)}
+                <span className="lens-visual">
+                  <span aria-hidden="true" className="lens-glass-glyph">
+                    <Glyph />
+                  </span>
+                  <span className="display-tight mt-4 text-[19px] font-medium">{words.name}</span>
+                  <span className="mt-1.5 text-[13px] text-muted-foreground tabular-nums">
+                    {t("lensRoom.projects", {
+                      count: lens.core + lens.enabling,
+                      formatted: formatInt(lens.core + lens.enabling, i18n.language),
+                    })}
+                    <span className="mx-2 text-muted-foreground/50">·</span>
+                    {formatCompactEur(lens.funding_eur, i18n.language)}
+                  </span>
                 </span>
               </button>
             );
           })}
 
-          {/* Toute la R&D — le troisième monde, avec SON objet. */}
+          {/* Tout le corpus — le troisième monde, avec SON objet. */}
           <button
             type="button"
             aria-label={t("lensRoom.enterAll")}
@@ -186,20 +190,24 @@ export function LensRoomPage() {
             style={{
               "--rest-scale": String(0.88 + DEPTH.all * 0.24),
               "--drift-delay": `${(1 - DEPTH.all) * 0.22}s`,
+              "--drift-time": `${9 + DEPTH.all * 4}s`,
+              "--breathe-delay": `${DEPTH.all * -5}s`,
             } as React.CSSProperties}
           >
-            <span aria-hidden="true" className="lens-glass-glyph">
-              <ConstellationGlyph awake />
-            </span>
-            <span className="display-tight mt-4 text-[19px] font-medium">
-              {t("lensRoom.allName")}
-            </span>
-            <span className="mt-1.5 text-[13px] text-muted-foreground tabular-nums">
-              {stats
-                ? t("lensRoom.allFigures", {
-                    formatted: formatInt(stats.totals.projects, i18n.language),
-                  })
-                : " "}
+            <span className="lens-visual">
+              <span aria-hidden="true" className="lens-glass-glyph">
+                <ConstellationGlyph />
+              </span>
+              <span className="display-tight mt-4 text-[19px] font-medium">
+                {t("lensRoom.allName")}
+              </span>
+              <span className="mt-1.5 text-[13px] text-muted-foreground tabular-nums">
+                {stats
+                  ? t("lensRoom.allFigures", {
+                      formatted: formatInt(stats.totals.projects, i18n.language),
+                    })
+                  : " "}
+              </span>
             </span>
           </button>
         </div>

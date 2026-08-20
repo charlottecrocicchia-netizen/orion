@@ -57,13 +57,17 @@ function ComposedIdentity() {
       style={worldTintVars(slug)}
     >
       <span aria-hidden="true" className="mx-1 text-muted-foreground/50">/</span>
-      <span className="text-accent">{name}</span>
-      {/* ② arbitré — la signature d'ENTRÉE : le glyphe joue UNE fois
-          (~2 s) au changement de monde, puis se fige. `key` remonte le
-          nœud à chaque monde : c'est l'événement, jamais la boucle. */}
+      {/* ③ (recette 2026-08-20) : la lentille s'écrit dans SA teinte,
+          halo lumineux — plus de barre soulignée : l'affordance vient
+          du symbole et de la couleur. */}
+      <span className="world-word">{name}</span>
+      {/* La signature d'ENTRÉE (① réparée) : le glyphe joue UNE fois
+          (~2 s) à l'arrivée dans un monde, puis se fige. Les traits
+          sont épaissis pour la taille du header — au trait de disque,
+          ils faisaient un quart de pixel : invisible. */}
       {Glyph ? (
         <span key={slug} aria-hidden="true" className="world-signature">
-          <Glyph once />
+          <Glyph once stroke={13} />
         </span>
       ) : null}
     </Link>

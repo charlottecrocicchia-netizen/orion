@@ -42,3 +42,35 @@ test("la sortie du chip mène à la salle", async ({ page }) => {
   await page.getByRole("menuitem", { name: /Les lentilles/ }).click();
   await expect(page).toHaveURL(/\/lenses$/);
 });
+
+test("⓪ les trois verres, trois destinations exactes — le choix explicite bat la mémoire", async ({
+  page,
+}) => {
+  // Une mémoire « space » préexistante ne détourne JAMAIS un choix
+  // explicite fait dans la salle.
+  await page.goto("/lenses");
+  await page.evaluate(() => window.localStorage.setItem("orion.lens.entry", "space"));
+
+  // ① Espace → la home cadrée space.
+  await page.getByRole("button", { name: /Espace/ }).click();
+  await expect(page).toHaveURL(/\/\?sector=space$/);
+
+  // ② Aéronautique → la home cadrée aviation.
+  await page.goto("/lenses");
+  await page.getByRole("button", { name: /Aéronautique/ }).click();
+  await expect(page).toHaveURL(/\/\?sector=aviation$/);
+
+  // ③ Tout le corpus → la home NUE : aucun sector, aucun halo de
+  // lentille, les compteurs du corpus entier — et la mémoire retient
+  // « all » : revenir plus tard rouvre la vue nue.
+  await page.goto("/lenses");
+  await page.getByRole("button", { name: /corpus/ }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page).not.toHaveURL(/sector=/);
+  await expect(page.locator(".world-word")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Tout le corpus/ })).toBeVisible({
+    timeout: 15_000,
+  });
+  const entry = await page.evaluate(() => window.localStorage.getItem("orion.lens.entry"));
+  expect(entry).toBe("all");
+});
