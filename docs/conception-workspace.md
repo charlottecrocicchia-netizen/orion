@@ -20,10 +20,12 @@ dossier), des DROITS sur ces pointeurs (qui les voit) et un TRANSPORT
 (l'email d'une alerte). Chaque conception ci-dessous est vérifiée
 contre cette règle en fin de section.
 
-**Coût zéro ou presque.** Aucun service payant. Bilan en fin de
-document : le socle proposé tient avec **zéro dépendance Python
-nouvelle** (stdlib seule) et un envoi d'email configurable, gratuit
-(SMTP existant ou palier gratuit interchangeable).
+**Aucun coût logiciel obligatoire.** Aucun service payant, aucune
+dépendance nouvelle : le socle tient en stdlib. La réserve honnête :
+le COÛT et la DÉLIVRABILITÉ de l'email transactionnel restent à
+confirmer en prod — SPF/DKIM/DMARC et un expéditeur fiable ne sont pas
+une question de code. Cette vérification est LA porte d'entrée du
+lot 1 : pas de code avant qu'elle soit tranchée.
 
 **Aucune promesse vide.** Chaque lot livre une capacité complète de
 bout en bout. Le lot 1 ne livre pas « un écran de login » : il livre
@@ -68,8 +70,9 @@ OAuth en plus s'ajoute plus tard sans toucher au modèle.
 ### Recommandation : **le lien magique, seul** (b)
 
 - Le public d'Orion est un public de VEILLE : on revient chaque
-  semaine sur le même poste. Avec une session de 90 jours glissants,
-  le lien magique se clique quelques fois par an et par appareil — la
+  semaine sur le même poste. Avec une session de 30 jours glissants
+  (90 absolus, D3), le lien magique se clique quelques fois par an et
+  par appareil — la
   friction réelle est marginale.
 - La surface de sécurité est la plus petite des trois : pas de mot de
   passe, c'est pas de fuite de mots de passe, pas de politique, pas de
@@ -84,6 +87,21 @@ OAuth en plus s'ajoute plus tard sans toucher au modèle.
   connexions) est borné par des sessions longues et un fournisseur
   interchangeable (D-coût), et il est réversible par (a) si l'usage le
   dément.
+
+**Les garanties du lien magique** (arbitrage du 2026-08-20) — la
+liste est le contrat, chaque ligne se vérifie en recette :
+
+- token aléatoire FORT (256 bits, `secrets.token_urlsafe(32)`) ;
+- stocké HACHÉ en base (SHA-256) — le clair ne vit que dans l'email ;
+- usage UNIQUE : la consommation marque `used_at`, atomiquement — un
+  lien consommé ou expiré ne crée jamais de session, un même lien ne
+  peut jamais créer PLUSIEURS sessions (la course est perdante :
+  l'UPDATE conditionnel `WHERE used_at IS NULL` ne gagne qu'une fois) ;
+- expiration COURTE : 15 minutes ;
+- la demande de lien répond STRICTEMENT PAREIL qu'un compte existe ou
+  non — même corps, même statut (anti-énumération) ;
+- rate limit par email ET par IP (D3) — le dépassement répond comme le
+  succès et n'envoie rien.
 
 **En dev et en e2e** : pas d'email — le lien s'écrit dans la réponse
 du serveur en mode `ORION_AUTH_DEV=1` (et dans les logs). La recette
@@ -126,7 +144,7 @@ sessions
   token_hash    TEXT PK         -- SHA-256 du cookie ; le clair ne vit
   user_id       FK users        --   que dans le navigateur
   created_at    TIMESTAMPTZ
-  last_used_at  TIMESTAMPTZ     -- glissement des 90 jours
+  last_used_at  TIMESTAMPTZ     -- glissement des 30 jours (plafond : 90)
   expires_at    TIMESTAMPTZ
 
 workspaces
@@ -196,13 +214,31 @@ Le strict nécessaire, bien fait :
   Front et API vivent derrière le MÊME Caddy (vérifié :
   `handle /api/*` → api, `handle` → web, une seule adresse) — pas de
   CORS, pas de domaine tiers.
-- **Durée** : 90 jours glissants — `last_used_at` repousse
-  l'échéance ; l'inactivité de 90 jours éteint la session. Le lien
-  magique vit 15 minutes, usage unique.
-- **CSRF** : `SameSite=Lax` couvre les navigateurs modernes ; en
-  plus, les mutations (POST/PUT/DELETE) vérifient l'en-tête `Origin`
-  contre l'origine du site — trois lignes, zéro bibliothèque, et le
-  duo suffit pour un site même-origine sans formulaires cross-site.
+- **Durée : 30 jours glissants, 90 jours absolus.** `last_used_at`
+  repousse l'échéance d'inactivité (30 j) ; `created_at + 90 j` est un
+  plafond que RIEN ne repousse — une session volée ne survit pas
+  indéfiniment à l'usage. Le lien magique vit 15 minutes, usage
+  unique.
+- **Doctrine CSRF et mutations** (arbitrage du 2026-08-20 — une
+  doctrine explicite vieillit mieux qu'un raccourci) :
+  - AUCUNE mutation via GET, jamais — y compris la consommation du
+    lien magique : le lien email ouvre une page qui POSTe le token ;
+  - `Origin` (à défaut `Referer`) contrôlé sur TOUTE requête
+    mutante ; origine étrangère → refus, sans exception « pratique » ;
+  - cookie `Secure + HttpOnly + SameSite=Lax`, toujours les trois ;
+  - ROTATION du token de session à chaque connexion (jamais de
+    réutilisation d'un identifiant de session antérieur) ;
+  - RÉVOCATION effective au logout (DELETE du hash en base — le
+    cookie effacé ne suffit pas) ;
+  - un token CSRF dédié (double-submit ou synchronizer) POURRA
+    s'ajouter sans refonte si l'architecture cesse un jour d'être
+    même-origine — cette condition est la ligne rouge à relire avant
+    tout déplacement de l'API sur un autre domaine.
+- **Réauthentification future** : les actions sensibles à venir
+  (suppression d'un workspace d'équipe, transfert de propriété)
+  exigeront un lien magique frais, pas la session courante. Principe
+  consigné dès maintenant ; construit avec la première action qui
+  l'exige.
 - **Rate limiting** : sur la SEULE route sensible — la demande de
   lien magique : 5 demandes/heure par email ET par IP, comptées dans
   une table Postgres à fenêtre glissante (un INSERT + un COUNT ;
@@ -290,6 +326,35 @@ tout le monde verrait sur la même URL. ✓
 
 ---
 
+## D5 bis — Deux doctrines futures, consignées sans être construites
+
+**Changement d'adresse email, perte d'accès à l'adresse.**
+Explicitement NON SUPPORTÉ au lot 1 : l'email est l'identité, la
+perdre c'est perdre le compte (dit sobrement sur la page de login).
+Mécanisme futur, esquissé pour mémoire : un changement d'adresse se
+fera par DOUBLE lien magique — un lien de confirmation sur l'ancienne
+adresse ET un sur la nouvelle, les deux consommés dans une fenêtre
+courte ; la perte d'accès sans ancienne adresse restera un cas manuel
+(il n'existe aucun mécanisme automatique honnête sans second facteur).
+
+**Suppression de compte et sort de la propriété.** Le modèle tranche
+dès maintenant, même sans interface :
+
+- supprimer son COMPTE supprime ses sessions et ses appartenances
+  (CASCADE) ; l'email disparaît (RGPD) ;
+- un workspace dont le SEUL membre part est supprimé avec ses objets ;
+- un workspace d'ÉQUIPE dont un owner part : s'il reste un autre
+  owner, rien à faire ; si le partant est le DERNIER owner et qu'il
+  reste des membres, le départ est REFUSÉ tant qu'il n'a pas transféré
+  la propriété (promu un member en owner) ou supprimé le workspace —
+  la propriété ne devient jamais vacante, et rien n'est promu
+  automatiquement à l'insu de qui que ce soit ;
+- les objets P6 appartiennent au WORKSPACE, pas à leur créateur : le
+  départ d'un membre n'emporte aucun objet (`created_by` devient une
+  simple trace, `ON DELETE SET NULL`).
+
+---
+
 ## D6 — Découpage en lots
 
 Chaque lot livre une capacité complète ; l'écran ne promet jamais en
@@ -345,12 +410,97 @@ des alertes ne bouge pas d'ici là.
 |---|---|---|---|
 | Auth (tokens, hachage, cookies) | stdlib Python (`secrets`, `hashlib`, `smtplib`) | 0 € | PSF — aucune dépendance nouvelle |
 | Hachage de mots de passe | AUCUN (pas de mots de passe) | 0 € | — |
-| Envoi d'email | SMTP configurable : le SMTP d'un domaine existant, ou un palier gratuit interchangeable (Brevo ~300/j, Resend ~100/j au cutoff de ma connaissance — à re-vérifier au lot 1) ; volume du socle : quelques dizaines/mois | 0 € | service externe, pas une bibliothèque — rien n'entre dans le code |
+| Envoi d'email | SMTP configurable : domaine existant ou palier gratuit interchangeable (Brevo ~300/j, Resend ~100/j au cutoff de ma connaissance) ; volume du socle : quelques dizaines/mois | **à confirmer en prod** — délivrabilité (SPF/DKIM/DMARC, expéditeur fiable) = porte d'entrée du lot 1 | service externe, pas une bibliothèque — rien n'entre dans le code |
 | Rate limiting | table Postgres à fenêtre glissante | 0 € | — |
 | Front | rien de nouveau (fetch + cookie même-origine) | 0 € | — |
 
 Le socle complet tient sans une seule dépendance nouvelle — la règle
 du corpus appliquée au code n'a même pas à arbitrer : rien n'entre.
+La seule inconnue de coût est l'email transactionnel : vérifiée AVANT
+la première ligne de code du lot 1.
+
+## Plan d'implémentation du lot 1 — présenté pour validation
+
+Comptes (lien magique) + dossier durable. AUCUNE ligne de code avant
+l'aval de Charlotte sur ce plan — et avant la porte d'entrée.
+
+### Porte d'entrée (avant tout code)
+
+Trancher la solution d'envoi en prod : quel expéditeur (SMTP du
+domaine ou palier gratuit), SPF/DKIM/DMARC posés sur le domaine
+d'envoi, un email de test qui atterrit en boîte de réception (pas en
+spam) chez un destinataire Outlook ET un Gmail. Tant que ce test ne
+passe pas, le lot ne commence pas.
+
+### Découpage (ordre de construction)
+
+1. **Migration 0030** : `users`, `login_tokens`, `sessions`,
+   `workspaces`, `memberships`, `login_requests` (rate limit à
+   fenêtre glissante). Les six tables du socle, `invitations` attendra
+   le lot 2.
+2. **Le module auth backend** (`orion/auth/`) : création/consommation
+   de liens (garanties D1 verbatim), sessions (D3 : 30/90, rotation,
+   révocation), la dépendance FastAPI `current_user`, l'envoi SMTP
+   configurable (`ORION_SMTP_*`, mode `ORION_AUTH_DEV=1` qui écrit le
+   lien dans la réponse), le garde-fou Origin sur les mutations.
+3. **Endpoints** (tous sous `/api/auth` et `/api/me`) :
+   - `POST /api/auth/login` `{email}` → 200 constant (anti-énumération,
+     rate limité) ; crée le compte ET le workspace personnel au
+     premier lien CONSOMMÉ, pas à la demande ;
+   - `POST /api/auth/verify` `{token}` → session + cookie (la page
+     `/login/verify?token=…` POSTe — aucune mutation via GET) ;
+   - `POST /api/auth/logout` → révocation en base + cookie effacé ;
+   - `GET /api/me` → identité + workspaces (lecture, 401 sinon) ;
+   - `DELETE /api/me` → suppression de compte (doctrine D5 bis).
+4. **Le dossier durable** :
+   - `POST /api/workspaces/{id}/dossiers` — « garder » : le dossier de
+     session part tel quel (items `{params, title, note}` du format
+     localStorage, qui EST le schéma) ;
+   - `GET /api/workspaces/{id}/dossiers` + `GET …/dossiers/{did}` —
+     lister, ouvrir ;
+   - `DELETE …/dossiers/{did}` ;
+   - pas d'éditeur serveur au lot 1 : un dossier gardé s'ouvre en
+     lecture, « reprendre dans la session » recharge ses items dans le
+     navigateur pour l'éditer puis re-garder (un NOUVEL objet — pas
+     d'écrasement silencieux).
+5. **Écrans touchés** (i18n FR/EN, aucun écran nouveau au-delà) :
+   - header : entrée « Se connecter » ; connecté : initiale + menu
+     (mon espace, se déconnecter) ;
+   - `/login` : un champ email, une confirmation sobre « si ce compte
+     existe, un lien est parti » ;
+   - `/login/verify` : consommation puis redirection vers la page
+     d'origine ;
+   - page dossier : le bandeau session gagne « … — se connecter pour
+     le garder » puis « Garder dans mon espace » ; une section « Les
+     dossiers gardés » liste ceux du workspace ;
+   - une page d'espace minimale (`/workspace/settings` ou le menu) :
+     nom du workspace, suppression de compte. Le badge P6 du bandeau
+     dossier tombe pour la partie livrée.
+6. **Tests** : unitaires backend (garanties D1 une à une : usage
+   unique sous course, expiration, anti-énumération, rate limit,
+   rotation, révocation, plafond absolu) ; e2e (parcours complet en
+   mode dev : login → garder → purge localStorage → retrouver ;
+   anonyme inchangé ; Origin étranger refusé).
+
+### Recette du lot 1 (prod `:8080`, rechargement forcé)
+
+- créer un compte : le lien ARRIVE en boîte de réception (le vrai
+  test de la porte d'entrée), la session tient au rechargement et au
+  lendemain ; se déconnecter la révoque vraiment (le cookie rejoué à
+  la main est mort) ;
+- un lien magique re-cliqué ne rouvre PAS de session ; un lien de
+  16 minutes est mort ; la 6ᵉ demande dans l'heure ne part pas mais
+  répond pareil ;
+- garder un dossier de 3 vues, purger le localStorage, le retrouver ;
+  « reprendre dans la session » réédite puis re-garde un nouvel
+  objet ;
+- en anonyme : AUCUNE vue ne change, aucun harcèlement — la seule
+  trace est « Se connecter » au header et la phrase du bandeau
+  dossier ;
+- suppression de compte : sessions, appartenances, workspace personnel
+  et dossiers gardés disparaissent ;
+- suites unitaires, backend et e2e vertes, exit 0 lu hors pipe. CI au
+  reset du quota si avant le 1er septembre.
 
 ## Ce que ce document ne décide pas
 
