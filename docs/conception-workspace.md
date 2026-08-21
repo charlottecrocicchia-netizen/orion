@@ -571,6 +571,41 @@ immédiat. L'épreuve de délivrabilité reste inchangée : un email reçu
 en boîte de réception Gmail ET Outlook, preuves à l'appui, avant la
 première ligne de code.
 
+### Porte email — FRANCHIE le 2026-08-21 (épreuve sur pièce)
+
+Option retenue et exécutée : **B'** — Brevo palier gratuit (300/j,
+sans carte), expéditeur `no-reply@lensorion.com`, domaine authentifié
+(4 enregistrements posés dans la zone OVH : code de vérification TXT,
+DKIM brevo1/brevo2 en CNAME, DMARC `p=none`). Le SPF existant
+(`include:mx.ovh.com`) n'a pas été touché : Brevo enveloppe ses envois
+de son propre domaine de rebond, l'alignement passe par DKIM.
+
+**L'épreuve** : email envoyé DEPUIS le serveur de production (le vrai
+chemin : `smtplib` → `smtp-relay.brevo.com:587`, identifiants dans le
+`.env` du serveur, déposés par la fondatrice sans transiter par la
+conversation) vers `owner@example.com`. Verdict, en-têtes
+Gmail à l'appui : **boîte de réception ; SPF PASS ; DKIM PASS
+(`d=lensorion.com`, `s=brevo2`) ; DMARC PASS.**
+
+**Limite consignée honnêtement** : la fondatrice n'a aucune boîte
+Outlook — la moitié Outlook de l'épreuve est EN ATTENTE. À faire
+avant d'approuver le premier email Outlook/Exchange sur la liste
+d'accès ; d'ici là, la seule utilisatrice est sur Gmail, l'épreuve
+couvre le besoin réel.
+
+**Deux faits d'exploitation à retenir** (relevés à l'épreuve) :
+
+- Brevo réécrit le texte en HTML et y ajoute un pixel de suivi et un
+  lien de désinscription. Pour les emails de CONNEXION, le suivi des
+  clics devra être désactivé — un lien magique réécrit via le domaine
+  de tracking serait un lien de connexion qui passe par un tiers. La
+  recette du lot vérifie que le lien du mail pointe DIRECTEMENT vers
+  `lensorion.com`.
+- Les clés SMTP Brevo expirent après **90 jours d'inactivité** (et le
+  21 août 2027 quoi qu'il arrive). Si un lien de connexion ne part
+  plus : premier réflexe, régénérer la clé (`SMTP et API`) et refaire
+  le dépôt dans le `.env`.
+
 ### Découpage (ordre de construction)
 
 1. **Migration 0030** : `users`, `login_tokens`, `sessions`,
