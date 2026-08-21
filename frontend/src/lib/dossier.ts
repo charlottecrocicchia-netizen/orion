@@ -122,6 +122,13 @@ export function setDossierTitle(title: string): void {
   write({ ...read(), title });
 }
 
+/** « Reprendre comme nouvelle version » (verrou 4) : un dossier GARDÉ
+ *  recharge ses items dans la session pour être réédité — re-garder
+ *  crée un NOUVEL objet côté serveur, jamais un écrasement. */
+export function replaceDossier(title: string, items: DossierItem[]): void {
+  write({ title, items: [...items] });
+}
+
 function subscribe(callback: () => void): () => void {
   const onStorage = (event: StorageEvent) => {
     if (event.key === KEY) {

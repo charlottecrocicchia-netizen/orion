@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { ExploreView } from "@/components/explore-view";
+import { auth, personalWorkspace, useMe } from "@/lib/auth";
 import {
   moveDossierItem,
   removeFromDossier,
@@ -39,6 +41,100 @@ function requestPhrase(
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+/** La phrase du bandeau dit la vérité de la persistance (D4) : session
+ *  seule → « conservé dans ce navigateur — se connecter pour le
+ *  garder » ; connecté → le geste « Garder dans mon espace ». Toujours
+ *  au point d'usage, jamais un modal. */
+function KeepControl({ title }: { title: string }) {
+  const { t } = useTranslation();
+  const { me } = useMe();
+  const dossier = useDossier();
+  const workspace = personalWorkspace(me);
+  const [kept, setKept] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  if (!me || !workspace) {
+    return (
+      <span>
+        {t("dossier.keepSession")}{" "}
+        <Link to="/login?from=/dossier" className="text-accent underline-offset-2 hover:underline">
+          {t("dossier.keepSignIn")}
+        </Link>
+      </span>
+    );
+  }
+  if (kept != null) {
+    return (
+      <span>
+        {t("dossier.keptOk")}{" "}
+        <Link
+          to={`/workspace/dossiers/${kept}`}
+          className="text-accent underline-offset-2 hover:underline"
+        >
+          {t("dossier.keptOpen")} ↗
+        </Link>
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          // Toujours un NOUVEL objet (verrou 4) — jamais d'écrasement.
+          const res = await auth.keepDossier(workspace.id, title, dossier.items);
+          setKept(res.id);
+        } finally {
+          setBusy(false);
+        }
+      }}
+      className="rounded-full border border-border px-3 py-1 text-[12.5px] text-foreground transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+    >
+      {t("dossier.keepCta")}
+    </button>
+  );
+}
+
+/** Les dossiers gardés du workspace — listés sur la page dossier
+ *  (« session ET gardés ») dès qu'un compte est là. */
+function SavedDossiers() {
+  const { t, i18n } = useTranslation();
+  const { me } = useMe();
+  const workspace = personalWorkspace(me);
+  const { data } = useQuery({
+    queryKey: ["dossiers", workspace?.id],
+    queryFn: () => auth.listDossiers(workspace!.id),
+    enabled: workspace != null,
+  });
+  const saved = data?.dossiers ?? [];
+  if (!me || saved.length === 0) return null;
+  return (
+    <section className="no-print mt-16 border-t border-border-soft pt-8">
+      <h2 className="text-label uppercase text-muted-foreground">{t("dossier.savedTitle")}</h2>
+      <ul className="mt-3">
+        {saved.map((dossier) => (
+          <li key={dossier.id} className="flex items-baseline gap-4 py-1.5">
+            <Link
+              to={`/workspace/dossiers/${dossier.id}`}
+              className="min-w-0 flex-1 truncate text-[14.5px] hover:text-accent"
+            >
+              {dossier.title}
+            </Link>
+            <span className="tnum text-[12px] text-muted-foreground">
+              {t("workspace.dossierMeta", {
+                count: dossier.items_count,
+                date: new Date(dossier.created_at).toLocaleDateString(i18n.language),
+              })}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
 }
 
 function Block({
@@ -195,6 +291,9 @@ export function DossierPage() {
         >
           {t("dossier.emptyCta")} →
         </Link>
+        <div className="mx-auto max-w-[880px] text-left">
+          <SavedDossiers />
+        </div>
       </div>
     );
   }
@@ -223,7 +322,7 @@ export function DossierPage() {
       <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
         <span>{t("dossier.metaCount", { count: dossier.items.length })}</span>
         <span aria-hidden="true">·</span>
-        <span>{t("dossier.keep")}</span>
+        <KeepControl title={dossier.title || defaultTitle} />
         <button
           type="button"
           onClick={() => window.print()}
@@ -236,6 +335,8 @@ export function DossierPage() {
       {dossier.items.map((item, index) => (
         <Block key={item.id} item={item} index={index} count={dossier.items.length} />
       ))}
+
+      <SavedDossiers />
 
       <p className="mt-16 border-t border-border-soft pt-6 pb-10 text-[11.5px] text-muted-foreground">
         {t("dossier.footer")}

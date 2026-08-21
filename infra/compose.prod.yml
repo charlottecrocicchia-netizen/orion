@@ -58,6 +58,17 @@ services:
     environment:
       ORION_ENV: ${ORION_ENV:-production}
       ORION_DATABASE_URL: postgresql+psycopg://orion:${POSTGRES_PASSWORD}@postgres:5432/orion
+      # --- Comptes (lot 1 workspace) : une variable absente ici
+      # n'existe PAS dans le conteneur, quel que soit le .env — la
+      # leçon CANONICAL_HOST du 2026-08-21 vaut pour l'api aussi.
+      ORION_PUBLIC_ORIGIN: ${ORION_PUBLIC_ORIGIN:-http://localhost:8080}
+      ORION_AUTH_DEV: ${ORION_AUTH_DEV:-0}
+      ORION_LOGIN_ALLOWLIST: ${ORION_LOGIN_ALLOWLIST:-}
+      ORION_SMTP_HOST: ${ORION_SMTP_HOST:-}
+      ORION_SMTP_PORT: ${ORION_SMTP_PORT:-587}
+      ORION_SMTP_USER: ${ORION_SMTP_USER:-}
+      ORION_SMTP_PASSWORD: ${ORION_SMTP_PASSWORD:-}
+      ORION_SMTP_FROM: ${ORION_SMTP_FROM:-}
     # The download cache lives here too, not only on the scheduler: with
     # the scheduler behind a profile, `make prod-ingest` runs inside this
     # container, and a source re-downloaded on every run would be a

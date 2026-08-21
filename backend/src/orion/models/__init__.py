@@ -1,3 +1,12 @@
+from orion.models.accounts import (
+    Dossier,
+    LoginRequest,
+    LoginToken,
+    Membership,
+    User,
+    UserSession,
+    Workspace,
+)
 from orion.models.base import Base
 from orion.models.funding import Call, Funder, Programme
 from orion.models.groups import (
@@ -20,6 +29,7 @@ __all__ = [
     "Base",
     "Call",
     "Country",
+    "Dossier",
     "EntityGroupMap",
     "ExchangeRate",
     "Funder",
@@ -31,6 +41,9 @@ __all__ = [
     "LeiRelationship",
     "Lens",
     "LensChangelog",
+    "LoginRequest",
+    "LoginToken",
+    "Membership",
     "Organisation",
     "OrganisationAlias",
     "OrganisationIdentifier",
@@ -42,4 +55,7 @@ __all__ = [
     "ProjectTopic",
     "Topic",
     "UeiLink",
+    "User",
+    "UserSession",
+    "Workspace",
 ]

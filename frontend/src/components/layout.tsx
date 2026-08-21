@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 
+import { AccountMenu } from "@/components/account-menu";
 import { CommandK } from "@/components/command-k";
 import { IntentNav } from "@/components/intent-nav";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -216,6 +217,8 @@ export function Layout() {
             <ScopeBadge />
             <LanguageToggle />
             <ThemeToggle />
+            {/* D4 : UNE entrée sobre — le compte ne harcèle jamais. */}
+            <AccountMenu />
           </div>
         </nav>
       </header>

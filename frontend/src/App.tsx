@@ -23,7 +23,10 @@ import { DossierPage } from "@/pages/dossier";
 import { ExplorerPage } from "@/pages/explorer";
 import { RegionHubPage } from "@/pages/region-hub";
 import { ProjectDetailPage } from "@/pages/project-detail";
+import { LoginPage } from "@/pages/login";
+import { LoginVerifyPage } from "@/pages/login-verify";
 import { OrganisationsSearchPage, ProjectsSearchPage } from "@/pages/search";
+import { SavedDossierPage } from "@/pages/saved-dossier";
 import { WorkspacePage } from "@/pages/workspace";
 
 const queryClient = new QueryClient({
@@ -60,6 +63,11 @@ export function AppRoutes() {
           <Route path="/analyses" element={<AnalysesPage />} />
           <Route path="/calls" element={<CallsPage />} />
           <Route path="/workspace" element={<WorkspacePage />} />
+          <Route path="/workspace/dossiers/:id" element={<SavedDossierPage />} />
+          {/* Routes d'identité (D1) : l'auth n'ajoute que /login et une
+              session — aucune vue produit ne change. */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login/verify" element={<LoginVerifyPage />} />
           <Route path="/explore" element={<ExplorerPage />} />
           <Route path="/explore/countries" element={<ExploreCountriesPage />} />
           <Route path="/explore/regions/:slug" element={<RegionHubPage />} />
