@@ -96,6 +96,12 @@ services:
       - "${HTTPS_PORT:-8443}:443"
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      # Le défaut doit rester le même que celui du Caddyfile : un hôte
+      # que personne ne porte, pour que le matcher www soit inerte hors
+      # prod. Sans cette ligne, la variable du .env n'entre jamais dans
+      # le conteneur et la redirection www ne peut pas exister (constaté
+      # en recette R3 le 2026-08-21).
+      CANONICAL_HOST: ${CANONICAL_HOST:-invalid.localhost}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

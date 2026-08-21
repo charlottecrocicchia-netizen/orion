@@ -411,6 +411,27 @@ yes`) passait avant notre `50-orion-…`. Le drop-in de durcissement est
 nommé `00-orion-durcissement.conf` pour passer premier. La preuve
 `sshd -T` (config effective, pas fichier) est ce qui l'a attrapé.
 
-## Annexe B — Invariants relevés au dump (à remplir à l'exécution)
+## Annexe B — Invariants relevés au dump (rempli le 2026-08-21)
+
+Dump `pg_dump -Fc` de la pile prod locale : **1,3 Go** (base de
+9,4 Go), transféré par rsync, **sommes MD5 identiques** des deux côtés
+(`1cfda324…`). Restauré dans une base vierge (0 table au départ,
+vérifié), **avant** le premier démarrage de l'API. Relevé au dump et
+relevé après restauration comparés par `diff` : **identiques ligne à
+ligne**.
+
+| Invariant | Valeur (dump = restore) |
+| --- | --- |
+| Projets | 699 798 |
+| Organisations | 110 116 |
+| Participations | 1 102 270 |
+| Lentille aviation | published, v2, 179 règles — core 1 752, habilitant 2 |
+| Lentille space | published, v2, 22 règles — core 10 278, habilitant 4 537 |
+| Entrées de changelog | 3 |
+
+**Snapshot S2 pris** : « S2 — base restaurée et vérifiée, avant mise en
+route HTTPS », effectué le 2026-08-21 à 22:38 (S1, devenu inutile
+après le durcissement réussi, supprimé pour libérer l'emplacement —
+OVH n'en garde qu'un).
 
 ## Annexe C — Procédure de restauration réelle (à remplir à l'exécution)
