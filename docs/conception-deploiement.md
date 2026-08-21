@@ -367,7 +367,49 @@ curl -fsS https://lensorion.com/api/health
 - **Pas de service payant ajouté** : Let's Encrypt, UFW, fail2ban,
   cron — tout est déjà payé ou gratuit.
 
-## Annexe A — Preuves du durcissement (à remplir à l'exécution)
+## Annexe A — Accès et durcissement (rempli à l'exécution)
+
+### Relevé de l'étape 1 (2026-08-21)
+
+- Empreinte SSH de l'hôte, acceptée à la première connexion (TOFU) :
+  `ED25519 SHA256:ExDszzSOswofzQBzEOU25z+vebrGNomrhYNeefkN4Wk`
+- Clé d'accès : `~/.ssh/orion-vps` (ed25519, passphrase au trousseau
+  macOS), posée via `ssh-copy-id` ; entrée par clé vérifiée sans
+  invite. Le mot de passe initial OVH a dû être changé à la première
+  connexion (politique OVH) — le nouveau est dans le gestionnaire de
+  mots de passe de Charlotte, il ne sert plus qu'en secours console.
+- Specs confirmées : 4 vCPU · 7,6 Gio RAM · disque 72 Go (70 libres) ·
+  Ubuntu 26.04 LTS (noyau 7.0.0-28-generic).
+- **Aucun swap configuré** (0 B) — vu au relevé ; un swapfile de 2 Go
+  est ajouté au durcissement comme garde-fou OOM (une base de 9,4 Go
+  sur 8 Go de RAM sans aucun swap, c'est l'OOM-killer comme seul
+  recours).
+- IPv6 : configurée et **sortante vérifiée** (`curl -6` répond
+  `2001:41d0:404:200::8a6a`) → le AAAA de l'étape 3 est confirmé.
+
+### Preuves du durcissement (à remplir à l'exécution)
+
+- **Snapshot S1 pris** : « S1 — avant durcissement SSH », effectué le
+  2026-08-21 à 21:58 (confirmé dans l'espace client OVH).
+
+Exécuté le 2026-08-21, chaque geste avec sa preuve :
+
+| Geste | Preuve relevée |
+| --- | --- |
+| Mises à jour | `full-upgrade` appliqué, noyau de sécurité **7.0.0-30-generic** actif après redémarrage ; 7 paquets restants en déploiement progressif Ubuntu (les MAJ auto les prendront) |
+| Mot de passe SSH désactivé | `sshd -T` → `passwordauthentication no` ; tentative `-o PubkeyAuthentication=no` refusée avec `Permission denied (publickey)` — le serveur n'offre plus que la clé |
+| Root SSH désactivé | `sshd -T` → `permitrootlogin no` (+ `kbdinteractiveauthentication no`) |
+| UFW | `deny (incoming)` par défaut ; seuls 22, 80, 443/tcp en v4 **et** v6 ; la session SSH survit à l'activation |
+| fail2ban | jail `sshd` active (`fail2ban-client status sshd` : 0 banni, filtre branché sur le journal systemd) |
+| MAJ de sécurité auto | `unattended-upgrades` `enabled`/`active` ; `20auto-upgrades` : `Update-Package-Lists "1"`, `Unattended-Upgrade "1"` |
+| Swapfile (ajout validé) | 2 Go actifs (`free -h`), persistant via `/etc/fstab`, `vm.swappiness=10` |
+
+**Piège rencontré et corrigé** : dans sshd, la première valeur lue
+gagne, et les drop-ins de `sshd_config.d/` sont lus en ordre
+alphabétique — `50-cloud-init.conf` (posé par OVH, `PasswordAuthentication
+yes`) passait avant notre `50-orion-…`. Le drop-in de durcissement est
+nommé `00-orion-durcissement.conf` pour passer premier. La preuve
+`sshd -T` (config effective, pas fichier) est ce qui l'a attrapé.
 
 ## Annexe B — Invariants relevés au dump (à remplir à l'exécution)
 
