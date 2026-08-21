@@ -1,4 +1,10 @@
 {$SITE_ADDRESS} {
+	# www → apex. CANONICAL_HOST n'est posé qu'en prod ; son défaut
+	# rend le matcher inerte partout ailleurs (aucun hôte réel ne se
+	# nomme www.invalid.localhost), donc le local sur :80 est inchangé.
+	@www host www.{$CANONICAL_HOST:invalid.localhost}
+	redir @www https://{$CANONICAL_HOST:invalid.localhost}{uri} permanent
+
 	encode zstd gzip
 
 	handle /api/* {
