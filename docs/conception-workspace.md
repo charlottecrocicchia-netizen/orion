@@ -524,6 +524,53 @@ et le déposes en variables d'env — il ne transite jamais par moi) ?
 
 Le code du lot 1 n'attend que le verdict de cette porte.
 
+### Amendement du 2026-08-21 — la porte d'accès par liste d'emails approuvés
+
+Décision fondatrice (2026-08-21, au lendemain de la mise en ligne de
+`lensorion.com`) : **l'accès aux comptes est fermé par une liste
+d'emails approuvés**. Au démarrage, un seul :
+`owner@example.com`.
+
+Le contrat, vérifiable en recette :
+
+- la liste vit dans `ORION_LOGIN_ALLOWLIST` (emails séparés par des
+  virgules, normalisés lower() à la comparaison) — pas de table ni
+  d'écran d'administration tant que la liste se compte sur les doigts
+  d'une main : l'ajout d'un email = éditer le `.env` du serveur et
+  relancer, geste documenté au runbook ;
+- **liste vide = porte fermée pour tous** (défaut sûr) ; le mode dev
+  la renseigne explicitement ;
+- un email HORS liste qui demande un lien reçoit STRICTEMENT la même
+  réponse qu'un email approuvé — même corps, même statut, même temps
+  approché — et rien ne part, aucun token n'est créé (c'est la
+  garantie anti-énumération D1 étendue : l'existence de la liste
+  elle-même n'est pas observable de l'extérieur) ;
+- la levée future de la liste (ouverture publique) est UNE variable
+  vidée + la présente ligne amendée — aucun code à changer.
+
+Condition de validité : tant qu'Orion est pré-clients et que la liste
+est courte. Une liste qui grandit au-delà de la main fera l'objet d'un
+vrai arbitrage (table + gestion), pas d'un bricolage d'env.
+
+Le choix lien magique (D1) est CONFIRMÉ par la fondatrice le
+2026-08-21 (« pour l'instant le lien magique me va ») — l'ajout d'un
+mot de passe reste l'option additive documentée en fin de document.
+
+### Porte ⓪ bis — les faits du 2026-08-21 (mise à jour de l'instruction)
+
+L'état des lieux de la porte ⓪ est périmé sur trois points :
+`lensorion.com` est en production publique (HTTPS, déploiement lot 1
+clos), la fondatrice possède le domaine ET son DNS (zone OVH), et la
+zone porte déjà `MX mx1/mx2/mx3.mail.ovh.net` + `SPF
+v=spf1 include:mx.ovh.com -all` — le service Emails inclus d'OVH est
+actif côté zone. **L'option C (SMTP du registrar, adresse du domaine)
+est donc devenue exécutable et prend la tête de la recommandation** :
+expéditeur `no-reply@lensorion.com` (image produit, SPF déjà posé,
+DKIM à activer côté OVH), l'option A (Gmail) restant le repli
+immédiat. L'épreuve de délivrabilité reste inchangée : un email reçu
+en boîte de réception Gmail ET Outlook, preuves à l'appui, avant la
+première ligne de code.
+
 ### Découpage (ordre de construction)
 
 1. **Migration 0030** : `users`, `login_tokens`, `sessions`,
