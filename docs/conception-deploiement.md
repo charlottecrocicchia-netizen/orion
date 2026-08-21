@@ -434,4 +434,44 @@ route HTTPS », effectué le 2026-08-21 à 22:38 (S1, devenu inutile
 après le durcissement réussi, supprimé pour libérer l'emplacement —
 OVH n'en garde qu'un).
 
-## Annexe C — Procédure de restauration réelle (à remplir à l'exécution)
+## Annexe C — Sauvegardes et restauration (rempli le 2026-08-21)
+
+**Ce qui existe** : backup OVH quotidien du disque (inclus à l'offre) +
+dump logique quotidien par `infra/backup-db.sh` (cron 04h00 UTC,
+`/home/ubuntu/backups/orion-AAAAMMJJ.dump`, rotation 7 jours, journal
+dans `backup.log`). Premier dump exécuté : 1,3 Go.
+
+**Procédure de restauration** (testée sur pièce le 2026-08-21 : dump du
+jour restauré dans une base jetable `orion_restore_test`, comptes
+vérifiés, base supprimée) :
+
+```bash
+ssh orion-vps
+cd ~/orion/infra
+# arrêter l'API le temps de la restauration
+docker compose --env-file ../.env -f compose.prod.yml stop api scheduler
+# recréer la base et restaurer le dump choisi
+docker compose --env-file ../.env -f compose.prod.yml exec -T postgres dropdb -U orion orion
+docker compose --env-file ../.env -f compose.prod.yml exec -T postgres createdb -U orion orion
+docker compose --env-file ../.env -f compose.prod.yml exec -T postgres \
+  pg_restore -U orion -d orion --no-owner < ~/backups/orion-AAAAMMJJ.dump
+# vérifier les invariants (annexe B) puis relancer
+docker compose --env-file ../.env -f compose.prod.yml up -d --wait
+```
+
+Si c'est la machine entière qui est perdue : restauration du backup
+OVH ou du snapshot depuis l'espace client, puis `git pull` et la même
+procédure avec le dump le plus récent.
+
+## Annexe D — Recette finale (relevée le 2026-08-21)
+
+| # | Résultat |
+| --- | --- |
+| R1 | ✅ `https://lensorion.com` en HTTP/2, certificat Let's Encrypt `CN=lensorion.com` valide jusqu'au 19 novembre 2026 |
+| R2 | ✅ `http://` → 308 vers `https://lensorion.com/` |
+| R3 | ✅ `www` → 301 vers l'apex — **après correction d'un vrai défaut attrapé par cette recette** : `CANONICAL_HOST` n'était pas transmis au conteneur Caddy |
+| R5 | ✅ API publique : aviation v2 (179 règles, core 1 752, habilitant 2), space v2 (22 règles, core 10 278, habilitant 4 537), totaux 699 798 / 110 116 / 1 102 270 — identiques à l'annexe B ; lentille inconnue → 400 (M1.2) |
+| R7 | ✅ recherche : « hydrogen » 272 ms à chaud (1,9 s à froid), « cancer » 1,8 s à chaud (7,4 s à froid — falaise divisée par ~3 vs Mac) ; agrégats : pays 144 ms, stats 59 ms |
+| R9 | ✅ prod locale `:8080` toujours saine sur le Mac |
+| R10 | ✅ scan externe : seuls 22, 80, 443 ouverts ; 8080/5432/8000 fermés |
+| R4/R6/R8/R11 | recette visuelle fondatrice (Firefox) : Lens Room, changelog v2 à l'à-propos, FR/EN, temps « acceptables à l'écran » |
