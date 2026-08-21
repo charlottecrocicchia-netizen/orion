@@ -474,4 +474,9 @@ procédure avec le dump le plus récent.
 | R7 | ✅ recherche : « hydrogen » 272 ms à chaud (1,9 s à froid), « cancer » 1,8 s à chaud (7,4 s à froid — falaise divisée par ~3 vs Mac) ; agrégats : pays 144 ms, stats 59 ms |
 | R9 | ✅ prod locale `:8080` toujours saine sur le Mac |
 | R10 | ✅ scan externe : seuls 22, 80, 443 ouverts ; 8080/5432/8000 fermés |
-| R4/R6/R8/R11 | recette visuelle fondatrice (Firefox) : Lens Room, changelog v2 à l'à-propos, FR/EN, temps « acceptables à l'écran » |
+| R4/R6/R8/R11 | ✅ recette visuelle fondatrice validée le 2026-08-21 (Firefox) : Lens Room, changelog v2, FR/EN, temps à l'écran jugés acceptables — « ça marche parfaitement ». Le tuning 8 Go tient ; pas d'upgrade VPS-3 à ce stade |
+
+**Lot 1 clos le 2026-08-21.** Orion est en production publique sur
+`https://lensorion.com`. Ce qui reste volontairement hors lot (§ 5) :
+scheduler d'ingestion serveur, monitoring externe, CI/CD — chacun
+attend son propre chantier.
