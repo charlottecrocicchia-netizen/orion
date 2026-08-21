@@ -264,6 +264,12 @@ consommée puis redirigée). ✓
 
 ## D4 — La frontière anonyme/connecté
 
+> **⚠️ RENVERSÉE le 2026-08-22.** Au lendemain de la mise en ligne, la
+> fondatrice tranche l'inverse : Orion devient une application PRIVÉE
+> derrière une landing publique — voir
+> [conception-acces-prive.md](conception-acces-prive.md), qui fait foi.
+> Le texte ci-dessous est conservé comme trace de la décision d'origine.
+
 **Le produit public ne recule pas.** Tout Orion actuel — corpus,
 lentilles, explorateur, hubs, analyses, dossier de session — reste
 accessible sans compte, à l'identique. Aucune vue existante ne passe

@@ -265,6 +265,27 @@ const resources = {
         footer:
           "Sources: © European Union, CORDIS (CC BY 4.0) · NIH RePORTER and NSF (public domain). A session dossier — keep it in your space to make it durable.",
       },
+      landing: {
+        eyebrow: "Orion · public R&D funding intelligence",
+        heroSub: "of public R&D funding, mapped · {{from}}–{{to}}",
+        heroSubBare: "of public R&D funding, mapped",
+        heroBasis:
+          "Europe and the United States · projects · organisations · programmes · industrial ecosystems",
+        invite: "Access is by invitation.",
+        doorDiscover: "Projects, organisations, programmes, countries — every view is a URL.",
+        doorAnalyse: "Compare actors, sectors and trajectories, on curated perimeters.",
+        doorBuild: "Turn live views into evidence — dossiers that travel.",
+        doorSignIn: "Sign in →",
+        lensesLead: "Curated sector perimeters — every figure has its source, every lens has its version.",
+        globeTitle: "The world of funding",
+        globeLead:
+          "The covered countries, on the same globe the product navigates — the detailed files open once signed in.",
+        sourcesEyebrow: "Method",
+        sourcesTitle: "Built from public sources. Reconstructed for analysis.",
+        sourcesLine: "Every figure has its source. Every lens has its version.",
+        finalTitle: "Enter Orion",
+        footerLine: "Access by invitation",
+      },
       auth: {
         signIn: "Sign in",
         signOut: "Sign out",
@@ -1183,6 +1204,27 @@ const resources = {
         emptyCta: "Ouvrir l'Explorateur",
         footer:
           "Sources : © Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER et NSF (domaine public). Dossier de session — gardez-le dans votre espace pour le rendre durable.",
+      },
+      landing: {
+        eyebrow: "Orion · intelligence des financements publics de R&D",
+        heroSub: "de financements publics de R&D, cartographiés · {{from}}–{{to}}",
+        heroSubBare: "de financements publics de R&D, cartographiés",
+        heroBasis:
+          "Europe et États-Unis · projets · organisations · programmes · écosystèmes industriels",
+        invite: "L'accès est sur invitation.",
+        doorDiscover: "Projets, organisations, programmes, pays — chaque vue est une URL.",
+        doorAnalyse: "Comparer les acteurs, les secteurs et les trajectoires, sur des périmètres curés.",
+        doorBuild: "Faire des vues vivantes des preuves — des dossiers qui s'emportent.",
+        doorSignIn: "Se connecter →",
+        lensesLead: "Des périmètres sectoriels curés — chaque chiffre a sa source, chaque lentille sa version.",
+        globeTitle: "Le monde du financement",
+        globeLead:
+          "Les pays couverts, sur le globe même que le produit navigue — les fiches détaillées s'ouvrent une fois connecté.",
+        sourcesEyebrow: "Méthode",
+        sourcesTitle: "Construit sur sources publiques. Reconstruit pour l'analyse.",
+        sourcesLine: "Chaque chiffre a sa source. Chaque lentille a sa version.",
+        finalTitle: "Entrer dans Orion",
+        footerLine: "Accès sur invitation",
       },
       auth: {
         signIn: "Se connecter",

@@ -4,6 +4,23 @@ async function get<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+export interface Overview {
+  totals: {
+    projects: number;
+    organisations: number;
+    participations: number;
+    funding_eur: number;
+    countries: number;
+  };
+  lenses: { slug: string; rank: number; version: number; core: number; enabling: number }[];
+  /** La série annuelle agrégée — la courbe du hero public, aucune
+   *  maille sous l'année. */
+  funding_by_year: { year: number; amount_eur: number }[];
+  /** Les pays couverts (code, nom, région) — la teinte du globe en
+   *  preview, JAMAIS un montant. */
+  coverage: { code: string; name: string; region: string | null }[];
+}
+
 export interface Stats {
   totals: {
     projects: number;
@@ -283,6 +300,10 @@ export const api = {
   compareOrganisations: (ids: string[]) =>
     get<CompareResponse>(`/api/compare/organisations?ids=${ids.join("~")}`),
   stats: () => get<Stats>("/api/stats"),
+  /** Le seul endpoint public de données (pivot 2026-08-22) : les
+   *  chiffres généraux de la landing — totaux et carte de visite des
+   *  lentilles, rien qui se fouille. */
+  overview: () => get<Overview>("/api/public/overview"),
   news: () => get<NewsItem[]>("/api/news"),
   searchProjects: (params: URLSearchParams) =>
     get<ProjectSearchResponse>(`/api/search/projects?${params}`),

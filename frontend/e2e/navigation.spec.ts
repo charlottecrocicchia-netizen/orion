@@ -48,10 +48,12 @@ test("the placeholder pages say the date and bridge to what exists", async ({ pa
   await page.getByRole("link", { name: /Theme trends/ }).click();
   await expect(page).toHaveURL(/\/explore\?by=theme&split=1/);
 
+  // Pivot 2026-08-22 : connecté, /workspace n'est PLUS un placeholder —
+  // c'est l'espace du lot 1 workspace. Le placeholder daté reste la
+  // réalité de l'anonyme (couvert par accounts.spec : anonyme → login).
   await page.goto("/workspace");
-  await expect(page.getByRole("heading", { name: /Your watch will have a home/ })).toBeVisible();
-  await page.getByRole("link", { name: /The dossier assembles and travels/ }).click();
-  await expect(page).toHaveURL(/\/dossier/);
+  await expect(page.getByRole("heading", { name: /@lensorion\.test/ })).toBeVisible();
+  await expect(page.getByText(/Kept dossiers/)).toBeVisible();
 });
 
 test("programmes list the sources first; a source unfolds and filters", async ({ page }) => {

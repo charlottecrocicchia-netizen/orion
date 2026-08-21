@@ -29,6 +29,12 @@ const LEAD = {
   ],
 };
 
+const ME = {
+  email: "suite@orion.test",
+  display_name: null,
+  workspaces: [{ id: 1, name: "suite@orion.test", role: "owner" }],
+};
+
 const STATS = {
   totals: {
     projects: 119172,
@@ -51,7 +57,9 @@ beforeEach(() => {
     "fetch",
     vi.fn(async (url: string) => {
       const path = String(url);
-      const body = path.includes("/api/explore/aggregate")
+      const body = path.includes("/api/me")
+        ? ME
+        : path.includes("/api/explore/aggregate")
         ? { series: [], meta: {} }
         : path.includes("/api/countries")
           ? []

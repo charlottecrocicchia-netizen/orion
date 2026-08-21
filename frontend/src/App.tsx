@@ -23,6 +23,9 @@ import { DossierPage } from "@/pages/dossier";
 import { ExplorerPage } from "@/pages/explorer";
 import { RegionHubPage } from "@/pages/region-hub";
 import { ProjectDetailPage } from "@/pages/project-detail";
+import { RequireAuth } from "@/components/require-auth";
+import { useMe } from "@/lib/auth";
+import { LandingPage } from "@/pages/landing";
 import { LoginPage } from "@/pages/login";
 import { LoginVerifyPage } from "@/pages/login-verify";
 import { OrganisationsSearchPage, ProjectsSearchPage } from "@/pages/search";
@@ -43,40 +46,56 @@ function ScrollToTop() {
   return null;
 }
 
+/** La racine à deux visages (pivot 2026-08-22) : anonyme → la landing
+ *  publique ; connecté → la home applicative, inchangée. */
+function RootPage() {
+  const { me, loading } = useMe();
+  if (loading) return null;
+  return me ? <HomePage /> : <LandingPage />;
+}
+
 export function AppRoutes() {
   return (
     <>
       <ScrollToTop />
       <Routes>
-        {/* La Lens Room vit HORS du Layout : un moment immersif
-            distinct — la home reste l'entrée fonctionnelle. */}
-        <Route path="/lenses" element={<LensRoomPage />} />
+        {/* La Lens Room vit HORS du Layout (moment immersif) mais
+            DERRIÈRE la frontière : option B du pivot — tout ce qui
+            montre des données exige une session, la landing présente
+            les lentilles elle-même. */}
+        <Route element={<RequireAuth />}>
+          <Route path="/lenses" element={<LensRoomPage />} />
+        </Route>
         <Route element={<Layout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/projects" element={<ProjectsSearchPage />} />
-          <Route path="/projects/:id" element={<ProjectDetailPage />} />
-          <Route path="/organisations" element={<OrganisationsSearchPage />} />
-          <Route path="/organisations/:id" element={<OrganisationHubPage />} />
-          <Route path="/groups/:id" element={<GroupHubPage />} />
-          <Route path="/compare" element={<ComparePage />} />
-          <Route path="/dossier" element={<DossierPage />} />
-          <Route path="/analyses" element={<AnalysesPage />} />
-          <Route path="/calls" element={<CallsPage />} />
-          <Route path="/workspace" element={<WorkspacePage />} />
-          <Route path="/workspace/dossiers/:id" element={<SavedDossierPage />} />
-          {/* Routes d'identité (D1) : l'auth n'ajoute que /login et une
-              session — aucune vue produit ne change. */}
+          {/* L'entrée du produit — les SEULES routes publiques. */}
+          <Route path="/" element={<RootPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/login/verify" element={<LoginVerifyPage />} />
-          <Route path="/explore" element={<ExplorerPage />} />
-          <Route path="/explore/countries" element={<ExploreCountriesPage />} />
-          <Route path="/explore/regions/:slug" element={<RegionHubPage />} />
-          <Route path="/explore/countries/:code" element={<CountryHubPage />} />
-          <Route path="/explore/programmes" element={<ExploreProgrammesPage />} />
-          <Route path="/explore/themes" element={<ExploreThemesPage />} />
-          <Route path="/explore/programmes/:id" element={<ProgrammeHubPage />} />
-          <Route path="/about-data" element={<AboutDataPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+          {/* LA frontière : toute vue applicative naît derrière elle,
+              le motif inconnu (*) compris — une URL non prévue ne dit
+              rien à un anonyme. */}
+          <Route element={<RequireAuth />}>
+            <Route path="/projects" element={<ProjectsSearchPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/organisations" element={<OrganisationsSearchPage />} />
+            <Route path="/organisations/:id" element={<OrganisationHubPage />} />
+            <Route path="/groups/:id" element={<GroupHubPage />} />
+            <Route path="/compare" element={<ComparePage />} />
+            <Route path="/dossier" element={<DossierPage />} />
+            <Route path="/analyses" element={<AnalysesPage />} />
+            <Route path="/calls" element={<CallsPage />} />
+            <Route path="/workspace" element={<WorkspacePage />} />
+            <Route path="/workspace/dossiers/:id" element={<SavedDossierPage />} />
+            <Route path="/explore" element={<ExplorerPage />} />
+            <Route path="/explore/countries" element={<ExploreCountriesPage />} />
+            <Route path="/explore/regions/:slug" element={<RegionHubPage />} />
+            <Route path="/explore/countries/:code" element={<CountryHubPage />} />
+            <Route path="/explore/programmes" element={<ExploreProgrammesPage />} />
+            <Route path="/explore/themes" element={<ExploreThemesPage />} />
+            <Route path="/explore/programmes/:id" element={<ProgrammeHubPage />} />
+            <Route path="/about-data" element={<AboutDataPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
         </Route>
       </Routes>
     </>

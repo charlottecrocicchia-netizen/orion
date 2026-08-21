@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
-import { auth, useInvalidateMe, useMe } from "@/lib/auth";
+import { auth, useClearMe, useMe } from "@/lib/auth";
 
 /** L'entrée compte du header (D4) : UNE entrée sobre à droite — jamais
  *  de bannière, jamais de modal. Anonyme : « Se connecter ». Connecté :
@@ -10,7 +10,7 @@ import { auth, useInvalidateMe, useMe } from "@/lib/auth";
 export function AccountMenu() {
   const { t } = useTranslation();
   const { me, loading } = useMe();
-  const invalidateMe = useInvalidateMe();
+  const clearMe = useClearMe();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -81,7 +81,7 @@ export function AccountMenu() {
             onClick={async () => {
               setOpen(false);
               await auth.logout();
-              invalidateMe();
+              clearMe();
               navigate("/");
             }}
             className="block w-full px-3.5 py-1.5 text-left text-[13.5px] hover:bg-surface"

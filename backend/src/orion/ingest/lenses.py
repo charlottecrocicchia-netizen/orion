@@ -119,7 +119,15 @@ PROOF_OF_RULE = {
 # finisse toujours avec la preuve la plus forte qui le justifie.
 PROOFS = ("textual", "taxonomic", "structural", "review")
 RULE_TYPES = (
-    "call", "topic", "programme", "theme", "text", "veto", "candidate", "confirm", "project",
+    "call",
+    "topic",
+    "programme",
+    "theme",
+    "text",
+    "veto",
+    "candidate",
+    "confirm",
+    "project",
 )
 TAGS = ("core", "enabling")
 # I2 : draft se charge sans être exposée, published est le produit,

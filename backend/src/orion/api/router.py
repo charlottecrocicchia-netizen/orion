@@ -8,6 +8,7 @@ from orion.api import (
     news,
     organisations,
     projects,
+    public,
     search,
     sources,
 )
@@ -22,3 +23,4 @@ api_router.include_router(explore.router, tags=["explore"])
 api_router.include_router(news.router, tags=["news"])
 api_router.include_router(auth.router, tags=["accounts"])
 api_router.include_router(dossiers.router, tags=["accounts"])
+api_router.include_router(public.router, tags=["public"])

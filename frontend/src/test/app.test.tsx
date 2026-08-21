@@ -107,6 +107,12 @@ const COUNTRIES = [
   { code: "FR", name: "France", eu_member: true, projects_count: 55973, funding_eur: 32.4e9 },
 ];
 
+const ME = {
+  email: "suite@orion.test",
+  display_name: null,
+  workspaces: [{ id: 1, name: "suite@orion.test", role: "owner" }],
+};
+
 afterEach(cleanup);
 
 beforeEach(() => {
@@ -118,7 +124,11 @@ beforeEach(() => {
     "fetch",
     vi.fn(async (url: string) => {
       const path = String(url);
-      const body = path.includes("/api/explore/aggregate")
+      // Pivot 2026-08-22 : les vues vivent derrière la frontière — le
+      // harnais répond en utilisateur CONNECTÉ.
+      const body = path.includes("/api/me")
+        ? ME
+        : path.includes("/api/explore/aggregate")
         ? EXPLORE
         : path.includes("/api/countries")
           ? COUNTRIES
@@ -137,9 +147,11 @@ test("home leads with the hero, acts follow below", async () => {
 
   // Header nav: the four intents (the dense footer repeats the product
   // links; page links live inside the disclosure panels).
+  // Le header applicatif n'apparaît qu'une fois la session résolue
+  // (pivot 2026-08-22) — l'assertion attend, elle ne photographie pas.
   const banner = within(screen.getByRole("banner"));
   for (const intent of ["Discover", "Analyse", "Build", "Workspace"]) {
-    expect(banner.getByRole("button", { name: intent })).toBeInTheDocument();
+    expect(await banner.findByRole("button", { name: intent })).toBeInTheDocument();
   }
   // Act 1 — the hero is SPATIAL (lot 2, 2026-08-17): the big figure is
   // the lens total and its phrase says the perimeter; the general corpus

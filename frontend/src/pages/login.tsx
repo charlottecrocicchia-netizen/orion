@@ -25,7 +25,7 @@ export function LoginPage() {
     if (busy || !email.trim()) return;
     setBusy(true);
     try {
-      window.sessionStorage.setItem("orion.login.from", from);
+      window.localStorage.setItem("orion.login.from", from);
       const res = await auth.requestLink(email.trim());
       setDevLink(res.dev_link ?? null);
       setSent(true);

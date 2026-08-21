@@ -159,14 +159,16 @@ def test_rate_limit_paire_ip_email(https_client):
     """La 6ᵉ demande dans l'heure (paire IP×email) ne produit rien — et
     répond exactement pareil."""
     produced = [request_link(https_client, ALLOWED) is not None for _ in range(8)]
-    # Cooldown 60 s : au-delà de la première, rien ne part de toute
-    # façon — on vérifie le compteur en base, pas le lien.
-    assert produced[0] is True
+    # En mode dev le cooldown ne joue pas (aucun email à protéger) :
+    # c'est la limite par paire IP×email (5/h) qui retient — la 6ᵉ
+    # demande et les suivantes ne produisent rien et répondent pareil.
+    assert produced[:5] == [True] * 5
+    assert produced[5:] == [False] * 3
     with engine.connect() as conn:
         tokens = conn.execute(text("SELECT count(*) FROM login_tokens")).scalar()
         requests = conn.execute(text("SELECT count(*) FROM login_requests")).scalar()
     assert requests == 8  # tout s'inscrit au journal
-    assert tokens == 1  # le cooldown a retenu le reste
+    assert tokens == 5  # la paire IP×email a retenu le reste
 
 
 def test_rotation_des_sessions(https_client):
@@ -186,9 +188,10 @@ def test_revocation_au_logout(https_client):
     cookie = https_client.cookies.get("__Host-orion_session")
     assert https_client.get("/api/me").status_code == 200
     https_client.post("/api/auth/logout")
-    # Le cookie REJOUÉ à la main est mort (révocation en base, D3).
-    https_client.cookies.set("__Host-orion_session", cookie, domain="testserver")
-    assert https_client.get("/api/me").status_code == 401
+    # Le cookie REJOUÉ à la main est mort (révocation en base, D3) — en
+    # en-tête direct : le jar httpx n'émet pas un cookie injecté à la main.
+    res = https_client.get("/api/me", headers={"Cookie": f"__Host-orion_session={cookie}"})
+    assert res.status_code == 401
 
 
 def test_plafond_absolu_90_jours(https_client):

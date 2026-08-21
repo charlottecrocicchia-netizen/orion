@@ -64,6 +64,11 @@ services:
       ORION_PUBLIC_ORIGIN: ${ORION_PUBLIC_ORIGIN:-http://localhost:8080}
       ORION_AUTH_DEV: ${ORION_AUTH_DEV:-0}
       ORION_LOGIN_ALLOWLIST: ${ORION_LOGIN_ALLOWLIST:-}
+      # Seuils relevables hors prod (harnais e2e : une seule IP, des
+      # itérations rapprochées) — les défauts restent le contrat de prod.
+      ORION_LOGIN_LIMIT_PER_IP_HOUR: ${ORION_LOGIN_LIMIT_PER_IP_HOUR:-20}
+      ORION_LOGIN_LIMIT_PER_PAIR_HOUR: ${ORION_LOGIN_LIMIT_PER_PAIR_HOUR:-5}
+      ORION_LOGIN_LIMIT_PER_EMAIL_HOUR: ${ORION_LOGIN_LIMIT_PER_EMAIL_HOUR:-10}
       ORION_SMTP_HOST: ${ORION_SMTP_HOST:-}
       ORION_SMTP_PORT: ${ORION_SMTP_PORT:-587}
       ORION_SMTP_USER: ${ORION_SMTP_USER:-}

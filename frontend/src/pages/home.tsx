@@ -95,7 +95,7 @@ function useIntentNavigate() {
 
 /* ——— Act 2: one editorial entry — a full-width row, not a card ——— */
 
-function EditorialEntry({
+export function EditorialEntry({
   to,
   title,
   desc,

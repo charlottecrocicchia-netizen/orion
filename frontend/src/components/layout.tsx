@@ -10,6 +10,7 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/lib/api";
+import { useMe } from "@/lib/auth";
 import { BRAND } from "@/lib/brand";
 import { useDossier } from "@/lib/dossier";
 import { WORLD_GLYPHS } from "@/components/lens-glyphs";
@@ -98,7 +99,26 @@ function DossierBadge() {
 function Footer() {
   const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
-  const { data: stats } = useQuery({ queryKey: ["stats"], queryFn: api.stats });
+  const { me } = useMe();
+  const { data: stats } = useQuery({
+    queryKey: ["stats"],
+    queryFn: api.stats,
+    // Pivot 2026-08-22 : les stats sont privées — pas d'appel anonyme.
+    enabled: me != null,
+  });
+
+  // Anonyme : le pied de page ne promet aucune porte — la marque, le
+  // millésime, rien qui ressemble à un produit accessible.
+  if (!me) {
+    return (
+      <footer className="mt-24 border-t bg-surface">
+        <div className="mx-auto flex h-14 w-full max-w-[1240px] items-center justify-between px-6 text-xs text-muted-foreground">
+          <span>© 2026 {BRAND}</span>
+          <span className="font-mono text-[11px]">{t("landing.footerLine")}</span>
+        </div>
+      </footer>
+    );
+  }
   const columnTitle = "text-label uppercase text-muted-foreground";
   const link = "block py-1 text-[13px] transition-colors hover:text-accent";
 
@@ -177,6 +197,9 @@ export function Layout() {
     }
   }, [carried]);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Pivot 2026-08-22 : le header ne promet l'application qu'à une
+  // session — un anonyme voit la marque, les réglages, « Se connecter ».
+  const { me } = useMe();
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -198,23 +221,27 @@ export function Layout() {
               d'Aviation) : sur une vue cadrée, la marque dit la
               lentille — ORION / ESPACE — cohérente avec la Lens Room.
               Le chip, lui, continue de dire le périmètre précis. */}
-          <ComposedIdentity />
-          <div className="ml-2">
-            <IntentNav />
-          </div>
+          {me ? <ComposedIdentity /> : null}
+          {me ? (
+            <div className="ml-2">
+              <IntentNav />
+            </div>
+          ) : null}
           <div className="ml-auto flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setPaletteOpen(true)}
-              className="hidden items-center gap-6 rounded-full bg-surface py-1.5 pl-4 pr-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground md:flex"
-            >
-              <span>⌕ {t("searchShort")}</span>
-              <kbd className="rounded-md border bg-background px-1.5 py-0.5 font-mono text-[10px]">
-                ⌘K
-              </kbd>
-            </button>
-            <DossierBadge />
-            <ScopeBadge />
+            {me ? (
+              <button
+                type="button"
+                onClick={() => setPaletteOpen(true)}
+                className="hidden items-center gap-6 rounded-full bg-surface py-1.5 pl-4 pr-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground md:flex"
+              >
+                <span>⌕ {t("searchShort")}</span>
+                <kbd className="rounded-md border bg-background px-1.5 py-0.5 font-mono text-[10px]">
+                  ⌘K
+                </kbd>
+              </button>
+            ) : null}
+            {me ? <DossierBadge /> : null}
+            {me ? <ScopeBadge /> : null}
             <LanguageToggle />
             <ThemeToggle />
             {/* D4 : UNE entrée sobre — le compte ne harcèle jamais. */}
@@ -226,7 +253,7 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
-      <CommandK open={paletteOpen} onOpenChange={setPaletteOpen} />
+      {me ? <CommandK open={paletteOpen} onOpenChange={setPaletteOpen} /> : null}
     </div>
   );
 }

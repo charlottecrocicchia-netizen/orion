@@ -42,8 +42,8 @@ export function LoginVerifyPage() {
     try {
       await auth.verify(token);
       invalidateMe();
-      const from = window.sessionStorage.getItem("orion.login.from") ?? "/";
-      window.sessionStorage.removeItem("orion.login.from");
+      const from = window.localStorage.getItem("orion.login.from") ?? "/";
+      window.localStorage.removeItem("orion.login.from");
       navigate(from, { replace: true });
     } catch {
       setState("dead");

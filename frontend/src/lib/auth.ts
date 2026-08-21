@@ -75,7 +75,7 @@ export const auth = {
 /** L'identité de la session — null si anonyme. Une seule requête,
  *  partagée par le header, la page dossier et l'espace. */
 export function useMe() {
-  const { data, isLoading } = useQuery({
+  const { data, isPending, isFetching } = useQuery({
     queryKey: ["me"],
     queryFn: async (): Promise<Me | null> => {
       // Toute défaillance (401, réseau, harnais de test sans /api/me)
@@ -94,12 +94,28 @@ export function useMe() {
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
-  return { me: data ?? null, loading: isLoading };
+  // Un refetch APRÈS invalidation (connexion, déconnexion) compte comme
+  // « en cours » tant qu'aucune identité n'est là : sinon le garde de
+  // route tranche sur la donnée périmée et vole la redirection du deep
+  // link (course constatée en e2e, 2026-08-22).
+  return { me: data ?? null, loading: isPending || (isFetching && data == null) };
 }
 
 export function useInvalidateMe() {
   const client = useQueryClient();
   return () => client.invalidateQueries({ queryKey: ["me"] });
+}
+
+/** La déconnexion pose l'identité à null IMMÉDIATEMENT : attendre le
+ *  refetch laisse un rendu transitoire « encore connecté » dont les
+ *  redirections (home nue → salle → login) volent l'atterrissage sur
+ *  la landing (constaté en e2e, 2026-08-22). */
+export function useClearMe() {
+  const client = useQueryClient();
+  return () => {
+    client.setQueryData(["me"], null);
+    client.invalidateQueries({ queryKey: ["me"] });
+  };
 }
 
 /** Le workspace personnel du lot 1 : le premier (et seul) de la liste. */

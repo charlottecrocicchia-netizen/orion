@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 
-import { ConstellationGlyph, WORLD_GLYPHS } from "@/components/lens-glyphs";
+import { WORLD_GLYPHS } from "@/components/lens-glyphs";
+import { LensGlass, ROOM_TOKENS, RoomBackdrop } from "@/components/lens-shelf";
 import { Logo } from "@/components/logo";
 import { formatCompactEur, formatInt } from "@/lib/format";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +12,6 @@ import { api } from "@/lib/api";
 import { lensWords, usePublishedLenses } from "@/lib/lens";
 import { ENTRY_ALL, writeEntry } from "@/lib/lens-memory";
 import { playWorldReveal } from "@/lib/world-reveal";
-import { worldTintVars } from "@/lib/world-tints";
 
 /** La Lens Room — scène optique (feu vert du 2026-08-20, prototype
  *  validé). La PORTE d'Orion : des verres wireframe flottent, on en
@@ -24,29 +24,7 @@ import { worldTintVars } from "@/lib/world-tints";
  *  sombre dans les deux thèmes, pseudo-3D CSS/SVG, zéro dépendance —
  *  le budget d'une porte. `prefers-reduced-motion` fige tout. */
 
-const ROOM_TOKENS = {
-  "--background": "#0b0d12",
-  "--foreground": "#f5f5f7",
-  "--accent": "#8b9aff",
-  "--accent-soft": "#1b2040",
-  "--muted-foreground": "#9d9da6",
-  "--border": "rgba(255,255,255,0.14)",
-  "--border-soft": "rgba(255,255,255,0.08)",
-  "--surface": "#11141b",
-} as React.CSSProperties;
-
-/** Trois profondeurs (pseudo-3D) : échelle au repos + amplitude de
- *  parallaxe. Le monde du milieu est le plus proche de l'œil. */
-const DEPTH: Record<string, number> = { space: 0.4, aviation: 0.9, all: 0.25 };
-// Le DÉSACCORD (recette du 2026-08-20, troisième retour) : la phase de
-// dérive de chaque verre est fixée à la main, écartée d'environ un
-// demi-tour d'un verre à l'autre — un délai proportionnel au depth
-// donnait des verres qui respiraient presque ensemble (corrélation
-// mesurée : 0,77). L'œil doit voir trois flottements en désaccord.
-const PHASE: Record<string, number> = { space: 0, aviation: 0.45, all: 0.8 };
-const driftTime = (depth: number) => 5.5 + depth * 2.2;
-const floatDelay = (slug: string, depth: number) =>
-  -(PHASE[slug] ?? 0.5) * driftTime(depth);
+// Profondeurs, phases et dérives : partagées avec la landing (lens-shelf).
 
 export function LensRoomPage() {
   const { t, i18n } = useTranslation();
@@ -129,27 +107,7 @@ export function LensRoomPage() {
         ref={stageRef}
         className="relative mx-auto flex w-full max-w-[1240px] flex-1 flex-col justify-center px-6 pb-16"
       >
-        {/* Le monde d'Orion, flou, derrière les verres. */}
-        <svg
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-50 blur-[1.5px]"
-          data-depth="0.12"
-          style={{ transform: "translate3d(var(--par-x,0),var(--par-y,0),0)" }}
-          viewBox="0 0 1200 700"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <g fill="currentColor">
-            <circle cx="140" cy="120" r="1.6" /><circle cx="320" cy="520" r="1.3" />
-            <circle cx="540" cy="90" r="1.2" /><circle cx="820" cy="600" r="1.6" />
-            <circle cx="1020" cy="180" r="1.4" /><circle cx="1130" cy="420" r="1.2" />
-            <circle cx="240" cy="330" r="1.1" /><circle cx="700" cy="260" r="1.1" />
-            <circle cx="920" cy="380" r="1.3" />
-          </g>
-          <g stroke="var(--accent)" fill="none">
-            <path d="M140 120 320 260 540 210 700 260 920 380 1130 420" strokeOpacity=".16" />
-            <path d="M240 330 320 520 820 600" strokeOpacity=".1" />
-          </g>
-        </svg>
+        <RoomBackdrop parallax />
 
         <div className="text-center">
           <h1 className="display-tight text-[clamp(28px,4.6vw,54px)] font-medium">
@@ -162,74 +120,41 @@ export function LensRoomPage() {
         <div className="mt-12 flex flex-col items-center justify-center gap-8 md:flex-row md:items-stretch md:gap-4">
           {room.map((lens) => {
             const words = lensWords(lens.slug, t);
-            const Glyph = WORLD_GLYPHS[lens.slug];
-            const depth = DEPTH[lens.slug] ?? 0.5;
             return (
-              <button
+              <LensGlass
                 key={lens.slug}
-                type="button"
-                aria-label={t("lensRoom.enterLens", { lens: words.name })}
+                slug={lens.slug}
+                name={words.name}
+                ariaLabel={t("lensRoom.enterLens", { lens: words.name })}
                 onClick={(event) => enter(lens.slug, event)}
-                className="lens-hit group"
-                style={{
-                  ...worldTintVars(lens.slug),
-                  "--rest-scale": String(0.88 + depth * 0.24),
-                  "--drift-delay": `${(1 - depth) * 0.22}s`,
-                  "--drift-time": `${driftTime(depth)}s`,
-                  "--float-delay": `${floatDelay(lens.slug, depth)}s`,
-                  "--float-x": `${8 + depth * 8}px`,
-                  "--float-y": `${11 + depth * 6}px`,
-                } as React.CSSProperties}
-              >
-                <span className="lens-glass">
-                  <span aria-hidden="true" className="lens-glass-glyph">
-                    <Glyph />
-                  </span>
-                  <span className="display-tight mt-4 text-[19px] font-medium">{words.name}</span>
-                  <span className="mt-1.5 text-[13px] text-muted-foreground tabular-nums">
+                figures={
+                  <>
                     {t("lensRoom.projects", {
                       count: lens.core + lens.enabling,
                       formatted: formatInt(lens.core + lens.enabling, i18n.language),
                     })}
                     <span className="mx-2 text-muted-foreground/50">·</span>
                     {formatCompactEur(lens.funding_eur, i18n.language)}
-                  </span>
-                </span>
-              </button>
+                  </>
+                }
+              />
             );
           })}
 
           {/* Tout le corpus — le troisième monde, avec SON objet. */}
-          <button
-            type="button"
-            aria-label={t("lensRoom.enterAll")}
+          <LensGlass
+            slug="all"
+            name={t("lensRoom.allName")}
+            ariaLabel={t("lensRoom.enterAll")}
             onClick={(event) => enter(ENTRY_ALL, event)}
-            className="lens-hit group"
-            style={{
-              "--rest-scale": String(0.88 + DEPTH.all * 0.24),
-              "--drift-delay": `${(1 - DEPTH.all) * 0.22}s`,
-              "--drift-time": `${driftTime(DEPTH.all)}s`,
-              "--float-delay": `${floatDelay("all", DEPTH.all)}s`,
-              "--float-x": `${8 + DEPTH.all * 8}px`,
-              "--float-y": `${11 + DEPTH.all * 6}px`,
-            } as React.CSSProperties}
-          >
-            <span className="lens-glass">
-              <span aria-hidden="true" className="lens-glass-glyph">
-                <ConstellationGlyph />
-              </span>
-              <span className="display-tight mt-4 text-[19px] font-medium">
-                {t("lensRoom.allName")}
-              </span>
-              <span className="mt-1.5 text-[13px] text-muted-foreground tabular-nums">
-                {stats
-                  ? t("lensRoom.allFigures", {
-                      formatted: formatInt(stats.totals.projects, i18n.language),
-                    })
-                  : " "}
-              </span>
-            </span>
-          </button>
+            figures={
+              stats
+                ? t("lensRoom.allFigures", {
+                    formatted: formatInt(stats.totals.projects, i18n.language),
+                  })
+                : " "
+            }
+          />
         </div>
       </main>
     </div>

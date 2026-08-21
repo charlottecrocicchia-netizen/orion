@@ -92,6 +92,7 @@ export function WorldGlobe({
   selected = null,
   zoom = 1,
   speed = 4.2,
+  preview = false,
 }: {
   countries: CountryIndexEntry[];
   onOpenCountry: (code: string) => void;
@@ -107,6 +108,10 @@ export function WorldGlobe({
   zoom?: number;
   /** Rotation pace, degrees per second — "vive" pinned (recette 2026-08-02). */
   speed?: number;
+  /** Landing publique (pivot 2026-08-22) : la COUVERTURE seule — teinte
+   *  régionale uniforme, aucun montant nulle part (les entrées reçues
+   *  n'en portent pas) ; les interactions restent au parent (→ login). */
+  preview?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const [geo, setGeo] = useState<GeoData | null>(null);
@@ -423,9 +428,13 @@ export function WorldGlobe({
                 isSelected
                   ? 0.92
                   : entry
-                    ? hover === country.code
-                      ? Math.min(amountStep(entry.funding_eur) + 0.24, 0.95)
-                      : amountStep(entry.funding_eur)
+                    ? preview
+                      ? hover === country.code
+                        ? 0.78
+                        : 0.55
+                      : hover === country.code
+                        ? Math.min(amountStep(entry.funding_eur) + 0.24, 0.95)
+                        : amountStep(entry.funding_eur)
                     : 0.9
               }
               stroke={
@@ -441,7 +450,9 @@ export function WorldGlobe({
               aria-pressed={interactive && mode === "select" ? isSelected : undefined}
               aria-label={
                 entry
-                  ? `${entry.name} — ${formatCompactEur(entry.funding_eur, i18n.language)}`
+                  ? preview
+                    ? entry.name
+                    : `${entry.name} — ${formatCompactEur(entry.funding_eur, i18n.language)}`
                   : undefined
               }
               tabIndex={interactive ? 0 : -1}
@@ -622,7 +633,9 @@ export function WorldGlobe({
           className="pointer-events-none absolute left-[6%] top-[5%] rounded-xl bg-foreground px-3.5 py-2 text-[12.5px] leading-relaxed text-background shadow-key"
         >
           <span className="font-semibold">{focusEntry.name}</span>
-          <span className="tnum"> · {formatCompactEur(focusEntry.funding_eur, i18n.language)}</span>
+          {!preview ? (
+            <span className="tnum"> · {formatCompactEur(focusEntry.funding_eur, i18n.language)}</span>
+          ) : null}
           {/* La classe au point de contact : c'est ICI que « l'Asie ne
               finance rien » meurt — le pays survolé dit POURQUOI son
               chiffre est petit, au lieu de laisser conclure. */}

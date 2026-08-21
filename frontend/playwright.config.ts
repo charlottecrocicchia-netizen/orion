@@ -4,6 +4,10 @@ import { defineConfig, devices } from "@playwright/test";
 // data). Locally: `make up` then `pnpm e2e`. CI overrides E2E_BASE_URL.
 export default defineConfig({
   testDir: "./e2e",
+  // Pivot 2026-08-22 : Orion est privé — la suite entière navigue
+  // CONNECTÉE via la session fabriquée par auth.setup ; les specs qui
+  // testent la frontière elle-même repartent anonymes (test.use).
+  globalSetup: "./e2e/auth.setup.ts",
   timeout: 30_000,
   // One worker on purpose: the journeys share one single-process stack whose
   // aggregate caches warm on first hit — parallel browsers just contend.
@@ -11,6 +15,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["github"]] : [["list"]],
   use: {
+    storageState: "e2e/.auth/session.json",
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:8080",
     viewport: { width: 1440, height: 900 },
     locale: "en-GB",

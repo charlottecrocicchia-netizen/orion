@@ -35,11 +35,9 @@ SLIDE_WRITE_THROTTLE = timedelta(hours=1)
 # Verrou 5 — le rate limit ne verrouille pas une victime : limite
 # forte par IP, serrée par paire IP×email, PLUS GÉNÉREUSE par email
 # seul (5 saisies d'un inconnu ne privent pas la vraie personne), et
-# un cooldown court entre deux envois.
-LIMIT_PER_IP_HOUR = 20
-LIMIT_PER_PAIR_HOUR = 5
-LIMIT_PER_EMAIL_HOUR = 10
-COOLDOWN_PER_EMAIL = timedelta(seconds=60)
+# un cooldown court entre deux envois. Les SEUILS vivent dans la
+# configuration (défauts = contrat de prod) — la pile locale relève la
+# limite IP pour le harnais e2e, rien d'autre.
 
 
 def _now() -> datetime:
@@ -82,15 +80,26 @@ def request_login(db: Session, email: str, ip: str) -> LoginOutcome:
             .where(LoginRequest.requested_at >= window, *conds)
         )
 
-    if count(LoginRequest.ip == ip) > LIMIT_PER_IP_HOUR:
+    if count(LoginRequest.ip == ip) > settings.login_limit_per_ip_hour:
         return LoginOutcome(nonce=nonce_clear)
-    if count(LoginRequest.ip == ip, LoginRequest.email == email) > LIMIT_PER_PAIR_HOUR:
+    if (
+        count(LoginRequest.ip == ip, LoginRequest.email == email)
+        > settings.login_limit_per_pair_hour
+    ):
         return LoginOutcome(nonce=nonce_clear)
-    if count(LoginRequest.email == email) > LIMIT_PER_EMAIL_HOUR:
+    if count(LoginRequest.email == email) > settings.login_limit_per_email_hour:
         return LoginOutcome(nonce=nonce_clear)
-    last_sent = db.scalar(select(func.max(LoginToken.created_at)).where(LoginToken.email == email))
-    if last_sent is not None and now - last_sent < COOLDOWN_PER_EMAIL:
-        return LoginOutcome(nonce=nonce_clear)
+    # Le cooldown protège la BOÎTE MAIL du destinataire ; en mode dev
+    # aucun email ne part — il n'a pas d'objet et gênerait le harnais
+    # (les autres limites, elles, restent actives partout).
+    if not settings.auth_dev:
+        last_sent = db.scalar(
+            select(func.max(LoginToken.created_at)).where(LoginToken.email == email)
+        )
+        if last_sent is not None and now - last_sent < timedelta(
+            seconds=settings.login_cooldown_seconds
+        ):
+            return LoginOutcome(nonce=nonce_clear)
 
     # La porte (amendement 2026-08-21) : hors liste, rien ne part et
     # aucun token n'est créé — la liste elle-même n'est pas observable.

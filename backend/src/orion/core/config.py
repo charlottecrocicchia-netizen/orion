@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     # séparés par des virgules. VIDE = porte fermée pour tous (défaut
     # sûr) ; un email hors liste reçoit la même réponse et rien ne part.
     login_allowlist: str = ""
+    # Verrou 5 — seuils du rate limit de la demande de lien. Les
+    # DÉFAUTS sont le contrat de prod ; seule la pile locale relève la
+    # limite IP (le harnais e2e vient d'une seule IP et l'épuiserait).
+    login_limit_per_ip_hour: int = 20
+    login_limit_per_pair_hour: int = 5
+    login_limit_per_email_hour: int = 10
+    login_cooldown_seconds: int = 60
     # L'envoi SMTP (porte email franchie le 2026-08-21 : Brevo).
     smtp_host: str = ""
     smtp_port: int = 587

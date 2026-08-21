@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { PhasePlaceholder } from "@/components/phase-placeholder";
-import { auth, personalWorkspace, useInvalidateMe, useMe } from "@/lib/auth";
+import { auth, personalWorkspace, useClearMe, useMe } from "@/lib/auth";
 
 /** /workspace — connecté : l'espace minimal du lot 1 (nom, dossiers
  *  gardés, suppression de compte). Anonyme : la porte P6 datée reste,
@@ -48,7 +48,7 @@ export function WorkspacePage() {
 function ConnectedSpace() {
   const { t, i18n } = useTranslation();
   const { me } = useMe();
-  const invalidateMe = useInvalidateMe();
+  const clearMe = useClearMe();
   const navigate = useNavigate();
   const workspace = personalWorkspace(me);
   const [confirming, setConfirming] = useState(false);
@@ -125,7 +125,7 @@ function ConnectedSpace() {
             type="button"
             onClick={async () => {
               await auth.logout();
-              invalidateMe();
+              clearMe();
               navigate("/");
             }}
             className="rounded-full border border-border px-4 py-1.5 text-[13px] hover:border-foreground/40"
@@ -141,7 +141,7 @@ function ConnectedSpace() {
                 onClick={async () => {
                   setBusy(true);
                   await auth.deleteAccount();
-                  invalidateMe();
+                  clearMe();
                   navigate("/");
                 }}
                 className="rounded-full border border-destructive px-4 py-1.5 text-[13px] text-destructive hover:bg-destructive/5 disabled:opacity-50"
