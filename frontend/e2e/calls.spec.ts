@@ -88,6 +88,28 @@ test("E2 — les acteurs historiques : niveau nommé, preuves cliquables", async
   await expect(page).toHaveURL(/\/organisations\/\d+/);
 });
 
+test("E3 — la boucle se referme : de l'appel à l'acteur, de l'acteur à l'opportunité", async ({
+  page,
+}) => {
+  // L'acteur historique d'OPEN-01 retrouve, sur SA fiche, ce même appel
+  // en « opportunité détectée » (pont exact) — composantes décomposées,
+  // jamais un score.
+  await page.goto("/calls?q=OPEN-01");
+  await page.getByText("Cryogenic test rigs for the seed corpus").click();
+  const actors = page.getByRole("region", { name: "Historical actors" });
+  await expect(actors).toBeVisible({ timeout: 15_000 });
+  await actors.getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/organisations\/\d+/);
+
+  const opps = page.getByRole("region", { name: "Detected opportunities" });
+  await expect(opps).toBeVisible({ timeout: 15_000 });
+  await expect(opps.getByText("TEST-CALL-2026-OPEN-01")).toBeVisible();
+  await expect(opps.getByText("Already funded under this call code")).toBeVisible();
+  await expect(opps.getByText(/historical project/)).toBeVisible();
+  // Le wording reste historique : la promesse d'honnêteté est à l'écran.
+  await expect(opps.getByText(/never a guarantee/)).toBeVisible();
+});
+
 test("E2 — sans historique comparable : l'état vide honnête, avec sa raison", async ({ page }) => {
   await page.goto("/calls?q=TEST-UPCOMING");
   await page.getByText("Upcoming orbital logistics topic").click();

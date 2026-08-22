@@ -326,7 +326,39 @@ export const api = {
   callProgrammes: () => get<CallProgrammesResponse>("/api/calls/programmes"),
   callHistoricalActors: (id: string) =>
     get<CallHistoricalActors>(`/api/calls/${id}/historical-actors`),
+  organisationCallOpportunities: (id: string) =>
+    get<CallOpportunities>(`/api/organisations/${id}/call-opportunities`),
 };
+
+/** E3 V1 — les opportunités STRUCTURELLES d'une organisation : appels
+ *  ouverts/à venir dont la famille contient son historique. Composantes
+ *  décomposées, AUCUN score agrégé (la pondération est un arbitrage de
+ *  méthode à venir). Wording strictement historique. */
+export interface CallOpportunities {
+  opportunities: {
+    call_topic_id: number;
+    identifier: string;
+    title: string | null;
+    status: "open" | "upcoming";
+    next_deadline: string | null;
+    opening_date: string | null;
+    basis: "exact" | "identifier_family";
+    family: string | null;
+    components: {
+      projects: number;
+      coordinations: number;
+      last_active_year: number | null;
+      co_participants: number;
+    };
+  }[];
+  meta: {
+    bases: string;
+    unit: string;
+    eligibility: string;
+    ranking: string;
+    wording: string;
+  };
+}
 
 /** E2 V1 — la lecture historique d'un appel : UN niveau de preuve par
  *  réponse (exact › famille par identifiant › famille par code gardée),

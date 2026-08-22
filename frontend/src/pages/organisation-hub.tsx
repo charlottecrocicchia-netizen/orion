@@ -66,6 +66,11 @@ export function OrganisationHubPage() {
     queryKey: ["organisation-partner-countries", id],
     queryFn: () => api.organisationPartnerCountries(id),
   });
+  // E3 V1 : les opportunités structurelles de cette organisation.
+  const { data: opportunities } = useQuery({
+    queryKey: ["organisation-call-opportunities", id],
+    queryFn: () => api.organisationCallOpportunities(id),
+  });
 
   if (isPending) {
     return (
@@ -318,6 +323,99 @@ export function OrganisationHubPage() {
                 </a>
               ) : null}
             </div>
+          </section>
+        ) : null}
+
+        {/* E3 V1 — les opportunités STRUCTURELLES : appels ouverts/à
+            venir dont la famille contient l'historique de cette
+            organisation. Composantes décomposées, AUCUN score agrégé ;
+            wording strictement historique. Section absente quand rien
+            d'honnête à montrer — comme les signaux. */}
+        {opportunities && opportunities.opportunities.length > 0 ? (
+          <section aria-label={t("org.opps.title")}>
+            <h2 className="mb-1 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+              {t("org.opps.title")}
+            </h2>
+            <p className="mb-3 text-[11.5px] text-muted-foreground">{t("org.opps.lead")}</p>
+            <div>
+              {opportunities.opportunities.map((opp) => (
+                <article
+                  key={opp.call_topic_id}
+                  className="border-b border-border-soft py-3 last:border-b-0"
+                >
+                  <p className="flex flex-wrap items-baseline gap-x-2 font-mono text-[10.5px] text-muted-foreground">
+                    <span
+                      className={
+                        opp.status === "open"
+                          ? "uppercase tracking-[0.12em] text-accent"
+                          : "uppercase tracking-[0.12em]"
+                      }
+                    >
+                      {t(`calls.statusShort.${opp.status}`)}
+                    </span>
+                    <span translate="no">{opp.identifier}</span>
+                    {opp.next_deadline ? (
+                      <span className="tnum ml-auto text-foreground">
+                        {new Intl.DateTimeFormat(i18n.language, {
+                          timeZone: "Europe/Brussels",
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        }).format(new Date(opp.next_deadline))}
+                      </span>
+                    ) : null}
+                  </p>
+                  <h3 className="mt-0.5 text-[14px] font-medium leading-snug">
+                    <Link
+                      to={`/calls/${opp.call_topic_id}`}
+                      className="underline-offset-2 hover:text-accent hover:underline"
+                    >
+                      {opp.title ?? opp.identifier}
+                    </Link>
+                  </h3>
+                  <p className="tnum mt-1 flex flex-wrap items-center gap-x-2 text-[11.5px] text-muted-foreground">
+                    <span
+                      className={
+                        opp.basis === "exact"
+                          ? "rounded-full border border-accent/40 px-2 py-px text-[10.5px] text-accent"
+                          : "rounded-full border border-border px-2 py-px text-[10.5px]"
+                      }
+                    >
+                      {opp.basis === "exact"
+                        ? t("org.opps.basisExact")
+                        : t("org.opps.basisFamily")}
+                      {opp.basis !== "exact" && opp.family ? (
+                        <span className="ml-1 font-mono text-[9.5px]" translate="no">
+                          {opp.family}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span>{t("org.opps.projects", { count: opp.components.projects })}</span>
+                    {opp.components.coordinations > 0 ? (
+                      <span>· {t("org.opps.coordinations", { count: opp.components.coordinations })}</span>
+                    ) : null}
+                    {opp.components.last_active_year ? (
+                      <span>· {t("org.opps.active", { year: opp.components.last_active_year })}</span>
+                    ) : null}
+                    {opp.components.co_participants > 0 ? (
+                      <span>· {t("org.opps.partners", { count: opp.components.co_participants })}</span>
+                    ) : null}
+                  </p>
+                </article>
+              ))}
+            </div>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-[11px] text-muted-foreground underline-offset-2 hover:underline">
+                {t("calls.actorsMethod")}
+              </summary>
+              <ul className="mt-1.5 space-y-1 border-l border-border-soft pl-3 text-[11px] leading-snug text-muted-foreground">
+                <li>{opportunities.meta.bases}</li>
+                <li>{opportunities.meta.unit}</li>
+                <li>{opportunities.meta.eligibility}</li>
+                <li>{opportunities.meta.ranking}</li>
+                <li>{opportunities.meta.wording}</li>
+              </ul>
+            </details>
           </section>
         ) : null}
 

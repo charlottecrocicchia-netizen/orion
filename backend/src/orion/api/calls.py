@@ -21,9 +21,15 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from orion.api.lens_param import resolve_lens_param
+from orion.callstatus import derived_status, next_deadline, parse_instants
 from orion.core.db import get_db
 from orion.models import CallTopic
 from orion.search.call_actors import historical_actors
+from orion.search.call_opportunities import (
+    MAX_OPPORTUNITIES,
+    call_opportunities,
+    decorate_partners,
+)
 from orion.search.service import parse_sector
 
 router = APIRouter()
@@ -36,43 +42,10 @@ PAGE_SIZE_MAX = 50
 DERIVED_STATUSES = ("open", "upcoming", "closed")
 
 
-def _instants(values: list | None) -> list[datetime]:
-    out = []
-    for value in values or []:
-        try:
-            out.append(datetime.fromisoformat(value))
-        except (TypeError, ValueError):
-            continue
-    return out
-
-
-def derived_status(
-    opening: datetime | None,
-    deadlines: list[datetime],
-    status_code: str | None,
-    now: datetime,
-) -> str:
-    """Le statut affiché. Les dates priment ; le code source ne tranche
-    que lorsqu'elles manquent."""
-    if deadlines:
-        if any(d > now for d in deadlines):
-            if opening and opening > now:
-                return "upcoming"
-            return "open"
-        return "closed"
-    if status_code == "31094501":
-        return "upcoming"
-    if status_code == "31094502":
-        # « Open » sans aucune deadline publiée : l'ouverture fait foi.
-        return "upcoming" if opening and opening > now else "open"
-    return "closed"
-
-
-def next_deadline(deadlines: list[datetime], now: datetime) -> datetime | None:
-    future = [d for d in deadlines if d > now]
-    if future:
-        return min(future)
-    return max(deadlines) if deadlines else None
+# derived_status / next_deadline / parse_instants vivent dans
+# orion.callstatus (une seule source de vérité depuis E3) — réexportés
+# ici pour les tests et la stabilité des imports.
+_instants = parse_instants
 
 
 def _row(topic: CallTopic, lens_tags: list[dict[str, str]], now: datetime) -> dict[str, Any]:
@@ -243,6 +216,65 @@ def call_programmes(db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
             {"code": code, "label": label or code, "topics": count}
             for code, label, count in rows
         ]
+    }
+
+
+@router.get("/organisations/{organisation_id}/call-opportunities")
+def organisation_call_opportunities(
+    organisation_id: int, db: Annotated[Session, Depends(get_db)]
+) -> dict[str, Any]:
+    """E3 V1 — les opportunités STRUCTURELLES d'une organisation : les
+    appels ouverts/à venir dont la famille contient son historique.
+    Composantes décomposées, aucun score agrégé ; la dérivation de
+    statut est LA règle commune (jamais un appel clos proposé)."""
+    exists = db.execute(
+        text("SELECT 1 FROM organisations WHERE id = :id"), {"id": organisation_id}
+    ).first()
+    if exists is None:
+        raise HTTPException(status_code=404, detail={"error": "NOT_FOUND"})
+
+    result = call_opportunities(db, organisation_id)
+    now = datetime.now(UTC)
+    kept: list[dict[str, Any]] = []
+    for entry in result["candidates"]:
+        topic = entry["topic"]
+        deadlines = _instants(topic["deadline_dates"])
+        status = derived_status(topic["opening_date"], deadlines, topic["status_code"], now)
+        if status not in ("open", "upcoming"):
+            continue
+        upcoming = next_deadline(deadlines, now)
+        kept.append({**entry, "status": status, "next_deadline": upcoming})
+
+    kept.sort(
+        key=lambda e: (
+            e["basis"] != "exact",
+            -e["components"]["projects"],
+            e["next_deadline"] or datetime.max.replace(tzinfo=UTC),
+        )
+    )
+    kept = kept[:MAX_OPPORTUNITIES]
+    decorate_partners(db, organisation_id, kept)
+
+    return {
+        "opportunities": [
+            {
+                "call_topic_id": entry["topic"]["id"],
+                "identifier": entry["topic"]["identifier"],
+                "title": entry["topic"]["title"],
+                "status": entry["status"],
+                "next_deadline": entry["next_deadline"].isoformat()
+                if entry["next_deadline"]
+                else None,
+                "opening_date": entry["topic"]["opening_date"].isoformat()
+                if entry["topic"]["opening_date"]
+                else None,
+                "basis": entry["basis"],
+                "family": entry["family"],
+                "components": entry["components"],
+            }
+            for entry in kept
+        ],
+        "meta": result["meta"],
     }
 
 
