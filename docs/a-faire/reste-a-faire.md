@@ -116,6 +116,14 @@ appels à projets) et l'horizon phase 6.
 
 ## Livré (ne plus y toucher, y référer)
 
+- **2026-08-22 — Accès privé + socle comptes, en production** : Orion
+  derrière une landing publique dans sa propre DA ; lien magique réel
+  recetté de bout en bout par la fondatrice (Brevo → Gmail →
+  connexion) ; frontière serveur fermée par défaut ; suite e2e
+  102/105 dans son harnais retrouvé (`scripts/e2e-local.sh`).
+  → `docs/conception-acces-prive.md`, `docs/conception-workspace.md`
+
+
 - **2026-08-21 — Déploiement lot 1** : Orion en production publique
   sur `https://lensorion.com`, base migrée et vérifiée au chiffre
   près, sauvegardes prouvées par restauration d'essai, runbook de

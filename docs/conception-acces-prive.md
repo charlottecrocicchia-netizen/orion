@@ -106,6 +106,14 @@ reste reconnaissable comme Orion).
 Anonyme : `/` sert la landing ; chaque vue applicative redirige vers
 `/login?from=…` ; l'API répond 401 partout (fiches, recherche, stats,
 sources, route inconnue) ; santé et overview répondent. Connecté :
-tout Orion fonctionne, tests 196 backend / 60 front / e2e complets.
-Deep link : URL profonde → login → retour exact. Déconnexion : Back et
-URL directe ne rouvrent rien, l'API refuse à nouveau.
+tout Orion fonctionne, tests 196 backend / 60 front / e2e 102/105
+dans leur harnais (`scripts/e2e-local.sh`). Deep link : URL profonde →
+login → retour exact. Déconnexion : Back et URL directe ne rouvrent
+rien, l'API refuse à nouveau.
+
+**DÉPLOYÉ ET RECETTÉ EN PRODUCTION le 2026-08-22** : mêmes
+vérifications sur `lensorion.com` (401 jusqu'aux routes inconnues,
+overview seul public), landing validée par la fondatrice sur pièce, et
+le premier lien magique RÉEL reçu sur son Gmail (serveur → Brevo →
+boîte de réception) — connexion complète, Orion entier derrière la
+porte. Verdict fondatrice : « parfait ».
