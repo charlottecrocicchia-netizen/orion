@@ -116,6 +116,16 @@ jobs:
         working-directory: backend
       - run: uv run uvicorn orion.main:app --port 8000 &
         working-directory: backend
+        env:
+          # Pivot accès privé (2026-08-22) : la suite navigue connectée —
+          # l'API de recette ouvre la porte aux adresses e2e, en mode dev
+          # (aucun email ne part, le lien revient dans la réponse).
+          ORION_AUTH_DEV: "1"
+          ORION_PUBLIC_ORIGIN: http://localhost:4173
+          ORION_LOGIN_ALLOWLIST: e2e-a@lensorion.test,e2e-b@lensorion.test,e2e-c@lensorion.test,e2e-d@lensorion.test,e2e-e@lensorion.test,e2e-f@lensorion.test,e2e-g@lensorion.test,e2e-h@lensorion.test
+          ORION_LOGIN_LIMIT_PER_IP_HOUR: "1000"
+          ORION_LOGIN_LIMIT_PER_PAIR_HOUR: "200"
+          ORION_LOGIN_LIMIT_PER_EMAIL_HOUR: "400"
       - run: pnpm install --frozen-lockfile
         working-directory: frontend
       - run: pnpm build

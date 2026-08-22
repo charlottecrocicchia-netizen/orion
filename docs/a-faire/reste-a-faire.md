@@ -76,30 +76,28 @@ assumés, à décider plus tard :
   passe design dédiée (doctrine, recette fondatrice) quand le produit
   cherchera ses premiers comptes extérieurs.
 
-## 4 ter. La recette e2e périmée — dette héritée, mesurée le 2026-08-22
+## 4 ter. ~~La recette e2e périmée~~ — RÉSOLU le 2026-08-22 : c'était le harnais
 
-**Le fait, prouvé par expérience de référence** : la suite e2e échouait
-DÉJÀ sur le code d'avant le chantier comptes (baseline `dec9885`
-rejouée dans un worktree : **23 échecs / 79 passés**). Les specs sont
-restés au monde d'avant Aviation v2 (20 août : l'habilitant existe, le
-chip dit « + habilitant » là où les tests exigent « jamais tant
-qu'aucun habilitant n'existe »), d'avant les évolutions groupes et
-home. La CI muette a caché la dérive ; les vérifications locales
-tronquées (`tail`) l'ont laissée passer — leçon consignée : un verdict
-de suite se lit au journal COMPLET, jamais à ses dernières lignes.
+**Le diagnostic initial était FAUX, et la correction est consignée.**
+Les « 23 échecs hérités » n'existaient pas : la suite e2e est conçue
+pour la **base semée** (`backend/scripts/seed_e2e.py` — 16 projets, la
+lentille synthétique `test-lens`, des comptes exacts), servie par
+uvicorn `:8000` derrière `vite preview :4173` — la recette de la CI.
+Elle avait été jouée contre la pile `:8080` au **corpus complet**, où
+`test-lens` n'existe pas et où aucun compte exact ne tient. La
+« baseline » qui semblait prouver l'antériorité reproduisait la même
+erreur de harnais — elle ne prouvait que lui.
 
-**Familles à recaler** (échec identique baseline et pivot) :
-`a2-decks`, `groups` (×6), `lens-carry`, `lens-generic` (×3),
-`lens-surfaces` (×3), `lens-vocabulary`, `regions`, `space:52`,
-`suggest`, `symmetry:69`, `coverage:50`, `navigation:14`, `compare:12`,
-`composer:15`. S'y ajoute une **flakiness de machine chargée** (les
-mêmes specs passent 21/21 au calme) — à traiter par des timeouts
-adaptés ou une exécution isolée, pas en gonflant les attentes.
-
-Chantier dédié : rejouer chaque spec contre le produit VOULU
-d'aujourd'hui, mettre à jour les attentes avec leurs sources (les
-chiffres v2), et re-verrouiller. Un lint préexistant traîne aussi
-(`backend/tests/test_lenses.py:888`, E501).
+**Dans le bon harnais : 104/105 verts du premier coup** (3 skips
+auto-déclarés du ticker, corpus semé trop petit pour faire tourner le
+fil). Le seul vrai échec était un bug de harnais du pivot : le proxy
+vite réécrivait `Host` (`changeOrigin` implicite du raccourci) et le
+garde d'origine refusait les mutations — corrigé dans `vite.config.ts`
+(le garde reste strict). Livré avec : `scripts/e2e-local.sh` (la
+recette CI en local, pour que l'erreur soit irreproduisible), le
+commentaire menteur de `playwright.config.ts` corrigé, l'env d'auth de
+recette ajouté au FICHIER `ci.yml` (aucun run déclenché — quota muet),
+et le lint `test_lenses.py:888` réglé.
 
 ## 5. Le monitoring externe — quand il y aura quelqu'un à prévenir
 

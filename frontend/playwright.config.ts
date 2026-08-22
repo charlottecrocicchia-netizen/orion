@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// The demo journey runs against a full stack (Caddy + API + Postgres with
-// data). Locally: `make up` then `pnpm e2e`. CI overrides E2E_BASE_URL.
+// La suite tourne contre la base SEMÉE (seed_e2e) — jamais le corpus
+// complet : test-lens et les comptes exacts n'existent que dans la
+// graine. En local : `./scripts/e2e-local.sh` (la recette CI, à
+// l'identique). CI fournit E2E_BASE_URL.
 export default defineConfig({
   testDir: "./e2e",
   // Pivot 2026-08-22 : Orion est privé — la suite entière navigue

@@ -885,7 +885,8 @@ def test_a_review_adjudication_has_the_last_word_over_core(db_session, tmp_path)
     ids = _seed(db_session)
     rules = [
         *RULES,
-        'project,zzsl-1,enabling,cordis,,,"Adjugé habilitant en revue — multisectoriel (I13)",revue test',
+        'project,zzsl-1,enabling,cordis,,,'
+        '"Adjugé habilitant en revue — multisectoriel (I13)",revue test',
     ]
     load_lens(db_session, RunStats(), "space", _lens(tmp_path, rules))
     row = db_session.execute(
