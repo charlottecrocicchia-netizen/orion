@@ -116,7 +116,11 @@ test("bug de doctrine : /organisations cadrée montre le monde de la lentille", 
   await expect(page.getByRole("button", { name: /Périmètre spatial de cette vue/ })).toBeVisible({
     timeout: 15_000,
   });
-  // Le compte est celui de la lentille, jamais celui du corpus.
+  // Le compte est celui de la lentille, jamais celui du corpus. On
+  // attend un CHIFFRE : lire pendant l'état « … » donnait Number("")=0
+  // — le faux zéro attrapé le 2026-08-22, chip déjà visible, requête
+  // pas encore résolue.
+  await expect(page.getByTestId("orgs-total")).toHaveText(/\d/, { timeout: 15_000 });
   const framedCount = await page.getByTestId("orgs-total").innerText();
   const framed = Number(framedCount.replace(/\D/g, ""));
   expect(framed).toBeGreaterThan(0);
@@ -124,7 +128,9 @@ test("bug de doctrine : /organisations cadrée montre le monde de la lentille", 
   // Et une lentille publiée SANS projet tagué dit honnêtement zéro —
   // jamais le corpus entier sous une URL qui annonce l'aéronautique.
   await page.goto("/organisations?sector=aviation&sort=funding");
-  await expect(page.getByTestId("orgs-total")).toBeVisible({ timeout: 15_000 });
+  // Même garde que ci-dessus — et elle importe DOUBLEMENT ici : un
+  // « … » lu trop tôt donnerait 0, un faux VERT sur cette assertion.
+  await expect(page.getByTestId("orgs-total")).toHaveText(/\d/, { timeout: 15_000 });
   const emptyCount = await page.getByTestId("orgs-total").innerText();
   expect(Number(emptyCount.replace(/\D/g, ""))).toBe(0);
 
