@@ -33,6 +33,19 @@ docker exec orion-dev-postgres-1 psql -U orion -d postgres -q \
   -c "CREATE DATABASE ${E2E_DB};"
 (cd backend && uv run alembic upgrade head >/dev/null && uv run python scripts/seed_e2e.py)
 
+# Refus explicite si un port du harnais est déjà tenu (incident du
+# 2026-08-22 : des orphelins d'un run précédent servaient une VIEILLE
+# pile au mauvais corpus — l'auth échouait en aveugle). Mieux vaut un
+# refus net qu'un verdict menteur ; on ne tue JAMAIS d'office ce qui
+# écoute, on le nomme.
+for port in 8000 4173; do
+  if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "ERREUR : le port $port est déjà occupé — probablement un harnais" >&2
+    echo "orphelin d'un run précédent. Identifier : lsof -nP -iTCP:$port -sTCP:LISTEN" >&2
+    exit 1
+  fi
+done
+
 echo "==> API de recette (:8000, auth en mode dev)"
 export ORION_AUTH_DEV=1
 export ORION_PUBLIC_ORIGIN=http://localhost:4173
@@ -47,7 +60,18 @@ echo "==> Bundle + vite preview (:4173)"
 (cd frontend && pnpm build >/tmp/orion-e2e-build.log 2>&1)
 (cd frontend && pnpm exec vite preview --port 4173 >/tmp/orion-e2e-preview.log 2>&1) &
 PREVIEW_PID=$!
-trap 'kill "$API_PID" "$PREVIEW_PID" 2>/dev/null || true' EXIT
+# Le piège « uv run n'exec pas » : le PID enregistré est le PARENT
+# (uv/pnpm), le processus qui ÉCOUTE est son fils — tuer le seul parent
+# laissait un orphelin sur le port à chaque run. On abat l'arbre
+# entier, feuilles d'abord, et uniquement NOS arbres.
+kill_tree() {
+  local pid="$1" child
+  for child in $(pgrep -P "$pid" 2>/dev/null); do
+    kill_tree "$child"
+  done
+  kill "$pid" 2>/dev/null || true
+}
+trap 'kill_tree "$API_PID"; kill_tree "$PREVIEW_PID"' EXIT
 
 curl -sf --retry 30 --retry-delay 1 --retry-connrefused http://localhost:8000/api/health >/dev/null
 curl -sf --retry 30 --retry-delay 1 --retry-connrefused http://localhost:4173 -o /dev/null
