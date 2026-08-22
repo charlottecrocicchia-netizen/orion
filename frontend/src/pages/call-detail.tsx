@@ -56,6 +56,11 @@ export function CallDetailPage() {
     queryFn: () => api.call(id ?? ""),
     enabled: Boolean(id),
   });
+  const { data: actors } = useQuery({
+    queryKey: ["call-actors", id],
+    queryFn: () => api.callHistoricalActors(id ?? ""),
+    enabled: Boolean(id),
+  });
 
   const sections = useMemo(
     () => (call?.description_html ? splitDescriptionSections(call.description_html) : []),
@@ -195,6 +200,92 @@ export function CallDetailPage() {
               </GlanceRow>
             </dl>
           </section>
+
+          {/* E2 — les ACTEURS HISTORIQUES : l'intelligence Orion vit
+              dans la colonne, le document officiel reste le centre.
+              Un seul niveau de preuve par réponse, nommé ; l'absence
+              d'historique est un résultat honnête, jamais un repli. */}
+          {actors ? (
+            <section aria-label={t("calls.actorsTitle")} className="mt-8">
+              <h2 className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                {t("calls.actorsTitle")}
+              </h2>
+              {actors.level ? (
+                <>
+                  <p className="mt-1 text-[11.5px] leading-snug text-muted-foreground">
+                    {t(`calls.actorsLevel.${actors.level}`)}
+                    {actors.family ? (
+                      <span className="ml-1 font-mono text-[10px]" translate="no">
+                        {actors.family}
+                      </span>
+                    ) : null}
+                    {" · "}
+                    <span className="tnum">
+                      {t("calls.actorsScope", {
+                        projects: actors.historical.projects,
+                        calls: actors.historical.calls,
+                      })}
+                    </span>
+                  </p>
+                  <ul className="mt-2.5">
+                    {actors.actors.map((actor) => (
+                      <li
+                        key={actor.organisation_id}
+                        className="border-b border-border-soft py-2.5 last:border-b-0"
+                      >
+                        <Link
+                          to={`/organisations/${actor.organisation_id}`}
+                          className="text-[13.5px] font-medium leading-snug underline-offset-2 hover:text-accent hover:underline"
+                        >
+                          {actor.name}
+                        </Link>
+                        <p className="tnum mt-0.5 text-[12px] text-foreground/80">
+                          {t("calls.actorProjects", { count: actor.projects })}
+                          {actor.coordinations > 0
+                            ? ` · ${t("calls.actorCoordinations", { count: actor.coordinations })}`
+                            : ""}
+                        </p>
+                        <p className="tnum text-[11px] text-muted-foreground">
+                          {actor.period.from === actor.period.to
+                            ? actor.period.from
+                            : `${actor.period.from}–${actor.period.to}`}
+                          {actor.contributions_eur != null
+                            ? ` · ${t("calls.actorContributions", {
+                                amount: formatCompactEur(actor.contributions_eur, locale),
+                              })}`
+                            : ""}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="mt-1.5 text-[12.5px] leading-snug text-muted-foreground">
+                  {t("calls.actorsEmpty")}
+                  {actors.reason ? (
+                    <span className="mt-0.5 block text-[11.5px]">
+                      {t(`calls.actorsReason.${actors.reason}`, {
+                        found: actors.historical.projects,
+                        min: actors.meta.min_projects,
+                      })}
+                    </span>
+                  ) : null}
+                </p>
+              )}
+              <details className="mt-2.5">
+                <summary className="cursor-pointer text-[11px] text-muted-foreground underline-offset-2 hover:underline">
+                  {t("calls.actorsMethod")}
+                </summary>
+                <ul className="mt-1.5 space-y-1 border-l border-border-soft pl-3 text-[11px] leading-snug text-muted-foreground">
+                  <li>{actors.meta.corpus}</li>
+                  <li>{t("calls.actorsMethodUnit")} : {actors.meta.unit}</li>
+                  <li>{t("calls.actorsMethodAmounts")} : {actors.meta.amounts}</li>
+                  <li>{t("calls.actorsMethodThreshold", { min: actors.meta.min_projects })}</li>
+                  <li>{actors.meta.wording}</li>
+                </ul>
+              </details>
+            </section>
+          ) : null}
 
           {/* La LECTURE Orion — bloc distinct, étiqueté, son pourquoi. */}
           {call.lens_tags.length ? (

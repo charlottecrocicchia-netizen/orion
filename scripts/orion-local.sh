@@ -162,7 +162,7 @@ claim_port() {
 # n'apparaît PAS dans sa commande, constaté en recette) ; le vite
 # d'Orion, lui, court depuis node_modules du dépôt.
 claim_port 8000 "$API_PID_FILE" "orion.main:app" "http://localhost:8000/api/health"
-claim_port 5173 "$WEB_PID_FILE" "$REPO/frontend/node_modules/.bin/vite" "http://localhost:5173"
+claim_port 5173 "$WEB_PID_FILE" "$REPO/frontend/node_modules" "http://localhost:5173"
 
 # ------------------------------------ F. démarrage (le vrai mode dev)
 if [ -z "$(listener_pid 8000)" ]; then

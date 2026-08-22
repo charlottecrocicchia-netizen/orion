@@ -29,7 +29,7 @@ test("le catalogue groupe par statut dérivé — la deadline passée prime le c
 
   // L'à-venir dit sa date d'ouverture.
   const upcoming = page.getByRole("region", { name: "Upcoming" });
-  await expect(upcoming.getByText("TEST-CALL-2026-UPCOMING-01")).toBeVisible();
+  await expect(upcoming.getByText("TEST-UPCOMING-2026-ZZ-01")).toBeVisible();
 
   // LE test du chantier : la source dit encore « Open », la date dit
   // clos — le topic est dans « Recently closed », nulle part ailleurs.
@@ -69,6 +69,36 @@ test("la fiche sépare fait source, lecture Orion et provenance", async ({ page 
   // La sortie officielle et l'attribution.
   await expect(page.getByRole("link", { name: /View on the official portal/ })).toBeVisible();
   await expect(page.getByText(/© European Union, CC BY 4.0/)).toBeVisible();
+});
+
+test("E2 — les acteurs historiques : niveau nommé, preuves cliquables", async ({ page }) => {
+  // L'appel OPEN-01 porte le pont exact de la graine (TEST-CALL-2026,
+  // trois projets). Le bloc vit dans la colonne — le document officiel
+  // reste le centre.
+  await page.goto("/calls?q=OPEN-01");
+  await page.getByText("Cryogenic test rigs for the seed corpus").click();
+  const block = page.getByRole("region", { name: "Historical actors" });
+  await expect(block).toBeVisible({ timeout: 15_000 });
+  // Le niveau de preuve est NOMMÉ — jamais un rapprochement muet.
+  await expect(block.getByText("Exact match on the call code")).toBeVisible();
+  // Des compteurs historiques, pas des scores : « N linked projects ».
+  await expect(block.getByText(/linked project/).first()).toBeVisible();
+  // La preuve est cliquable : le premier acteur ouvre sa fiche.
+  await block.getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/organisations\/\d+/);
+});
+
+test("E2 — sans historique comparable : l'état vide honnête, avec sa raison", async ({ page }) => {
+  await page.goto("/calls?q=TEST-UPCOMING");
+  await page.getByText("Upcoming orbital logistics topic").click();
+  const block = page.getByRole("region", { name: "Historical actors" });
+  await expect(block).toBeVisible({ timeout: 15_000 });
+  await expect(
+    block.getByText("Not enough comparable history in the Orion corpus."),
+  ).toBeVisible();
+  // Et la méthode est à un clic.
+  await block.getByText("Method").click();
+  await expect(block.getByText(/organisation × projet distinct/)).toBeVisible();
 });
 
 test("la lentille cadre le catalogue — et le refus reste le refus", async ({ page }) => {

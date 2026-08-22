@@ -356,9 +356,12 @@ def _seed_call_topics(session: Session) -> None:
             "budget_max": 4_000_000,
         },
         {
-            "sid": "TEST-CALL-2026-UPCOMING-01",
+            # Identifiant HORS de la famille TEST-CALL : la remontée
+            # d'ancêtres ne doit pas le rattacher au pont exact voisin —
+            # c'est le cas « aucun historique » de la recette.
+            "sid": "TEST-UPCOMING-2026-ZZ-01",
             "title": "Upcoming orbital logistics topic",
-            "call_code": "TEST-CALL-2026",
+            "call_code": "TEST-UPCOMING-2026",
             "status_code": "31094501",
             "status_label": "Forthcoming",
             "opening": iso(20),
@@ -414,6 +417,33 @@ def _seed_call_topics(session: Session) -> None:
             "ON CONFLICT (call_topic_id, lens) DO NOTHING"
         ),
         {"slug": SEED_LENS_SLUG},
+    )
+    # Le PONT EXACT d'E2 : l'appel TEST-CALL-2026 reçoit trois projets
+    # de la graine — la fiche de l'appel OPEN-01 montre alors de vrais
+    # « acteurs historiques » (niveau exact), et les autres topics
+    # TEST-CALL restent sans historique (l'état vide honnête se recette
+    # aussi). Le call_id est posé comme le ferait le pont d'E1.
+    session.execute(
+        text(
+            "INSERT INTO calls (funder_id, code) "
+            "SELECT DISTINCT funder_id, 'TEST-CALL-2026' FROM projects "
+            "WHERE source_id = 'e2e-aeroserv' "
+            "ON CONFLICT (funder_id, code) DO NOTHING"
+        )
+    )
+    session.execute(
+        text(
+            "UPDATE projects SET call_id = c.id FROM calls c "
+            "WHERE c.code = 'TEST-CALL-2026' "
+            "AND projects.source_id IN ('e2e-aeroserv', 'e2e-orbit', 'e2e-qubitnet')"
+        )
+    )
+    session.execute(
+        text(
+            "UPDATE call_topics SET call_id = c.id FROM calls c "
+            "WHERE c.code = 'TEST-CALL-2026' "
+            "AND call_topics.source_id = 'TEST-CALL-2026-OPEN-01'"
+        )
     )
     # Le journal du run : la page /calls affiche sa fraîcheur depuis lui.
     session.execute(

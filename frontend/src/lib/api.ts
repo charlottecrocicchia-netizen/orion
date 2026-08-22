@@ -324,7 +324,36 @@ export const api = {
   calls: (params: URLSearchParams) => get<CallsResponse>(`/api/calls?${params}`),
   call: (id: string) => get<CallDetail>(`/api/calls/${id}`),
   callProgrammes: () => get<CallProgrammesResponse>("/api/calls/programmes"),
+  callHistoricalActors: (id: string) =>
+    get<CallHistoricalActors>(`/api/calls/${id}/historical-actors`),
 };
+
+/** E2 V1 — la lecture historique d'un appel : UN niveau de preuve par
+ *  réponse (exact › famille par identifiant › famille par code gardée),
+ *  jamais mélangés. Wording strictement historique — rien ne prédit. */
+export interface CallHistoricalActors {
+  level: "exact" | "identifier_family" | "code_family" | null;
+  family: string | null;
+  historical: { calls: number; projects: number };
+  actors: {
+    organisation_id: number;
+    name: string;
+    country: string | null;
+    projects: number;
+    coordinations: number;
+    period: { from: number | null; to: number | null };
+    programmes: string[];
+    contributions_eur: number | null;
+  }[];
+  reason?: "no_comparable_history" | "below_threshold" | "family_too_transversal";
+  meta: {
+    min_projects: number;
+    unit: string;
+    amounts: string;
+    corpus: string;
+    wording: string;
+  };
+}
 
 /** La lecture Orion d'un appel — V1 structurelle : la règle `call` qui
  *  a mordu voyage avec le tag, c'est le « pourquoi » affiché. */

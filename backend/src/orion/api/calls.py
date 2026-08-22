@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from orion.api.lens_param import resolve_lens_param
 from orion.core.db import get_db
 from orion.models import CallTopic
+from orion.search.call_actors import historical_actors
 from orion.search.service import parse_sector
 
 router = APIRouter()
@@ -243,6 +244,21 @@ def call_programmes(db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
             for code, label, count in rows
         ]
     }
+
+
+@router.get("/calls/{call_topic_id}/historical-actors")
+def call_historical_actors(
+    call_topic_id: int, db: Annotated[Session, Depends(get_db)]
+) -> dict[str, Any]:
+    """E2 V1 — la LECTURE historique d'un appel, structurelle et
+    reconstruisible : un seul niveau de preuve par réponse (exact ›
+    famille par identifiant › famille par code, gardée), unité
+    organisation × projet distinct, wording historique. La lentille
+    active n'existe pas ici : la méthodologie ne se cadre pas."""
+    payload = historical_actors(db, call_topic_id)
+    if payload.get("error") == "not_found":
+        raise HTTPException(status_code=404, detail={"error": "NOT_FOUND"})
+    return payload
 
 
 @router.get("/calls/{call_topic_id}")

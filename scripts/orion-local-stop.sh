@@ -24,7 +24,7 @@ stop_pid() {
 }
 
 stopped=0
-for pair in "8000|orion.main:app|api.pid" "5173|$REPO/frontend/node_modules/.bin/vite|web.pid"; do
+for pair in "8000|orion.main:app|api.pid" "5173|$REPO/frontend/node_modules|web.pid"; do
   port="${pair%%|*}"; rest="${pair#*|}"; marker="${rest%%|*}"; pid_file="$STATE_DIR/${rest#*|}"
   pid="$(lsof -nP -ti "tcp:$port" -sTCP:LISTEN 2>/dev/null | head -1)"
   if [ -z "$pid" ]; then
