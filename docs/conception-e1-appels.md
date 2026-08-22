@@ -187,6 +187,19 @@ barre horizontale**.
 - **Recette** : `./scripts/e2e-local.sh` (exit 0 hors pipe), pytest,
   vitest — la CI étant muette jusqu'au 2026-09-01.
 
+## Nuance Space — consignée à la clôture d'E2 (2026-08-22)
+
+Sous la lentille Space, `/calls` affiche zéro appel ouvert/à venir.
+**Ce zéro ne signifie pas « aucun appel spatial »** — la recherche
+`HORIZON-CL4-2027-SPACE` remonte bien des topics spatiaux, y compris à
+venir. Il signifie exactement ceci : **la lentille Space ne possède
+actuellement aucune règle `call`** (ses 22 règles sont
+programme/theme/text, qui classent des projets), et la classification
+V1 des appels est structurelle par règles `call` uniquement. En ajouter
+est une décision de curation (registre des lentilles), jamais un geste
+technique — et E2, lui, retrouve les acteurs spatiaux par la famille
+d'identifiant (`HORIZON-CL4-Y-SPACE`), indépendamment des lentilles.
+
 ## Recette production — E1 déployé le 2026-08-22
 
 Snapshot **S4** pris par la fondatrice avant le geste ; mention légale
