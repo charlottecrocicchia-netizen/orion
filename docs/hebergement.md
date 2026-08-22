@@ -213,6 +213,39 @@ Frais d'installation ponctuels selon le modèle ; la tarification des
 dédiés a été restructurée le 15 juin 2026 (mensuel plus élevé, frais
 d'installation plus bas) — **à revérifier au moment de commander**.
 
+## 6 bis. Upgrade VPS-4 — REPORTÉ le 2026-08-22 (indisponibilité SBG6)
+
+**Décision fondatrice** : l'upgrade VPS-2 (8 Go) → VPS-4 (24 Go) était
+validé, snapshot S7 pris, porte de paiement ouverte — **le VPS-4 est
+indisponible en région SBG6 au moment de valider**. Décision : rester
+sur VPS-2, **ne pas prendre VPS-3, ne pas migrer de datacenter**. La
+porte sera rouverte dès disponibilité, avec pour seul préalable les
+contrôles de l'état de référence ci-dessous.
+
+**État de référence « avant upgrade » (audit du 2026-08-22, 15h UTC+2,
+à re-vérifier avant la prochaine ouverture de porte)** :
+
+- Système : RAM 7 746 Mio (utilisé 3 383, dispo 4 362), swap 2 Go
+  (51 Mio utilisés), load 0,24, 4 vCPU Haswell, disque ext4 72 Go
+  (19 utilisés / 54 libres), IPv4 `92.222.91.139`.
+- Docker : 5 conteneurs sains — postgres 2,20 Gio, api 428 Mio (chaud),
+  scheduler 30 Mio, web 19, caddy 13 ; volumes 7,8 Go.
+- PostgreSQL 16.15 : base 6 429 Mo (project_texts 3 326 Mo, projects
+  1 751 Mo, lei_records 816 Mo) ; shared_buffers 2 Go,
+  effective_cache_size 5 Go, work_mem 32 Mo, maintenance 512 Mo ;
+  11 connexions ; 3 matviews peuplées.
+- Invariants : 699 798 projets / 110 116 organisations / 1 102 270
+  participations / 1 653 appels ; Space 10 278/4 537, Aviation 1 752/2 ;
+  migration `0031 (head)` ; scheduler `jobs 'calls'` (cron 05:00 UTC),
+  dernier run calls : succès 11:14 UTC ; domaine/TLS/auth vérifiés.
+- Estimation pgvector consignée (700 k vecteurs) : 384d ≈ 1,3 Go table
+  + ~2 Go index HNSW ; 768d ≈ 2,6 + 3-4 Go ; 1024d ≈ 3,4 + 4-5 Go —
+  **VPS-4 confirmé comme base raisonnable du socle S** (384d en V1).
+
+**Conséquence roadmap** : E3 → A → B → F → D avancent sur VPS-2 ; le
+socle S (pgvector/embeddings) et les chantiers dépendants de la RAM
+(vague K) restent GELÉS jusqu'à l'upgrade 24 Go effectif.
+
 ## 7. Recommandation
 
 **Pour partir maintenant et couvrir toute la vague 1 européenne :
