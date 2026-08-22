@@ -104,10 +104,11 @@ test("E3 — la boucle se referme : de l'appel à l'acteur, de l'acteur à l'opp
   const opps = page.getByRole("region", { name: "Detected opportunities" });
   await expect(opps).toBeVisible({ timeout: 15_000 });
   await expect(opps.getByText("TEST-CALL-2026-OPEN-01")).toBeVisible();
-  await expect(opps.getByText("Already funded under this call code")).toBeVisible();
-  await expect(opps.getByText(/historical project/)).toBeVisible();
+  // exact:true — la phrase de méthode contient aussi ces mots.
+  await expect(opps.getByText("Already funded under this call code", { exact: true })).toBeVisible();
+  await expect(opps.getByText(/historical project/).first()).toBeVisible();
   // Le wording reste historique : la promesse d'honnêteté est à l'écran.
-  await expect(opps.getByText(/never a guarantee/)).toBeVisible();
+  await expect(opps.getByText(/never a guarantee/).first()).toBeVisible();
 });
 
 test("E2 — sans historique comparable : l'état vide honnête, avec sa raison", async ({ page }) => {
@@ -120,7 +121,9 @@ test("E2 — sans historique comparable : l'état vide honnête, avec sa raison"
   ).toBeVisible();
   // Et la méthode est à un clic.
   await block.getByText("Method").click();
-  await expect(block.getByText(/organisation × projet distinct/)).toBeVisible();
+  // La méthode parle la langue de l'interface (bug de recette E3) :
+  // en anglais, la phrase est anglaise — jamais celle de l'API.
+  await expect(block.getByText(/organisation × distinct project/)).toBeVisible();
 });
 
 test("la lentille cadre le catalogue — et le refus reste le refus", async ({ page }) => {

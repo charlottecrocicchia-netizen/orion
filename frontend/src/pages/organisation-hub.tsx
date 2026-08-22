@@ -333,10 +333,27 @@ export function OrganisationHubPage() {
             d'honnête à montrer — comme les signaux. */}
         {opportunities && opportunities.opportunities.length > 0 ? (
           <section aria-label={t("org.opps.title")}>
-            <h2 className="mb-1 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-              {t("org.opps.title")}
-            </h2>
-            <p className="mb-3 text-[11.5px] text-muted-foreground">{t("org.opps.lead")}</p>
+            {/* La signature de veille (recette fondatrice) : l'encre
+                pleine sur le titre, la pastille dans son halo — l'œil
+                du poste de veille — et le filet d'accent qui s'éteint.
+                Des hairlines, jamais un bloc. */}
+            <header className="mb-1 flex items-center gap-2.5">
+              <span
+                aria-hidden="true"
+                className="relative inline-flex h-2.5 w-2.5 shrink-0 items-center justify-center"
+              >
+                <span className="absolute inset-0 rounded-full border border-accent/40" />
+                <span className="h-1 w-1 rounded-full bg-accent" />
+              </span>
+              <h2 className="text-[12.5px] font-semibold uppercase tracking-[.12em]">
+                {t("org.opps.title")}
+              </h2>
+              <span
+                aria-hidden="true"
+                className="h-px min-w-8 flex-1 bg-gradient-to-r from-accent/35 to-transparent"
+              />
+            </header>
+            <p className="mb-3 pl-[22px] text-[11.5px] text-muted-foreground">{t("org.opps.lead")}</p>
             <div>
               {opportunities.opportunities.map((opp) => (
                 <article
@@ -404,16 +421,19 @@ export function OrganisationHubPage() {
                 </article>
               ))}
             </div>
+            {/* La méthode parle LA LANGUE DE L'INTERFACE (bug de recette
+                du 2026-08-22) : jamais une phrase servie par l'API — le
+                backend fournit les valeurs, l'i18n fournit les mots. */}
             <details className="mt-2">
               <summary className="cursor-pointer text-[11px] text-muted-foreground underline-offset-2 hover:underline">
                 {t("calls.actorsMethod")}
               </summary>
               <ul className="mt-1.5 space-y-1 border-l border-border-soft pl-3 text-[11px] leading-snug text-muted-foreground">
-                <li>{opportunities.meta.bases}</li>
-                <li>{opportunities.meta.unit}</li>
-                <li>{opportunities.meta.eligibility}</li>
-                <li>{opportunities.meta.ranking}</li>
-                <li>{opportunities.meta.wording}</li>
+                <li>{t("org.opps.methodBases", { min: opportunities.meta.min_projects })}</li>
+                <li>{t("org.opps.methodUnit")}</li>
+                <li>{t("org.opps.methodEligibility")}</li>
+                <li>{t("org.opps.methodRanking")}</li>
+                <li>{t("org.opps.methodWording")}</li>
               </ul>
             </details>
           </section>

@@ -276,12 +276,14 @@ export function CallDetailPage() {
                 <summary className="cursor-pointer text-[11px] text-muted-foreground underline-offset-2 hover:underline">
                   {t("calls.actorsMethod")}
                 </summary>
+                {/* La méthode parle la langue de l'interface : les mots
+                    viennent de l'i18n, l'API ne fournit que les valeurs. */}
                 <ul className="mt-1.5 space-y-1 border-l border-border-soft pl-3 text-[11px] leading-snug text-muted-foreground">
-                  <li>{actors.meta.corpus}</li>
-                  <li>{t("calls.actorsMethodUnit")} : {actors.meta.unit}</li>
-                  <li>{t("calls.actorsMethodAmounts")} : {actors.meta.amounts}</li>
+                  <li>{t("calls.actorsMethodCorpus")}</li>
+                  <li>{t("calls.actorsMethodUnit")}</li>
+                  <li>{t("calls.actorsMethodAmounts")}</li>
                   <li>{t("calls.actorsMethodThreshold", { min: actors.meta.min_projects })}</li>
-                  <li>{actors.meta.wording}</li>
+                  <li>{t("calls.actorsMethodWording")}</li>
                 </ul>
               </details>
             </section>

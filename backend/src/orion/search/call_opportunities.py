@@ -229,6 +229,8 @@ def decorate_partners(
 
 def _method_meta() -> dict[str, Any]:
     return {
+        # La valeur machine — l'interface la traduit dans SA langue.
+        "min_projects": MIN_PROJECTS,
         "bases": "pont exact (dès 1 projet) · famille par identifiant (seuil "
         f"{MIN_PROJECTS} projets, résolution et gardes d'E2)",
         "unit": "organisation × projet distinct ; coordination comptée au niveau projet",

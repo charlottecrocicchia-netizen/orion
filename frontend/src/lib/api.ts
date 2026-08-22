@@ -352,6 +352,10 @@ export interface CallOpportunities {
     };
   }[];
   meta: {
+    /** La seule valeur que l'interface consomme — les phrases de
+     *  méthode vivent en i18n, jamais servies par l'API (bug de
+     *  recette du 2026-08-22 : du français en interface anglaise). */
+    min_projects: number;
     bases: string;
     unit: string;
     eligibility: string;
