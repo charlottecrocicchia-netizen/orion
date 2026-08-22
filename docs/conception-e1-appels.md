@@ -187,6 +187,44 @@ barre horizontale**.
 - **Recette** : `./scripts/e2e-local.sh` (exit 0 hors pipe), pytest,
   vitest — la CI étant muette jusqu'au 2026-09-01.
 
+## Recette production — E1 déployé le 2026-08-22
+
+Snapshot **S4** pris par la fondatrice avant le geste ; mention légale
+**relue au navigateur le jour du déploiement** (CC BY 4.0 inchangé,
+décision 2011/833/UE) ; images construites **sur le VPS** (D1, CI
+muette) ; migration `0031` appliquée à l'entrée de l'API.
+
+- **Boucle complète vérifiée sur lensorion.com** : 1 653 topics en
+  base (407 ouverts à l'écran), recherche/filtres/état d'URL, fiche
+  appel complète, classification aviation démontrée (18 Clean
+  Aviation, la règle affichée), lien portail, attribution, fraîcheur
+  datée du run scheduler, FR/EN, dark/light, mobile, avec/sans
+  lentille (refus compris).
+- **Invariants au chiffre près** : 699 798 / 110 116 / 1 102 270 ;
+  Space 10 278/4 537 ; Aviation 1 752/2. Non-régression : auth (401
+  anonyme partout, landing et overview publics servis), Explorer,
+  recherche projets/organisations, fiche organisation, dossier.
+- **Régime vivant éprouvé en prod** : run scheduler réel observé
+  (cron temporaire `*/2`, restauré à `0 5 * * *`) — 1 653 topics
+  stables, **0 doublon** (1 653 identifiants distincts), journal
+  `ingestion_runs` complet (y compris l'échec contrôlé « source
+  injoignable » : run `failed` bruyant, base intacte, **reprise
+  propre au run suivant**), 18 pages brutes en cache. Le scheduler ne
+  porte QUE `calls` (« jobs 'calls' » au journal).
+- **Incident corrigé au déploiement** : le volume `ingest_data`
+  (créé root avant le chown de l'image) refusait l'écriture du cache —
+  échec journalisé (run 105), corrigé par chown one-off ; un volume
+  neuf hérite désormais de la propriété `appuser` de l'image.
+- **Dossier « 16 Go », pièce 1 (RAM VPS 7 746 Mio)** : avant
+  déploiement — utilisé 3 123 Mio (postgres 2,30 Gio, api 177 Mio) ;
+  après ingestion calls — postgres 2,16 Gio, api 83 Mio (la moisson
+  est un poids plume) ; après scheduler + recette à chaud — utilisé
+  3 610 Mio (postgres 2,23 Gio, **api 617 Mio à caches chauds**,
+  scheduler 32 Mio), ~4,1 Gio « available » (page cache compris). Le
+  poste qui gouverne reste le couple postgres + page cache du corpus ;
+  E1 n'y ajoute rien de mesurable. À re-mesurer après le passage à
+  16 Go, même protocole.
+
 ## Ce qu'E1 ne fait pas
 
 Pas de matching ni de score (E3) ; pas de règle texte sur les appels ;
