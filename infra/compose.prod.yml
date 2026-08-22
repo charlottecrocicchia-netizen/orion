@@ -141,6 +141,13 @@ services:
       ORION_DATABASE_URL: postgresql+psycopg://orion:${POSTGRES_PASSWORD}@postgres:5432/orion
       ORION_INGEST_CRON: ${ORION_INGEST_CRON:-0 3 * * 1}
       ORION_INGEST_ON_START: ${ORION_INGEST_ON_START:-false}
+      # Deux régimes d'ingestion (E1) : sur le VPS, ce conteneur ne
+      # porte QUE la fraîcheur légère des appels — le corpus lourd reste
+      # au régime « Mac + dump ». Mettre `all` ici réveillerait la
+      # moisson complète hebdomadaire : décision d'hébergement, pas un
+      # défaut.
+      ORION_SCHEDULER_JOBS: ${ORION_SCHEDULER_JOBS:-calls}
+      ORION_CALLS_CRON: ${ORION_CALLS_CRON:-0 5 * * *}
     volumes:
       - ingest_data:/app/data
     depends_on:

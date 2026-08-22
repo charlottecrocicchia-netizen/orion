@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     # Weekly full refresh, Monday 03:00 UTC (crontab syntax).
     ingest_cron: str = "0 3 * * 1"
     ingest_on_start: bool = False
+    # Les jobs que CE conteneur scheduler porte (E1, deux régimes
+    # d'ingestion) : « all » = la moisson complète hebdomadaire (Mac),
+    # « calls » = les appels seuls, quotidiens (VPS). Liste à virgules.
+    scheduler_jobs: str = "all"
+    # La fraîcheur des appels : quotidienne, 05:00 UTC.
+    calls_cron: str = "0 5 * * *"
 
     # --- Comptes (conception-workspace, lot 1) ---
     # L'origine publique du site — la base des liens magiques envoyés

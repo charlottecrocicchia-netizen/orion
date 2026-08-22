@@ -8,6 +8,7 @@ from orion.models.accounts import (
     Workspace,
 )
 from orion.models.base import Base
+from orion.models.calls import CallTopic, CallTopicLensTag
 from orion.models.funding import Call, Funder, Programme
 from orion.models.groups import (
     EntityGroupMap,
@@ -28,6 +29,8 @@ from orion.models.topics import ProjectTopic, Topic
 __all__ = [
     "Base",
     "Call",
+    "CallTopic",
+    "CallTopicLensTag",
     "Country",
     "Dossier",
     "EntityGroupMap",

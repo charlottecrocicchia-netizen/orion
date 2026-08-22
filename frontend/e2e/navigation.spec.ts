@@ -18,9 +18,9 @@ test("the four intents open, describe their pages, and navigate", async ({ page 
   // Discover: the entries carry their one-line descriptions.
   await banner.getByRole("button", { name: "Discover" }).click();
   await expect(page.getByText("consolidated files, watch-post included")).toBeVisible();
-  // The dated P5 door is inside, badge visible (the footer sitemap
-  // repeats the date — scope to the banner).
-  await expect(banner.getByText("P5 · autumn 2026")).toBeVisible();
+  // The calls entry is a LIVE page since E1 (2026-08-22) — no dated
+  // badge anymore, its one-line description says what it is.
+  await expect(banner.getByText("open and upcoming calls, from the official portal")).toBeVisible();
   await banner.getByRole("link", { name: /Projects/ }).click();
   await expect(page).toHaveURL(/\/projects/);
 
@@ -40,13 +40,14 @@ test("the four intents open, describe their pages, and navigate", async ({ page 
   await expect(page.getByText("collect views, assemble, take away")).toHaveCount(0);
 });
 
-test("the placeholder pages say the date and bridge to what exists", async ({ page }) => {
+test("the former placeholder doors now open real pages", async ({ page }) => {
+  // E1 (2026-08-22) : /calls n'est PLUS un placeholder — c'est le
+  // catalogue vivant (recette complète dans calls.spec.ts).
   await page.goto("/calls");
-  await expect(page.getByRole("heading", { name: /Calls arrive in/ })).toBeVisible();
-  await expect(page.getByText("never a single score: every criterion says its share")).toBeVisible();
-  await expect(page.getByText("No form, no waiting list — the date is enough.")).toBeVisible();
-  await page.getByRole("link", { name: /Theme trends/ }).click();
-  await expect(page).toHaveURL(/\/explore\?by=theme&split=1/);
+  await expect(page.getByRole("heading", { name: "Calls", exact: true })).toBeVisible();
+  await expect(
+    page.getByText(/Synchronised .* from the EU Funding & Tenders Portal/),
+  ).toBeVisible({ timeout: 15_000 });
 
   // Pivot 2026-08-22 : connecté, /workspace n'est PLUS un placeholder —
   // c'est l'espace du lot 1 workspace. Le placeholder daté reste la

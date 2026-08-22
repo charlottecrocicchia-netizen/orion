@@ -329,6 +329,102 @@ def _seed_synthetic_lens(session: Session) -> None:
     session.commit()
 
 
+def _seed_call_topics(session: Session) -> None:
+    """Les appels de la graine (E1) : un ouvert avec budget, un à venir,
+    un CLOS DONT LA SOURCE DIT ENCORE « OPEN » (la dérivation par les
+    dates est la règle recettée), un ouvert sans budget. Dates relatives
+    au moment du seed — la recette tient à n'importe quelle date. Un
+    tag test-lens est posé à la main : la recette ne dépend jamais des
+    règles éditoriales vivantes de space/aviation."""
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime.now(UTC)
+
+    def iso(days: int) -> str:
+        return (now + timedelta(days=days)).strftime("%Y-%m-%dT17:00:00+00:00")
+
+    topics = [
+        {
+            "sid": "TEST-CALL-2026-OPEN-01",
+            "title": "Cryogenic test rigs for the seed corpus",
+            "call_code": "TEST-CALL-2026",
+            "status_code": "31094502",
+            "status_label": "Open for submission",
+            "opening": iso(-30),
+            "deadlines": f'["{iso(30)}"]',
+            "budget_min": 2_000_000,
+            "budget_max": 4_000_000,
+        },
+        {
+            "sid": "TEST-CALL-2026-UPCOMING-01",
+            "title": "Upcoming orbital logistics topic",
+            "call_code": "TEST-CALL-2026",
+            "status_code": "31094501",
+            "status_label": "Forthcoming",
+            "opening": iso(20),
+            "deadlines": f'["{iso(90)}"]',
+            "budget_min": None,
+            "budget_max": None,
+        },
+        {
+            # Le piège recetté : la source dit « Open », la date dit clos.
+            "sid": "TEST-CALL-2026-STALE-01",
+            "title": "Stale status topic — deadline passed",
+            "call_code": "TEST-CALL-2026",
+            "status_code": "31094502",
+            "status_label": "Open for submission",
+            "opening": iso(-90),
+            "deadlines": f'["{iso(-10)}"]',
+            "budget_min": None,
+            "budget_max": None,
+        },
+        {
+            "sid": "TEST-CALL-2026-OPEN-02",
+            "title": "Open topic without published budget",
+            "call_code": "TEST-CALL-2026",
+            "status_code": "31094502",
+            "status_label": "Open for submission",
+            "opening": iso(-5),
+            "deadlines": f'["{iso(60)}"]',
+            "budget_min": None,
+            "budget_max": None,
+        },
+    ]
+    for topic in topics:
+        session.execute(
+            text(
+                "INSERT INTO call_topics (source, source_id, identifier, title, call_code, "
+                "framework_programme_code, framework_programme_label, status_code, status_label, "
+                "opening_date, deadline_dates, deadline_model, types_of_action, "
+                "budget_min_eur, budget_max_eur, url, raw) "
+                "VALUES ('ft-portal', :sid, :sid, :title, :call_code, "
+                "'43108390', 'Horizon Europe (HORIZON)', :status_code, :status_label, "
+                "CAST(:opening AS timestamptz), CAST(:deadlines AS jsonb), 'single-stage', "
+                "'[\"Seed Research Actions\"]'::jsonb, "
+                ":budget_min, :budget_max, 'https://example.invalid/portal-topic', '{}'::jsonb) "
+                "ON CONFLICT (source, source_id) DO NOTHING"
+            ),
+            topic,
+        )
+    session.execute(
+        text(
+            "INSERT INTO call_topic_lens_tags (call_topic_id, lens, tag, proof, rule) "
+            "SELECT id, :slug, 'core', 'structural', 'call:TEST-CALL-' FROM call_topics "
+            "WHERE source_id = 'TEST-CALL-2026-OPEN-01' "
+            "ON CONFLICT (call_topic_id, lens) DO NOTHING"
+        ),
+        {"slug": SEED_LENS_SLUG},
+    )
+    # Le journal du run : la page /calls affiche sa fraîcheur depuis lui.
+    session.execute(
+        text(
+            "INSERT INTO ingestion_runs (source, status, started_at, finished_at, "
+            "records_processed) VALUES ('calls', 'succeeded', now(), now(), 4)"
+        )
+    )
+    session.commit()
+
+
 def main() -> None:
     engine = create_engine(get_settings().database_url)
     with Session(engine) as session:
@@ -477,6 +573,7 @@ def main() -> None:
     with Session(engine) as session:
         load_all(session, _RunStats())
         _seed_synthetic_lens(session)
+        _seed_call_topics(session)
         # La maille sous le pays : le référentiel complet, et le MIT posé
         # dans son État (les caches ne sont pas là en CI — la graine dit
         # la maille comme le backfill la dirait).

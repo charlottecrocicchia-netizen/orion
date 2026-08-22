@@ -6,6 +6,33 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Calls (E1, phase 5 — first slice live).** Orion now ingests the
+  open, forthcoming and recently-closed calls for proposals from the
+  official EU Funding & Tenders Portal (SEDIA search API, CC BY 4.0 —
+  terms read at the source the day the chantier opened;
+  docs/conception-e1-appels.md § 0). New `call_topics` table (the source
+  FACT: identifiers, Brussels deadlines, budgets per action, sanitized
+  descriptions, full payload in `raw`) kept strictly apart from
+  `call_topic_lens_tags` (Orion's READING: structural lens tags with the
+  matching rule attached — 18 Clean Aviation topics tagged `aviation`
+  on the first real harvest of 1 653 topics). `/calls` replaces its
+  placeholder: open / upcoming / recently-closed groups, search,
+  framework-programme and lens filters (state in the URL), budget
+  ranges, days-to-deadline, sync freshness and attribution; a call page
+  ready to host E2's "who won the similar calls" (topics are bridged to
+  the historical `calls` codes CORDIS already fills). Displayed status
+  is DERIVED from dates in UTC — a source still saying "Open" past its
+  deadline shows closed, with the source status visible in provenance;
+  date-only deadlines never grow an invented time. Ingestion is the
+  first "light freshness" job: daily on the VPS via
+  `ORION_SCHEDULER_JOBS=calls` (the heavy corpus stays on the
+  Mac + dump regime), idempotent, journalised in `ingestion_runs`,
+  loudly failing, with raw page snapshots in the download cache and a
+  deterministic `identifier:ASC` pagination (without it, two harvests
+  differed by ~200 topics — measured).
+
 ### Performance
 
 - The performance chantier, instructed then executed (2026-08-03): the

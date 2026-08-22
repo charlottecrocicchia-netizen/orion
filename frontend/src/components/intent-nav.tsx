@@ -59,7 +59,6 @@ function useIntents(): { key: string; label: string; entries: Entry[] }[] {
           to: "/calls",
           label: t("nav.menu.calls"),
           desc: t("nav.menu.callsDesc"),
-          badge: t("nav.menu.callsBadge"),
         },
         {
           to: "/about-data",

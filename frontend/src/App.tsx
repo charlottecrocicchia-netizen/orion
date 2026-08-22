@@ -8,6 +8,7 @@ import { Layout } from "@/components/layout";
 import { AboutDataPage } from "@/pages/about-data";
 import { LensRoomPage } from "@/pages/lens-room";
 import { AnalysesPage } from "@/pages/analyses";
+import { CallDetailPage } from "@/pages/call-detail";
 import { CallsPage } from "@/pages/calls";
 import { CountryHubPage } from "@/pages/country-hub";
 import { ExploreCountriesPage } from "@/pages/explore-countries";
@@ -84,6 +85,7 @@ export function AppRoutes() {
             <Route path="/dossier" element={<DossierPage />} />
             <Route path="/analyses" element={<AnalysesPage />} />
             <Route path="/calls" element={<CallsPage />} />
+            <Route path="/calls/:id" element={<CallDetailPage />} />
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/workspace/dossiers/:id" element={<SavedDossierPage />} />
             <Route path="/explore" element={<ExplorerPage />} />

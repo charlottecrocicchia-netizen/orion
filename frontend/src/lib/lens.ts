@@ -218,7 +218,9 @@ const LENS_BLIND = [
   /^\/explore\/programmes\/[^/]+$/,
   /^\/dossier$/,
   /^\/workspace/,
-  /^\/calls$/,
+  // /calls porte la lentille depuis E1 (le filtre est réel) ; seule la
+  // FICHE appel reste aveugle — elle montre un appel, pas une vue cadrée.
+  /^\/calls\/[^/]+$/,
   /^\/lenses$/,
 ];
 

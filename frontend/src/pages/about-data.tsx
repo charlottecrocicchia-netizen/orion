@@ -15,6 +15,7 @@ const SOURCE_LABELS: Record<string, string> = {
   gleif: "GLEIF · identité des entités",
   wikidata: "Wikidata · rattachements de groupes",
   ecb: "BCE · taux de change annuels",
+  calls: "EU Funding & Tenders · appels à venir",
 };
 
 export function AboutDataPage() {
@@ -74,6 +75,17 @@ export function AboutDataPage() {
             © European Union, CORDIS —{" "}
             <a
               href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              CC BY 4.0
+            </a>
+          </li>
+          <li>
+            © Union européenne, portail EU Funding & Tenders (appels à venir) —{" "}
+            <a
+              href="https://commission.europa.eu/legal-notice_en"
               target="_blank"
               rel="noreferrer"
               className="underline underline-offset-2 hover:text-foreground"

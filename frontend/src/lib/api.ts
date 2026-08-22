@@ -321,7 +321,83 @@ export const api = {
   programme: (id: string) => get<ProgrammeHub>(`/api/programmes/${id}`),
   sources: () => get<SourcesResponse>("/api/sources"),
   health: () => get<Health>("/api/health"),
+  calls: (params: URLSearchParams) => get<CallsResponse>(`/api/calls?${params}`),
+  call: (id: string) => get<CallDetail>(`/api/calls/${id}`),
+  callProgrammes: () => get<CallProgrammesResponse>("/api/calls/programmes"),
 };
+
+/** La lecture Orion d'un appel — V1 structurelle : la règle `call` qui
+ *  a mordu voyage avec le tag, c'est le « pourquoi » affiché. */
+export interface CallLensTag {
+  lens: string;
+  tag: "core" | "enabling";
+  rule: string | null;
+}
+
+export interface CallRow {
+  id: number;
+  identifier: string;
+  title: string | null;
+  call_code: string | null;
+  framework_programme: { code: string; label: string | null } | null;
+  /** Le statut AFFICHÉ, dérivé des dates côté serveur — jamais le seul
+   *  code source (« aucun appel clos présenté comme ouvert »). */
+  status: "open" | "upcoming" | "closed";
+  /** Le fait source, visible en provenance. */
+  source_status: { code: string | null; label: string | null };
+  opening_date: string | null;
+  deadline_dates: string[];
+  next_deadline: string | null;
+  deadline_model: string | null;
+  types_of_action: string[] | null;
+  budget_min_eur: number | null;
+  budget_max_eur: number | null;
+  expected_grants: number | null;
+  lens_tags: CallLensTag[];
+  url: string | null;
+}
+
+export interface CallsMeta {
+  last_synced_at: string | null;
+  attribution: string;
+}
+
+export interface CallsResponse {
+  total: number;
+  results: CallRow[];
+  meta: CallsMeta;
+}
+
+export interface CallBudgetAction {
+  action?: string;
+  expectedGrants?: number;
+  minContribution?: number;
+  maxContribution?: number;
+  plannedOpeningDate?: string;
+  deadlineModel?: string;
+  deadlineDates?: string[];
+}
+
+export interface CallDetail extends CallRow {
+  keywords: string[] | null;
+  tags: string[] | null;
+  cross_cutting: string[] | null;
+  description_html: string | null;
+  conditions_html: string | null;
+  budget_overview: { budgetTopicActionMap?: Record<string, CallBudgetAction[]> } | null;
+  last_seen_at: string | null;
+  meta: CallsMeta;
+}
+
+export interface CallProgrammeEntry {
+  code: string;
+  label: string;
+  topics: number;
+}
+
+export interface CallProgrammesResponse {
+  programmes: CallProgrammeEntry[];
+}
 
 export interface ProjectDetail {
   id: number;

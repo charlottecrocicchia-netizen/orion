@@ -6,6 +6,7 @@ from functools import partial
 from orion.ingest import cordis, dedup
 from orion.ingest import reference as reference_module
 from orion.ingest.cordis.config import FRAMEWORKS
+from orion.ingest.ftcalls import load as ftcalls_load
 from orion.ingest.gleif import load as gleif_load
 from orion.ingest.groups import build as groups_build
 from orion.ingest.lenses import run as lenses_run
@@ -36,6 +37,9 @@ REGISTRY = {
     # La maille sous le pays : référentiel + backfill depuis les caches
     # (dérivée comme la lentille, rejouable, jamais un retéléchargement).
     "subdivisions": subdivisions_run,
+    # Les appels à venir (E1) : régime « fraîcheur légère » — le seul
+    # chargeur pensé pour tourner AUSSI sur le VPS, quotidien, léger.
+    "calls": ftcalls_load.run,
 }
 
 # `all` rebuilds everything: reference data first, deduplication before
@@ -52,6 +56,7 @@ ALL = [
     "groups",
     "lenses",
     "subdivisions",
+    "calls",
 ]
 
 

@@ -1,0 +1,214 @@
+{
+ "facets": [
+  {
+   "apiVersion": "2.151",
+   "name": "status",
+   "rawName": "status",
+   "database": "SEDIA",
+   "count": 2,
+   "values": [
+    {
+     "apiVersion": "2.151",
+     "rawValue": "31094502",
+     "value": "Open for submission",
+     "count": 792
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "31094501",
+     "value": "Forthcoming",
+     "count": 630
+    }
+   ]
+  },
+  {
+   "apiVersion": "2.151",
+   "name": "frameworkProgramme",
+   "rawName": "frameworkProgramme",
+   "database": "SEDIA",
+   "count": 30,
+   "values": [
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43108390",
+     "value": "Horizon Europe (HORIZON)",
+     "count": 1004
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43152860",
+     "value": "Digital Europe Programme (DIGITAL)",
+     "count": 74
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "44181033",
+     "value": "European Defence Fund (EDF)",
+     "count": 69
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43252405",
+     "value": "Programme for the Environment and Climate Action (LIFE)",
+     "count": 62
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43252476",
+     "value": "Single Market Programme (SMP)",
+     "count": 40
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "111111",
+     "value": "EU External Action - Prospect (RELEX-PROSPECT)",
+     "count": 27
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43298916",
+     "value": "Euratom Research and Training Programme (EURATOM)",
+     "count": 25
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43251589",
+     "value": "Citizens, Equality, Rights and Values Programme (CERV)",
+     "count": 21
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43251567",
+     "value": "Connecting Europe Facility (CEF)",
+     "count": 20
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43251814",
+     "value": "Creative Europe Programme (CREA)",
+     "count": 10
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43353764",
+     "value": "Erasmus  (ERASMUS )",
+     "count": 9
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "31045243",
+     "value": "Horizon 2020 Framework Programme (H2020 - 2014-2020)",
+     "count": 7
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43252449",
+     "value": "Research Fund for Coal %26 Steel (RFCS)",
+     "count": 7
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43254019",
+     "value": "European Social Fund   (ESF) ",
+     "count": 6
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43637601",
+     "value": "Pilot Projects %26 Preparation Actions (PPPA)",
+     "count": 5
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "44416173",
+     "value": "Interregional Innovation Investments Instrument (I3)",
+     "count": 5
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43252368",
+     "value": "Internal Security Fund (ISF)",
+     "count": 4
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "44773066",
+     "value": "Just Transition Mechanism (JTM)",
+     "count": 4
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "31059643",
+     "value": "Programme for the Competitiveness of Enterprises and small and medium-sized enterprises (COSME - 2014-2020)",
+     "count": 3
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43252386",
+     "value": "Justice Programme (JUST)",
+     "count": 3
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "45532249",
+     "value": "EU Bodies and Agencies (EUBA)",
+     "count": 3
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43252433",
+     "value": "Programme for the Protection of the Euro against Counterfeiting  (PERICLES IV)",
+     "count": 2
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43252517",
+     "value": "Social Prerogative and Specific Competencies Lines (SOCPL)",
+     "count": 2
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43253967",
+     "value": "Renewable Energy Financing Mechanism (RENEWFM)",
+     "count": 2
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43254037",
+     "value": "European Solidarity Corps (ESC)",
+     "count": 2
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43697167",
+     "value": "European Parliament (EP)",
+     "count": 2
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43089234",
+     "value": "Innovation Fund (INNOVFUND)",
+     "count": 1
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "43392145",
+     "value": "European Maritime, Fisheries and Aquaculture Fund (EMFAF)",
+     "count": 1
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "45876777",
+     "value": "Neighbourhood, Development and International Cooperation Instrument %E2%80%93 Global Europe (NDICI)",
+     "count": 1
+    },
+    {
+     "apiVersion": "2.151",
+     "rawValue": "46324255",
+     "value": "Technical assistance for ERDF, CF and JTF (ERDF-TA)",
+     "count": 1
+    }
+   ]
+  }
+ ]
+}

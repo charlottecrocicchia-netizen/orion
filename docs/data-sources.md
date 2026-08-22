@@ -12,6 +12,7 @@ Registre vivant : chaque source publique ingérée par Orion, avec sa juridictio
 | NIH RePORTER (`nih`) | US | USD → EUR (taux BCE datés) | **Domaine public** (données fédérales US) — vérifiée le 2026-08-03 sur reporter.nih.gov | annuelle par exercice (bulk par FY ; **FY2026 pas encore publié** — fenêtre réelle FY2005-2025) | **380 275 projets**, 379 346 participations, 358 911 résumés indexés, 77 instituts en programmes, 1 722 398 tranches annuelles repliées (2026-08-03) — voir les deux réserves ci-dessous |
 | NSF (`nsf`) | US | USD → EUR (taux BCE datés) | **Domaine public** (données fédérales US) — vérifiée le 2026-08-03 sur nsf.gov/policies/digital ; le PAPPG fait du résumé, avec son titre, **un document de la NSF**. Mention affichée : « Courtesy: U.S. National Science Foundation » | annuelle par exercice (catalogue `list-files`, FY2005-2026) | **235 071 projets**, 259 788 financements lus, 259 788 participations, 232 929 résumés indexés, 72 divisions en programmes, **118,8 Md€** (2026-08-03) — dont **17 523 projets reconstitués** par l'extension fratries |
 | Taux de change BCE (`ecb`) | — | — | Réutilisation libre avec attribution — vérifiée le 2026-08-03 | annuelle | 198 taux moyens annuels, 9 devises (USD/GBP/CHF/SEK/NOK/DKK/CAD/JPY/AUD) |
+| EU Funding & Tenders — appels (`calls`) | UE | EUR | **CC BY 4.0** — décision 2011/833/UE ; T&C du portail (v7.0) lues intégralement le 2026-08-22 : elles régissent l'usage du système d'échange, pas la réutilisation des données ; la page « APIs » documente officiellement l'usage par systèmes externes (détail : [conception-e1-appels.md](conception-e1-appels.md) § 0) | quotidienne (scheduler VPS, job `calls`) | **1 653 topics EN** (types Grant + Calls for proposals : ouverts, à venir, clos ≤ 6 mois) au 2026-08-22 ; pagination stabilisée par tri `identifier:ASC` (sans lui, ~200 topics d'écart entre deux moissons — constaté) |
 | GLEIF Golden Copy (`gleif`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 sur gleif.org (« even for commercial purposes ») | quotidienne (publishes/latest, rejouée par le scheduler hebdo) | 3 391 838 LEI en miroir, 258 260 liens de consolidation ACTIVE (fonds exclus), exceptions filtrées aux LEI pontés : 17 208 (2026-08-03) |
 | Wikidata parents (`wikidata`) | Monde | — (identité) | **CC0** — vérifiée le 2026-08-03 | mensuelle visée (rejouée par le scheduler hebdo) | 3 098 paires parent P749 entre porteurs de LEI bien formés (garde ISO 17442 : quelques P1278 sales rejetés) |
 
@@ -522,6 +523,8 @@ Les fichiers « partenaires » de l'ANR contiennent des **données personnelles*
 > Contains data from NIH RePORTER (U.S. Department of Health and Human Services), public domain.
 
 > Courtesy: U.S. National Science Foundation — award data, public domain.
+
+> Contains data from the EU Funding & Tenders Portal, © European Union, reused under CC BY 4.0.
 
 Les montants en euros portent toujours la mention de leur conversion
 (taux moyens annuels BCE de l'année de début).
