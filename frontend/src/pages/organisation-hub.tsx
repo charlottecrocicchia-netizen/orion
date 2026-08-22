@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router";
 
@@ -23,6 +24,88 @@ import {
   themeLabel,
   yearsRange,
 } from "@/lib/format";
+
+/** Le spotlight de la veille (E3, recette fondatrice v2) : le glyphe
+ *  radar — deux arcs et l'écho — émet UN ping à l'entrée en viewport,
+ *  jamais en boucle (IntersectionObserver once ; le bloc
+ *  prefers-reduced-motion global neutralise l'animation). Bande
+ *  d'introduction à peine teintée, hairlines — jamais une carte. */
+function OppsSpotlightHeader({
+  title,
+  lead,
+  openCount,
+  upcomingCount,
+}: {
+  title: string;
+  lead: string;
+  openCount: number;
+  upcomingCount: number;
+}) {
+  const { t } = useTranslation();
+  const rootRef = useRef<HTMLElement>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const node = rootRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setSeen(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <header
+      ref={rootRef}
+      className="mb-4 rounded-2xl border border-accent/20 bg-accent-soft/30 px-5 py-4"
+    >
+      <div className="flex flex-wrap items-center gap-3">
+        <span aria-hidden="true" className="relative inline-flex h-6 w-6 shrink-0">
+          {seen ? (
+            <span className="opps-ping absolute inset-0 rounded-full border-2 border-accent" />
+          ) : null}
+          <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
+            <circle cx="12" cy="12" r="2.2" fill="var(--color-accent)" />
+            <path
+              d="M6.6 6.6a7.6 7.6 0 0 1 10.8 0"
+              stroke="var(--color-accent)"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              opacity="0.75"
+            />
+            <path
+              d="M3.9 3.9a11.4 11.4 0 0 1 16.2 0"
+              stroke="var(--color-accent)"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              opacity="0.35"
+            />
+          </svg>
+        </span>
+        <h2 className="text-[14px] font-semibold uppercase tracking-[.14em]">{title}</h2>
+        <span className="ml-auto flex items-baseline gap-2">
+          {openCount > 0 ? (
+            <span className="tnum rounded-full border border-accent/40 bg-background px-2.5 py-0.5 text-[11.5px] font-semibold text-accent">
+              {t("org.opps.countOpen", { count: openCount })}
+            </span>
+          ) : null}
+          {upcomingCount > 0 ? (
+            <span className="tnum rounded-full border border-border bg-background px-2.5 py-0.5 text-[11.5px] text-muted-foreground">
+              {t("org.opps.countUpcoming", { count: upcomingCount })}
+            </span>
+          ) : null}
+        </span>
+      </div>
+      <p className="mt-1.5 pl-9 text-[11.5px] leading-snug text-muted-foreground">{lead}</p>
+    </header>
+  );
+}
 
 /** A deck-style act header — the demo page (lot 4 bis) reads the
  *  organisation through NUMBERED VIEWS, like an Angles deck reads a
@@ -333,27 +416,20 @@ export function OrganisationHubPage() {
             d'honnête à montrer — comme les signaux. */}
         {opportunities && opportunities.opportunities.length > 0 ? (
           <section aria-label={t("org.opps.title")}>
-            {/* La signature de veille (recette fondatrice) : l'encre
-                pleine sur le titre, la pastille dans son halo — l'œil
-                du poste de veille — et le filet d'accent qui s'éteint.
-                Des hairlines, jamais un bloc. */}
-            <header className="mb-1 flex items-center gap-2.5">
-              <span
-                aria-hidden="true"
-                className="relative inline-flex h-2.5 w-2.5 shrink-0 items-center justify-center"
-              >
-                <span className="absolute inset-0 rounded-full border border-accent/40" />
-                <span className="h-1 w-1 rounded-full bg-accent" />
-              </span>
-              <h2 className="text-[12.5px] font-semibold uppercase tracking-[.12em]">
-                {t("org.opps.title")}
-              </h2>
-              <span
-                aria-hidden="true"
-                className="h-px min-w-8 flex-1 bg-gradient-to-r from-accent/35 to-transparent"
-              />
-            </header>
-            <p className="mb-3 pl-[22px] text-[11.5px] text-muted-foreground">{t("org.opps.lead")}</p>
+            {/* Le SPOTLIGHT de veille (recette fondatrice v2) : glyphe
+                radar Orion avec un unique ping à l'entrée en viewport
+                (jamais en boucle ; le bloc reduced-motion global le
+                neutralise), titre à forte hiérarchie, compteur vivant,
+                bande d'introduction à peine teintée — la LISTE, elle,
+                reste sobre et hors de toute carte. */}
+            <OppsSpotlightHeader
+              title={t("org.opps.title")}
+              lead={t("org.opps.lead")}
+              openCount={opportunities.opportunities.filter((o) => o.status === "open").length}
+              upcomingCount={
+                opportunities.opportunities.filter((o) => o.status === "upcoming").length
+              }
+            />
             <div>
               {opportunities.opportunities.map((opp) => (
                 <article

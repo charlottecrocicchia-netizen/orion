@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -60,6 +60,16 @@ export function SearchComposer({
   const navigate = useNavigate();
   const [draft, setDraft] = useState("");
   const [active, setActive] = useState(0);
+  // Entrée SANS navigation = recherche texte (amendement fondatrice du
+  // 2026-08-22, qui révise la règle du 2026-08-02) ; les flèches
+  // gardent l'accès explicite aux tags d'entité. Des REFS, pas un état :
+  // deux frappes rapprochées (↓ puis Entrée) arrivent avant le re-rendu,
+  // le handler lirait un état rassis (échec e2e constaté).
+  const arrowUsedRef = useRef(false);
+  const activeRef = useRef(0);
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -303,13 +313,31 @@ export function SearchComposer({
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown" && open) {
       event.preventDefault();
-      setActive((current) => (current + 1) % all.length);
+      // La PREMIÈRE flèche SÉLECTIONNE la surbrillance par défaut
+      // (l'entité en tête) au lieu de la dépasser — sinon ↓ + Entrée
+      // retomberait sur l'option texte libre juste derrière.
+      const next = arrowUsedRef.current ? (activeRef.current + 1) % all.length : 0;
+      arrowUsedRef.current = true;
+      activeRef.current = next;
+      setActive(next);
     } else if (event.key === "ArrowUp" && open) {
       event.preventDefault();
-      setActive((current) => (current - 1 + all.length) % all.length);
-    } else if (event.key === "Enter" && open) {
+      const next = arrowUsedRef.current
+        ? (activeRef.current - 1 + all.length) % all.length
+        : all.length - 1;
+      arrowUsedRef.current = true;
+      activeRef.current = next;
+      setActive(next);
+    } else if (event.key === "Enter") {
       event.preventDefault();
-      (all[active] ?? all[0]).apply();
+      if (open && arrowUsedRef.current) {
+        // Choix EXPLICITE au clavier : la suggestion active s'applique.
+        (all[activeRef.current] ?? all[0]).apply();
+      } else if (draft.trim()) {
+        // Entrée nue = exécuter la recherche TEXTE — par le MÊME objet
+        // suggestion que le clic (jamais une seconde logique).
+        all.find((suggestion) => suggestion.id === "sc-text")?.apply();
+      }
     } else if (event.key === "Escape" && open) {
       setFocused(false);
     } else if (event.key === "Backspace" && draft === "" && tags.length > 0) {
@@ -364,6 +392,7 @@ export function SearchComposer({
           value={draft}
           onChange={(event) => {
             setDraft(event.target.value);
+            arrowUsedRef.current = false;
             setActive(0);
           }}
           onFocus={() => setFocused(true)}

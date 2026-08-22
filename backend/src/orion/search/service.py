@@ -10,6 +10,7 @@ query); global facets and the programme tree are cached in-process, keyed by
 the ingestion stamp so any successful ingestion run invalidates them.
 """
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -615,11 +616,26 @@ def _organisation_where(f: OrganisationFilters, params: dict[str, Any]) -> tuple
         params["qnorm"] = normalize_name(f.q) or f.q.lower()
         params["qraw"] = f.q
         params["qprefix"] = f"{f.q}%"
+        # Le palier MOT ENTIER (recette E3, 2026-08-22 — le cas CNRS) :
+        # « cnrs » comme mot du nom normalisé vaut 0.95, que le mot soit
+        # en tête (« CNRS Innovation ») ou en queue (« CENTRE NATIONAL
+        # DE LA RECHERCHE SCIENTIFIQUE CNRS ») — le boost préfixe seul
+        # (0.9) faisait passer les délégations devant la canonique, dont
+        # la similarité trigramme sur un nom long est faible. À égalité
+        # de palier, le tiebreak existant (financement) place l'entité
+        # dominante en premier ; les entités liées restent listées.
+        params["qsub"] = f"%{params['qnorm']}%"
+        params["qword"] = r"\m" + re.escape(params["qnorm"]) + r"\M"
         # name_normalized is filled by the dedup pass; the raw-name trigram
         # keeps organisations searchable between ingestion and that pass.
-        clauses.append("(o.name ILIKE :qprefix OR o.name_normalized % :qnorm OR o.name % :qraw)")
+        clauses.append(
+            "(o.name ILIKE :qprefix OR o.name_normalized % :qnorm OR o.name % :qraw "
+            "OR o.name_normalized ILIKE :qsub)"
+        )
         rank = (
-            "GREATEST(similarity(coalesce(o.name_normalized, ''), :qnorm), "
+            "GREATEST("
+            "CASE WHEN o.name_normalized ~ :qword THEN 0.95 ELSE 0 END, "
+            "similarity(coalesce(o.name_normalized, ''), :qnorm), "
             "similarity(o.name, :qraw), "
             "CASE WHEN o.name ILIKE :qprefix THEN 0.9 ELSE 0 END)"
         )

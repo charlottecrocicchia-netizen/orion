@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-/** The composable bar's Enter contract (recette 2026-08-02): a typed
- *  ENTITY poses its tag — "Allemagne" means the country, never a text
- *  search that happens to contain the word. Tested in FRENCH, the exact
- *  path of the founder's bug report. */
+/** The composable bar's Enter contract — AMENDÉ par la fondatrice le
+ *  2026-08-22 (recette E3), révisant la règle du 2026-08-02 : Entrée
+ *  NUE exécute la recherche TEXTE, immédiatement, par le même
+ *  mécanisme que le clic. Les tags d'entité restent à un coup de
+ *  flèche : ↓ + Entrée pose « Allemagne » comme pays. */
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -12,14 +13,22 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("« Allemagne » + Entrée pose le tag pays, pas une recherche texte", async ({ page }) => {
+test("Entrée nue = recherche texte ; ↓ + Entrée = le tag pays (amendement 2026-08-22)", async ({ page }) => {
   await page.goto("/projects");
   const input = page.getByRole("combobox", { name: /Composez/ });
   await input.fill("Allemagne");
   await expect(page.getByRole("listbox")).toBeVisible();
   await input.press("Enter");
+  // Entrée nue : la recherche s'exécute, l'URL porte le texte.
+  await expect(page).toHaveURL(/q=Allemagne/);
+  expect(page.url()).not.toContain("country=DE");
+
+  // Le tag d'entité reste à un coup de flèche : choix EXPLICITE.
+  await input.fill("Allemagne");
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await input.press("ArrowDown");
+  await input.press("Enter");
   await expect(page).toHaveURL(/country=DE/);
-  expect(page.url()).not.toContain("q=Allemagne");
   // The tag lives in the bar, typed as a country.
   await expect(page.getByText("pays", { exact: true })).toBeVisible();
 });
@@ -36,6 +45,7 @@ test("interface ANGLAISE + « Allemagne » pose aussi le tag pays (le geste rée
   // The name "Germany" now appears twice — the country FILTER and the
   // country DESTINATION (« Aller à ») — so target the filter option.
   await expect(page.locator("#sc-c-DE")).toBeVisible();
+  await input.press("ArrowDown");
   await input.press("Enter");
   await expect(page).toHaveURL(/country=DE/);
   expect(page.url()).not.toContain("q=Allemagne");
@@ -55,4 +65,29 @@ test("les puces d'affinage posent des tags et les actives disparaissent", async 
   // The active DE facet is gone from the chips — it lives as a tag.
   const refineRow = page.locator("main");
   await expect(refineRow.getByRole("button", { name: /Allemagne · / })).toHaveCount(0);
+});
+
+test("clavier : saisie → Entrée → URL → résultats, sur Projects ET Organisations", async ({
+  page,
+}) => {
+  // Le geste exact du retour de recette E3 : taper, Entrée, chercher.
+  await page.goto("/projects");
+  const input = page.getByRole("combobox", { name: /Composez/ });
+  await input.fill("orbital");
+  await input.press("Enter");
+  await expect(page).toHaveURL(/q=orbital/);
+  await expect(page.getByText(/résultat/).first()).toBeVisible({ timeout: 15_000 });
+
+  // Modifier la requête puis Entrée : recalcul immédiat, même mécanisme.
+  await input.fill("cryogenic");
+  await input.press("Enter");
+  await expect(page).toHaveURL(/q=cryogenic/);
+  expect(page.url()).not.toContain("orbital");
+
+  await page.goto("/organisations");
+  const orgInput = page.getByRole("combobox", { name: /Composez/ });
+  await orgInput.fill("aerostellar");
+  await orgInput.press("Enter");
+  await expect(page).toHaveURL(/q=aerostellar/);
+  await expect(page.getByText(/AEROSTELLAR/i).first()).toBeVisible({ timeout: 15_000 });
 });
