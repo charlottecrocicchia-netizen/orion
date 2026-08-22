@@ -140,3 +140,21 @@ Le radar (`diagnose_group_gaps.py`) se relance après chargement : le
 trou restant se mesure, fournée après fournée. La note d'honnêteté des
 fiches groupe (« N organisations homonymes pas encore rattachées »)
 suit automatiquement — même définition, même module.
+
+## File de consignation — cas relevés en recette
+
+### CNRS — fragmentation résiduelle constatée (recette E3, 2026-08-22)
+
+En cherchant « CNRS », la recette fondatrice a vu plusieurs entités
+séparées. Mesuré sur pièce : **la tête est massivement consolidée**
+(id 18159, « CENTRE NATIONAL DE LA RECHERCHE SCIENTIFIQUE CNRS »,
+PIC 999997930, 4 941 projets) ; la queue compte ~7 homonymes à
+1-26 projets chacun (« CNRS INNOVATION » 26 — entité juridique
+distincte, probablement légitime ; UMR/délégations/instituts à
+1 projet : CEMES-CNRS, CRHEA-CNRS, CNRS UMR 5023, Délégation Côte
+d'Azur, IRHT, IKER — fragmentation résiduelle du garde-fou
+identifiants). À instruire au chantier entités (rattachements curés
+tête ↔ UMR/délégations, comme Safran/Airbus en fournée 1) — **rien à
+changer dans E3** : la logique lit les canoniques telles quelles.
+Question d'UX distincte relevée au passage : l'ordre des résultats de
+la recherche organisations ne met pas toujours la tête en premier.
