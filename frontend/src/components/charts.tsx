@@ -108,10 +108,16 @@ export function LinesChart({
   series,
   unit,
   ariaLabel,
+  colorOf,
 }: {
   series: ExploreSeries[];
   unit: string;
   ariaLabel: string;
+  /** La couleur suit l'ENTITÉ, jamais son rang (doctrine ci-dessus) :
+   *  quand la page masque des séries (légende interactive), elle passe
+   *  ici la couleur d'origine de chaque clé pour qu'un masquage ne
+   *  repeigne jamais les courbes restantes. */
+  colorOf?: (key: string) => string;
 }) {
   const { t, i18n } = useTranslation();
   const [tip, setTip] = useState<Tip | null>(null);
@@ -219,7 +225,8 @@ export function LinesChart({
                 ))}
 
               {series.map((serie, index) => {
-                const color = SERIES_COLORS[index % SERIES_COLORS.length];
+                const color =
+                  colorOf?.(String(serie.key)) ?? SERIES_COLORS[index % SERIES_COLORS.length];
                 const pts = (serie.points ?? []).filter((p) => p.value != null);
                 const path = pts.map((p) => `${x(p.year).toFixed(1)},${y(p.value ?? 0).toFixed(1)}`);
                 return (
@@ -249,7 +256,9 @@ export function LinesChart({
                     y={labelY + 4}
                     fontSize="12"
                     fontWeight={index === 0 ? 600 : 400}
-                    fill={SERIES_COLORS[index % SERIES_COLORS.length]}
+                    fill={
+                      colorOf?.(String(serie.key)) ?? SERIES_COLORS[index % SERIES_COLORS.length]
+                    }
                   >
                     {lines.map((line, li) => (
                       <tspan key={li} x={width - padRight + 10} dy={li === 0 ? 0 : 12}>

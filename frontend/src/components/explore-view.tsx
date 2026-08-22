@@ -15,7 +15,7 @@ import { ExploreTable } from "@/components/explore-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
-import { countryFlag, formatValue, seriesLabel } from "@/lib/format";
+import { countryFlag, formatValue, seriesColor, seriesLabel } from "@/lib/format";
 
 /** One self-contained Explorer view — an Angles slide's body. Same state
  *  grammar, same API cache keys and same chart components as the page
@@ -68,6 +68,20 @@ export function ExploreView({
     return <p className="py-24 text-center text-muted-foreground">{t("explorer.emptyView")}</p>;
   }
 
+  // Les séries masquées d'une URL rejouée (chantier légende) : le
+  // dossier et les decks restaurent EXACTEMENT la composition gardée —
+  // présentation pure, mêmes règles que la page (donut/carte/table
+  // restent entiers), sans contrôle ici (la vue rejouée est en
+  // lecture ; le composeur reste l'endroit où l'on compose).
+  const shownSeries =
+    ["lines", "bump", "delta", "bars"].includes(view) && data.series.length > 1
+      ? data.series.filter((serie) => !state.hidden.includes(String(serie.key)))
+      : data.series;
+  const legendColorOf = (key: string) => {
+    const index = data.series.findIndex((serie) => String(serie.key) === key);
+    return index >= 0 ? seriesColor(index) : "var(--color-border)";
+  };
+
   // A drill into a childless programme folds everything back onto itself:
   // say so instead of drawing a one-slice ring.
   const leafDrill =
@@ -96,13 +110,18 @@ export function ExploreView({
           {t("explorer.donutNoChildren")}
         </p>
       ) : view === "lines" ? (
-        <LinesChart series={data.series} unit={data.unit} ariaLabel={title} />
+        <LinesChart
+          series={shownSeries}
+          unit={data.unit}
+          ariaLabel={title}
+          colorOf={legendColorOf}
+        />
       ) : view === "bump" ? (
-        <BumpChart series={data.series} ariaLabel={title} />
+        <BumpChart series={shownSeries} ariaLabel={title} colorOf={legendColorOf} />
       ) : view === "delta" ? (
-        <DumbbellChart series={data.series} unit={data.unit} ariaLabel={title} />
+        <DumbbellChart series={shownSeries} unit={data.unit} ariaLabel={title} />
       ) : view === "bars" ? (
-        <BarsChart series={data.series} unit={data.unit} ariaLabel={title} />
+        <BarsChart series={shownSeries} unit={data.unit} ariaLabel={title} />
       ) : view === "map" ? (
         <>
           <WorldMap

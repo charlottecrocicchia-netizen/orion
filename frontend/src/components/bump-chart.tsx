@@ -18,9 +18,14 @@ const PAD_Y = 34;
 export function BumpChart({
   series,
   ariaLabel,
+  colorOf,
 }: {
   series: ExploreResponse["series"];
   ariaLabel: string;
+  /** La couleur suit l'entité, jamais son rang : quand la page masque
+   *  des séries (légende interactive), elle fournit la couleur
+   *  d'origine de chaque clé — un masquage ne repeint rien. */
+  colorOf?: (key: string) => string;
 }) {
   const { t } = useTranslation();
   const years = [
@@ -55,7 +60,7 @@ export function BumpChart({
         const key = String(serie.key);
         const own = ranks.get(key);
         if (!own) return null;
-        const color = `var(--color-series-${(index % 6) + 1})`;
+        const color = colorOf?.(key) ?? `var(--color-series-${(index % 6) + 1})`;
         const label = seriesLabel(serie, t);
         // Split the path on gaps so a missing year breaks the line.
         const segments: string[][] = [[]];

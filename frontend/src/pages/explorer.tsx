@@ -12,6 +12,7 @@ import { DumbbellChart } from "@/components/dumbbell-chart";
 import { CoverageNote } from "@/components/coverage-note";
 import { LensUnavailable } from "@/components/lens-unavailable";
 import { SectorChip } from "@/components/sector-chip";
+import { SeriesLegend } from "@/components/series-legend";
 import { LENS_PARAM, useActiveLensState, useCarriedLens, withLens } from "@/lib/lens";
 import { ExploreTable } from "@/components/explore-table";
 import { WorldMap } from "@/components/world-map";
@@ -23,7 +24,7 @@ import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
 import type { ExplorerState } from "@/lib/explore-state";
-import { countryFlag, formatValue, seriesLabel } from "@/lib/format";
+import { countryFlag, formatValue, seriesColor, seriesLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const METRICS = ["funding", "projects", "organisations", "avg", "coordination"] as const;
@@ -211,6 +212,9 @@ export function ExplorerPage() {
     if (next.sector) out.set(LENS_PARAM, next.sector);
     if (next.subdivision) out.set("subdivision", next.subdivision);
     if (next.organisation) out.set("organisation", next.organisation);
+    // Les séries masquées (chantier légende) : clés canoniques, jamais
+    // des labels — l'URL rejoue exactement la même composition.
+    if (next.hidden.length > 0) out.set("hidden", next.hidden.join("~"));
     setParams(out, { preventScrollReset: true });
   };
 
@@ -333,6 +337,28 @@ export function ExplorerPage() {
 
   const boardTitle = `${t(`explorer.metric.${state.metric}`)} · ${t(`explorer.dim.${state.by}`)}`;
 
+  // La visibilité des séries (chantier légende, 2026-08-22) — état de
+  // PRÉSENTATION pur : le backend rend les mêmes données, seules les
+  // séries dessinées et l'échelle changent. Les vues part-du-tout
+  // (donut), la carte et la table restent entières — masquer une part
+  // d'un donut mentirait sur le total.
+  const LEGEND_VIEWS = ["lines", "bump", "delta", "bars"];
+  const legendActive = LEGEND_VIEWS.includes(view) && (data?.series.length ?? 0) > 1;
+  // La couleur suit l'entité : figée sur l'ordre COMPLET du top, jamais
+  // recompactée quand une série se masque.
+  const colorByKey = new Map(
+    (data?.series ?? []).map((serie, index) => [String(serie.key), seriesColor(index)]),
+  );
+  const shownSeries = legendActive
+    ? (data?.series ?? []).filter((serie) => !state.hidden.includes(String(serie.key)))
+    : (data?.series ?? []);
+  const toggleHidden = (key: string) =>
+    patch({
+      hidden: state.hidden.includes(key)
+        ? state.hidden.filter((k) => k !== key)
+        : [...state.hidden, key],
+    });
+
   const submitFreeText = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -440,6 +466,9 @@ export function ExplorerPage() {
                     programme: "",
                     view: "auto",
                     split: by === "year" ? false : state.split,
+                    // Les identifiants masqués appartiennent à LEUR
+                    // dimension : changer de dimension repart net.
+                    hidden: [],
                   });
                   close();
                 }}
@@ -745,13 +774,22 @@ export function ExplorerPage() {
               {t("explorer.donutNoChildren")}
             </p>
           ) : view === "lines" ? (
-            <LinesChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
+            <LinesChart
+              series={shownSeries}
+              unit={data.unit}
+              ariaLabel={boardTitle}
+              colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
+            />
           ) : view === "bump" ? (
-            <BumpChart series={data.series} ariaLabel={boardTitle} />
+            <BumpChart
+              series={shownSeries}
+              ariaLabel={boardTitle}
+              colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
+            />
           ) : view === "delta" ? (
-            <DumbbellChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
+            <DumbbellChart series={shownSeries} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "bars" ? (
-            <BarsChart series={data.series} unit={data.unit} ariaLabel={boardTitle} />
+            <BarsChart series={shownSeries} unit={data.unit} ariaLabel={boardTitle} />
           ) : view === "map" ? (
             <>
               <WorldMap
@@ -827,6 +865,19 @@ export function ExplorerPage() {
             <ExploreTable data={data} temporal={temporal} />
           )}
         </div>
+
+        {/* La légende interactive : LE contrôle de visibilité — jamais
+            un clic sur la courbe. Masquer = composer sa lecture, les
+            données et les tops ne bougent pas. */}
+        {data && legendActive && !leafDrill && !isError ? (
+          <SeriesLegend
+            series={data.series}
+            hidden={state.hidden}
+            colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
+            onToggle={toggleHidden}
+            onShowAll={() => patch({ hidden: [] })}
+          />
+        ) : null}
 
         {/* L'honnêteté au POINT DE COMPARAISON (lot E) : la phrase naît
             quand la vue mélange des couvertures, et seulement là. */}

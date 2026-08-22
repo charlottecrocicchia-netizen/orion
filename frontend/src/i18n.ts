@@ -808,6 +808,11 @@ const resources = {
           region: "region",
         },
         multiTheme: "a project can carry several themes · CORDIS corpus",
+        legend: {
+          hide: "Hide series",
+          show: "Show series",
+          showAll: "Show all",
+        },
         unit: { eur: "€", count: "count", pct: "%" },
         basis: {
           participants: "participants' share",
@@ -1829,6 +1834,11 @@ const resources = {
           region: "région",
         },
         multiTheme: "un projet peut porter plusieurs thèmes · corpus CORDIS",
+        legend: {
+          hide: "Masquer la série",
+          show: "Réafficher la série",
+          showAll: "Tout afficher",
+        },
         unit: { eur: "€", count: "nombre", pct: "%" },
         basis: {
           participants: "part des participants",

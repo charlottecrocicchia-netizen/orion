@@ -23,6 +23,13 @@ export interface ExplorerState {
   sector: string;
   /** La maille sous le pays (lot D) : « US-CA » cadre la vue. */
   subdivision: string;
+  /** Les séries MASQUÉES à l'écran (chantier légende, 2026-08-22) :
+   *  identifiants canoniques (clé de série API — code pays, id, slug),
+   *  jamais des labels traduits. État de PRÉSENTATION pur : il ne
+   *  voyage jamais vers l'API (toApiParams l'ignore), les données,
+   *  tops, KPI et exports ne bougent pas — seules les séries
+   *  dessinées et l'échelle visuelle changent. */
+  hidden: string[];
   limit: number;
   view: string;
 }
@@ -42,6 +49,7 @@ export function readState(params: URLSearchParams): ExplorerState {
     organisation: params.get("organisation") ?? "",
     sector: params.get(LENS_PARAM) ?? "",
     subdivision: params.get("subdivision") ?? "",
+    hidden: (params.get("hidden") ?? "").split("~").filter(Boolean),
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
   };
@@ -63,6 +71,8 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   if (state.organisation) apiParams.set("organisation", state.organisation);
   if (state.sector) apiParams.set(LENS_PARAM, state.sector);
   if (state.subdivision) apiParams.set("subdivision", state.subdivision);
+  // `hidden` n'atteint JAMAIS l'API : masquer une série est un état de
+  // présentation — le backend rend exactement les mêmes données.
   return apiParams;
 }
 
