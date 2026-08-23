@@ -22,14 +22,19 @@ Any Docker-capable VPS works (Hetzner CX32-class recommended, Scaleway if
    - `SITE_ADDRESS` — your domain (Caddy then obtains TLS automatically);
      keep `:80` until DNS exists
    - `HTTP_PORT=80`, `HTTPS_PORT=443`
-4. **Log in to GHCR** on the server (images are private):
-   `docker login ghcr.io` with a GitHub PAT that has `read:packages`.
+4. **Clone the repo** on the server with a read-only deploy key
+   (docs/conception-deploiement.md, D2) — the server BUILDS its images
+   from the clone (D1). No registry pull: GHCR stays dormant until the
+   CI publishes fresh images again — that day, re-enabling it is a
+   separate decision, and the gesture will be `docker login ghcr.io`
+   with a GitHub PAT holding `read:packages` (minted by Charlotte,
+   never stored in the repo or a conversation).
 5. **DNS**: point an A record of your domain at the server IP.
-6. **Deploy** — either locally:
-   `DEPLOY_HOST=<ip> DEPLOY_USER=<user> ./infra/deploy.sh`
-   or from GitHub Actions: set the repository secrets `DEPLOY_HOST`,
-   `DEPLOY_USER`, `DEPLOY_SSH_KEY` (private key of a deploy-only keypair),
-   then run the CI workflow manually with "deploy" checked.
+6. **Deploy**: `DEPLOY_HOST=<ip> DEPLOY_USER=<user> ./infra/deploy.sh`
+   — which is exactly `ssh … 'git pull --ff-only && make up'` (the
+   étape 9 runbook), plus the revision stamp and a smoke test.
+   Rollback: `ssh … 'git checkout <rev> && make up'` ; data → dump
+   restore (annexe C) ; machine → OVH snapshot.
 7. **Backups**: enable provider snapshots; a `pg_dump` cron ships in phase 1
    together with real data.
 

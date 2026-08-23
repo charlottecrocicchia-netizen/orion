@@ -1,29 +1,36 @@
 #!/usr/bin/env bash
-# Generic deployment to any Docker-capable VPS over SSH.
+# Déploiement — LE geste documenté (docs/conception-deploiement.md,
+# étape 9) : le serveur met à jour son clone git et reconstruit les
+# images sur place (décision D1 — aucune image tirée d'un registre tant
+# que la CI n'en publie pas de fraîches ; le jour où GHCR revient,
+# c'est une décision séparée, voir infra/README.md).
 #
-# Required environment: DEPLOY_HOST, DEPLOY_USER
-# Optional: DEPLOY_PATH (default /home/$DEPLOY_USER/orion)
+# Requis : DEPLOY_HOST, DEPLOY_USER. Optionnel : DEPLOY_PATH
+# (défaut /home/$DEPLOY_USER/orion). Équivalent manuel :
+#   ssh orion-vps 'cd ~/orion && git pull --ff-only && make up'
 #
-# One-time server setup (Docker, .env, ghcr.io login) is documented in
-# infra/README.md. No hosting target is configured yet — this script is
-# ready for the day one exists.
+# Rappels du runbook :
+# - migration de schéma → dump manuel AVANT (le cron de la nuit ne
+#   suffit pas si le commit du matin casse) et snapshot selon le rituel ;
+# - Caddyfile modifié → `docker compose … restart caddy` (monté en
+#   volume, `up -d` ne le recharge pas) ;
+# - rollback applicatif : `git checkout <rev précédente> && make up`.
 set -euo pipefail
 
-: "${DEPLOY_HOST:?DEPLOY_HOST is not set — no deployment target configured yet (see infra/README.md)}"
+: "${DEPLOY_HOST:?DEPLOY_HOST is not set (see infra/README.md)}"
 : "${DEPLOY_USER:?DEPLOY_USER is not set (see infra/README.md)}"
 DEPLOY_PATH="${DEPLOY_PATH:-/home/${DEPLOY_USER}/orion}"
 
 target="${DEPLOY_USER}@${DEPLOY_HOST}"
-here="$(cd "$(dirname "$0")" && pwd)"
 
-echo "==> Syncing compose files to ${target}:${DEPLOY_PATH}"
-ssh "$target" "mkdir -p '${DEPLOY_PATH}'"
-scp "${here}/compose.prod.yml" "${here}/Caddyfile" "${target}:${DEPLOY_PATH}/"
+echo "==> Mise à jour du clone et reconstruction sur ${target}:${DEPLOY_PATH}"
+ssh "$target" "cd '${DEPLOY_PATH}' && git pull --ff-only && make up"
 
-echo "==> Pulling images and restarting services"
-ssh "$target" "cd '${DEPLOY_PATH}' && docker compose -f compose.prod.yml pull && docker compose -f compose.prod.yml up -d --wait"
+echo "==> Tampon de révision servi"
+ssh "$target" "docker inspect ghcr.io/charlottecrocicchia-netizen/orion-api:latest \
+  --format '{{index .Config.Labels \"org.opencontainers.image.revision\"}}'"
 
 echo "==> Smoke test"
-ssh "$target" "curl -fsS http://localhost:8080/api/health || curl -fsS http://localhost/api/health"
+ssh "$target" "curl -fsS http://localhost:8080/api/health"
 echo ""
-echo "==> Deployed."
+echo "==> Déployé."

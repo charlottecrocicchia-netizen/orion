@@ -128,12 +128,21 @@ services:
 
   scheduler:
     image: ${API_IMAGE:-ghcr.io/charlottecrocicchia-netizen/orion-api:latest}
-    build: ../backend
+    # MÊMES args de build que le service api : le scheduler partage son
+    # image, et dans `up --build` sa construction est la DERNIÈRE à
+    # étiqueter le tag — sans GIT_REV ici, elle écrasait le tampon posé
+    # par le build de l'api (label « inconnu », trouvé en remise en état
+    # du chemin de déploiement, 2026-08-23).
+    build:
+      context: ../backend
+      args:
+        GIT_REV: ${GIT_REV:-inconnu}
     restart: unless-stopped
     # BEHIND A PROFILE: the weekly full replay is a hosting job, not a
     # laptop job. On an 8 GB machine it would wake up on a Monday at 3am
     # and re-ingest the whole corpus. `make up` leaves it off; the VPS
-    # deployment starts it explicitly (infra/deploy.sh).
+    # starts it via COMPOSE_PROFILES=scheduler in its .env (job `calls`
+    # only — E1; the weekly full replay stays off, D5).
     profiles: ["scheduler"]
     command: ["uv", "run", "--no-sync", "orion-scheduler"]
     environment:
