@@ -837,6 +837,27 @@ const resources = {
           noDate_other: "missing start date: {{count}} projects, {{amount}}",
           noCurrency_one: "currency without an admitted index: {{count}} project, {{amount}}",
           noCurrency_other: "currency without an admitted index: {{count}} projects, {{amount}}",
+          groupTrend: "Trend",
+          indexMode: "Index 100",
+          indexHint: "Compare growth trajectories",
+          growthMode: "Annual growth",
+          growthHint: "Compare year-to-year change",
+          baseYear: "Base year",
+          indexCurrent: "Index 100 · {{base}}",
+          csvIndex: "Index ({{base}}=100)",
+          csvGrowth: "Annual growth (%)",
+          trendIndexMethod:
+            "Each series is expressed relative to its real funding value in {{base}}, set to 100. This compares trajectories, not absolute funding levels.",
+          trendGrowthMethod:
+            "Year-over-year change in real funding. The first year and years following a missing value are unavailable.",
+          trendCohortWarning:
+            "Amounts are commitment cohorts attached to project start years: large award waves can produce sharp yearly swings — this is not a smoothed measure of public spending.",
+          nonIndexable_one:
+            "Not indexable on {{base}} (no real value that year): {{series}}",
+          nonIndexable_other:
+            "Not indexable on {{base}} (no real value that year): {{series}}",
+          trendUnavailable:
+            "Index 100 and annual growth need a time axis. The view stays nominal.",
           bandLabel: "Price index not published",
           unavailable:
             "Real value is unavailable: the price indices for the requested year are not loaded. The view stays nominal.",
@@ -1892,6 +1913,27 @@ const resources = {
           noDate_other: "date de début manquante : {{count}} projets, {{amount}}",
           noCurrency_one: "devise sans indice admis : {{count}} projet, {{amount}}",
           noCurrency_other: "devise sans indice admis : {{count}} projets, {{amount}}",
+          groupTrend: "Trajectoire",
+          indexMode: "Indice 100",
+          indexHint: "Comparer les trajectoires de croissance",
+          growthMode: "Croissance annuelle",
+          growthHint: "Comparer d'une année sur l'autre",
+          baseYear: "Année de base",
+          indexCurrent: "Indice 100 · {{base}}",
+          csvIndex: "Indice ({{base}}=100)",
+          csvGrowth: "Croissance annuelle (%)",
+          trendIndexMethod:
+            "Chaque série est exprimée par rapport à sa valeur réelle de {{base}}, posée à 100. On compare des trajectoires, pas des niveaux absolus de financement.",
+          trendGrowthMethod:
+            "Variation d'une année sur l'autre de la valeur réelle. La première année et les années qui suivent un trou sont indisponibles.",
+          trendCohortWarning:
+            "Les montants sont des cohortes d'engagement rattachées à l'année de démarrage des projets : une grosse vague d'attributions peut produire de forts à-coups annuels — ce n'est pas une mesure lissée de dépense publique.",
+          nonIndexable_one:
+            "Non indexable sur {{base}} (pas de valeur réelle cette année-là) : {{series}}",
+          nonIndexable_other:
+            "Non indexable sur {{base}} (pas de valeur réelle cette année-là) : {{series}}",
+          trendUnavailable:
+            "L'indice 100 et la croissance annuelle demandent un axe temporel. La vue reste en nominal.",
           bandLabel: "Indice non publié",
           unavailable:
             "La valeur réelle est indisponible : les indices de prix de l'année demandée ne sont pas chargés. La vue reste en nominal.",

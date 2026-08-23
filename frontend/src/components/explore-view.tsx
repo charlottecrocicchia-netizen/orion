@@ -16,6 +16,7 @@ import { ExploreTable } from "@/components/explore-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
+import { applyTrend, resolveIndexBase } from "@/lib/trend";
 import { countryFlag, formatValue, seriesColor, seriesLabel } from "@/lib/format";
 
 /** One self-contained Explorer view — an Angles slide's body. Same state
@@ -45,12 +46,27 @@ export function ExploreView({
   const { temporal, view } = resolveView(state);
   const apiParams = toApiParams(state);
 
-  const { data, isPending } = useQuery({
+  const { data: rawData, isPending } = useQuery({
     queryKey: ["explore", apiParams.toString()],
     queryFn: () => api.explore(apiParams),
     enabled: active,
     staleTime: 60_000,
   });
+  // TREND (R2) : une vue rejouée (deck, dossier) passe par LA même
+  // transformation que la page (lib/trend.ts) — la base est résolue par
+  // la même règle canonique, sans réécriture d'URL (la vue rejouée est
+  // en lecture).
+  const trendMode =
+    state.value === "index" || state.value === "growth"
+      ? (state.value as "index" | "growth")
+      : null;
+  const canonicalBase =
+    trendMode === "index" && rawData
+      ? resolveIndexBase(rawData, state.from, state.to, state.base)
+      : null;
+  const trend =
+    trendMode && temporal && rawData ? applyTrend(rawData, trendMode, canonicalBase) : null;
+  const data = trend ? trend.data : rawData;
   const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: flows } = useQuery({
     queryKey: ["country-flows"],
@@ -67,6 +83,15 @@ export function ExploreView({
   }
   if (data.series.length === 0) {
     return <p className="py-24 text-center text-muted-foreground">{t("explorer.emptyView")}</p>;
+  }
+  if (trendMode && !temporal) {
+    // Un état rejoué incohérent (TREND sans axe temporel) se refuse en
+    // toutes lettres — jamais une interprétation silencieuse différente.
+    return (
+      <p className="py-24 text-center text-muted-foreground">
+        {t("explorer.reference.trendUnavailable")}
+      </p>
+    );
   }
 
   // Les séries masquées d'une URL rejouée (chantier légende) : le
@@ -199,8 +224,23 @@ export function ExploreView({
           dossier, benchmark composable (lot E, 2026-08-17). */}
       <CoverageNote meta={data.meta} />
       {/* ⓘ Reference (R0 § D8) : une vue gardée au dossier en valeur
-          réelle reste honnête en replay — même note, mêmes chiffres. */}
-      <ReferenceNote data={data} />
+          réelle ou en TREND reste honnête en replay — même note, mêmes
+          chiffres. */}
+      <ReferenceNote
+        data={data}
+        trend={
+          trend && trendMode
+            ? {
+                mode: trendMode,
+                base: canonicalBase,
+                nonIndexable: trend.nonIndexable.map((key) => {
+                  const serie = data.series.find((s) => String(s.key) === key);
+                  return serie ? seriesLabel(serie, t) : key;
+                }),
+              }
+            : undefined
+        }
+      />
       {view !== "table" && !leafDrill ? (
         <details className="mt-3 border-t border-border-soft pt-2">
           <summary className="cursor-pointer text-[12px] text-muted-foreground hover:text-foreground">

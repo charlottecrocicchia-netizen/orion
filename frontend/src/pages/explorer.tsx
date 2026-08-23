@@ -25,6 +25,7 @@ import { addToDossier, isCollected, removeByParams } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
+import { applyTrend, indexBaseCandidates, resolveIndexBase } from "@/lib/trend";
 import type { ExplorerState } from "@/lib/explore-state";
 import {
   countryFlag,
@@ -229,6 +230,14 @@ export function ExplorerPage() {
       out.set("value", "real");
       if (next.base != null) out.set("base", String(next.base));
       if (next.cur) out.set("cur", next.cur);
+    } else if (next.value === "index") {
+      // TREND (R2) : l'index porte son année de base, la croissance n'a
+      // aucun paramètre — et aucune interaction (légende, fenêtre,
+      // filtres) ne fait tomber le mode en silence.
+      out.set("value", "index");
+      if (next.base != null) out.set("base", String(next.base));
+    } else if (next.value === "growth") {
+      out.set("value", "growth");
     }
     // Les séries masquées (chantier légende) : clés canoniques, jamais
     // des labels — l'URL rejoue exactement la même composition.
@@ -237,13 +246,25 @@ export function ExplorerPage() {
   };
 
   const apiParams = toApiParams(state);
+  const { temporal, availableViews, view } = resolveView(state);
 
-  const { data, isPending, isError } = useQuery({
+  // TREND (R2, conception R0 § D1) : index et growth sont des
+  // transformations CLIENT de la série real — le backend les ignore.
+  // Sur une vue sans axe temporel, le mode se refuse explicitement
+  // (jamais une interprétation silencieuse différente) et rien n'est
+  // demandé à l'API.
+  const trendMode =
+    state.value === "index" || state.value === "growth"
+      ? (state.value as "index" | "growth")
+      : null;
+  const trendInvalid = trendMode != null && !temporal;
+
+  const { data: rawData, isPending, isError } = useQuery({
     queryKey: ["explore", apiParams.toString()],
     queryFn: () => api.explore(apiParams),
     placeholderData: keepPreviousData,
     // Une vue déjà refusée ne demande rien : l'API dirait la même chose.
-    enabled: lensState.kind !== "invalid",
+    enabled: lensState.kind !== "invalid" && !trendInvalid,
   });
   const { data: countries } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
   const { data: programmes } = useQuery({
@@ -263,7 +284,19 @@ export function ExplorerPage() {
     enabled: state.view === "map",
   });
 
-  const { temporal, availableViews, view } = resolveView(state);
+  // LA transformation TREND, en un point unique juste après la réponse
+  // (lib/trend.ts) : graphique, table, CSV, légende et note lisent tous
+  // `data` transformé — jamais deux calculs légèrement différents. La
+  // base d'index est CANONIQUE : dans la fenêtre visible et
+  // exploitable, sinon ré-ancrée (l'URL est réécrite plus bas).
+  const indexBases = rawData ? indexBaseCandidates(rawData, state.from, state.to) : [];
+  const canonicalBase =
+    trendMode === "index" && rawData
+      ? resolveIndexBase(rawData, state.from, state.to, state.base)
+      : null;
+  const trend =
+    trendMode && !trendInvalid && rawData ? applyTrend(rawData, trendMode, canonicalBase) : null;
+  const data = trend ? trend.data : rawData;
 
   // L'année de référence dans l'URL, TOUJOURS (arbitrage du 2026-08-22,
   // repris sous la grammaire R0) : la bascule peut partir sans année
@@ -282,20 +315,40 @@ export function ExplorerPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.value, state.base, referenceMeta?.base, anglesStory]);
 
+  // L'année de base d'index, CANONIQUE dans l'URL (GO R2, § 3 et 12) :
+  // absente, hors de la fenêtre visible ou inexploitable, elle se
+  // ré-ancre sur la première année pleine valide et se réécrit en
+  // remplacement d'historique — l'URL reste cohérente avec ce que
+  // l'utilisateur voit, aucun lien partagé ne dépend d'un défaut
+  // implicite.
+  useEffect(() => {
+    if (anglesStory) return;
+    if (trendMode === "index" && canonicalBase != null && state.base !== canonicalBase) {
+      const out = new URLSearchParams(params);
+      out.set("base", String(canonicalBase));
+      setParams(out, { replace: true, preventScrollReset: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trendMode, canonicalBase, state.base, anglesStory]);
+
   // La ligne d'unité (R0 § D7, ajustée en recette R1) : portée par le
   // sélecteur « View funding as », l'axe du graphique et l'en-tête du
-  // CSV — pas de répétition dans le sous-titre. Le symbole suit l'unité
-  // de la réponse, jamais un « € » dur.
+  // CSV — pas de répétition dans le sous-titre. En TREND, plus aucun
+  // symbole monétaire : l'unité dit l'indice ou le pourcentage.
   const unitLine =
-    data && isMoneyUnit(data.unit)
-      ? referenceMeta
-        ? t("explorer.reference.unit", {
-            year: referenceMeta.base,
-            cur: referenceMeta.cur,
-            symbol: moneySymbol(data.unit),
-          })
-        : t("explorer.reference.unitNominal")
-      : null;
+    data && trendMode === "index"
+      ? t("explorer.reference.csvIndex", { base: canonicalBase ?? "" })
+      : data && trendMode === "growth"
+        ? t("explorer.reference.csvGrowth")
+        : data && isMoneyUnit(data.unit)
+          ? referenceMeta
+            ? t("explorer.reference.unit", {
+                year: referenceMeta.base,
+                cur: referenceMeta.cur,
+                symbol: moneySymbol(data.unit),
+              })
+            : t("explorer.reference.unitNominal")
+          : null;
 
   const toggleCompare = (key: string) => {
     const next = state.compare.includes(key)
@@ -777,14 +830,18 @@ export function ExplorerPage() {
             {state.by === "theme" ? ` · ${t("explorer.multiTheme")}` : ""}
           </span>
           {/* Le sélecteur de lecture (R0 § D5) : LE contrôle, explicite,
-              porté par l'URL — jamais activé en silence. */}
-          {(data && isMoneyUnit(data.unit)) || state.value === "real" ? (
+              porté par l'URL — jamais activé en silence. En TREND,
+              l'unité transformée n'est plus monétaire : la condition
+              lit la réponse BRUTE. */}
+          {(rawData && isMoneyUnit(rawData.unit)) || state.value !== "" ? (
             <ReferenceSelector
               value={state.value}
               base={state.base}
               cur={state.cur}
               bases={referenceMeta?.bases ?? []}
               resolvedBase={referenceMeta?.base ?? null}
+              temporal={temporal}
+              indexBases={indexBases}
               onChange={(next) => patch(next)}
             />
           ) : null}
@@ -830,7 +887,20 @@ export function ExplorerPage() {
               ‹ {drilledLabel}
             </button>
           ) : null}
-          {isPending ? (
+          {trendInvalid ? (
+            /* TREND sans axe temporel : refus explicite (GO R2 § 4) —
+               jamais une interprétation silencieuse différente. */
+            <div className="py-24 text-center text-muted-foreground">
+              <p className="mx-auto max-w-[52ch]">{t("explorer.reference.trendUnavailable")}</p>
+              <button
+                type="button"
+                onClick={() => patch({ value: "", base: null, cur: "" })}
+                className="mt-4 rounded-full border px-4 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
+              >
+                {t("explorer.reference.nominal")}
+              </button>
+            </div>
+          ) : isPending ? (
             <Skeleton className="h-[380px] w-full" />
           ) : isError && state.value === "real" ? (
             /* Le refus explicite du mode (422 real_unavailable) : jamais
@@ -963,8 +1033,26 @@ export function ExplorerPage() {
             quand la vue mélange des couvertures, et seulement là. */}
         {data ? <CoverageNote meta={data.meta} /> : null}
         {/* ⓘ Reference (R0 § D8) : la méthodologie au point d'usage —
-            part exclue chiffrée depuis le périmètre affiché (A1). */}
-        {data ? <ReferenceNote data={data} /> : null}
+            part exclue chiffrée depuis le périmètre affiché (A1) ; en
+            TREND, la transformation se dit d'abord, la méthode Real
+            dont elle hérite ensuite. */}
+        {data ? (
+          <ReferenceNote
+            data={data}
+            trend={
+              trend && trendMode
+                ? {
+                    mode: trendMode,
+                    base: canonicalBase,
+                    nonIndexable: trend.nonIndexable.map((key) => {
+                      const serie = data.series.find((s) => String(s.key) === key);
+                      return serie ? seriesLabel(serie, t) : key;
+                    }),
+                  }
+                : undefined
+            }
+          />
+        ) : null}
 
         <div className="mt-4 flex items-center gap-1.5 border-t border-border-soft pt-3.5">
           {availableViews.map((candidate) => (

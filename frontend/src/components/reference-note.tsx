@@ -14,7 +14,17 @@ import { formatCompactEur, moneySymbol } from "@/lib/format";
  *  par l'API depuis le périmètre affiché (filtres compris), toujours en
  *  EUR NOMINAL (le périmètre exclu n'a pas de valeur réelle). L'API
  *  fournit les valeurs ; l'UI fournit les phrases EN/FR. */
-export function ReferenceNote({ data }: { data: ExploreResponse }) {
+export function ReferenceNote({
+  data,
+  trend,
+}: {
+  data: ExploreResponse;
+  /** Mode TREND actif (R2) : la note dit d'abord la transformation
+   *  (définition, base, séries non indexables, avertissement cohorte),
+   *  puis la méthode Real sous-jacente dont elle hérite sources,
+   *  millésimes et exclusions. */
+  trend?: { mode: "index" | "growth"; base: number | null; nonIndexable: string[] };
+}) {
   const { t, i18n } = useTranslation();
   const reference = data.meta.reference;
   if (!reference) return null;
@@ -48,6 +58,28 @@ export function ReferenceNote({ data }: { data: ExploreResponse }) {
           {t("explorer.reference.detail")}
         </span>
       </summary>
+      {trend?.mode === "index" ? (
+        <>
+          <p className="mt-1.5">
+            {t("explorer.reference.trendIndexMethod", { base: trend.base ?? "" })}
+          </p>
+          {trend.nonIndexable.length > 0 ? (
+            <p className="mt-1.5">
+              {t("explorer.reference.nonIndexable", {
+                count: trend.nonIndexable.length,
+                base: trend.base ?? "",
+                series: trend.nonIndexable.join(" · "),
+              })}
+            </p>
+          ) : null}
+        </>
+      ) : null}
+      {trend?.mode === "growth" ? (
+        <>
+          <p className="mt-1.5">{t("explorer.reference.trendGrowthMethod")}</p>
+          <p className="mt-1.5">{t("explorer.reference.trendCohortWarning")}</p>
+        </>
+      ) : null}
       <p className="mt-1.5">{method}</p>
       {hasExcluded && reasons ? (
         <ul className="mt-1.5 list-disc space-y-0.5 pl-4">

@@ -140,6 +140,13 @@ export function LinesChart({
     ...series.flatMap((s) => (s.points ?? []).map((p) => p.value ?? 0)),
     1,
   );
+  // Le domaine descend sous zéro quand les valeurs le font (croissance
+  // annuelle, R2) : une baisse se DESSINE, jamais écrasée sur l'axe.
+  // Les montants restent calés sur zéro — leur plancher historique.
+  const minValue = Math.min(
+    ...series.flatMap((s) => (s.points ?? []).map((p) => p.value ?? 0)),
+    0,
+  );
   if (years.length < 2) return null;
 
   return (
@@ -151,7 +158,8 @@ export function LinesChart({
           PAD.left +
           ((year - years[0]) * (width - PAD.left - padRight)) /
             Math.max(years[years.length - 1] - years[0], 1);
-        const y = (value: number) => H - PAD.bottom - (value / maxValue) * (H - PAD.top - PAD.bottom);
+        const y = (value: number) =>
+          H - PAD.bottom - ((value - minValue) / (maxValue - minValue)) * (H - PAD.top - PAD.bottom);
         const byYear = (year: number) =>
           series
             .map((serie) => ({
@@ -194,27 +202,42 @@ export function LinesChart({
         return (
           <>
             <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={ariaLabel}>
-              {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
-                <g key={fraction}>
-                  <line
-                    x1={PAD.left}
-                    x2={width - padRight}
-                    y1={y(maxValue * fraction)}
-                    y2={y(maxValue * fraction)}
-                    stroke="var(--color-border-soft)"
-                  />
-                  <text
-                    x={PAD.left - 8}
-                    y={y(maxValue * fraction) + 4}
-                    textAnchor="end"
-                    fontSize="11"
-                    fill="var(--color-muted-foreground)"
-                    className="tnum"
-                  >
-                    {tickLabel(maxValue * fraction)}
-                  </text>
-                </g>
-              ))}
+              {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+                const tick = minValue + fraction * (maxValue - minValue);
+                return (
+                  <g key={fraction}>
+                    <line
+                      x1={PAD.left}
+                      x2={width - padRight}
+                      y1={y(tick)}
+                      y2={y(tick)}
+                      stroke="var(--color-border-soft)"
+                    />
+                    <text
+                      x={PAD.left - 8}
+                      y={y(tick) + 4}
+                      textAnchor="end"
+                      fontSize="11"
+                      fill="var(--color-muted-foreground)"
+                      className="tnum"
+                    >
+                      {tickLabel(tick)}
+                    </text>
+                  </g>
+                );
+              })}
+              {/* La ligne de zéro, à peine plus présente que la grille :
+                  sous elle on recule, au-dessus on progresse — l'œil ne
+                  doit jamais confondre (croissance annuelle, R2). */}
+              {minValue < 0 ? (
+                <line
+                  x1={PAD.left}
+                  x2={width - padRight}
+                  y1={y(0)}
+                  y2={y(0)}
+                  stroke="var(--color-border)"
+                />
+              ) : null}
               {years
                 .filter((_, index) => index % Math.ceil(years.length / 8) === 0)
                 .map((year) => (
