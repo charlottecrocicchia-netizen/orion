@@ -21,6 +21,14 @@ class Settings(BaseSettings):
     # La fraîcheur des appels : quotidienne, 05:00 UTC.
     calls_cron: str = "0 5 * * *"
 
+    # --- Euros constants (lot A) ---
+    # L'année de référence : la dernière année civile complète publiée
+    # dans la vintage courante des indices (HICP, CPI-U) avec son taux
+    # BCE en base. Basculer vers 2026 = changer cette valeur, zéro
+    # migration — le mode constant se REFUSE de lui-même tant que les
+    # trois données de l'année demandée manquent (constanteuro.py).
+    constant_euro_reference_year: int = 2025
+
     # --- Comptes (conception-workspace, lot 1) ---
     # L'origine publique du site — la base des liens magiques envoyés
     # par email. En prod : https://lensorion.com.

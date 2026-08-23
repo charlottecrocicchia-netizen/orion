@@ -12,6 +12,7 @@ from orion.ingest.groups import build as groups_build
 from orion.ingest.lenses import run as lenses_run
 from orion.ingest.nih import load as nih_load
 from orion.ingest.nsf import load as nsf_load
+from orion.ingest.prices import run as prices_run
 from orion.ingest.rates import run as rates_run
 from orion.ingest.subdivisions import run as subdivisions_run
 from orion.ingest.wikidata import load as wikidata_load
@@ -22,6 +23,9 @@ REGISTRY = {
     # Wave 1: yearly ECB rates first (every non-EUR source converts
     # through them), then the sources themselves.
     "rates": rates_run,
+    # Les indices de prix (lot A, euros constants) : versionnés par
+    # vintage — cadence annuelle, geste manuel documenté au runbook.
+    "prices": prices_run,
     "nih": nih_load.run,
     "nsf": nsf_load.run,
     "dedup": dedup.merge.run,
@@ -47,6 +51,7 @@ REGISTRY = {
 ALL = [
     "reference",
     "rates",
+    "prices",
     *FRAMEWORKS.keys(),
     "nih",
     "nsf",
