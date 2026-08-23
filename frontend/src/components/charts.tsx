@@ -108,11 +108,18 @@ export function LinesChart({
   series,
   unit,
   ariaLabel,
+  unavailableYears,
+  unavailableLabel,
   colorOf,
 }: {
   series: ExploreSeries[];
   unit: string;
   ariaLabel: string;
+  /** Lot A (arbitrage A1) : les années SANS chiffre constant restent
+   *  sur l'axe — hachurées, jamais tronquées, jamais un faux zéro.
+   *  Absence de chiffre constant ≠ absence de l'année ni des projets. */
+  unavailableYears?: number[];
+  unavailableLabel?: string;
   /** La couleur suit l'ENTITÉ, jamais son rang (doctrine ci-dessus) :
    *  quand la page masque des séries (légende interactive), elle passe
    *  ici la couleur d'origine de chaque clé pour qu'un masquage ne
@@ -223,6 +230,52 @@ export function LinesChart({
                     {year}
                   </text>
                 ))}
+
+              {/* La zone « indice non publié » (lot A, A1) : sobre,
+                  hachurée, l'axe garde l'horizon nominal complet. */}
+              {(() => {
+                const unavailable = (unavailableYears ?? []).filter((year) =>
+                  years.includes(year),
+                );
+                if (unavailable.length === 0) return null;
+                const from = Math.max(x(Math.min(...unavailable)) - step / 2, PAD.left);
+                const to = Math.min(x(Math.max(...unavailable)) + step / 2, width - padRight);
+                if (to <= from) return null;
+                return (
+                  <g>
+                    <defs>
+                      <pattern
+                        id="money-unavailable-hatch"
+                        width="6"
+                        height="6"
+                        patternUnits="userSpaceOnUse"
+                        patternTransform="rotate(45)"
+                      >
+                        <line x1="0" y1="0" x2="0" y2="6" stroke="var(--color-border)" strokeWidth="1" />
+                      </pattern>
+                    </defs>
+                    <rect
+                      x={from}
+                      y={PAD.top}
+                      width={to - from}
+                      height={H - PAD.top - PAD.bottom}
+                      fill="url(#money-unavailable-hatch)"
+                      opacity="0.55"
+                    />
+                    {unavailableLabel && to - from >= 72 ? (
+                      <text
+                        x={(from + to) / 2}
+                        y={PAD.top + 14}
+                        textAnchor="middle"
+                        fontSize="10.5"
+                        fill="var(--color-muted-foreground)"
+                      >
+                        {unavailableLabel}
+                      </text>
+                    ) : null}
+                  </g>
+                );
+              })()}
 
               {series.map((serie, index) => {
                 const color =

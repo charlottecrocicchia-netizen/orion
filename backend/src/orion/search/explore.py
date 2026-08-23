@@ -16,6 +16,7 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from orion.constanteuro import COVERED, FactorSet
 from orion.search.service import (
     _cached_bounded,
     _materialize_match,
@@ -171,6 +172,27 @@ _METRIC_COLS = {
     },
 }
 
+# Les métriques monétaires — les seules que le mode « euros constants »
+# (lot A) transforme ; les comptes sont identiques dans les deux modes.
+MONETARY_METRICS = ("funding", "avg")
+
+
+def _funding_col(participation: bool, weight: str, real: bool) -> str:
+    """LA colonne funding, unique point de définition pour les deux modes.
+
+    Nominal : chaîne B de la taxonomie (§ 2.7), texte SQL STRICTEMENT
+    identique à l'historique — le chemin nominal ne bouge pas d'un
+    octet. Constant : chaîne C — natif × facteur, gardé par la règle A2
+    (EUR constant ⊂ périmètre disposant d'un nominal EUR : une ligne
+    sans nominal EUR ne produit JAMAIS de constant) ; un facteur absent
+    (A1 : année sans indice, devise non couverte) rend NULL, la ligne
+    sort de la somme et se compte dans `excluded` — jamais en silence."""
+    eur = "pa.amount_eur" if participation else "p.funding_amount_eur"
+    if not real:
+        return f"sum({eur}{weight})"
+    native = "pa.amount" if participation else "p.funding_amount"
+    return f"sum(CASE WHEN {eur} IS NOT NULL THEN {native} * fx.factor{weight} END)"
+
 
 def _org_type_case(params: dict[str, Any]) -> str:
     """CASE folding raw org types to canonical keys, all values bound."""
@@ -323,6 +345,7 @@ def _fold_to_children(
     parents: dict[int, int | None],
     info: dict[int, dict[str, Any]],
     split: bool,
+    keep_null: bool = False,
 ) -> list[dict[str, Any]]:
     """The drill-down fold: subtree rows roll up to the DIRECT children of
     `parent_id`; projects attached to the parent itself keep the parent as
@@ -344,9 +367,20 @@ def _fold_to_children(
         bucket_key = (bucket_id, row.y) if split else bucket_id
         bucket = acc.setdefault(
             bucket_key,
-            {"funding": 0.0, "projects": 0, "y": getattr(row, "y", None), "key": bucket_id},
+            {
+                "funding": None if keep_null else 0.0,
+                "projects": 0,
+                "y": getattr(row, "y", None),
+                "key": bucket_id,
+            },
         )
-        bucket["funding"] += float(row.funding or 0)
+        # keep_null (mode real) : un bucket dont AUCUNE ligne n'est
+        # ajustable reste None — jamais un zéro mensonger à l'écran.
+        if keep_null:
+            if row.funding is not None:
+                bucket["funding"] = (bucket["funding"] or 0.0) + float(row.funding)
+        else:
+            bucket["funding"] += float(row.funding or 0)
         bucket["projects"] += row.projects
     return [
         {
@@ -363,7 +397,11 @@ def _fold_to_children(
 
 
 def _fold_programme(
-    rows: list[Any], roots: dict[int, dict[str, Any]], to_root: dict[int, int], split: bool
+    rows: list[Any],
+    roots: dict[int, dict[str, Any]],
+    to_root: dict[int, int],
+    split: bool,
+    keep_null: bool = False,
 ) -> list[dict[str, Any]]:
     """Roll programme_id rows up to their root. Only additive metrics reach
     this point (enforced by the whitelist)."""
@@ -375,9 +413,18 @@ def _fold_programme(
         bucket_key = (root, row.y) if split else root
         bucket = acc.setdefault(
             bucket_key,
-            {"funding": 0.0, "projects": 0, "y": getattr(row, "y", None), "key": root},
+            {
+                "funding": None if keep_null else 0.0,
+                "projects": 0,
+                "y": getattr(row, "y", None),
+                "key": root,
+            },
         )
-        bucket["funding"] += float(row.funding or 0)
+        if keep_null:
+            if row.funding is not None:
+                bucket["funding"] = (bucket["funding"] or 0.0) + float(row.funding)
+        else:
+            bucket["funding"] += float(row.funding or 0)
         bucket["projects"] += row.projects
     out = []
     for bucket in acc.values():
@@ -395,14 +442,21 @@ def _fold_programme(
     return out
 
 
-def _value(metric: str, row: dict[str, Any]) -> float | None:
+def _value(metric: str, row: dict[str, Any], real: bool = False) -> float | None:
     if metric == "funding":
+        # Mode real : une somme NULL signifie « aucune ligne
+        # ajustable » — la valeur est ABSENTE, jamais un faux zéro
+        # (règle A1 : absence de chiffre constant ≠ zéro).
+        if real and row["funding"] is None:
+            return None
         return round(float(row["funding"] or 0), 2)
     if metric == "projects":
         return row["projects"]
     if metric == "organisations":
         return row["organisations"]
     if metric == "avg":
+        if real and row["funding"] is None:
+            return None
         projects = row["projects"] or 0
         return round(float(row["funding"] or 0) / projects, 2) if projects else None
     if metric == "coordination":
@@ -428,6 +482,7 @@ def aggregate(
     organisation: str | None = None,
     sector: str | None = None,
     subdivision: str | None = None,
+    factor_set: FactorSet | None = None,
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
         return None
@@ -466,9 +521,14 @@ def aggregate(
     limit = min(max(limit, 1), LIMIT_MAX)
     compare = [c for c in (compare or []) if c][:6] or None
 
+    # La vintage entre dans la clé (avec l'année de référence et la
+    # devise d'affichage, via factor_set.key) : une nouvelle vintage
+    # d'indices invalide d'elle-même tout cache real (jamais de
+    # collision nominal/real, § 5 étape 13).
+    reference_key = f":real:{factor_set.key}" if factor_set is not None else ""
     key = (
         f"explore:{metric}:{by}:{split}:{compare}:{year_from}:{year_to}:{q}:{country}:"
-        f"{scope}:{limit}:{programme}:{organisation}:{sector}:{subdivision}"
+        f"{scope}:{limit}:{programme}:{organisation}:{sector}:{subdivision}{reference_key}"
     )
 
     def build() -> dict[str, Any]:
@@ -488,6 +548,7 @@ def aggregate(
             organisation=organisation,
             sector=sector,
             subdivision=subdivision,
+            factor_set=factor_set,
         )
 
     if q:
@@ -512,6 +573,7 @@ def _build(
     organisation: str | None = None,
     sector: str | None = None,
     subdivision: str | None = None,
+    factor_set: FactorSet | None = None,
 ) -> dict[str, Any]:
     # Le filtre entité force la base participations : l'argent COMPTÉ est
     # celui des participations de l'entité, jamais les totaux projets.
@@ -520,6 +582,9 @@ def _build(
         or metric in ("organisations", "coordination")
         or organisation is not None
     )
+    # Le mode real ne transforme que l'argent : pour une métrique de
+    # comptes, la vue est identique au nominal (seul `meta.reference` s'ajoute).
+    real = factor_set is not None and metric in MONETARY_METRICS
     params: dict[str, Any] = {}
     dim = _dimension(by, participation, params)
     cmp_entity_refs: dict[str, list[tuple[int, float]]] | None = None
@@ -560,13 +625,37 @@ def _build(
     else:
         base = "FROM projects p"
         cols = _METRIC_COLS[False]
+    # Le mode « euros constants » (lot A) : la table des facteurs vient
+    # de constanteuro.py (source unique) et se joint en VALUES sur
+    # (devise NATIVE, année de début) — LEFT JOIN : une ligne sans
+    # facteur reste dans la vue, sa somme constante l'ignore, la part
+    # exclue la compte. Le chemin nominal n'ajoute RIEN (aucun octet de
+    # SQL ne change quand value=nominal).
+    fx_join = ""
+    if real:
+        pairs = sorted(factor_set.factors.items())
+        values_sql = ", ".join(
+            f"(CAST(:fxc{i} AS text), CAST(:fxy{i} AS int), CAST(:fxf{i} AS numeric))"
+            for i in range(len(pairs))
+        )
+        for i, ((fx_currency, fx_year), fx_factor) in enumerate(pairs):
+            params[f"fxc{i}"] = fx_currency
+            params[f"fxy{i}"] = fx_year
+            params[f"fxf{i}"] = fx_factor
+        currency_col = "pa.currency" if participation else "p.funding_currency"
+        fx_join = (
+            f"LEFT JOIN (VALUES {values_sql}) AS fx(cur, yr, factor) "
+            f"ON fx.cur = {currency_col} "
+            "AND fx.yr = extract(year FROM p.start_date)::int"
+        )
+        cols = {**cols, "funding": _funding_col(participation, "", real=True)}
     # Pondération JV : l'ARGENT d'un groupe replié porte le poids de
     # chaque adhésion ; les comptes (projets, organisations, part en
     # coordination) restent entiers — c'est l'argent que le pacte
     # partage, pas les faits. AVANT la construction du SELECT : une
     # surcharge posée après ne serait qu'un dictionnaire mort.
     if cmp_entity_refs is not None:
-        cols = {**cols, "funding": "sum(pa.amount_eur * cmp.weight)"}
+        cols = {**cols, "funding": _funding_col(True, " * cmp.weight", real)}
     if organisation is not None and organisation.startswith("g"):
         # Vue cadrée sur un GROUPE (organisation=g<id>) : même règle, le
         # poids se lit sur l'adhésion active de chaque participation.
@@ -576,7 +665,7 @@ def _build(
             "WHERE m.group_id = :orgf_gid "
             "AND m.organisation_id = pa.organisation_id AND m.status = 'active')"
         )
-        cols = {**cols, "funding": f"sum(pa.amount_eur * {weight_sub})"}
+        cols = {**cols, "funding": _funding_col(True, f" * {weight_sub}", real)}
     select_cols = (
         f"{dim['key']} AS key, {dim['label']} AS label, "
         f"{cols['funding']} AS funding, {cols['projects']} AS projects, "
@@ -653,7 +742,7 @@ def _build(
     rows = session.execute(
         text(f"""
         SELECT {select_cols}{split_col}
-        {base} {dim["joins"]}
+        {base} {dim["joins"]} {fx_join}
         {where}
         GROUP BY key{split_group}
         {having}
@@ -661,10 +750,73 @@ def _build(
         params,
     ).all()
 
+    # La part exclue du calcul real — MÊME périmètre (mêmes
+    # jointures, mêmes clauses), une passe sans GROUP BY : les comptes
+    # de projets distincts ne se somment pas à travers les buckets d'une
+    # dimension (un projet multi-pays y apparaît plusieurs fois), la
+    # passe dédiée les compte exactement. Chiffres calculés depuis le
+    # périmètre AFFICHÉ, jamais codés en dur (arbitrage A1).
+    excluded = None
+    if real:
+        eur_col = "pa.amount_eur" if participation else "p.funding_amount_eur"
+        currency_col = "pa.currency" if participation else "p.funding_currency"
+        params["fx_covered"] = list(COVERED)
+        excl = f"{eur_col} IS NOT NULL AND fx.factor IS NULL"
+        no_date = f"{excl} AND p.start_date IS NULL"
+        no_index = (
+            f"{excl} AND p.start_date IS NOT NULL AND {currency_col} = ANY(:fx_covered)"
+        )
+        no_currency = (
+            f"{excl} AND p.start_date IS NOT NULL "
+            f"AND ({currency_col} IS NULL OR NOT ({currency_col} = ANY(:fx_covered)))"
+        )
+        # Le périmètre du scan est BORNÉ à la condition d'exclusion en
+        # WHERE (mesure R1 : ~4× plus rapide que le FILTER seul sur le
+        # corpus complet) — chaque agrégat FILTER implique déjà `excl`,
+        # la restriction ne change aucun chiffre. Mêmes jointures, mêmes
+        # clauses que la vue : le périmètre affiché reste la vérité.
+        where_excluded = f"{where} AND {excl}" if where else f"WHERE {excl}"
+        excluded_row = session.execute(
+            text(f"""
+            SELECT count(DISTINCT p.id) FILTER (WHERE {excl}) AS projects,
+                   sum({eur_col}) FILTER (WHERE {excl}) AS amount,
+                   count(DISTINCT p.id) FILTER (WHERE {no_date}) AS nodate_n,
+                   sum({eur_col}) FILTER (WHERE {no_date}) AS nodate_eur,
+                   count(DISTINCT p.id) FILTER (WHERE {no_index}) AS noidx_n,
+                   sum({eur_col}) FILTER (WHERE {no_index}) AS noidx_eur,
+                   array_agg(DISTINCT extract(year FROM p.start_date)::int)
+                       FILTER (WHERE {no_index}) AS noidx_years,
+                   count(DISTINCT p.id) FILTER (WHERE {no_currency}) AS nocur_n,
+                   sum({eur_col}) FILTER (WHERE {no_currency}) AS nocur_eur
+            {base} {dim["joins"]} {fx_join}
+            {where_excluded}
+            """),
+            params,
+        ).one()
+        excluded = {
+            "projects": excluded_row.projects or 0,
+            "amount_eur_nominal": round(float(excluded_row.amount or 0), 2),
+            "reasons": {
+                "no_index_year": {
+                    "projects": excluded_row.noidx_n or 0,
+                    "amount_eur_nominal": round(float(excluded_row.noidx_eur or 0), 2),
+                    "years": sorted(excluded_row.noidx_years or []),
+                },
+                "no_date": {
+                    "projects": excluded_row.nodate_n or 0,
+                    "amount_eur_nominal": round(float(excluded_row.nodate_eur or 0), 2),
+                },
+                "no_currency_index": {
+                    "projects": excluded_row.nocur_n or 0,
+                    "amount_eur_nominal": round(float(excluded_row.nocur_eur or 0), 2),
+                },
+            },
+        }
+
     if by == "programme" and programme is not None:
-        folded = _fold_to_children(rows, programme, parents, tree_info, split)
+        folded = _fold_to_children(rows, programme, parents, tree_info, split, keep_null=real)
     elif by == "programme":
-        folded = _fold_programme(rows, roots, to_root, split)
+        folded = _fold_programme(rows, roots, to_root, split, keep_null=real)
     else:
         folded = [
             {
@@ -699,7 +851,7 @@ def _build(
 
     if by == "year":
         points = sorted(
-            ({"year": r["key"], "value": _value(metric, r)} for r in folded),
+            ({"year": r["key"], "value": _value(metric, r, real)} for r in folded),
             key=lambda p: p["year"],
         )
         series = [{"key": "all", "label": None, "points": points}]
@@ -707,7 +859,7 @@ def _build(
     elif split:
         totals: dict[Any, float] = {}
         for r in folded:
-            value = _value("funding" if metric == "avg" else metric, r)
+            value = _value("funding" if metric == "avg" else metric, r, real)
             totals[r["key"]] = totals.get(r["key"], 0) + (value or 0)
         if compare:
             kept = [k for k in totals]
@@ -722,21 +874,26 @@ def _build(
                 r["key"], {"key": r["key"], "label": r["label"], "points": []}
             )
             serie["label"] = serie["label"] or r["label"]
-            serie["points"].append({"year": r["y"], "value": _value(metric, r)})
+            serie["points"].append({"year": r["y"], "value": _value(metric, r, real)})
         for serie in by_key.values():
             serie["points"].sort(key=lambda p: p["year"])
         series = sorted(by_key.values(), key=lambda s: kept.index(s["key"]))
         kept_total = None
     else:
-        ranked = sorted(folded, key=lambda r: -(_value(metric, r) or 0))
+        ranked = sorted(folded, key=lambda r: -(_value(metric, r, real) or 0))
         kept_rows = ranked if compare else ranked[:limit]
         series = [
-            {"key": r["key"], "label": r["label"], "value": _value(metric, r)} for r in kept_rows
+            {"key": r["key"], "label": r["label"], "value": _value(metric, r, real)}
+            for r in kept_rows
         ]
-        kept_total = round(sum(_value(metric, r) or 0 for r in ranked), 2)
+        kept_total = round(sum(_value(metric, r, real) or 0 for r in ranked), 2)
 
     unit = {"funding": "eur", "avg": "eur", "coordination": "pct"}.get(metric, "count")
-    return {
+    # En real ré-exprimé, l'unité de la réponse dit la devise d'affichage
+    # (R0 § D7) : le front ne devine jamais le symbole, il lit l'unité.
+    if real and unit == "eur" and factor_set.display_currency != "EUR":
+        unit = factor_set.display_currency.lower()
+    out: dict[str, Any] = {
         "metric": metric,
         "by": by,
         "split": split,
@@ -760,3 +917,19 @@ def _build(
             "coverage": _view_coverage(session, by, series),
         },
     }
+    # Mode real (moteur A sous R0) : les clés `meta.reference` et
+    # `excluded` N'EXISTENT qu'en real — une réponse nominale reste
+    # identique octet pour octet à l'historique (invariant, § 5 étape 16).
+    if factor_set is not None:
+        out["meta"]["reference"] = {
+            "mode": "real",
+            "base": factor_set.reference_year,
+            "cur": factor_set.display_currency,
+            "bases": list(factor_set.bases),
+            "vintages": factor_set.vintages,
+            "series": factor_set.series,
+            "rates_source": "ecb",
+        }
+        if excluded is not None:
+            out["excluded"] = excluded
+    return out

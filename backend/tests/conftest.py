@@ -46,11 +46,14 @@ def clear_search_cache():
     """The in-process search cache is keyed by the ingestion stamp, which never
     moves in the test database — savepoint-rolled-back data would leak between
     tests through it."""
+    from orion import constanteuro
     from orion.search import service
 
     service._CACHE.clear()
+    constanteuro._CACHE.clear()
     yield
     service._CACHE.clear()
+    constanteuro._CACHE.clear()
 
 
 @pytest.fixture

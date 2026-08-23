@@ -4,7 +4,9 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
+from orion import constanteuro
 from orion.api.lens_param import resolve_lens_param
+from orion.core.config import get_settings
 from orion.core.db import get_db
 from orion.ingest import subdivisions
 from orion.search import aggregates, explore, groups_hub
@@ -40,7 +42,32 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         Query(description="registry lens: '<slug>' (core+enabling) or '<slug>-direct'"),
     ] = None,
     subdivision: Annotated[str | None, Query(description="mesh filter: ISO 3166-2 (US-CA)")] = None,
+    value: Annotated[
+        str, Query(description="reading mode (R0 § D10): nominal (default) or real")
+    ] = "nominal",
+    base: Annotated[
+        int | None,
+        Query(description="real mode reference year — defaults to the configured one"),
+    ] = None,
+    cur: Annotated[
+        str, Query(description="real mode display currency (EUR or USD)")
+    ] = "EUR",
 ) -> dict[str, Any]:
+    # Le mode real (euros constants, moteur A sous la grammaire R0) se
+    # REFUSE explicitement quand les indices ou le taux de la devise
+    # d'affichage manquent pour l'année demandée — jamais un repli
+    # silencieux vers le nominal côté serveur (422 réservé à cette
+    # indisponibilité globale du mode).
+    factor_set = None
+    if value == "real":
+        if cur not in constanteuro.DISPLAY_CURRENCIES:
+            raise HTTPException(status_code=400, detail="Unsupported display currency")
+        reference_year = base or get_settings().constant_euro_reference_year
+        factor_set = constanteuro.factor_set(db, reference_year, display_currency=cur)
+        if factor_set is None:
+            raise HTTPException(status_code=422, detail="real_unavailable")
+    elif value != "nominal":
+        raise HTTPException(status_code=400, detail="Unsupported value mode")
     result = explore.aggregate(
         db,
         metric=metric,
@@ -57,6 +84,7 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         organisation=organisation or None,
         sector=resolve_lens_param(request, db, sector),
         subdivision=subdivision or None,
+        factor_set=factor_set,
     )
     if result is None:
         raise HTTPException(status_code=400, detail="Unsupported metric/dimension combination")
