@@ -1,34 +1,23 @@
 import type { ReactNode } from "react";
 
-import { ConstellationGlyph, WORLD_GLYPHS } from "@/components/lens-glyphs";
+import { ConstellationGlyph } from "@/components/lens-glyphs";
+import { WORLD_GLYPHS } from "@/lib/lens-room";
 import { worldTintVars } from "@/lib/world-tints";
 
-/** La matière optique de la Lens Room, PARTAGÉE (pivot 2026-08-22) :
- *  la salle (/lenses) et la section lentilles de la landing publique
- *  rendent les MÊMES verres — tokens sombres, dérive, teintes,
- *  glyphes, fond constellé. Un seul langage, jamais deux copies
- *  (styles : .lens-hit / .lens-glass dans index.css). */
-
-export const ROOM_TOKENS = {
-  "--background": "#0b0d12",
-  "--foreground": "#f5f5f7",
-  "--accent": "#8b9aff",
-  "--accent-soft": "#1b2040",
-  "--muted-foreground": "#9d9da6",
-  "--border": "rgba(255,255,255,0.14)",
-  "--border-soft": "rgba(255,255,255,0.08)",
-  "--surface": "#11141b",
-} as React.CSSProperties;
+/** Les verres de la Lens Room (pivot 2026-08-22) : la salle (/lenses)
+ *  et la landing publique rendent les MÊMES composants — tokens et
+ *  glyphes partagés dans @/lib/lens-room (styles : .lens-hit /
+ *  .lens-glass dans index.css). */
 
 /** Trois profondeurs (pseudo-3D) : échelle au repos + amplitude de
  *  parallaxe. Le monde du milieu est le plus proche de l'œil. */
-export const DEPTH: Record<string, number> = { space: 0.4, aviation: 0.9, all: 0.25 };
+const DEPTH: Record<string, number> = { space: 0.4, aviation: 0.9, all: 0.25 };
 // Le DÉSACCORD (recette du 2026-08-20) : phases fixées à la main,
 // écartées d'un demi-tour — l'œil doit voir des flottements en
 // désaccord, jamais une respiration commune.
 const PHASE: Record<string, number> = { space: 0, aviation: 0.45, all: 0.8 };
-export const driftTime = (depth: number) => 5.5 + depth * 2.2;
-export const floatDelay = (slug: string, depth: number) => -(PHASE[slug] ?? 0.5) * driftTime(depth);
+const driftTime = (depth: number) => 5.5 + depth * 2.2;
+const floatDelay = (slug: string, depth: number) => -(PHASE[slug] ?? 0.5) * driftTime(depth);
 
 /** Le monde d'Orion, flou, derrière les verres — la constellation de
  *  fond de la salle. `parallax` : la salle branche son pointeur dessus

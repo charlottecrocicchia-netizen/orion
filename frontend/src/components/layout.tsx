@@ -13,7 +13,7 @@ import { api } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { BRAND } from "@/lib/brand";
 import { useDossier } from "@/lib/dossier";
-import { WORLD_GLYPHS } from "@/components/lens-glyphs";
+import { WORLD_GLYPHS } from "@/lib/lens-room";
 import { playWorldReveal } from "@/lib/world-reveal";
 import { worldTintVars } from "@/lib/world-tints";
 import { lensWords, useCarriedLens, withLens } from "@/lib/lens";

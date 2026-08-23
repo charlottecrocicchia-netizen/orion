@@ -2,7 +2,8 @@ import { Link, useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { LensGlass, ROOM_TOKENS, RoomBackdrop } from "@/components/lens-shelf";
+import { LensGlass, RoomBackdrop } from "@/components/lens-shelf";
+import { ROOM_TOKENS } from "@/lib/lens-room";
 import { StatHero } from "@/components/stat-hero";
 import { WorldGlobe } from "@/components/world-globe";
 import { api } from "@/lib/api";

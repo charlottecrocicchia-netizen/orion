@@ -1,5 +1,3 @@
-import type { ReactElement } from "react";
-
 function cnOrbit(_awake: boolean, once: boolean): string {
   // ① (recette 2026-08-20) : le repos est VIVANT — l'orbite tourne
   // toujours ; `once` reste la signature d'entrée du header.
@@ -148,10 +146,3 @@ export function ConstellationGlyph({
   );
 }
 
-export const WORLD_GLYPHS: Record<
-  string,
-  (props: { awake?: boolean; once?: boolean; stroke?: number }) => ReactElement
-> = {
-  space: OrbitGlyph,
-  aviation: WingGlyph,
-};

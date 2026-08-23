@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 
-import { WORLD_GLYPHS } from "@/components/lens-glyphs";
-import { LensGlass, ROOM_TOKENS, RoomBackdrop } from "@/components/lens-shelf";
+import { LensGlass, RoomBackdrop } from "@/components/lens-shelf";
+import { ROOM_TOKENS, WORLD_GLYPHS } from "@/lib/lens-room";
 import { Logo } from "@/components/logo";
 import { formatCompactEur, formatInt } from "@/lib/format";
 import { useQuery } from "@tanstack/react-query";
