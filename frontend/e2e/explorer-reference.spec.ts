@@ -19,17 +19,17 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("nominal by default — no value parameter, explicit unit line", async ({ page }) => {
+test("nominal by default — no value parameter, the selector says the reading", async ({ page }) => {
   await page.goto("/explore?by=year");
   await expect(page.getByRole("img", { name: /funding · year/ })).toBeVisible({
     timeout: 15_000,
   });
   expect(page.url()).not.toContain("value=");
+  // Le référentiel est porté par le sélecteur et l'axe — pas de
+  // répétition dans le sous-titre (retouche de recette R1).
   const selector = page.getByRole("button", { name: /View funding as/ });
   await expect(selector).toBeVisible();
   await expect(selector).toContainText("Nominal");
-  // La ligne d'unité nominale, toujours visible (R0 § D7).
-  await expect(page.getByText("EUR · at award time").first()).toBeVisible();
   await expect(page.getByText(/excluded from this view/)).toHaveCount(0);
 });
 
@@ -58,9 +58,11 @@ test("the selector writes value=real&base, discloses the excluded share, keeps t
   await excluded.click();
   await expect(page.getByText(/index for 2026 not yet published/)).toBeVisible();
 
-  // L'axe garde l'horizon nominal : 2026 reste sur l'axe, hachuré.
+  // L'axe garde l'horizon nominal : 2026 reste sur l'axe, hachuré et
+  // NOMMÉ — le label sobre est toujours présent (retouche de recette R1).
   await expect(chart.getByText("2026")).toBeVisible();
   await expect(chart.locator('rect[fill^="url(#reference-unavailable"]')).toBeVisible();
+  await expect(chart.getByText("Price index not published")).toBeVisible();
 
   // URL = vue : le rechargement restaure mode et année de référence.
   await page.reload();

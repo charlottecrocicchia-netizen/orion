@@ -262,11 +262,15 @@ export function LinesChart({
                       fill="url(#reference-unavailable-hatch)"
                       opacity="0.55"
                     />
-                    {unavailableLabel && to - from >= 72 ? (
+                    {/* Le label, TOUJOURS présent (recette R1) : ancré au
+                        bord droit de la bande, il déborde sobrement vers
+                        la zone vide du graphique quand la bande est
+                        étroite — jamais coupé, jamais dominant. */}
+                    {unavailableLabel ? (
                       <text
-                        x={(from + to) / 2}
+                        x={to - 6}
                         y={PAD.top + 14}
-                        textAnchor="middle"
+                        textAnchor="end"
                         fontSize="10.5"
                         fill="var(--color-muted-foreground)"
                       >

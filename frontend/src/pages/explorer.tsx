@@ -282,9 +282,10 @@ export function ExplorerPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.value, state.base, referenceMeta?.base, anglesStory]);
 
-  // La ligne d'unité (R0 § D7) : toujours visible sur le board ET dans
-  // l'en-tête du CSV — on ne rouvre jamais le menu pour comprendre
-  // l'axe. Le symbole suit l'unité de la réponse, jamais un « € » dur.
+  // La ligne d'unité (R0 § D7, ajustée en recette R1) : portée par le
+  // sélecteur « View funding as », l'axe du graphique et l'en-tête du
+  // CSV — pas de répétition dans le sous-titre. Le symbole suit l'unité
+  // de la réponse, jamais un « € » dur.
   const unitLine =
     data && isMoneyUnit(data.unit)
       ? referenceMeta
@@ -773,7 +774,6 @@ export function ExplorerPage() {
           <h1 className="text-[15px] font-semibold">{boardTitle}</h1>
           <span className="text-[12.5px] text-muted-foreground">
             {data ? t(`explorer.basis.${data.basis}`) : ""}
-            {unitLine ? ` · ${unitLine}` : ""}
             {state.by === "theme" ? ` · ${t("explorer.multiTheme")}` : ""}
           </span>
           {/* Le sélecteur de lecture (R0 § D5) : LE contrôle, explicite,

@@ -837,7 +837,7 @@ const resources = {
           noDate_other: "missing start date: {{count}} projects, {{amount}}",
           noCurrency_one: "currency without an admitted index: {{count}} project, {{amount}}",
           noCurrency_other: "currency without an admitted index: {{count}} projects, {{amount}}",
-          bandLabel: "index not yet published",
+          bandLabel: "Price index not published",
           unavailable:
             "Real value is unavailable: the price indices for the requested year are not loaded. The view stays nominal.",
           methodology: "Methodology",
@@ -1892,7 +1892,7 @@ const resources = {
           noDate_other: "date de début manquante : {{count}} projets, {{amount}}",
           noCurrency_one: "devise sans indice admis : {{count}} projet, {{amount}}",
           noCurrency_other: "devise sans indice admis : {{count}} projets, {{amount}}",
-          bandLabel: "indice non publié",
+          bandLabel: "Indice non publié",
           unavailable:
             "La valeur réelle est indisponible : les indices de prix de l'année demandée ne sont pas chargés. La vue reste en nominal.",
           methodology: "Méthodologie",

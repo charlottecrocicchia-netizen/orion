@@ -32,7 +32,7 @@ export function ReferenceNote({ data }: { data: ExploreResponse }) {
 
   return (
     <details className="mt-4 max-w-[74ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
-      <summary className="cursor-pointer list-none">
+      <summary className="cursor-pointer list-none text-foreground/75">
         <span aria-hidden="true">ⓘ</span>{" "}
         <b className="font-semibold text-foreground/80">{t("explorer.reference.title")}</b>
         {hasExcluded ? (
