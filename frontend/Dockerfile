@@ -8,6 +8,14 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+
+# La marque au BUILD (dette soldée le 2026-08-23) : frontend/.env est
+# gitignoré et n'entre jamais dans ce contexte — sans cette valeur,
+# Vite servait littéralement « %VITE_APP_BRAND% » dans le HTML initial
+# (l'onglet clignotait avant que React répare document.title). Même
+# défaut sûr que les replis runtime (brand.ts, use-document-title).
+ARG VITE_APP_BRAND=Orion
+ENV VITE_APP_BRAND=$VITE_APP_BRAND
 RUN pnpm build
 
 FROM caddy:2-alpine
