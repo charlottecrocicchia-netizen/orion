@@ -135,10 +135,25 @@ export interface ExploreResponse {
   metric: string;
   by: string;
   split: boolean;
-  unit: "eur" | "count" | "pct";
+  /** `usd` n'existe qu'en mode real ré-exprimé en dollars — le symbole
+   *  affiché suit TOUJOURS cette unité, jamais un « € » codé en dur. */
+  unit: "eur" | "usd" | "count" | "pct";
   basis: "participants" | "projects";
   series: ExploreSeries[];
   total: number | null;
+  /** Reference Engine (R1) — présent UNIQUEMENT en mode real : la part
+   *  du périmètre affiché exclue du calcul (indice non publié, date
+   *  manquante), chiffrée dynamiquement par l'API — jamais codée en
+   *  dur. Les montants d'exclusion restent en EUR NOMINAL. */
+  excluded?: {
+    projects: number;
+    amount_eur_nominal: number;
+    reasons: {
+      no_index_year: { projects: number; amount_eur_nominal: number; years: number[] };
+      no_date: { projects: number; amount_eur_nominal: number };
+      no_currency_index: { projects: number; amount_eur_nominal: number };
+    };
+  };
   meta: {
     limit: number;
     compare: string[] | null;
@@ -146,6 +161,19 @@ export interface ExploreResponse {
     country: string | null;
     programme?: number | null;
     programme_label?: string | null;
+    /** Reference Engine (R1) — présent uniquement en mode real : le
+     *  référentiel de lecture (grammaire R0 § D10 : base = année de
+     *  référence, cur = devise d'affichage, bases = années que le
+     *  serveur peut honorer, vintages = millésimes d'indices lus). */
+    reference?: {
+      mode: "real";
+      base: number;
+      cur: string;
+      bases: number[];
+      vintages: Record<string, string>;
+      series: Record<string, string>;
+      rates_source: string;
+    };
     /** La couverture de la VUE (lot E) : présente SEULEMENT quand la vue
      *  mélange des classes — la surface compose alors sa phrase. */
     coverage?: {

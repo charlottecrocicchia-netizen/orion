@@ -1,15 +1,40 @@
 import { useTranslation } from "react-i18next";
 
-export function formatCompactEur(value: number | null | undefined, locale: string): string {
+/** Les unités monétaires que l'API peut servir (Reference Engine, R1) :
+ *  le symbole suit l'unité de la RÉPONSE — `eur` nominal ou real·EUR,
+ *  `usd` real ré-exprimé en dollars. Une unité hors de cette table
+ *  n'est pas de l'argent. */
+const MONEY_SYMBOLS: Record<string, string> = { eur: "€", usd: "$" };
+
+export function isMoneyUnit(unit: string): boolean {
+  return unit in MONEY_SYMBOLS;
+}
+
+export function moneySymbol(unit: string): string {
+  return MONEY_SYMBOLS[unit] ?? "€";
+}
+
+export function formatCompactMoney(
+  value: number | null | undefined,
+  locale: string,
+  unit = "eur",
+): string {
   if (value == null) return "—";
+  const symbol = moneySymbol(unit);
   const abs = Math.abs(value);
-  const fmt = (n: number, unit: string, digits: number) =>
-    `€${n.toLocaleString(locale, { maximumFractionDigits: digits, minimumFractionDigits: 0 })}${unit}`;
+  const fmt = (n: number, suffix: string, digits: number) =>
+    `${symbol}${n.toLocaleString(locale, { maximumFractionDigits: digits, minimumFractionDigits: 0 })}${suffix}`;
   if (abs >= 995e8) return fmt(value / 1e9, "B", 0);
   if (abs >= 1e9) return fmt(value / 1e9, "B", 1);
   if (abs >= 1e6) return fmt(value / 1e6, "M", 1);
   if (abs >= 1e3) return fmt(value / 1e3, "k", 0);
   return fmt(value, "", 0);
+}
+
+/** Le raccourci historique des surfaces nominales (fiches, hubs,
+ *  recherche) — strictement `formatCompactMoney` en euros. */
+export function formatCompactEur(value: number | null | undefined, locale: string): string {
+  return formatCompactMoney(value, locale, "eur");
 }
 
 export function formatInt(value: number | null | undefined, locale: string): string {
@@ -117,7 +142,7 @@ export function formatValue(
   locale: string,
 ): string {
   if (value == null) return "\u2014";
-  if (unit === "eur") return formatCompactEur(value, locale);
+  if (isMoneyUnit(unit)) return formatCompactMoney(value, locale, unit);
   if (unit === "pct") return `${value.toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
   return formatInt(Math.round(value), locale);
 }

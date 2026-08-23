@@ -30,12 +30,30 @@ export interface ExplorerState {
    *  tops, KPI et exports ne bougent pas — seules les séries
    *  dessinées et l'échelle visuelle changent. */
   hidden: string[];
+  /** Le mode de lecture (Reference Engine, grammaire R0 § D10) :
+   *  "" = nominal (défaut canonique, absent de l'URL), "real" = valeur
+   *  réelle. Jamais activé silencieusement — l'URL est la vérité. */
+  value: string;
+  /** L'année de référence du mode real (`base` dans l'URL). Absente en
+   *  lecture = année courante du serveur ; toute URL produite par Orion
+   *  en real l'écrit — une vue gardée en 2025 reste des valeurs de 2025
+   *  après la bascule d'Orion vers 2026. */
+  base: number | null;
+  /** La devise d'affichage du mode real (`cur` dans l'URL) : "" = EUR
+   *  (défaut canonique omis), "USD" en R1. Un scalaire de ré-expression,
+   *  jamais une seconde méthode économique. */
+  cur: string;
   limit: number;
   view: string;
 }
 
 export function readState(params: URLSearchParams): ExplorerState {
   const time = /^(\d{4})\.\.(\d{4})$/.exec(params.get("time") ?? "");
+  // La grammaire ne forme jamais silencieusement une combinaison
+  // incohérente (R0 § D10) : `base` et `cur` n'ont de sens qu'en mode
+  // real — lus hors de lui, ils sont ignorés, et la prochaine écriture
+  // d'URL les efface (canonicalisation par reconstruction).
+  const value = params.get("value") === "real" ? "real" : "";
   return {
     metric: params.get("metric") ?? "funding",
     by: params.get("by") ?? "country",
@@ -50,6 +68,14 @@ export function readState(params: URLSearchParams): ExplorerState {
     sector: params.get(LENS_PARAM) ?? "",
     subdivision: params.get("subdivision") ?? "",
     hidden: (params.get("hidden") ?? "").split("~").filter(Boolean),
+    value,
+    base:
+      value === "real" && /^\d{4}$/.test(params.get("base") ?? "")
+        ? Number(params.get("base"))
+        : null,
+    // « EUR » explicite se normalise vers le défaut omis ; R1 n'offre
+    // que l'USD comme ré-expression.
+    cur: value === "real" && params.get("cur") === "USD" ? "USD" : "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
   };
@@ -71,6 +97,13 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   if (state.organisation) apiParams.set("organisation", state.organisation);
   if (state.sector) apiParams.set(LENS_PARAM, state.sector);
   if (state.subdivision) apiParams.set("subdivision", state.subdivision);
+  // Le mode de lecture (Reference Engine) : mêmes noms côté API que
+  // dans l'URL publique — value/base/cur, grammaire R0 § D10.
+  if (state.value === "real") {
+    apiParams.set("value", "real");
+    if (state.base != null) apiParams.set("base", String(state.base));
+    if (state.cur) apiParams.set("cur", state.cur);
+  }
   // `hidden` n'atteint JAMAIS l'API : masquer une série est un état de
   // présentation — le backend rend exactement les mêmes données.
   return apiParams;

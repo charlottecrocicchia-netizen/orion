@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { useMeasure } from "@/hooks/use-measure";
 import type { ExploreSeries } from "@/lib/api";
-import { formatValue, seriesLabel, wrapLabel } from "@/lib/format";
+import { formatValue, isMoneyUnit, moneySymbol, seriesLabel, wrapLabel } from "@/lib/format";
 
 /* Categorical series palette — six distinct hues in a fixed order, anchored on
    the brand ultramarine, validated per theme (CVD separation + contrast) with
@@ -115,9 +115,9 @@ export function LinesChart({
   series: ExploreSeries[];
   unit: string;
   ariaLabel: string;
-  /** Lot A (arbitrage A1) : les années SANS chiffre constant restent
+  /** Reference Engine (arbitrage A1) : les années SANS chiffre real restent
    *  sur l'axe — hachurées, jamais tronquées, jamais un faux zéro.
-   *  Absence de chiffre constant ≠ absence de l'année ni des projets. */
+   *  Absence de chiffre real ≠ absence de l'année ni des projets. */
   unavailableYears?: number[];
   unavailableLabel?: string;
   /** La couleur suit l'ENTITÉ, jamais son rang (doctrine ci-dessus) :
@@ -185,8 +185,8 @@ export function LinesChart({
         if (overflow > 0) for (const label of endLabels) label.y -= overflow;
 
         const tickLabel = (value: number) =>
-          unit === "eur" && maxValue >= 995e6
-            ? `€${(value / 1e9).toLocaleString(i18n.language, { maximumFractionDigits: 1 })}B`
+          isMoneyUnit(unit) && maxValue >= 995e6
+            ? `${moneySymbol(unit)}${(value / 1e9).toLocaleString(i18n.language, { maximumFractionDigits: 1 })}B`
             : formatValue(value, unit, i18n.language);
 
         const step = years.length > 1 ? (x(years[1]) - x(years[0])) : 24;
@@ -231,7 +231,7 @@ export function LinesChart({
                   </text>
                 ))}
 
-              {/* La zone « indice non publié » (lot A, A1) : sobre,
+              {/* La zone « indice non publié » (A1) : sobre,
                   hachurée, l'axe garde l'horizon nominal complet. */}
               {(() => {
                 const unavailable = (unavailableYears ?? []).filter((year) =>
@@ -245,7 +245,7 @@ export function LinesChart({
                   <g>
                     <defs>
                       <pattern
-                        id="money-unavailable-hatch"
+                        id="reference-unavailable-hatch"
                         width="6"
                         height="6"
                         patternUnits="userSpaceOnUse"
@@ -259,7 +259,7 @@ export function LinesChart({
                       y={PAD.top}
                       width={to - from}
                       height={H - PAD.top - PAD.bottom}
-                      fill="url(#money-unavailable-hatch)"
+                      fill="url(#reference-unavailable-hatch)"
                       opacity="0.55"
                     />
                     {unavailableLabel && to - from >= 72 ? (

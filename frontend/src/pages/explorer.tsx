@@ -10,6 +10,8 @@ import { BumpChart } from "@/components/bump-chart";
 import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
 import { CoverageNote } from "@/components/coverage-note";
+import { ReferenceNote } from "@/components/reference-note";
+import { ReferenceSelector } from "@/components/reference-selector";
 import { LensUnavailable } from "@/components/lens-unavailable";
 import { SectorChip } from "@/components/sector-chip";
 import { SeriesLegend } from "@/components/series-legend";
@@ -24,7 +26,14 @@ import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
 import type { ExplorerState } from "@/lib/explore-state";
-import { countryFlag, formatValue, seriesColor, seriesLabel } from "@/lib/format";
+import {
+  countryFlag,
+  formatValue,
+  isMoneyUnit,
+  moneySymbol,
+  seriesColor,
+  seriesLabel,
+} from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const METRICS = ["funding", "projects", "organisations", "avg", "coordination"] as const;
@@ -212,6 +221,15 @@ export function ExplorerPage() {
     if (next.sector) out.set(LENS_PARAM, next.sector);
     if (next.subdivision) out.set("subdivision", next.subdivision);
     if (next.organisation) out.set("organisation", next.organisation);
+    // Le mode de lecture (Reference Engine, grammaire R0 § D10) : toute
+    // URL produite en real porte son année de référence ; la devise
+    // d'affichage ne s'écrit que hors défaut (EUR omis). La
+    // reconstruction efface d'elle-même les paramètres d'un mode quitté.
+    if (next.value === "real") {
+      out.set("value", "real");
+      if (next.base != null) out.set("base", String(next.base));
+      if (next.cur) out.set("cur", next.cur);
+    }
     // Les séries masquées (chantier légende) : clés canoniques, jamais
     // des labels — l'URL rejoue exactement la même composition.
     if (next.hidden.length > 0) out.set("hidden", next.hidden.join("~"));
@@ -247,6 +265,37 @@ export function ExplorerPage() {
 
   const { temporal, availableViews, view } = resolveView(state);
 
+  // L'année de référence dans l'URL, TOUJOURS (arbitrage du 2026-08-22,
+  // repris sous la grammaire R0) : la bascule peut partir sans année
+  // (lecture tolérée) — dès que l'API répond, l'année réellement
+  // utilisée s'écrit dans l'URL, en remplacement d'historique. Un lien
+  // copié ensuite reste des valeurs de CE millésime après la bascule
+  // d'Orion vers 2026.
+  const referenceMeta = data?.meta.reference;
+  useEffect(() => {
+    if (anglesStory) return;
+    if (state.value === "real" && state.base == null && referenceMeta) {
+      const out = new URLSearchParams(params);
+      out.set("base", String(referenceMeta.base));
+      setParams(out, { replace: true, preventScrollReset: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.value, state.base, referenceMeta?.base, anglesStory]);
+
+  // La ligne d'unité (R0 § D7) : toujours visible sur le board ET dans
+  // l'en-tête du CSV — on ne rouvre jamais le menu pour comprendre
+  // l'axe. Le symbole suit l'unité de la réponse, jamais un « € » dur.
+  const unitLine =
+    data && isMoneyUnit(data.unit)
+      ? referenceMeta
+        ? t("explorer.reference.unit", {
+            year: referenceMeta.base,
+            cur: referenceMeta.cur,
+            symbol: moneySymbol(data.unit),
+          })
+        : t("explorer.reference.unitNominal")
+      : null;
+
   const toggleCompare = (key: string) => {
     const next = state.compare.includes(key)
       ? state.compare.filter((k) => k !== key)
@@ -274,11 +323,14 @@ export function ExplorerPage() {
         ]);
       }
     } else {
-      rows.push(["key", "label", data.metric]);
+      // La ligne d'unité voyage avec l'export (R0 § D7) : une colonne
+      // monétaire dit son référentiel dans son propre en-tête.
+      rows.push(["key", "label", unitLine ? `${data.metric} (${unitLine})` : data.metric]);
       for (const s of data.series) rows.push([String(s.key), seriesLabel(s, t), String(s.value ?? "")]);
     }
     const csv = [
       ...rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(",")),
+      ...(unitLine ? [`# ${unitLine}`] : []),
       `# ${t("explorer.sources")} — orion ${new URL(window.location.href).search}`,
     ].join("\n");
     const link = document.createElement("a");
@@ -721,8 +773,21 @@ export function ExplorerPage() {
           <h1 className="text-[15px] font-semibold">{boardTitle}</h1>
           <span className="text-[12.5px] text-muted-foreground">
             {data ? t(`explorer.basis.${data.basis}`) : ""}
+            {unitLine ? ` · ${unitLine}` : ""}
             {state.by === "theme" ? ` · ${t("explorer.multiTheme")}` : ""}
           </span>
+          {/* Le sélecteur de lecture (R0 § D5) : LE contrôle, explicite,
+              porté par l'URL — jamais activé en silence. */}
+          {(data && isMoneyUnit(data.unit)) || state.value === "real" ? (
+            <ReferenceSelector
+              value={state.value}
+              base={state.base}
+              cur={state.cur}
+              bases={referenceMeta?.bases ?? []}
+              resolvedBase={referenceMeta?.base ?? null}
+              onChange={(next) => patch(next)}
+            />
+          ) : null}
           <div className="ml-auto flex gap-2">
             <button
               type="button"
@@ -767,6 +832,19 @@ export function ExplorerPage() {
           ) : null}
           {isPending ? (
             <Skeleton className="h-[380px] w-full" />
+          ) : isError && state.value === "real" ? (
+            /* Le refus explicite du mode (422 real_unavailable) : jamais
+               un repli silencieux — la sortie est un geste. */
+            <div className="py-24 text-center text-muted-foreground">
+              <p className="mx-auto max-w-[52ch]">{t("explorer.reference.unavailable")}</p>
+              <button
+                type="button"
+                onClick={() => patch({ value: "", base: null, cur: "" })}
+                className="mt-4 rounded-full border px-4 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
+              >
+                {t("explorer.reference.nominal")}
+              </button>
+            </div>
           ) : isError || !data || data.series.length === 0 ? (
             <p className="py-24 text-center text-muted-foreground">{t("explorer.emptyView")}</p>
           ) : leafDrill ? (
@@ -778,6 +856,8 @@ export function ExplorerPage() {
               series={shownSeries}
               unit={data.unit}
               ariaLabel={boardTitle}
+              unavailableYears={data.excluded?.reasons.no_index_year.years}
+              unavailableLabel={t("explorer.reference.bandLabel")}
               colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
             />
           ) : view === "bump" ? (
@@ -813,7 +893,7 @@ export function ExplorerPage() {
                     funding_eur: serie.value ?? 0,
                   }))}
                 flows={flows ?? []}
-                legendLabel={`${t(`explorer.metric.${state.metric}`)} · €`}
+                legendLabel={`${t(`explorer.metric.${state.metric}`)} · ${moneySymbol(data.unit)}`}
                 selected={mapSelected}
                 onSelect={setMapSelected}
               />
@@ -882,6 +962,9 @@ export function ExplorerPage() {
         {/* L'honnêteté au POINT DE COMPARAISON (lot E) : la phrase naît
             quand la vue mélange des couvertures, et seulement là. */}
         {data ? <CoverageNote meta={data.meta} /> : null}
+        {/* ⓘ Reference (R0 § D8) : la méthodologie au point d'usage —
+            part exclue chiffrée depuis le périmètre affiché (A1). */}
+        {data ? <ReferenceNote data={data} /> : null}
 
         <div className="mt-4 flex items-center gap-1.5 border-t border-border-soft pt-3.5">
           {availableViews.map((candidate) => (

@@ -180,7 +180,9 @@ test("the explorer composes a view and renders its chart and table", async () =>
   renderAt("/explore");
 
   expect(await screen.findByRole("button", { name: "Show" })).toHaveTextContent("funding");
-  expect(await screen.findByText("participants' share")).toBeInTheDocument();
+  // La phrase de base porte désormais aussi la ligne d'unité (R1,
+  // R0 § D7) : « participants' share · EUR · at award time ».
+  expect(await screen.findByText(/participants' share · EUR · at award time/)).toBeInTheDocument();
   const chart = await screen.findByRole("img", { name: /funding · country/ });
   expect(chart.tagName.toLowerCase()).toBe("svg");
   // The ready-made analyses moved to their library; the renvoi stays.

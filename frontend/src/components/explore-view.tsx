@@ -11,6 +11,7 @@ import { DonutChart } from "@/components/donut-chart";
 import { DumbbellChart } from "@/components/dumbbell-chart";
 import { WorldMap } from "@/components/world-map";
 import { CoverageNote } from "@/components/coverage-note";
+import { ReferenceNote } from "@/components/reference-note";
 import { ExploreTable } from "@/components/explore-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
@@ -114,6 +115,8 @@ export function ExploreView({
           series={shownSeries}
           unit={data.unit}
           ariaLabel={title}
+          unavailableYears={data.excluded?.reasons.no_index_year.years}
+          unavailableLabel={t("explorer.reference.bandLabel")}
           colorOf={legendColorOf}
         />
       ) : view === "bump" ? (
@@ -195,6 +198,9 @@ export function ExploreView({
       {/* La phrase d'honnêteté suit la vue PARTOUT où elle vit — deck,
           dossier, benchmark composable (lot E, 2026-08-17). */}
       <CoverageNote meta={data.meta} />
+      {/* ⓘ Reference (R0 § D8) : une vue gardée au dossier en valeur
+          réelle reste honnête en replay — même note, mêmes chiffres. */}
+      <ReferenceNote data={data} />
       {view !== "table" && !leafDrill ? (
         <details className="mt-3 border-t border-border-soft pt-2">
           <summary className="cursor-pointer text-[12px] text-muted-foreground hover:text-foreground">
