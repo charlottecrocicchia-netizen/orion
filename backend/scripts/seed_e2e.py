@@ -20,11 +20,13 @@ from orion.ingest.reference import seed_reference
 from orion.ingest.runlog import RunStats
 from orion.models import (
     EntityGroupMap,
+    ExchangeRate,
     Funder,
     Group,
     IngestionRun,
     Organisation,
     Participation,
+    PriceIndex,
     Programme,
     Project,
     ProjectText,
@@ -75,6 +77,10 @@ ORGS = {
     # doit le compter UNE fois (la règle DISTINCT se teste en e2e).
     "aero_sa": ("AEROSTELLAR SA", "FR", "PRC"),
     "aero_gmbh": ("AEROSTELLAR AVIONICS GMBH", "DE", "PRC"),
+    # Lot A : le porteur du projet 2026 (FUTUREWATT), volontairement
+    # HORS du groupe AEROSTELLAR — les consolidés du groupe (8 M€) sont
+    # recettés au chiffre près et ne doivent pas bouger.
+    "voltify": ("VOLTIFY LABS", "FR", "PRC"),
     # L'homonyme HORS périmètre : porte le nom du groupe, jamais
     # rattaché — la note d'honnêteté de la fiche doit le compter.
     "aero_services": ("AEROSTELLAR GROUP SERVICES BV", "NL", "PRC"),
@@ -274,6 +280,23 @@ PROJECTS = [
             )
         },
     ),
+    # Lot A (euros constants) : UN projet qui démarre APRÈS la dernière
+    # année d'indice publiée (2025) — il reste en nominal et la ligne
+    # « hors calcul constant » de l'Explorateur a un cas réel à chiffrer
+    # (arbitrage A1 : exclusion, jamais un facteur 1,0 artificiel).
+    (
+        "e2e-futurewatt",
+        "FUTUREWATT",
+        2026,
+        "he-child",
+        [("voltify", 2.0)],
+        {
+            "en": (
+                "Power electronics beyond the index horizon",
+                "Wide-bandgap converters for industrial electrification, starting next cycle.",
+            )
+        },
+    ),
 ]
 
 
@@ -326,6 +349,35 @@ def _seed_synthetic_lens(session: Session) -> None:
             "ON CONFLICT (lens, version) DO NOTHING"
         )
     )
+    session.commit()
+
+
+def _seed_price_indices(session: Session) -> None:
+    """Lot A (euros constants) : les indices annuels et le taux BCE de
+    l'année de référence, en vintage de graine. Les DEUX devises
+    couvertes doivent porter leur indice 2025 — la condition de
+    validité du mode constant l'exige, même si le corpus semé est tout
+    en euros. 2026 n'a volontairement AUCUN indice : FUTUREWATT reste
+    hors calcul constant (arbitrage A1) et la ligne d'exclusion se
+    recette sur un vrai cas."""
+    hicp = {2020: "105.1", 2021: "107.8", 2022: "116.8", 2023: "123.2", 2024: "126.1", 2025: "128.9"}
+    cpiu = {2020: "258.8", 2021: "271.0", 2022: "292.7", 2023: "304.7", 2024: "313.7", 2025: "322.1"}
+    for currency, series, values in (
+        ("EUR", ("eurostat", "prc_hicp_aind"), hicp),
+        ("USD", ("bls", "CUUR0000SA0"), cpiu),
+    ):
+        for year, value in values.items():
+            session.add(
+                PriceIndex(
+                    currency=currency,
+                    year=year,
+                    value=value,
+                    series_source=series[0],
+                    series_code=series[1],
+                    vintage_date="2026-01-15",
+                )
+            )
+    session.add(ExchangeRate(currency="USD", year=2025, rate_to_eur="1.09"))
     session.commit()
 
 
@@ -533,6 +585,11 @@ def main() -> None:
                 status="SIGNED",
                 funder_id=funder_id,
                 programme_id=programme.id,
+                # Lot A : le montant NATIF est l'entrée de la chaîne
+                # constante — la graine le pose en EUR (natif = nominal),
+                # ce qui suffit à exercer tout le mécanisme.
+                funding_amount=total,
+                funding_currency="EUR",
                 funding_amount_eur=total,
                 start_date=f"{year}-01-15",
                 end_date=f"{year + 3}-01-14",
@@ -551,6 +608,8 @@ def main() -> None:
                         organisation_id=organisation.id,
                         role="coordinator" if index == 0 else "participant",
                         country_code=organisation.country_code,
+                        amount=round(amount * 1e6, 2),
+                        currency="EUR",
                         amount_eur=round(amount * 1e6, 2),
                         source=source,
                         source_uid=f"{source_id}:{org_key}",
@@ -604,6 +663,7 @@ def main() -> None:
         load_all(session, _RunStats())
         _seed_synthetic_lens(session)
         _seed_call_topics(session)
+        _seed_price_indices(session)
         # La maille sous le pays : le référentiel complet, et le MIT posé
         # dans son État (les caches ne sont pas là en CI — la graine dit
         # la maille comme le backfill la dirait).

@@ -68,6 +68,19 @@ lignes, pas le code.
 - **`make prod-ingest SOURCES="…"`** charge dans la pile de prod sans
   démarrer une seconde base.
 
+### Geste annuel — les indices de prix (lot A, euros constants)
+
+`orion-ingest prices` recharge le HICP Eurostat et le CPI-U BLS dans
+`price_indices` — quelques centaines de lignes, quelques secondes,
+**aucun scheduler** : c'est un geste manuel, à faire une fois par an
+(début d'année, quand les moyennes annuelles de l'année écoulée sont
+publiées) et avant toute bascule d'année de référence
+(`ORION_CONSTANT_EURO_REFERENCE_YEAR`). Le chargeur est idempotent :
+il n'écrit une **nouvelle vintage** que si les valeurs officielles ont
+changé, et refuse une couverture trouée — en cas d'échec source, la
+vintage courante reste en service et le mode real (valeur réelle)
+continue de fonctionner sur elle.
+
 ## 3. Ce qu'on peut en attendre — honnêtement
 
 Mesuré après recalibrage, corpus de 699 798 projets, pile chaude et
