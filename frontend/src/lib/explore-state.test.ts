@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readState, toApiParams } from "@/lib/explore-state";
+import { readState, resolveView, toApiParams } from "@/lib/explore-state";
 
 /** La grammaire `hidden=` (chantier légende, 2026-08-22) : identifiants
  *  canoniques dans l'URL, et JAMAIS transmis à l'API — masquer une
@@ -73,6 +73,41 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   it("un mode inconnu retombe sur le nominal", () => {
     expect(readState(new URLSearchParams("value=constant")).value).toBe("");
     expect(readState(new URLSearchParams("value=reel")).value).toBe("");
+  });
+
+  it("TREND (R2) : index garde base, growth l'élimine, la devise leur est étrangère", () => {
+    const index = readState(new URLSearchParams("by=year&value=index&base=2015&cur=USD"));
+    expect(index.value).toBe("index");
+    expect(index.base).toBe(2015);
+    expect(index.cur).toBe("");
+    const growth = readState(new URLSearchParams("by=year&value=growth&base=2015"));
+    expect(growth.value).toBe("growth");
+    expect(growth.base).toBeNull();
+  });
+
+  it("TREND voyage vers l'API en value=real, sans base ni cur — le backend ignore index/growth", () => {
+    for (const query of ["value=index&base=2015", "value=growth"]) {
+      const api = toApiParams(readState(new URLSearchParams(`by=year&${query}`)));
+      expect(api.get("value")).toBe("real");
+      expect(api.has("base")).toBe(false);
+      expect(api.has("cur")).toBe(false);
+    }
+  });
+
+  it("TREND compose avec la légende : value=index&base=2015&hidden=US", () => {
+    const state = readState(new URLSearchParams("by=country&split=1&value=index&base=2015&hidden=US"));
+    expect(state.hidden).toEqual(["US"]);
+    expect(state.value).toBe("index");
+    expect(state.base).toBe(2015);
+    expect(toApiParams(state).has("hidden")).toBe(false);
+  });
+
+  it("TREND sur vue temporelle : lines et table seulement — jamais de donut ni de carte", () => {
+    const state = readState(new URLSearchParams("by=country&split=1&value=growth"));
+    const { availableViews, view, temporal } = resolveView(state);
+    expect(temporal).toBe(true);
+    expect(availableViews).toEqual(["lines", "table"]);
+    expect(view).toBe("lines");
   });
 
   it("composition avec la légende : value=real&base=2025&cur=USD&hidden=US", () => {

@@ -136,8 +136,11 @@ export interface ExploreResponse {
   by: string;
   split: boolean;
   /** `usd` n'existe qu'en mode real ré-exprimé en dollars — le symbole
-   *  affiché suit TOUJOURS cette unité, jamais un « € » codé en dur. */
-  unit: "eur" | "usd" | "count" | "pct";
+   *  affiché suit TOUJOURS cette unité, jamais un « € » codé en dur.
+   *  `index` et `growth` ne viennent JAMAIS de l'API : ce sont les
+   *  unités posées par la transformation TREND côté client
+   *  (lib/trend.ts) — plus des montants monétaires. */
+  unit: "eur" | "usd" | "count" | "pct" | "index" | "growth";
   basis: "participants" | "projects";
   series: ExploreSeries[];
   total: number | null;

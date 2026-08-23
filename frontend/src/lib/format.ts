@@ -144,6 +144,12 @@ export function formatValue(
   if (value == null) return "\u2014";
   if (isMoneyUnit(unit)) return formatCompactMoney(value, locale, unit);
   if (unit === "pct") return `${value.toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
+  // Les unités TREND (R2) : l'indice est un nombre pur (100 à la base),
+  // la croissance un pourcentage SIGNÉ — jamais confondue avec une part
+  // du total.
+  if (unit === "index") return value.toLocaleString(locale, { maximumFractionDigits: 1 });
+  if (unit === "growth")
+    return `${value > 0 ? "+" : ""}${value.toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
   return formatInt(Math.round(value), locale);
 }
 

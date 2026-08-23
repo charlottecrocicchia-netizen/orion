@@ -53,7 +53,8 @@ export function readState(params: URLSearchParams): ExplorerState {
   // incohérente (R0 § D10) : `base` et `cur` n'ont de sens qu'en mode
   // real — lus hors de lui, ils sont ignorés, et la prochaine écriture
   // d'URL les efface (canonicalisation par reconstruction).
-  const value = params.get("value") === "real" ? "real" : "";
+  const raw = params.get("value");
+  const value = raw === "real" || raw === "index" || raw === "growth" ? raw : "";
   return {
     metric: params.get("metric") ?? "funding",
     by: params.get("by") ?? "country",
@@ -69,12 +70,16 @@ export function readState(params: URLSearchParams): ExplorerState {
     subdivision: params.get("subdivision") ?? "",
     hidden: (params.get("hidden") ?? "").split("~").filter(Boolean),
     value,
+    // `base` porte l'année de référence de `real` ET l'année de base
+    // d'`index` (R0 § D10 : un mode a au plus un paramètre d'année) ;
+    // il est étranger à `growth` et au nominal — éliminé.
     base:
-      value === "real" && /^\d{4}$/.test(params.get("base") ?? "")
+      (value === "real" || value === "index") && /^\d{4}$/.test(params.get("base") ?? "")
         ? Number(params.get("base"))
         : null,
     // « EUR » explicite se normalise vers le défaut omis ; R1 n'offre
-    // que l'USD comme ré-expression.
+    // que l'USD comme ré-expression. La devise est étrangère à TREND :
+    // un scalaire commun s'annule dans les ratios — éliminée.
     cur: value === "real" && params.get("cur") === "USD" ? "USD" : "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
@@ -103,6 +108,12 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
     apiParams.set("value", "real");
     if (state.base != null) apiParams.set("base", String(state.base));
     if (state.cur) apiParams.set("cur", state.cur);
+  } else if (state.value === "index" || state.value === "growth") {
+    // TREND (R2) : le backend ne connaît ni index ni growth — la page
+    // demande la série REAL (année de référence serveur par défaut) et
+    // lib/trend.ts transforme APRÈS réception. `base` est l'année de
+    // base de l'indice, un paramètre d'affichage : il ne voyage pas.
+    apiParams.set("value", "real");
   }
   // `hidden` n'atteint JAMAIS l'API : masquer une série est un état de
   // présentation — le backend rend exactement les mêmes données.
@@ -124,6 +135,15 @@ export function resolveView(state: ExplorerState): {
   const mappable =
     !temporal && state.by === "country" && (state.metric === "funding" || state.metric === "avg");
   const summable = SUMMABLE.has(state.metric);
+  // TREND (R2) : des trajectoires et leurs nombres, rien d'autre — pas
+  // de donut (part d'un total qui n'existe plus), pas de bump ni de
+  // delta (des rangs et des sommes de fenêtres sur des valeurs
+  // transformées mentiraient), pas de carte. Les vues incompatibles
+  // DISPARAISSENT, jamais grisées (doctrine R0 § D4).
+  if ((state.value === "index" || state.value === "growth") && temporal) {
+    const view = state.view === "table" ? "table" : "lines";
+    return { temporal, mappable: false, availableViews: ["lines", "table"], view };
+  }
   // Bump (ranks) and delta (before/after windows) need several series over
   // time — a single-series "year" dimension has nothing to race.
   // Default order rules (fondatrice, 2026-08-02, amended at the deck
