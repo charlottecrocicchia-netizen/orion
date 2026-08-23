@@ -40,8 +40,13 @@ test("le fil avance tout seul, même sous un curseur parqué par le scroll", asy
     await page.mouse.wheel(0, notch % 2 === 0 ? 30 : -30);
     await page.waitForTimeout(150);
   }
-  const dotCount = await band.locator("[role='tab']").count();
-  if (dotCount < 2) test.skip(true, "seeded corpus produced fewer than two stories — nothing to rotate");
+  // Déterminisme (recette R1) : les histoires naissent de quatre
+  // requêtes — on ATTEND le fil complet au lieu de compter trop tôt
+  // (les skips « fewer than two stories » étaient une course, pas la
+  // graine : le même test passait sur les mêmes données).
+  await expect
+    .poll(() => band.locator("[role='tab']").count(), { timeout: 15_000 })
+    .toBeGreaterThanOrEqual(2);
   const first = await selectedDot(page)();
   await expect
     .poll(selectedDot(page), { timeout: 20_000, intervals: [1000] })
@@ -59,8 +64,13 @@ test("après un clic sur la flèche, le fil repart et défile indéfiniment", as
   await page.evaluate(() =>
     document.querySelector("section[aria-label='Actualités']")?.scrollIntoView({ block: "center" }),
   );
-  const dotCount = await band.locator("[role='tab']").count();
-  if (dotCount < 2) test.skip(true, "seeded corpus produced fewer than two stories — nothing to rotate");
+  // Déterminisme (recette R1) : les histoires naissent de quatre
+  // requêtes — on ATTEND le fil complet au lieu de compter trop tôt
+  // (les skips « fewer than two stories » étaient une course, pas la
+  // graine : le même test passait sur les mêmes données).
+  await expect
+    .poll(() => band.locator("[role='tab']").count(), { timeout: 15_000 })
+    .toBeGreaterThanOrEqual(2);
   await band.getByRole("button", { name: "Actualité suivante" }).click();
   const afterClick = await selectedDot(page)();
   // First auto-advance: the click's real pointer move holds ~8 s, then
@@ -84,8 +94,13 @@ test("le geste des decks marche sur le fil : un glissement horizontal change d'a
   await page.evaluate(() =>
     document.querySelector("section[aria-label='Actualités']")?.scrollIntoView({ block: "center" }),
   );
-  const dotCount = await band.locator("[role='tab']").count();
-  if (dotCount < 2) test.skip(true, "seeded corpus produced fewer than two stories — nothing to swipe");
+  // Déterminisme (recette R1) : les histoires naissent de quatre
+  // requêtes — on ATTEND le fil complet au lieu de compter trop tôt
+  // (les skips « fewer than two stories » étaient une course, pas la
+  // graine : le même test passait sur les mêmes données).
+  await expect
+    .poll(() => band.locator("[role='tab']").count(), { timeout: 15_000 })
+    .toBeGreaterThanOrEqual(2);
   const first = await selectedDot(page)();
   // The gesture itself: scroll the snap rail horizontally, as a trackpad
   // swipe does — the rail must land on the next slide and sync the state.
