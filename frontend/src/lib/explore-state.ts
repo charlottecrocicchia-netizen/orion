@@ -43,6 +43,14 @@ export interface ExplorerState {
    *  (défaut canonique omis), "USD" en R1. Un scalaire de ré-expression,
    *  jamais une seconde méthode économique. */
   cur: string;
+  /** L'échelle d'affichage de la croissance (recette R2) : "" = domaine
+   *  robuste par défaut (clôtures de Tukey), "full" = échelle
+   *  intégrale. PRÉSENTATION pure — jamais envoyé à l'API ni au CSV —
+   *  mais la représentation change substantiellement : l'URL la porte
+   *  (doctrine « URL = vue partageable/rejouable »). Étranger à tout
+   *  autre mode ; supprimé de l'URL canonique quand le jeu visible n'a
+   *  aucun débordement (les deux vues sont alors identiques). */
+  range: string;
   limit: number;
   view: string;
 }
@@ -81,6 +89,7 @@ export function readState(params: URLSearchParams): ExplorerState {
     // que l'USD comme ré-expression. La devise est étrangère à TREND :
     // un scalaire commun s'annule dans les ratios — éliminée.
     cur: value === "real" && params.get("cur") === "USD" ? "USD" : "",
+    range: value === "growth" && params.get("range") === "full" ? "full" : "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
   };
@@ -111,8 +120,9 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   } else if (state.value === "index" || state.value === "growth") {
     // TREND (R2) : le backend ne connaît ni index ni growth — la page
     // demande la série REAL (année de référence serveur par défaut) et
-    // lib/trend.ts transforme APRÈS réception. `base` est l'année de
-    // base de l'indice, un paramètre d'affichage : il ne voyage pas.
+    // lib/trend.ts transforme APRÈS réception. `base` (année de base de
+    // l'indice) et `range` (échelle d'affichage de la croissance) sont
+    // des paramètres d'affichage : ils ne voyagent JAMAIS.
     apiParams.set("value", "real");
   }
   // `hidden` n'atteint JAMAIS l'API : masquer une série est un état de

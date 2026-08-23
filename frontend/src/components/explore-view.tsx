@@ -143,6 +143,7 @@ export function ExploreView({
           unavailableYears={data.excluded?.reasons.no_index_year.years}
           unavailableLabel={t("explorer.reference.bandLabel")}
           colorOf={legendColorOf}
+          fullRange={state.range === "full"}
         />
       ) : view === "bump" ? (
         <BumpChart series={shownSeries} ariaLabel={title} colorOf={legendColorOf} />

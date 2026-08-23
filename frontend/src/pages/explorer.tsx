@@ -25,7 +25,7 @@ import { addToDossier, isCollected, removeByParams } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
-import { applyTrend, indexBaseCandidates, resolveIndexBase } from "@/lib/trend";
+import { applyTrend, indexBaseCandidates, resolveIndexBase, robustDomain } from "@/lib/trend";
 import type { ExplorerState } from "@/lib/explore-state";
 import {
   countryFlag,
@@ -238,6 +238,9 @@ export function ExplorerPage() {
       if (next.base != null) out.set("base", String(next.base));
     } else if (next.value === "growth") {
       out.set("value", "growth");
+      // L'échelle d'affichage (recette R2) : présentation pure mais
+      // représentation substantielle — l'URL la porte, l'API jamais.
+      if (next.range === "full") out.set("range", "full");
     }
     // Les séries masquées (chantier légende) : clés canoniques, jamais
     // des labels — l'URL rejoue exactement la même composition.
@@ -458,6 +461,28 @@ export function ExplorerPage() {
   const shownSeries = legendActive
     ? (data?.series ?? []).filter((serie) => !state.hidden.includes(String(serie.key)))
     : (data?.series ?? []);
+  // `range=full` canonique (recette R2) : calculé sur les observations
+  // effectivement VISIBLES (après hidden=) — une série masquée ne dicte
+  // plus l'échelle. Si le jeu visible n'a aucun débordement, les deux
+  // échelles sont identiques : le paramètre sort de l'URL (replace).
+  const growthRobust =
+    trendMode === "growth" && data
+      ? robustDomain(
+          shownSeries
+            .flatMap((s) => (s.points ?? []).map((p) => p.value))
+            .filter((v): v is number => v != null),
+        )
+      : null;
+  useEffect(() => {
+    if (anglesStory) return;
+    if (state.range === "full" && trendMode === "growth" && data && growthRobust == null) {
+      const out = new URLSearchParams(params);
+      out.delete("range");
+      setParams(out, { replace: true, preventScrollReset: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.range, trendMode, growthRobust == null, data != null, anglesStory]);
+
   const toggleHidden = (key: string) =>
     patch({
       hidden: state.hidden.includes(key)
@@ -929,6 +954,8 @@ export function ExplorerPage() {
               unavailableYears={data.excluded?.reasons.no_index_year.years}
               unavailableLabel={t("explorer.reference.bandLabel")}
               colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
+              fullRange={state.range === "full"}
+              onFullRange={(full) => patch({ range: full ? "full" : "" })}
             />
           ) : view === "bump" ? (
             <BumpChart

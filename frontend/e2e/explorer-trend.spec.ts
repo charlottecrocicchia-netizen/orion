@@ -84,6 +84,18 @@ test("la légende compose avec TREND : hidden survit, Show all conserve le mode"
   await expect(legendDe).toHaveAttribute("aria-pressed", "true");
 });
 
+test("range=full se canonicalise quand le jeu visible n'a aucun débordement", async ({ page }) => {
+  // La graine ne produit que 3 observations de croissance (< 4) : le
+  // domaine robuste n'existe pas, les deux échelles sont identiques —
+  // le paramètre sort de l'URL en remplacement d'historique.
+  await page.goto("/explore?by=year&value=growth&range=full");
+  await expect(page.getByRole("img", { name: /funding · year/ })).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page).toHaveURL(/value=growth/);
+  await expect(page).not.toHaveURL(/range=/, { timeout: 15_000 });
+});
+
 test("TREND sans axe temporel : refus en toutes lettres, retour au nominal", async ({ page }) => {
   await page.goto("/explore?by=country&value=growth");
   await expect(page.getByText(/need a time axis/)).toBeVisible({ timeout: 15_000 });

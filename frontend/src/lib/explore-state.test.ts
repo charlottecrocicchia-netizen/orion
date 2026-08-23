@@ -94,6 +94,30 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
     }
   });
 
+  it("range=full : lu en growth seulement, jamais envoyé à l'API (recette R2)", () => {
+    const growth = readState(new URLSearchParams("by=year&value=growth&range=full"));
+    expect(growth.range).toBe("full");
+    expect(toApiParams(growth).has("range")).toBe(false);
+    // Étranger à tout autre mode : éliminé à la lecture.
+    expect(readState(new URLSearchParams("by=year&value=index&base=2021&range=full")).range).toBe("");
+    expect(readState(new URLSearchParams("by=year&value=real&range=full")).range).toBe("");
+    expect(readState(new URLSearchParams("by=year&range=full")).range).toBe("");
+    // Absent = domaine robuste par défaut.
+    expect(readState(new URLSearchParams("by=year&value=growth")).range).toBe("");
+  });
+
+  it("range=full compose avec hidden — aucun des deux n'atteint l'API", () => {
+    const state = readState(
+      new URLSearchParams("by=country&split=1&value=growth&range=full&hidden=US"),
+    );
+    expect(state.range).toBe("full");
+    expect(state.hidden).toEqual(["US"]);
+    const api = toApiParams(state);
+    expect(api.get("value")).toBe("real");
+    expect(api.has("range")).toBe(false);
+    expect(api.has("hidden")).toBe(false);
+  });
+
   it("TREND compose avec la légende : value=index&base=2015&hidden=US", () => {
     const state = readState(new URLSearchParams("by=country&split=1&value=index&base=2015&hidden=US"));
     expect(state.hidden).toEqual(["US"]);

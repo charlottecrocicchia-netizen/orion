@@ -112,6 +112,8 @@ export function LinesChart({
   unavailableYears,
   unavailableLabel,
   colorOf,
+  fullRange = false,
+  onFullRange,
 }: {
   series: ExploreSeries[];
   unit: string;
@@ -126,12 +128,16 @@ export function LinesChart({
    *  ici la couleur d'origine de chaque clé pour qu'un masquage ne
    *  repeigne jamais les courbes restantes. */
   colorOf?: (key: string) => string;
+  /** Échelle d'affichage de la croissance (recette R2) : true = échelle
+   *  intégrale. Porté par l'URL (`range=full`) via la page — jamais un
+   *  état local : une URL copiée reproduit l'échelle vue. */
+  fullRange?: boolean;
+  /** Absent = vue rejouée en lecture (deck, dossier) : l'échelle
+   *  s'applique, la mention reste, l'action n'apparaît pas. */
+  onFullRange?: (full: boolean) => void;
 }) {
   const { t, i18n } = useTranslation();
   const [tip, setTip] = useState<Tip | null>(null);
-  // Échelle robuste (recette R2, règle unique : lib/trend.ts) — état de
-  // PRÉSENTATION pur : jamais dans les calculs, l'API ni le CSV.
-  const [fullRange, setFullRange] = useState(false);
   const clipId = useId();
   const H = 380;
   // The right pad hosts the end-of-line labels, wrapped in full — wide
@@ -474,19 +480,25 @@ export function LinesChart({
                 />
               ) : null}
             </svg>
-            {/* La mention sobre + l'action (recette R2) : préférence de
-                présentation pure — calculs, API et CSV n'en savent rien. */}
+            {/* La mention sobre + l'action (recette R2) : présentation
+                pure — calculs, API et CSV n'en savent rien ; l'URL porte
+                l'état (`range=full`) pour que la vue se partage. */}
             {robust != null ? (
               <p className="mt-1 text-right text-[11.5px] text-muted-foreground">
-                {clamped ? `${t("explorer.scale.outliers", { count: overflows.length })} · ` : ""}
-                <button
-                  type="button"
-                  aria-pressed={fullRange}
-                  onClick={() => setFullRange(!fullRange)}
-                  className="text-accent underline-offset-2 hover:underline"
-                >
-                  {clamped ? t("explorer.scale.showFull") : t("explorer.scale.showRobust")}
-                </button>
+                {clamped ? `${t("explorer.scale.outliers", { count: overflows.length })}` : ""}
+                {onFullRange ? (
+                  <>
+                    {clamped ? " · " : ""}
+                    <button
+                      type="button"
+                      aria-pressed={fullRange}
+                      onClick={() => onFullRange(!fullRange)}
+                      className="text-accent underline-offset-2 hover:underline"
+                    >
+                      {clamped ? t("explorer.scale.showFull") : t("explorer.scale.showRobust")}
+                    </button>
+                  </>
+                ) : null}
               </p>
             ) : null}
             <TipBox tip={tip} />
