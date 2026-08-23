@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { ExploreResponse } from "@/lib/api";
-import { applyTrend, indexBaseCandidates, resolveIndexBase, robustDomain } from "@/lib/trend";
+import {
+  applyTrend,
+  clipSeriesSegments,
+  indexBaseCandidates,
+  niceTicks,
+  resolveIndexBase,
+  robustDomain,
+} from "@/lib/trend";
 
 /** Les tests-or TREND (R2) — cas calculables à la main, verrouillés. */
 
@@ -215,5 +222,56 @@ describe("trend · domaine d'affichage robuste (clôtures de Tukey)", () => {
     const a = robustDomain([3, -8, 900, 12, 0, -2, 7]);
     const b = robustDomain([900, 7, -2, 0, 12, -8, 3]);
     expect(a).toEqual(b);
+  });
+});
+
+describe("trend · segments coupés au domaine (rendu)", () => {
+  const pts = (list: [number, number][]) => list.map(([year, value]) => ({ year, value }));
+
+  it("tout dedans → un seul segment intact", () => {
+    expect(clipSeriesSegments(pts([[2015, 10], [2016, 20], [2017, -5]]), -30, 30)).toEqual([
+      [{ year: 2015, value: 10 }, { year: 2016, value: 20 }, { year: 2017, value: -5 }],
+    ]);
+  });
+
+  it("sortie par le haut : le segment s'arrête À la frontière, interpolé", () => {
+    // 2015=10 → 2016=90, plafond 50 : croisement à mi-chemin (année 2015.5).
+    const segments = clipSeriesSegments(pts([[2015, 10], [2016, 90]]), -50, 50);
+    expect(segments).toEqual([[{ year: 2015, value: 10 }, { year: 2015.5, value: 50 }]]);
+  });
+
+  it("ré-entrée : la courbe reprend au croisement, la portion hors champ n'existe pas", () => {
+    // 90 → 10 : rentre à 2016.5 ; deux hors-champ consécutifs mêmes côtés → rien.
+    const segments = clipSeriesSegments(pts([[2015, 90], [2016, 90], [2017, 10]]), -50, 50);
+    expect(segments).toEqual([[{ year: 2016.5, value: 50 }, { year: 2017, value: 10 }]]);
+  });
+
+  it("deux hors-champ du même côté → AUCUN trait (le trait vertical d'avant)", () => {
+    expect(clipSeriesSegments(pts([[2015, 90], [2016, 120]]), -50, 50)).toEqual([]);
+  });
+
+  it("traversée plafond → plancher : seule la portion visible se dessine", () => {
+    // 150 → -150, domaine [-50, 50] : croise 50 à 1/3, -50 à 2/3.
+    const [segment] = clipSeriesSegments(pts([[2015, 150], [2018, -150]]), -50, 50);
+    expect(segment[0].value).toBe(50);
+    expect(segment[0].year).toBeCloseTo(2016, 10);
+    expect(segment[1].value).toBe(-50);
+    expect(segment[1].year).toBeCloseTo(2017, 10);
+  });
+});
+
+describe("trend · graduations humaines (rendu)", () => {
+  it("cas recette : domaine −28,6 → +58,1 → multiples de 20, zéro présent", () => {
+    expect(niceTicks(-28.6, 58.1)).toEqual([-20, 0, 20, 40]);
+  });
+
+  it("cas recette : domaine −43,1 → +41,2 → zéro présent, pas rond", () => {
+    expect(niceTicks(-43.1, 41.2)).toEqual([-40, -20, 0, 20, 40]);
+  });
+
+  it("le zéro est toujours une graduation d'un domaine qui l'encadre", () => {
+    for (const [lo, hi] of [[-7.3, 12.9], [-120, 480], [0, 22]] as [number, number][]) {
+      expect(niceTicks(lo, hi)).toContain(0);
+    }
   });
 });

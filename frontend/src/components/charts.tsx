@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useMeasure } from "@/hooks/use-measure";
 import type { ExploreSeries } from "@/lib/api";
 import { formatValue, isMoneyUnit, moneySymbol, seriesLabel, wrapLabel } from "@/lib/format";
-import { robustDomain } from "@/lib/trend";
+import { clipSeriesSegments, niceTicks, robustDomain } from "@/lib/trend";
 
 /* Categorical series palette — six distinct hues in a fixed order, anchored on
    the brand ultramarine, validated per theme (CVD separation + contrast) with
@@ -238,10 +238,16 @@ export function LinesChart({
         return (
           <>
             <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={ariaLabel}>
-              {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
-                const tick = axisMin + fraction * (axisMax - axisMin);
+              {/* Growth : graduations humaines alignées sur des pas ronds,
+                  zéro TOUJOURS présent (repère sémantique — recette R2) ;
+                  le domaine Tukey ne bouge pas. Ailleurs : fractions du
+                  domaine, comportement historique. */}
+              {(unit === "growth"
+                ? niceTicks(axisMin, axisMax)
+                : [0, 0.25, 0.5, 0.75, 1].map((f) => axisMin + f * (axisMax - axisMin))
+              ).map((tick) => {
                 return (
-                  <g key={fraction}>
+                  <g key={tick}>
                     <line
                       x1={PAD.left}
                       x2={width - padRight}
@@ -361,6 +367,20 @@ export function LinesChart({
                   colorOf?.(String(serie.key)) ?? SERIES_COLORS[index % SERIES_COLORS.length];
                 const pts = (serie.points ?? []).filter((p) => p.value != null);
                 const path = pts.map((p) => `${x(p.year).toFixed(1)},${y(p.value ?? 0).toFixed(1)}`);
+                // Domaine resserré : la portion hors champ ne se TRACE pas
+                // (recette R2) — chaque segment atteint la frontière puis
+                // s'interrompt ; le marqueur dit la valeur exacte. x() est
+                // linéaire en année : les croisements fractionnaires
+                // tombent juste.
+                const segments = clamped
+                  ? clipSeriesSegments(
+                      pts.map((p) => ({ year: p.year, value: p.value as number })),
+                      axisMin,
+                      axisMax,
+                    ).map((segment) =>
+                      segment.map((p) => `${x(p.year).toFixed(1)},${y(p.value).toFixed(1)}`),
+                    )
+                  : [path];
                 return (
                   <g key={String(serie.key)} clipPath={clamped ? `url(#${clipId})` : undefined}>
                     {single ? (
@@ -369,13 +389,16 @@ export function LinesChart({
                         fill="var(--color-accent-soft)"
                       />
                     ) : null}
-                    <polyline
-                      points={path.join(" ")}
-                      fill="none"
-                      stroke={color}
-                      strokeWidth={index === 0 ? 2.4 : 1.8}
-                      strokeLinejoin="round"
-                    />
+                    {segments.map((segment, si) => (
+                      <polyline
+                        key={si}
+                        points={segment.join(" ")}
+                        fill="none"
+                        stroke={color}
+                        strokeWidth={index === 0 ? 2.4 : 1.8}
+                        strokeLinejoin="round"
+                      />
+                    ))}
                   </g>
                 );
               })}

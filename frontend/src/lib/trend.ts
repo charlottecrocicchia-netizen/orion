@@ -164,3 +164,81 @@ export function applyTrend(
     nonIndexable,
   };
 }
+
+/** Le tracé sous domaine resserré (recette R2, finition) : la portion
+ *  de courbe HORS du domaine visible ne se dessine pas — le segment
+ *  atteint la frontière (croisement interpolé linéairement, année
+ *  fractionnaire), s'interrompt, et reprend au point de ré-entrée.
+ *  Fini les grands traits verticaux au plafond/plancher ; le marqueur
+ *  ▲/▼ et la valeur exacte restent les témoins du débordement.
+ *  Les trous (null) sont l'affaire de l'appelant : il passe des points
+ *  déjà filtrés, la connexion entre points consécutifs est inchangée. */
+export function clipSeriesSegments(
+  pts: { year: number; value: number }[],
+  min: number,
+  max: number,
+): { year: number; value: number }[][] {
+  const inside = (v: number) => v >= min && v <= max;
+  const crossing = (
+    a: { year: number; value: number },
+    b: { year: number; value: number },
+    bound: number,
+  ) => ({ year: a.year + (b.year - a.year) * ((bound - a.value) / (b.value - a.value)), value: bound });
+
+  const segments: { year: number; value: number }[][] = [];
+  let current: { year: number; value: number }[] = [];
+  const flush = () => {
+    if (current.length >= 2) segments.push(current);
+    current = [];
+  };
+
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    const prev = i > 0 ? pts[i - 1] : null;
+    if (inside(p.value)) {
+      if (prev && !inside(prev.value)) {
+        current.push(crossing(prev, p, prev.value > max ? max : min));
+      }
+      current.push(p);
+    } else {
+      if (prev && inside(prev.value)) {
+        current.push(crossing(prev, p, p.value > max ? max : min));
+      } else if (prev && !inside(prev.value)) {
+        // Deux points hors champ de part et d'autre : le segment TRAVERSE
+        // le domaine — sa portion visible se dessine, le reste non.
+        const opposite =
+          (prev.value > max && p.value < min) || (prev.value < min && p.value > max);
+        if (opposite) {
+          flush();
+          segments.push([
+            crossing(prev, p, prev.value > max ? max : min),
+            crossing(prev, p, p.value > max ? max : min),
+          ]);
+        }
+        // Même côté : rien à tracer — c'était le grand trait vertical.
+      }
+      flush();
+    }
+  }
+  flush();
+  return segments;
+}
+
+/** Les graduations « humaines » du mode growth (recette R2, finition) :
+ *  multiples d'un pas 1/2/2,5/5 × 10^k visant ~5 graduations sur le
+ *  domaine — le zéro, multiple de tout pas, est TOUJOURS présent
+ *  (le domaine growth l'inclut par construction). Le domaine Tukey ne
+ *  bouge pas : seules les étiquettes s'alignent sur des valeurs rondes. */
+export function niceTicks(min: number, max: number): number[] {
+  const span = max - min;
+  if (!(span > 0)) return [0];
+  const raw = span / 5;
+  const magnitude = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= raw) ?? raw;
+  const ticks: number[] = [];
+  for (let tick = Math.ceil(min / step) * step; tick <= max + step * 1e-9; tick += step) {
+    // -0 et le bruit flottant s'écrasent proprement.
+    ticks.push(Math.abs(tick) < step * 1e-9 ? 0 : Number(tick.toFixed(10)));
+  }
+  return ticks;
+}
