@@ -79,6 +79,43 @@ export function resolveIndexBase(
   return candidates[0];
 }
 
+/** Le domaine d'AFFICHAGE robuste (recette R2) — la règle, unique et
+ *  figée : clôtures de Tukey sur les observations affichées.
+ *
+ *  Un faible dénominateur produit légitimement des croissances de
+ *  plusieurs milliers de % ; l'échelle linéaire complète écraserait
+ *  alors toutes les variations ordinaires. Les VALEURS ne bougent
+ *  jamais (données, tooltips, CSV exacts) — seule la fenêtre d'axe se
+ *  resserre, et les points au-delà se disent par des marqueurs de
+ *  débordement avec leur valeur exacte.
+ *
+ *  La règle, déterministe, sans seuil caché propre à un graphe :
+ *  - Q1 et Q3 par interpolation linéaire (définition « type 7 », celle
+ *    des tableurs), IQR = Q3 − Q1 ;
+ *  - bornes de Tukey : [Q1 − 1,5·IQR, Q3 + 1,5·IQR] — LA convention
+ *    textbook, écrite ici et nulle part ailleurs ;
+ *  - domaine = bornes ∩ [min, max] observés, zéro toujours inclus ;
+ *  - IQR nul (série dégénérée) ou aucune observation hors bornes →
+ *    null : l'échelle complète s'applique et AUCUN contrôle n'apparaît.
+ */
+export function robustDomain(values: number[]): { min: number; max: number } | null {
+  const sorted = values.filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+  if (sorted.length < 4) return null;
+  const quantile = (q: number) => {
+    const at = q * (sorted.length - 1);
+    const lo = Math.floor(at);
+    return sorted[lo] + (at - lo) * ((sorted[Math.min(lo + 1, sorted.length - 1)] ?? sorted[lo]) - sorted[lo]);
+  };
+  const q1 = quantile(0.25);
+  const q3 = quantile(0.75);
+  const iqr = q3 - q1;
+  if (iqr <= 0) return null;
+  const min = Math.min(Math.max(sorted[0], q1 - 1.5 * iqr), 0);
+  const max = Math.max(Math.min(sorted[sorted.length - 1], q3 + 1.5 * iqr), 0);
+  if (min <= sorted[0] && max >= sorted[sorted.length - 1]) return null;
+  return { min, max };
+}
+
 /** LA transformation — appliquée UNE fois, juste après la réponse
  *  real, avant tout rendu ou export. */
 export function applyTrend(

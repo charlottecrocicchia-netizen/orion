@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ReactNode } from "react";
 
 import { useMeasure } from "@/hooks/use-measure";
 import type { ExploreSeries } from "@/lib/api";
 import { formatValue, isMoneyUnit, moneySymbol, seriesLabel, wrapLabel } from "@/lib/format";
+import { robustDomain } from "@/lib/trend";
 
 /* Categorical series palette — six distinct hues in a fixed order, anchored on
    the brand ultramarine, validated per theme (CVD separation + contrast) with
@@ -128,6 +129,10 @@ export function LinesChart({
 }) {
   const { t, i18n } = useTranslation();
   const [tip, setTip] = useState<Tip | null>(null);
+  // Échelle robuste (recette R2, règle unique : lib/trend.ts) — état de
+  // PRÉSENTATION pur : jamais dans les calculs, l'API ni le CSV.
+  const [fullRange, setFullRange] = useState(false);
+  const clipId = useId();
   const H = 380;
   // The right pad hosts the end-of-line labels, wrapped in full — wide
   // enough for a 24-character line (recette rule: no truncated text).
@@ -147,6 +152,27 @@ export function LinesChart({
     ...series.flatMap((s) => (s.points ?? []).map((p) => p.value ?? 0)),
     0,
   );
+  // Croissance annuelle : domaine d'affichage robuste (clôtures de
+  // Tukey, lib/trend.ts). null = les clôtures ne mordent pas → échelle
+  // complète, aucun contrôle. Les valeurs exactes restent partout.
+  const robust =
+    unit === "growth"
+      ? robustDomain(
+          series.flatMap((s) => (s.points ?? []).map((p) => p.value)).filter(
+            (v): v is number => v != null,
+          ),
+        )
+      : null;
+  const clamped = robust != null && !fullRange;
+  const axisMax = clamped ? robust.max : maxValue;
+  const axisMin = clamped ? robust.min : minValue;
+  const overflows = clamped
+    ? series.flatMap((s, index) =>
+        (s.points ?? [])
+          .filter((p) => p.value != null && (p.value > axisMax || p.value < axisMin))
+          .map((p) => ({ serie: s, index, year: p.year, value: p.value as number })),
+      )
+    : [];
   if (years.length < 2) return null;
 
   return (
@@ -159,7 +185,7 @@ export function LinesChart({
           ((year - years[0]) * (width - PAD.left - padRight)) /
             Math.max(years[years.length - 1] - years[0], 1);
         const y = (value: number) =>
-          H - PAD.bottom - ((value - minValue) / (maxValue - minValue)) * (H - PAD.top - PAD.bottom);
+          H - PAD.bottom - ((value - axisMin) / (axisMax - axisMin)) * (H - PAD.top - PAD.bottom);
         const byYear = (year: number) =>
           series
             .map((serie) => ({
@@ -174,7 +200,11 @@ export function LinesChart({
         // reserves the extra line's height.
         const anchor = (serie: ExploreSeries) => {
           const values = (serie.points ?? []).filter((p) => p.value != null).slice(-6);
-          return Math.max(...values.map((p) => p.value ?? 0), 0);
+          const peak = Math.max(...values.map((p) => p.value ?? 0), 0);
+          // Échelle robuste : l'ancre du label reste DANS le domaine
+          // affiché — un pic hors échelle n'expédie pas son étiquette
+          // hors du cadre.
+          return Math.min(Math.max(peak, axisMin), axisMax);
         };
         const endLabels = series
           .map((serie, index) => ({
@@ -203,7 +233,7 @@ export function LinesChart({
           <>
             <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={ariaLabel}>
               {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
-                const tick = minValue + fraction * (maxValue - minValue);
+                const tick = axisMin + fraction * (axisMax - axisMin);
                 return (
                   <g key={fraction}>
                     <line
@@ -229,7 +259,7 @@ export function LinesChart({
               {/* La ligne de zéro, à peine plus présente que la grille :
                   sous elle on recule, au-dessus on progresse — l'œil ne
                   doit jamais confondre (croissance annuelle, R2). */}
-              {minValue < 0 ? (
+              {axisMin < 0 ? (
                 <line
                   x1={PAD.left}
                   x2={width - padRight}
@@ -304,13 +334,29 @@ export function LinesChart({
                 );
               })()}
 
+              {/* Échelle robuste : les courbes se dessinent à leurs VRAIES
+                  coordonnées et sortent du cadre par le clip — la pente
+                  reste honnête, le marqueur de débordement dit la valeur
+                  exacte au bord. */}
+              {clamped ? (
+                <defs>
+                  <clipPath id={clipId}>
+                    <rect
+                      x={PAD.left}
+                      y={PAD.top}
+                      width={width - PAD.left - padRight}
+                      height={H - PAD.top - PAD.bottom}
+                    />
+                  </clipPath>
+                </defs>
+              ) : null}
               {series.map((serie, index) => {
                 const color =
                   colorOf?.(String(serie.key)) ?? SERIES_COLORS[index % SERIES_COLORS.length];
                 const pts = (serie.points ?? []).filter((p) => p.value != null);
                 const path = pts.map((p) => `${x(p.year).toFixed(1)},${y(p.value ?? 0).toFixed(1)}`);
                 return (
-                  <g key={String(serie.key)}>
+                  <g key={String(serie.key)} clipPath={clamped ? `url(#${clipId})` : undefined}>
                     {single ? (
                       <polygon
                         points={`${PAD.left},${y(0)} ${path.join(" ")} ${x(pts[pts.length - 1]?.year ?? years[0])},${y(0)}`}
@@ -328,6 +374,28 @@ export function LinesChart({
                 );
               })}
 
+              {/* Les débordements, dits au bord — valeur exacte au survol
+                  et au lecteur d'écran, couleur de leur série. */}
+              {overflows.map(({ serie, index, year, value }) => {
+                const up = value > axisMax;
+                const edge = up ? PAD.top + 5 : H - PAD.bottom - 5;
+                const tipText = `${seriesLabel(serie, t)} ${year} — ${formatValue(value, unit, i18n.language)}`;
+                return (
+                  <path
+                    key={`overflow-${String(serie.key)}-${year}`}
+                    d={
+                      up
+                        ? `M ${x(year) - 4.5} ${edge + 4} L ${x(year) + 4.5} ${edge + 4} L ${x(year)} ${edge - 4} Z`
+                        : `M ${x(year) - 4.5} ${edge - 4} L ${x(year) + 4.5} ${edge - 4} L ${x(year)} ${edge + 4} Z`
+                    }
+                    fill={colorOf?.(String(serie.key)) ?? SERIES_COLORS[index % SERIES_COLORS.length]}
+                    role="img"
+                    aria-label={tipText}
+                  >
+                    <title>{tipText}</title>
+                  </path>
+                );
+              })}
               {!single &&
                 endLabels.map(({ serie, index, y: labelY, lines }) => (
                   <text
@@ -406,6 +474,21 @@ export function LinesChart({
                 />
               ) : null}
             </svg>
+            {/* La mention sobre + l'action (recette R2) : préférence de
+                présentation pure — calculs, API et CSV n'en savent rien. */}
+            {robust != null ? (
+              <p className="mt-1 text-right text-[11.5px] text-muted-foreground">
+                {clamped ? `${t("explorer.scale.outliers", { count: overflows.length })} · ` : ""}
+                <button
+                  type="button"
+                  aria-pressed={fullRange}
+                  onClick={() => setFullRange(!fullRange)}
+                  className="text-accent underline-offset-2 hover:underline"
+                >
+                  {clamped ? t("explorer.scale.showFull") : t("explorer.scale.showRobust")}
+                </button>
+              </p>
+            ) : null}
             <TipBox tip={tip} />
           </>
         );

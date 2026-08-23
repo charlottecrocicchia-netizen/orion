@@ -863,6 +863,12 @@ const resources = {
             "Real value is unavailable: the price indices for the requested year are not loaded. The view stays nominal.",
           methodology: "Methodology",
         },
+        scale: {
+          outliers_one: "{{count}} value beyond this scale",
+          outliers_other: "{{count}} values beyond this scale",
+          showFull: "Show full range",
+          showRobust: "Show typical range",
+        },
         unit: { eur: "€", count: "count", pct: "%" },
         basis: {
           participants: "participants' share",
@@ -1938,6 +1944,12 @@ const resources = {
           unavailable:
             "La valeur réelle est indisponible : les indices de prix de l'année demandée ne sont pas chargés. La vue reste en nominal.",
           methodology: "Méthodologie",
+        },
+        scale: {
+          outliers_one: "{{count}} valeur hors échelle",
+          outliers_other: "{{count}} valeurs hors échelle",
+          showFull: "Afficher toute l'échelle",
+          showRobust: "Resserrer l'échelle",
         },
         unit: { eur: "€", count: "nombre", pct: "%" },
         basis: {

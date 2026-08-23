@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ExploreResponse } from "@/lib/api";
-import { applyTrend, indexBaseCandidates, resolveIndexBase } from "@/lib/trend";
+import { applyTrend, indexBaseCandidates, resolveIndexBase, robustDomain } from "@/lib/trend";
 
 /** Les tests-or TREND (R2) — cas calculables à la main, verrouillés. */
 
@@ -181,5 +181,39 @@ describe("trend · base canonique et fenêtre", () => {
 
   it("aucune année exploitable → null (le mode se refuse, jamais un à-peu-près)", () => {
     expect(resolveIndexBase(response([{ key: "A", points: [[2015, null]] }]), null, null, 2015)).toBeNull();
+  });
+});
+
+describe("trend · domaine d'affichage robuste (clôtures de Tukey)", () => {
+  it("cas-or à la main : un débordement haut est exclu, le domaine reste exact", () => {
+    // sorted [-10,-5,0,5,10,5000] : Q1=-3.75, Q3=8.75, IQR=12.5,
+    // clôtures [-22.5, 27.5] ∩ [min,max] → [-10, 27.5].
+    expect(robustDomain([5000, -5, 10, 0, -10, 5])).toEqual({ min: -10, max: 27.5 });
+  });
+
+  it("débordement bas symétrique", () => {
+    // sorted [-5000,-10,0,5,10,20] : Q1=-7.5, Q3=8.75, IQR=16.25,
+    // clôtures [-31.875, 33.125] → [-31.875, 20].
+    expect(robustDomain([-5000, 20, 5, 0, -10, 10])).toEqual({ min: -31.875, max: 20 });
+  });
+
+  it("zéro toujours inclus, même pour des valeurs toutes positives", () => {
+    // [10,12,14,16,500] : Q1=12, Q3=16, clôtures [6,22] → [0, 22].
+    expect(robustDomain([10, 12, 14, 16, 500])).toEqual({ min: 0, max: 22 });
+  });
+
+  it("les clôtures ne mordent pas → null (échelle complète, aucun contrôle)", () => {
+    expect(robustDomain([1, 2, 3, 4])).toBeNull();
+  });
+
+  it("IQR nul ou trop peu d'observations → null, jamais un domaine inventé", () => {
+    expect(robustDomain([5, 5, 5, 5, 100])).toBeNull();
+    expect(robustDomain([1, 2, 1000])).toBeNull();
+  });
+
+  it("déterministe : le même jeu donne le même domaine, ordre indifférent", () => {
+    const a = robustDomain([3, -8, 900, 12, 0, -2, 7]);
+    const b = robustDomain([900, 7, -2, 0, 12, -8, 3]);
+    expect(a).toEqual(b);
   });
 });
