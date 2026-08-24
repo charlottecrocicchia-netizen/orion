@@ -4,7 +4,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
-from orion import constanteuro
+from orion import constanteuro, macro
 from orion.api.lens_param import resolve_lens_param
 from orion.core.config import get_settings
 from orion.core.db import get_db
@@ -43,7 +43,8 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
     ] = None,
     subdivision: Annotated[str | None, Query(description="mesh filter: ISO 3166-2 (US-CA)")] = None,
     value: Annotated[
-        str, Query(description="reading mode (R0 § D10): nominal (default) or real")
+        str,
+        Query(description="reading mode (R0 § D10): nominal (default), real, gdp or capita"),
     ] = "nominal",
     base: Annotated[
         int | None,
@@ -59,6 +60,9 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
     # silencieux vers le nominal côté serveur (422 réservé à cette
     # indisponibilité globale du mode).
     factor_set = None
+    scale = None
+    macro_denominators = None
+    rates = None
     if value == "real":
         if cur not in constanteuro.DISPLAY_CURRENCIES:
             raise HTTPException(status_code=400, detail="Unsupported display currency")
@@ -66,6 +70,33 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         factor_set = constanteuro.factor_set(db, reference_year, display_currency=cur)
         if factor_set is None:
             raise HTTPException(status_code=422, detail="real_unavailable")
+    elif value in ("gdp", "capita"):
+        # ECONOMIC SCALE (lot R3, R0 § D3/D4) : le mode n'existe que là
+        # où CHAQUE série a un dénominateur de juridiction résoluble —
+        # by=funder (effort), by=country ou by=year cadré sur un pays
+        # (intensité reçue), métrique funding. Ailleurs : refus
+        # explicite, jamais une interprétation silencieuse.
+        view_ok = by == "funder" or by == "country" or (by == "year" and country)
+        if metric != "funding" or not view_ok:
+            raise HTTPException(status_code=422, detail=f"{value}_unavailable")
+        scale = value
+        concept = "gdp_current_usd" if value == "gdp" else "population"
+        macro_denominators = macro.macro_set(db, concept)
+        if macro_denominators is None:
+            raise HTTPException(status_code=422, detail=f"{value}_unavailable")
+        if value == "gdp":
+            rates = macro.usd_rates(db)
+            if not rates:
+                raise HTTPException(status_code=422, detail="gdp_unavailable")
+        else:
+            # Par-habitant : numérateur en valeur RÉELLE — année de
+            # référence et devise d'affichage comme en real (R0 § D1).
+            if cur not in constanteuro.DISPLAY_CURRENCIES:
+                raise HTTPException(status_code=400, detail="Unsupported display currency")
+            reference_year = base or get_settings().constant_euro_reference_year
+            factor_set = constanteuro.factor_set(db, reference_year, display_currency=cur)
+            if factor_set is None:
+                raise HTTPException(status_code=422, detail="capita_unavailable")
     elif value != "nominal":
         raise HTTPException(status_code=400, detail="Unsupported value mode")
     result = explore.aggregate(
@@ -85,6 +116,9 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         sector=resolve_lens_param(request, db, sector),
         subdivision=subdivision or None,
         factor_set=factor_set,
+        scale=scale,
+        macro=macro_denominators,
+        usd_rates=rates,
     )
     if result is None:
         raise HTTPException(status_code=400, detail="Unsupported metric/dimension combination")
