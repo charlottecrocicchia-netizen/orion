@@ -13,6 +13,7 @@ from orion.ingest.lenses import run as lenses_run
 from orion.ingest.nih import load as nih_load
 from orion.ingest.nsf import load as nsf_load
 from orion.ingest.prices import run as prices_run
+from orion.ingest.macro import run as macro_run
 from orion.ingest.rates import run as rates_run
 from orion.ingest.subdivisions import run as subdivisions_run
 from orion.ingest.wikidata import load as wikidata_load
@@ -26,6 +27,7 @@ REGISTRY = {
     # Les indices de prix (lot A, euros constants) : versionnés par
     # vintage — cadence annuelle, geste manuel documenté au runbook.
     "prices": prices_run,
+    "macro": macro_run,
     "nih": nih_load.run,
     "nsf": nsf_load.run,
     "dedup": dedup.merge.run,
@@ -52,6 +54,7 @@ ALL = [
     "reference",
     "rates",
     "prices",
+    "macro",
     *FRAMEWORKS.keys(),
     "nih",
     "nsf",

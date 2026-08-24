@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from orion.ingest.runlog import RunStats, record_run
 from orion.ingest.upsert import upsert
-from orion.models import Country, Funder
+from orion.models import Jurisdiction, Country, Funder
 
 EU_MEMBERS = {
     "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU",
@@ -297,6 +297,19 @@ FUNDERS = [
     },
 ]
 
+# Devises des juridictions PORTEUSES d'une convention monétaire (les
+# financeurs d'aujourd'hui et de demain) — informatif, jamais lu par le
+# calcul R3 (devise commune USD).
+JURISDICTION_CURRENCIES = {
+    "US": "USD",
+    "FR": "EUR",
+    "DE": "EUR",
+    "GB": "GBP",
+    "JP": "JPY",
+    "KR": "KRW",
+    "AU": "AUD",
+}
+
 _KNOWN_CODES: set[str] | None = None
 
 
@@ -477,6 +490,33 @@ def seed_reference(session: Session, stats: RunStats) -> None:
         ["name", "jurisdiction", "country_code", "default_currency"],
     )
     stats.add("funders", len(FUNDERS))
+
+    # Les juridictions de financement (R0 § D2, lot R3) : une ligne par
+    # pays du référentiel (kind « country ») + l'Union européenne (kind
+    # « union », série macro publiée par la source — jamais une somme
+    # maison). La devise n'est renseignée que là où une convention la
+    # requiert (juridictions de financeurs) ; le moteur R3 travaille en
+    # devise commune USD et ne la lit pas.
+    jurisdictions = [
+        {"code": "EU", "kind": "union", "name_key": "jurisdiction.eu", "currency": "EUR"}
+    ] + [
+        {
+            "code": entry["code"],
+            "kind": "country",
+            "name_key": f"country.{entry['code']}",
+            "currency": JURISDICTION_CURRENCIES.get(entry["code"]),
+        }
+        for entry in countries
+    ]
+    upsert(session, Jurisdiction, jurisdictions, ["code"], ["kind", "name_key", "currency"])
+    stats.add("jurisdictions", len(jurisdictions))
+
+    # Un financeur sans juridiction résoluble est un DÉFAUT DE SEED
+    # (R0 § D13) — refusé ici, bruyamment, jamais à l'exécution.
+    known = {j["code"] for j in jurisdictions}
+    unresolved = [f["code"] for f in FUNDERS if f["jurisdiction"] not in known]
+    if unresolved:
+        raise ValueError(f"funders sans juridiction résoluble : {unresolved}")
 
 
 def run(force: bool = False) -> dict[str, int]:

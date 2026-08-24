@@ -23,7 +23,7 @@ from orion.models.ingestion import IngestionRun
 from orion.models.lenses import Lens, LensChangelog, ProjectLensTag
 from orion.models.organisations import Organisation, OrganisationAlias, OrganisationIdentifier
 from orion.models.projects import Participation, Project, ProjectText
-from orion.models.reference import Country, ExchangeRate, PriceIndex
+from orion.models.reference import Country, ExchangeRate, Jurisdiction, MacroSeries, PriceIndex
 from orion.models.topics import ProjectTopic, Topic
 
 __all__ = [
@@ -35,6 +35,8 @@ __all__ = [
     "Dossier",
     "EntityGroupMap",
     "ExchangeRate",
+    "Jurisdiction",
+    "MacroSeries",
     "Funder",
     "Group",
     "GroupCurationRefusal",
