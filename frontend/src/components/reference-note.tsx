@@ -20,8 +20,11 @@ import { formatCompactEur, moneySymbol } from "@/lib/format";
 export function ReferenceNote({
   data,
   trend,
+  id,
 }: {
   data: ExploreResponse;
+  /** Ancre du bouton ⓘ voisin du sélecteur (page board uniquement). */
+  id?: string;
   /** Mode TREND actif (R2) : la note dit d'abord la transformation
    *  (définition, base, séries non indexables, avertissement cohorte),
    *  puis la méthode Real sous-jacente dont elle hérite sources,
@@ -47,7 +50,10 @@ export function ReferenceNote({
   const hasExcluded = excluded != null && excluded.projects > 0;
 
   return (
-    <details className="mt-4 max-w-[74ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+    <details
+      id={id}
+      className="mt-4 max-w-[74ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground"
+    >
       <summary className="cursor-pointer list-none text-foreground/75">
         <span aria-hidden="true">ⓘ</span>{" "}
         <b className="font-semibold text-foreground/80">{t("explorer.reference.title")}</b>

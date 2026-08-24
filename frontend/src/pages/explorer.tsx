@@ -920,9 +920,28 @@ export function ExplorerPage() {
               resolvedBase={referenceMeta?.base ?? null}
               temporal={temporal}
               indexBases={indexBases}
-              scale={{ available: scaleAvailable, perspective: scalePerspective }}
+              scaleAvailable={scaleAvailable}
               onChange={(next) => patch(next)}
             />
+          ) : null}
+          {/* L'accès ⓘ voisin du contrôle (verrou de recette R3) :
+              il OUVRE la note Reference sous le graphique — jamais une
+              méthodologie dupliquée. */}
+          {data?.meta.reference ? (
+            <button
+              type="button"
+              aria-label={t("explorer.reference.title")}
+              onClick={() => {
+                const note = document.getElementById("reference-note");
+                if (note) {
+                  note.setAttribute("open", "");
+                  note.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+              }}
+              className="rounded-full border px-2 py-1 text-[12px] text-muted-foreground transition-colors hover:border-accent hover:text-accent"
+            >
+              ⓘ
+            </button>
           ) : null}
           <div className="ml-auto flex gap-2">
             <button
@@ -1126,6 +1145,7 @@ export function ExplorerPage() {
             dont elle hérite ensuite. */}
         {data ? (
           <ReferenceNote
+            id="reference-note"
             data={data}
             trend={
               trend && trendMode

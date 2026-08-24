@@ -40,7 +40,7 @@ export function ReferenceSelector({
   resolvedBase,
   temporal,
   indexBases,
-  scale,
+  scaleAvailable = false,
   onChange,
 }: {
   value: string;
@@ -54,10 +54,12 @@ export function ReferenceSelector({
   temporal: boolean;
   /** Années de base exploitables pour Index 100 (fenêtre visible). */
   indexBases: number[];
-  /** ECONOMIC SCALE (R3) : présent quand la vue a un dénominateur
-   *  résoluble — la perspective, FORCÉE par la dimension, choisit les
-   *  intitulés (l'utilisateur ne se demande jamais « le PIB de qui ? »). */
-  scale?: { available: boolean; perspective: "funder" | "recipient" };
+  /** ECONOMIC SCALE (R3) : le groupe existe quand la vue a un
+   *  dénominateur résoluble. Le panneau choisit la QUESTION —
+   *  micro-description d'une ligne au plus ; la perspective, la
+   *  formule et les sources vivent dans ⓘ Reference (verrou de
+   *  recette R3). */
+  scaleAvailable?: boolean;
   onChange: (next: ReferenceChange) => void;
 }) {
   const { t } = useTranslation();
@@ -125,7 +127,7 @@ export function ReferenceSelector({
         { key: "real", name: t("explorer.reference.real"), hint: t("explorer.reference.realHint") },
       ],
     },
-    ...(scale?.available
+    ...(scaleAvailable
       ? [
           {
             key: "scale",
@@ -134,20 +136,12 @@ export function ReferenceSelector({
               {
                 key: "gdp",
                 name: t("explorer.reference.gdpMode"),
-                hint: t(
-                  scale.perspective === "funder"
-                    ? "explorer.reference.gdpFunderHint"
-                    : "explorer.reference.gdpRecipientHint",
-                ),
+                hint: t("explorer.reference.gdpHint"),
               },
               {
                 key: "capita",
                 name: t("explorer.reference.capitaMode"),
-                hint: t(
-                  scale.perspective === "funder"
-                    ? "explorer.reference.capitaFunderHint"
-                    : "explorer.reference.capitaRecipientHint",
-                ),
+                hint: t("explorer.reference.capitaHint"),
               },
             ],
           },

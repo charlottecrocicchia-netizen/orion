@@ -42,8 +42,8 @@ MARK = "ZZSCL"
 VINTAGE = date(2026, 2, 1)
 USD_PER_EUR_2025 = "1.25"
 
-GDP = {"EU": 2.5e12, "US": 5e12, "FR": 2.5e11, "DE": 4e11}
-POP = {"EU": 4.5e8, "US": 3.4e8, "FR": 6.8e7, "DE": 8.0e7}
+GDP = {"EU": 2.5e12, "US": 5e12, "FR": 2.5e11, "DE": 4e11, "NL": 1e9}
+POP = {"EU": 4.5e8, "US": 3.4e8, "FR": 6.8e7, "DE": 8.0e7, "NL": 1.8e7}
 
 
 @pytest.fixture
@@ -112,7 +112,8 @@ def seeded(db_session):
     nih = db_session.scalar(select(Funder).where(Funder.code == "nih"))
     org_fr = Organisation(name=f"{MARK} FR", country_code="FR", org_type="REC")
     org_de = Organisation(name=f"{MARK} DE", country_code="DE", org_type="REC")
-    db_session.add_all([org_fr, org_de])
+    org_nl = Organisation(name=f"{MARK} NL", country_code="NL", org_type="REC")
+    db_session.add_all([org_fr, org_de, org_nl])
     db_session.flush()
 
     # Le projet EU : 2 Md€, participations FR 1 Md€ + DE 0,4 Md€ + une
@@ -153,6 +154,17 @@ def seeded(db_session):
                 amount_eur=400_000_000,
                 source=f"test-{MARK}",
                 source_uid=f"{MARK}-p-de",
+            ),
+            Participation(
+                project_id=project.id,
+                organisation_id=org_nl.id,
+                role="participant",
+                country_code="NL",
+                amount=100_000_000,
+                currency="EUR",
+                amount_eur=100_000_000,
+                source=f"test-{MARK}",
+                source_uid=f"{MARK}-p-nl",
             ),
             Participation(
                 project_id=project.id,
@@ -414,3 +426,38 @@ def test_methodologique_pont_usd_deux_chemins():
     sek_2023 = 11.478758     # SEK par EUR, BCE
     reconstructed = se_cn / sek_2023 * usd_2023
     assert abs(reconstructed / se_cd - 1) < 0.005
+
+
+def test_verrou_echantillon_nominal_a_travers_les_modes(seeded):
+    """Verrou de recette R3 : « View funding as » ne change jamais QUI
+    on regarde. NL pèse 0,1 Md€ nominal (dernier du top) mais son PIB
+    minuscule (1 Md$) lui donnerait une intensité écrasante (12,5 %) :
+    en limit=2, l'échantillon reste FR + DE — le classement Funding
+    nominal canonique — en % PIB comme en par-habitant. L'ordre visuel
+    peut changer, l'échantillon jamais."""
+    gdp, pop, rates = _sets(seeded)
+    nominal = explore.aggregate(seeded, metric="funding", by="country", limit=2)
+    nominal_keys = {s_["key"] for s_ in nominal["series"]}
+    assert nominal_keys == {"FR", "DE"}
+
+    as_gdp = explore.aggregate(
+        seeded, metric="funding", by="country", limit=2, scale="gdp", macro=gdp, usd_rates=rates
+    )
+    assert {s_["key"] for s_ in as_gdp["series"]} == nominal_keys
+
+    fs = constanteuro.factor_set(seeded, 2025)
+    as_capita = explore.aggregate(
+        seeded,
+        metric="funding",
+        by="country",
+        limit=2,
+        scale="capita",
+        macro=pop,
+        factor_set=fs,
+    )
+    assert {s_["key"] for s_ in as_capita["series"]} == nominal_keys
+
+    as_real = explore.aggregate(
+        seeded, metric="funding", by="country", limit=2, factor_set=fs
+    )
+    assert {s_["key"] for s_ in as_real["series"]} == nominal_keys

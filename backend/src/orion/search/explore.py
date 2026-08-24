@@ -371,6 +371,7 @@ def _fold_to_children(
             bucket_key,
             {
                 "funding": None if keep_null else 0.0,
+                "ranking": 0.0,
                 "projects": 0,
                 "y": getattr(row, "y", None),
                 "key": bucket_id,
@@ -378,6 +379,7 @@ def _fold_to_children(
         )
         # keep_null (mode real) : un bucket dont AUCUNE ligne n'est
         # ajustable reste None — jamais un zéro mensonger à l'écran.
+        bucket["ranking"] += float(getattr(row, "ranking", 0) or 0)
         if keep_null:
             if row.funding is not None:
                 bucket["funding"] = (bucket["funding"] or 0.0) + float(row.funding)
@@ -417,11 +419,13 @@ def _fold_programme(
             bucket_key,
             {
                 "funding": None if keep_null else 0.0,
+                "ranking": 0.0,
                 "projects": 0,
                 "y": getattr(row, "y", None),
                 "key": root,
             },
         )
+        bucket["ranking"] += float(getattr(row, "ranking", 0) or 0)
         if keep_null:
             if row.funding is not None:
                 bucket["funding"] = (bucket["funding"] or 0.0) + float(row.funding)
@@ -683,6 +687,9 @@ def _build(
             "AND fx.yr = extract(year FROM p.start_date)::int"
         )
         cols = {**cols, "funding": _funding_col(participation, "", real=True)}
+        # Le CLASSEMENT reste nominal (verrou de recette R3) : « View
+        # funding as » change comment on regarde, jamais QUI on regarde.
+        cols = {**cols, "ranking": _funding_col(participation, "", real=False)}
     # ECONOMIC SCALE (lot R3) : le dénominateur macro se joint depuis la
     # TABLE macro_series (dernière vintage par juridiction, sous-requête
     # minuscule) sur (juridiction de la ligne, année de début). % PIB en
@@ -743,6 +750,8 @@ def _build(
     # surcharge posée après ne serait qu'un dictionnaire mort.
     if cmp_entity_refs is not None:
         cols = {**cols, "funding": _funding_col(True, " * cmp.weight", real)}
+        if real:
+            cols = {**cols, "ranking": _funding_col(True, " * cmp.weight", False)}
     if organisation is not None and organisation.startswith("g"):
         # Vue cadrée sur un GROUPE (organisation=g<id>) : même règle, le
         # poids se lit sur l'adhésion active de chaque participation.
@@ -753,12 +762,16 @@ def _build(
             "AND m.organisation_id = pa.organisation_id AND m.status = 'active')"
         )
         cols = {**cols, "funding": _funding_col(True, f" * {weight_sub}", real)}
+        if real:
+            cols = {**cols, "ranking": _funding_col(True, f" * {weight_sub}", False)}
     select_cols = (
         f"{dim['key']} AS key, {dim['label']} AS label, "
         f"{cols['funding']} AS funding, {cols['projects']} AS projects, "
         f"{cols.get('organisations', 'NULL')} AS organisations, "
         f"{cols.get('coordination', 'NULL')} AS coordination"
     )
+    if "ranking" in cols:
+        select_cols += f", {cols['ranking']} AS ranking"
 
 
     clauses = _filters(
@@ -843,6 +856,7 @@ def _build(
                    sum(CASE WHEN {eur_num} IS NOT NULL AND md.value IS NOT NULL
                             AND usdr.rate IS NOT NULL
                             THEN {eur_num} * usdr.rate END) AS f_usd,
+                   sum({eur_num}) AS f_nom,
                    max(md.value) AS gdp,
                    {cols["projects"]} AS projects
             {base} {dim["joins"]} {md_join}
@@ -851,14 +865,20 @@ def _build(
         """
         outer_group = "key, yr" if split else "key"
         y_col = ", yr AS y" if split else ""
+        # Le ratio ne somme le PIB QUE sur les années valides (mêmes
+        # années aux deux sommes) ; le CLASSEMENT, lui, est le nominal
+        # COMPLET — verrou de recette R3 : l'échantillon du top est
+        # identique au nominal, années exclues comprises.
         rows = session.execute(
             text(f"""
             SELECT key, max(label) AS label{y_col},
-                   sum(f_usd) / NULLIF(sum(gdp), 0) * 100 AS funding,
+                   sum(f_usd)
+                     / NULLIF(sum(gdp) FILTER (WHERE f_usd IS NOT NULL), 0)
+                     * 100 AS funding,
+                   sum(f_nom) AS ranking,
                    sum(projects) AS projects,
                    NULL AS organisations, NULL AS coordination
             FROM ({inner}) yearly
-            WHERE f_usd IS NOT NULL
             GROUP BY {outer_group}
             """),
             params,
@@ -1036,6 +1056,7 @@ def _build(
                 "label": r.label,
                 "y": getattr(r, "y", None),
                 "funding": r.funding,
+                "ranking": getattr(r, "ranking", None),
                 "projects": r.projects,
                 "organisations": r.organisations,
                 "coordination": r.coordination,
@@ -1069,10 +1090,21 @@ def _build(
         series = [{"key": "all", "label": None, "points": points}]
         kept_total = None
     elif split:
+        # L'ÉCHANTILLON du top (verrou de recette R3) : quand un mode du
+        # Reference Engine est actif, la sélection des séries suit le
+        # classement Funding NOMINAL canonique — « View funding as »
+        # change comment on regarde, jamais QUI on regarde. hidden=
+        # reste ensuite la composition volontaire de l'utilisateur.
+        mode_ranked = keep_none and metric in MONETARY_METRICS
         totals: dict[Any, float] = {}
         for r in folded:
-            value = _value("funding" if metric == "avg" else metric, r, keep_none, value_decimals)
-            totals[r["key"]] = totals.get(r["key"], 0) + (value or 0)
+            value = (
+                float(r.get("ranking") or 0)
+                if mode_ranked
+                else _value("funding" if metric == "avg" else metric, r, keep_none, value_decimals)
+                or 0
+            )
+            totals[r["key"]] = totals.get(r["key"], 0) + value
         if compare:
             kept = [k for k in totals]
         else:
@@ -1092,13 +1124,29 @@ def _build(
         series = sorted(by_key.values(), key=lambda s: kept.index(s["key"]))
         kept_total = None
     else:
-        ranked = sorted(folded, key=lambda r: -(_value(metric, r, keep_none, value_decimals) or 0))
-        kept_rows = ranked if compare else ranked[:limit]
+        # Même verrou hors temporel : l'échantillon vient du classement
+        # nominal ; l'ORDRE VISUEL, lui, suit la valeur du mode.
+        mode_ranked = keep_none and metric in MONETARY_METRICS
+        if mode_ranked and not compare:
+            sample = sorted(folded, key=lambda r: -float(r.get("ranking") or 0))[:limit]
+        else:
+            sample = None
+        ranked = sorted(
+            sample if sample is not None else folded,
+            key=lambda r: -(_value(metric, r, keep_none, value_decimals) or 0),
+        )
+        kept_rows = ranked if (compare or sample is not None) else ranked[:limit]
         series = [
             {"key": r["key"], "label": r["label"], "value": _value(metric, r, keep_none, value_decimals)}
             for r in kept_rows
         ]
-        kept_total = round(sum(_value(metric, r, keep_none, value_decimals) or 0 for r in ranked), 2)
+        kept_total = round(
+            sum(
+                _value(metric, r, keep_none, value_decimals) or 0
+                for r in (folded if sample is not None else ranked)
+            ),
+            2,
+        )
 
     unit = {"funding": "eur", "avg": "eur", "coordination": "pct"}.get(metric, "count")
     # En real ré-exprimé, l'unité de la réponse dit la devise d'affichage

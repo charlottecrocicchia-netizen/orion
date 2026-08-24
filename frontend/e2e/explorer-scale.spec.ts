@@ -22,8 +22,9 @@ test("% of GDP depuis le sélecteur sur les financeurs : effort, valeurs en %", 
   });
   await page.getByRole("button", { name: /View funding as/ }).click();
   await expect(page.getByText("Economic scale", { exact: true })).toBeVisible();
-  // L'intitulé dit la perspective : jamais un « % GDP » ambigu.
-  await expect(page.getByText(/amounts awarded by each funder/)).toBeVisible();
+  // Le panneau choisit la QUESTION, une micro-description au plus —
+  // la perspective et la méthode vivent dans ⓘ (verrou de recette R3).
+  await expect(page.getByText("Relative to economic size")).toBeVisible();
   await page.getByRole("radio", { name: /% of GDP/ }).click();
   await expect(page).toHaveURL(/value=gdp/);
   expect(page.url()).not.toContain("base=");
@@ -83,4 +84,53 @@ test("FR strict : % du PIB, économie du bénéficiaire", async ({ page }) => {
   await page.getByText(/ⓘ Référentiel/).click();
   await expect(page.getByText(/Intensité de financement reçu/)).toBeVisible();
   await expect(page.getByText(/Funding effort:/)).toHaveCount(0);
+});
+
+
+test("verrou : l'échantillon des séries est IDENTIQUE à travers tous les modes", async ({
+  page,
+}) => {
+  // « View funding as » change comment on regarde, jamais QUI : le top
+  // vient du classement Funding nominal canonique. On lit l'échantillon
+  // par l'en-tête du CSV (interface stable), mode par mode.
+  await page.addInitScript(() => {
+    // Capture du CSV sans téléchargement réel.
+    URL.createObjectURL = (blob: Blob) => {
+      void blob.text().then((text) => {
+        (window as unknown as { __csv?: string }).__csv = text;
+      });
+      return "blob:capture";
+    };
+    URL.revokeObjectURL = () => {};
+    HTMLAnchorElement.prototype.click = function () {};
+  });
+
+  const seriesSet = async (query: string) => {
+    await page.goto(`/explore?${query}`);
+    await expect(page.getByRole("img", { name: /funding · country/ })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.getByRole("button", { name: "CSV", exact: true }).click();
+    await page.waitForFunction(() => (window as unknown as { __csv?: string }).__csv);
+    const csv = await page.evaluate(() => {
+      const w = window as unknown as { __csv?: string };
+      const value = w.__csv;
+      w.__csv = undefined;
+      return value ?? "";
+    });
+    return new Set(csv.split("\n")[0].split(",").slice(1));
+  };
+
+  const base = "by=country&split=1";
+  const nominal = await seriesSet(base);
+  expect(nominal.size).toBeGreaterThan(1);
+  for (const mode of [
+    "value=real&base=2025",
+    "value=gdp",
+    "value=capita&base=2025",
+    "value=index&base=2021",
+    "value=growth",
+  ]) {
+    expect(await seriesSet(`${base}&${mode}`), mode).toEqual(nominal);
+  }
 });
