@@ -29,3 +29,34 @@ export function excludedYears(data: ExploreResponse | undefined): number[] | und
   ].sort((a, b) => a - b);
   return years.length > 0 ? years : undefined;
 }
+
+/** Les années d'un motif, CONDENSÉES en plages (« 2015–2024 » plutôt
+ *  que dix nombres) : la couverture se lit d'un coup d'œil, sans
+ *  perdre une seule année. */
+export function formatYears(years: number[]): string {
+  const sorted = [...new Set(years)].sort((a, b) => a - b);
+  const parts: string[] = [];
+  let start: number | null = null;
+  let previous: number | null = null;
+  const flush = () => {
+    if (start == null || previous == null) return;
+    parts.push(
+      start === previous
+        ? String(start)
+        : previous === start + 1
+          ? `${start}, ${previous}`
+          : `${start}–${previous}`,
+    );
+  };
+  for (const year of sorted) {
+    if (previous != null && year === previous + 1) {
+      previous = year;
+      continue;
+    }
+    flush();
+    start = year;
+    previous = year;
+  }
+  flush();
+  return parts.join(", ");
+}

@@ -927,7 +927,7 @@ export function ExplorerPage() {
           {/* L'accès ⓘ voisin du contrôle (verrou de recette R3) :
               il OUVRE la note Reference sous le graphique — jamais une
               méthodologie dupliquée. */}
-          {data?.meta.reference ? (
+          {data ? (
             <button
               type="button"
               aria-label={t("explorer.reference.title")}
@@ -1147,6 +1147,7 @@ export function ExplorerPage() {
           <ReferenceNote
             id="reference-note"
             data={data}
+            period={{ label: period, multiYear: (state.from ?? YEAR_MIN) !== (state.to ?? YEAR_MAX) }}
             trend={
               trend && trendMode
                 ? {

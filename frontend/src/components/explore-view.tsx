@@ -230,6 +230,10 @@ export function ExploreView({
           chiffres. */}
       <ReferenceNote
         data={data}
+        period={{
+          label: `${state.from ?? 2005}–${state.to ?? 2027}`,
+          multiYear: (state.from ?? 2005) !== (state.to ?? 2027),
+        }}
         trend={
           trend && trendMode
             ? {

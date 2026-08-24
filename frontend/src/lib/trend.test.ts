@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ExploreResponse } from "@/lib/api";
+import { formatYears } from "@/lib/excluded";
 import {
   applyTrend,
   clipSeriesSegments,
@@ -273,5 +274,24 @@ describe("trend · graduations humaines (rendu)", () => {
     for (const [lo, hi] of [[-7.3, 12.9], [-120, 480], [0, 22]] as [number, number][]) {
       expect(niceTicks(lo, hi)).toContain(0);
     }
+  });
+});
+
+describe("excluded · années condensées en plages", () => {
+  it("une plage continue se dit d'un trait", () => {
+    expect(formatYears([2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024])).toBe(
+      "2015–2024",
+    );
+  });
+
+  it("deux années consécutives restent énumérées, les trous coupent la plage", () => {
+    expect(formatYears([2026, 2027])).toBe("2026, 2027");
+    expect(formatYears([2015, 2016, 2017, 2020, 2026, 2027])).toBe("2015–2017, 2020, 2026, 2027");
+  });
+
+  it("une année seule, un désordre, un doublon : toujours le même résultat", () => {
+    expect(formatYears([2026])).toBe("2026");
+    expect(formatYears([2024, 2015, 2016, 2015])).toBe("2015, 2016, 2024");
+    expect(formatYears([])).toBe("");
   });
 });

@@ -827,8 +827,42 @@ const resources = {
           unit: "Real {{cur}} · {{year}} prices",
           title: "Reference",
           detail: "details",
+          // Niveau 1 — « qu'est-ce que je regarde ? », en langage
+          // humain, avant tout détail de calcul.
+          meaningNominal: "Nominal funding",
+          meaningNominalBody:
+            "The amount awarded at the value and exchange rate applicable at the time. It does not remove inflation, so amounts from different years do not have the same purchasing power.",
+          meaningReal: "Real value",
+          meaningRealBody:
+            "Real value expresses funding in the purchasing power of one common reference year ({{year}}). This makes amounts awarded in different years more comparable.",
+          meaningGdp: "% of GDP",
+          meaningGdpBody:
+            "% of GDP puts awarded funding in relation to the size of the relevant economy. A value of 0.10% means the awards represented the equivalent of 0.10% of that economy's GDP over the same period.",
+          meaningGdpWhoseFunder: "Here: the economy of each funder's own jurisdiction.",
+          meaningGdpWhoseRecipient: "Here: the economy of each receiving country.",
+          meaningCapita: "Per capita",
+          meaningCapitaBody:
+            "Per capita divides awarded funding by the population of the country concerned. It answers: how much funding was awarded per inhabitant?",
+          meaningCapitaCumulative: "Values are cumulative over the selected period.",
+          meaningIndex: "Index 100",
+          meaningIndexBody:
+            "Index 100 compares trajectories rather than absolute amounts. The base year ({{base}}) is set to 100 for every series. 125 = 25% above the base year; 80 = 20% below it.",
+          meaningIndexWarning:
+            "A country with much less funding can therefore appear above a larger funder if its funding has grown faster.",
+          meaningGrowth: "Annual growth",
+          meaningGrowthBody:
+            "Annual growth measures the percentage change in real funding compared with the previous year. +20% means funding was 20% higher than the previous year; −20% means it was 20% lower.",
+          meaningCumulative:
+            "Cumulative funding is the sum of the project awards attributed to the years in the selected period ({{period}}) — not spending during those years.",
+          meaningGdpAggregate:
+            "Over several years this is not the average of the yearly percentages: it is total awarded funding over the valid years divided by total GDP over those same years.",
+          meaningCapitaAggregate:
+            "Over several years this is the sum of the yearly real funding-per-capita values.",
+          sectionCoverage: "Coverage",
+          sectionCalculation: "About this calculation",
+          sectionSources: "Sources",
           method:
-            "Adjusts funding for price changes in the original currency (Eurostat HICP, BLS CPI-U — vintage of {{vintage}}), then expresses it in {{year}} {{cur}} at the {{year}} ECB annual rate. An Orion analysis: the observed nominal amounts never change.",
+            "Adjusts funding for price changes in the original currency (Eurostat HICP, BLS CPI-U), then expresses it in {{year}} {{cur}} at the {{year}} ECB annual rate. An Orion analysis: the observed nominal amounts never change.",
           excludedLine_one: "excluded from this view: {{count}} project ({{amount}} nominal)",
           excludedLine_other: "excluded from this view: {{count}} projects ({{amount}} nominal)",
           noIndex_one: "index for {{years}} not yet published: {{count}} project, {{amount}}",
@@ -850,11 +884,11 @@ const resources = {
           unitCapitaCumulative:
             "Cumulative awarded funding per capita · {{period}} · real {{cur}} {{year}}",
           gdpMethod:
-            "Award amounts are converted to current US dollars at Orion's yearly ECB rate. GDP is the current-US$ series published by the World Bank (WDI, {{code}} — vintage {{vintage}}), converted with its own official rates: two distinct conversions, close in practice (identical for the euro area and the US; measured gaps elsewhere under 0.4%), never an exact exchange identity. Multi-year views show 100 × Σ funding / Σ GDP over the same valid years — an intensity weighted by GDP.",
+            "Award amounts are converted to current US dollars at Orion's yearly ECB rate. GDP is the current-US$ series published by the World Bank, converted with its own official rates: two distinct conversions, close in practice (identical for the euro area and the US; measured gaps elsewhere under 0.4%), never an exact exchange identity. Multi-year views show 100 × Σ funding / Σ GDP over the same valid years — an intensity weighted by GDP.",
           cohortNote:
             "Project award cohorts relative to the economy — this is not annual public expenditure.",
           capitaMethod:
-            "Real awarded funding ({{year}} prices) divided by the jurisdiction's population for each year (World Bank WDI, {{code}} — vintage {{vintage}}). Yearly amounts add up: a cumulative awarded amount per inhabitant over the selected period.",
+            "Real awarded funding ({{year}} prices) divided by the jurisdiction's population for each year, as published by the World Bank. Yearly amounts add up: a cumulative awarded amount per inhabitant over the selected period.",
           perspectiveFunder:
             "Funding effort: the amounts each funder awarded, relative to its own jurisdiction's economy — a project counts once, never the sum of its recipients.",
           perspectiveRecipient:
@@ -873,7 +907,7 @@ const resources = {
           indexMode: "Index 100",
           indexHint: "Compare growth trajectories",
           growthMode: "Annual growth",
-          growthHint: "Compare year-to-year change",
+          growthHint: "Year-to-year change",
           baseYear: "Base year",
           indexCurrent: "Index 100 · {{base}}",
           csvIndex: "Index ({{base}}=100)",
@@ -1941,8 +1975,41 @@ const resources = {
           unit: "{{symbol}} constants {{year}}",
           title: "Référentiel",
           detail: "détail",
+          meaningNominal: "Montant nominal",
+          meaningNominalBody:
+            "Montant attribué selon la valeur monétaire de l'époque. L'inflation n'est pas retirée : 1 M€ de 2010 n'a donc pas exactement la même valeur économique que 1 M€ de 2025.",
+          meaningReal: "Valeur réelle",
+          meaningRealBody:
+            "Ramène les montants au pouvoir d'achat d'une même année de référence ({{year}}) afin de comparer plus justement des financements attribués à des époques différentes.",
+          meaningGdp: "% du PIB",
+          meaningGdpBody:
+            "Rapporte les montants attribués à la taille de l'économie concernée. Une valeur de 0,10 % signifie que les financements attribués représentent l'équivalent de 0,10 % du PIB sur le même périmètre temporel.",
+          meaningGdpWhoseFunder: "Ici : l'économie de la juridiction de chaque financeur.",
+          meaningGdpWhoseRecipient: "Ici : l'économie de chaque pays bénéficiaire.",
+          meaningCapita: "Par habitant",
+          meaningCapitaBody:
+            "Rapporte les montants attribués à la population du pays concerné. Cela répond à la question : « combien de financement cela représente-t-il par habitant ? »",
+          meaningCapitaCumulative:
+            "Les montants par habitant s'additionnent sur la période sélectionnée : il s'agit donc d'un cumul attribué par habitant.",
+          meaningIndex: "Indice 100",
+          meaningIndexBody:
+            "Compare les trajectoires plutôt que les montants absolus. L'année de base ({{base}}) vaut 100 pour chaque série. 125 = +25 % par rapport à l'année de base ; 80 = −20 %.",
+          meaningIndexWarning:
+            "Un pays beaucoup moins financé peut donc passer au-dessus d'un financeur plus gros si ses financements ont crû plus vite.",
+          meaningGrowth: "Croissance annuelle",
+          meaningGrowthBody:
+            "Mesure la variation du financement réel par rapport à l'année précédente. +20 % = financement supérieur de 20 % à l'année précédente ; −20 % = inférieur de 20 %.",
+          meaningCumulative:
+            "Le financement cumulé est la somme des montants attribués aux projets rattachés aux années de la période sélectionnée ({{period}}) — pas une dépense pendant ces années.",
+          meaningGdpAggregate:
+            "Sur plusieurs années, ce n'est pas la moyenne des pourcentages annuels : c'est le total attribué sur les années valides divisé par le total du PIB de ces mêmes années.",
+          meaningCapitaAggregate:
+            "Sur plusieurs années, c'est la somme des valeurs annuelles de financement réel par habitant.",
+          sectionCoverage: "Couverture",
+          sectionCalculation: "Le calcul",
+          sectionSources: "Sources",
           method:
-            "Montants corrigés de l'évolution des prix dans leur monnaie d'origine (HICP Eurostat, CPI-U BLS — vintage du {{vintage}}), puis exprimés en {{cur}} de {{year}} au taux annuel BCE de {{year}}. Une analyse Orion : les montants nominaux observés ne changent jamais.",
+            "Montants corrigés de l'évolution des prix dans leur monnaie d'origine (HICP Eurostat, CPI-U BLS), puis exprimés en {{cur}} de {{year}} au taux annuel BCE de {{year}}. Une analyse Orion : les montants nominaux observés ne changent jamais.",
           excludedLine_one: "hors calcul : {{count}} projet ({{amount}} nominal)",
           excludedLine_other: "hors calcul : {{count}} projets ({{amount}} nominal)",
           noIndex_one: "indice {{years}} non publié : {{count}} projet, {{amount}}",
@@ -1964,11 +2031,11 @@ const resources = {
           unitCapitaCumulative:
             "Cumul attribué par habitant · {{period}} · {{symbol}} constants {{year}}",
           gdpMethod:
-            "Les montants attribués sont convertis en dollars courants au taux annuel BCE d'Orion. Le PIB est la série en dollars courants PUBLIÉE par la Banque mondiale (WDI, {{code}} — vintage {{vintage}}), convertie à ses propres taux officiels : deux conversions distinctes, proches en pratique (identiques pour la zone euro et les États-Unis ; écarts mesurés ailleurs sous 0,4 %), jamais une identité de change exacte. Les vues pluriannuelles affichent 100 × Σ financements / Σ PIB sur les mêmes années valides — une intensité pondérée par le PIB.",
+            "Les montants attribués sont convertis en dollars courants au taux annuel BCE d'Orion. Le PIB est la série en dollars courants PUBLIÉE par la Banque mondiale, convertie à ses propres taux officiels : deux conversions distinctes, proches en pratique (identiques pour la zone euro et les États-Unis ; écarts mesurés ailleurs sous 0,4 %), jamais une identité de change exacte. Les vues pluriannuelles affichent 100 × Σ financements / Σ PIB sur les mêmes années valides — une intensité pondérée par le PIB.",
           cohortNote:
             "Des cohortes de montants attribués, rattachées à l'année de démarrage — pas une dépense publique annuelle.",
           capitaMethod:
-            "Valeur réelle des montants attribués (prix de {{year}}) divisée par la population de la juridiction, année par année (World Bank WDI, {{code}} — vintage {{vintage}}). Les années s'additionnent : un cumul attribué par habitant sur la période sélectionnée.",
+            "Valeur réelle des montants attribués (prix de {{year}}) divisée par la population de la juridiction, année par année, telle que publiée par la Banque mondiale. Les années s'additionnent : un cumul attribué par habitant sur la période sélectionnée.",
           perspectiveFunder:
             "Effort de financement : les montants attribués par chaque financeur, rapportés à l'économie de SA juridiction — un projet compte une fois, jamais la somme de ses bénéficiaires.",
           perspectiveRecipient:
@@ -1987,7 +2054,7 @@ const resources = {
           indexMode: "Indice 100",
           indexHint: "Comparer les trajectoires de croissance",
           growthMode: "Croissance annuelle",
-          growthHint: "Comparer d'une année sur l'autre",
+          growthHint: "D'une année sur l'autre",
           baseYear: "Année de base",
           indexCurrent: "Indice 100 · {{base}}",
           csvIndex: "Indice ({{base}}=100)",
