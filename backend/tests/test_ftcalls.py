@@ -126,7 +126,10 @@ def test_sanitize_keeps_structure_drops_scripts():
     assert "<script" not in clean and "alert" not in clean
     assert "onclick" not in clean and "javascript:" not in clean
     assert "<img" not in clean
-    assert '<a href="https://ec.europa.eu/x" rel="noopener noreferrer" target="_blank">lien</a>' in clean
+    assert (
+        '<a href="https://ec.europa.eu/x" rel="noopener noreferrer" target="_blank">lien</a>'
+        in clean
+    )
     assert "piège" in clean, "le texte d'un lien refusé survit à la balise"
     assert "<strong>texte</strong>" in clean
 

@@ -50,9 +50,7 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         int | None,
         Query(description="real mode reference year — defaults to the configured one"),
     ] = None,
-    cur: Annotated[
-        str, Query(description="real mode display currency (EUR or USD)")
-    ] = "EUR",
+    cur: Annotated[str, Query(description="real mode display currency (EUR or USD)")] = "EUR",
 ) -> dict[str, Any]:
     # Le mode real (euros constants, moteur A sous la grammaire R0) se
     # REFUSE explicitement quand les indices ou le taux de la devise

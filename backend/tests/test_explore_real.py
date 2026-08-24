@@ -70,9 +70,7 @@ def seeded(db_session):
                     vintage_date=VINTAGE,
                 )
             )
-    db_session.add(
-        ExchangeRate(currency="USD", year=2025, rate_to_eur=Decimal(USD_PER_EUR_2025))
-    )
+    db_session.add(ExchangeRate(currency="USD", year=2025, rate_to_eur=Decimal(USD_PER_EUR_2025)))
 
     funder = db_session.scalar(select(Funder).where(Funder.code == "ec"))
     org = Organisation(name=f"{MARK} Labo", country_code="FR", org_type="REC")
@@ -162,7 +160,9 @@ def test_real_usd_re_expression_scalaire(seeded):
     r_eur = explore.aggregate(seeded, metric="funding", by="funder", factor_set=eur)
     r_usd = explore.aggregate(seeded, metric="funding", by="funder", factor_set=usd)
     rate = float(Decimal(USD_PER_EUR_2025))
-    assert r_usd["series"][0]["value"] == pytest.approx(r_eur["series"][0]["value"] * rate, abs=0.02)
+    assert r_usd["series"][0]["value"] == pytest.approx(
+        r_eur["series"][0]["value"] * rate, abs=0.02
+    )
     assert r_usd["meta"]["reference"]["cur"] == "USD"
     assert r_usd["unit"] == "usd"
     assert r_eur["unit"] == "eur"

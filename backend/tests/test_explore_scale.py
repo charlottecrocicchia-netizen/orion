@@ -64,7 +64,10 @@ def db_session(test_database):
 def seeded(db_session):
     # Indices 2024-2025 à 100 (identité) — le par-habitant divise la
     # valeur RÉELLE ; taux USD identique sur les deux années.
-    for currency, series in (("EUR", ("eurostat", "prc_hicp_aind")), ("USD", ("bls", "CUUR0000SA0"))):
+    for currency, series in (
+        ("EUR", ("eurostat", "prc_hicp_aind")),
+        ("USD", ("bls", "CUUR0000SA0")),
+    ):
         for year in (2024, 2025):
             db_session.add(
                 PriceIndex(
@@ -77,7 +80,9 @@ def seeded(db_session):
                 )
             )
     for year in (2024, 2025):
-        db_session.add(ExchangeRate(currency="USD", year=year, rate_to_eur=Decimal(USD_PER_EUR_2025)))
+        db_session.add(
+            ExchangeRate(currency="USD", year=year, rate_to_eur=Decimal(USD_PER_EUR_2025))
+        )
     # 2025 : les valeurs de tête ; 2024 : PIB FR moitié (1,25e11) pour
     # que le ratio des sommes se distingue de la moyenne arithmétique.
     GDP_2024 = {**GDP, "FR": 1.25e11}
@@ -415,15 +420,15 @@ def test_methodologique_pont_usd_deux_chemins():
     - l'agrégat UE n'est PAS publié en monnaie locale (CN absent) : le
       chemin USD est la seule forme officielle."""
     # FR 2023 — identité exacte des deux chemins.
-    fr_cd = 3.056250648e12   # NY.GDP.MKTP.CD (relevé 2026-08-24)
-    fr_cn = 2.8265415e12     # NY.GDP.MKTP.CN, EUR
-    usd_2023 = 1.081269      # taux moyen annuel BCE
+    fr_cd = 3.056250648e12  # NY.GDP.MKTP.CD (relevé 2026-08-24)
+    fr_cn = 2.8265415e12  # NY.GDP.MKTP.CN, EUR
+    usd_2023 = 1.081269  # taux moyen annuel BCE
     assert abs(fr_cn * usd_2023 / fr_cd - 1) < 1e-6
 
     # SE 2023 — écart sous 0,5 % entre taux BM et taux croisés BCE.
-    se_cd = 5.789909152e11   # NY.GDP.MKTP.CD
-    se_cn = 6.143187e12      # NY.GDP.MKTP.CN, SEK
-    sek_2023 = 11.478758     # SEK par EUR, BCE
+    se_cd = 5.789909152e11  # NY.GDP.MKTP.CD
+    se_cn = 6.143187e12  # NY.GDP.MKTP.CN, SEK
+    sek_2023 = 11.478758  # SEK par EUR, BCE
     reconstructed = se_cn / sek_2023 * usd_2023
     assert abs(reconstructed / se_cd - 1) < 0.005
 
@@ -457,7 +462,5 @@ def test_verrou_echantillon_nominal_a_travers_les_modes(seeded):
     )
     assert {s_["key"] for s_ in as_capita["series"]} == nominal_keys
 
-    as_real = explore.aggregate(
-        seeded, metric="funding", by="country", limit=2, factor_set=fs
-    )
+    as_real = explore.aggregate(seeded, metric="funding", by="country", limit=2, factor_set=fs)
     assert {s_["key"] for s_ in as_real["series"]} == nominal_keys

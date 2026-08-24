@@ -127,9 +127,7 @@ def _current_vintage(session: Session, code: str, concept: str) -> dict[int, Dec
     return {int(year): Decimal(value) for year, value in rows}
 
 
-def _store(
-    session: Session, code: str, concept: str, values: dict[int, float]
-) -> bool:
+def _store(session: Session, code: str, concept: str, values: dict[int, float]) -> bool:
     """Écrit une nouvelle vintage si les valeurs diffèrent — idempotent.
     Rejouer le même jour après divergence remplace la vintage DU JOUR."""
     if not values:
@@ -173,7 +171,9 @@ def run(force: bool = False) -> dict[str, int]:  # noqa: ARG001 — toujours re-
                 for (code,) in session.execute(text("SELECT code FROM jurisdictions ORDER BY code"))
             ]
             if not codes:
-                raise ValueError("aucune juridiction seedée — lancer orion-ingest reference d'abord")
+                raise ValueError(
+                    "aucune juridiction seedée — lancer orion-ingest reference d'abord"
+                )
             for concept in INDICATORS:
                 sets = fetch(concept, codes)
                 fresh_vintages = 0

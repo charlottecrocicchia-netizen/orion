@@ -34,23 +34,31 @@ def corpus(test_database):  # la base migrée suffit ; le client vient par test
         )
         ids["prog_root"] = one(
             "INSERT INTO programmes (funder_id, code, name) "
-            "VALUES (:f, 'E2TFP', 'Cadre de test') RETURNING id", f=ids["funder"]
+            "VALUES (:f, 'E2TFP', 'Cadre de test') RETURNING id",
+            f=ids["funder"],
         )
         ids["prog_child"] = one(
             "INSERT INTO programmes (funder_id, parent_id, code, name) "
             "VALUES (:f, :p, 'E2TFP.1', 'Sous-programme') RETURNING id",
-            f=ids["funder"], p=ids["prog_root"],
+            f=ids["funder"],
+            p=ids["prog_root"],
         )
-        for org_key, name in (("o1", "ACTEUR ALPHA"), ("o2", "ACTEUR BETA"), ("o3", "FAUX VOISIN GAMMA")):
+        for org_key, name in (
+            ("o1", "ACTEUR ALPHA"),
+            ("o2", "ACTEUR BETA"),
+            ("o3", "FAUX VOISIN GAMMA"),
+        ):
             ids[org_key] = one(
                 "INSERT INTO organisations (name, name_normalized, country_code) "
-                "VALUES (:n, lower(:n), 'FR') RETURNING id", n=name
+                "VALUES (:n, lower(:n), 'FR') RETURNING id",
+                n=name,
             )
 
         def call(code: str) -> int:
             return one(
                 "INSERT INTO calls (funder_id, code) VALUES (:f, :c) RETURNING id",
-                f=ids["funder"], c=code,
+                f=ids["funder"],
+                c=code,
             )
 
         def project(sid: str, call_id: int, year: int) -> int:
@@ -58,8 +66,13 @@ def corpus(test_database):  # la base migrée suffit ; le client vient par test
                 "INSERT INTO projects (source, source_id, title, funder_id, programme_id, "
                 "call_id, start_date, funding_amount_eur) "
                 "VALUES (:s, :sid, :title, :f, :prog, :c, make_date(:y, 6, 1), 100000) RETURNING id",
-                s=SRC, sid=sid, title=f"Projet {sid}", f=ids["funder"],
-                prog=ids["prog_child"], c=call_id, y=year,
+                s=SRC,
+                sid=sid,
+                title=f"Projet {sid}",
+                f=ids["funder"],
+                prog=ids["prog_child"],
+                c=call_id,
+                y=year,
             )
 
         def take_part(project_id: int, org: int, role: str, uid: str, amount: float) -> None:
@@ -76,7 +89,10 @@ def corpus(test_database):  # la base migrée suffit ; le client vient par test
             return one(
                 "INSERT INTO call_topics (source, source_id, identifier, call_code, call_id, raw) "
                 "VALUES ('ft-portal', :sid, :i, :cc, :ci, '{}'::jsonb) RETURNING id",
-                sid=sid, i=identifier, cc=call_code, ci=call_id,
+                sid=sid,
+                i=identifier,
+                cc=call_code,
+                ci=call_id,
             )
 
         # ---- Cas 1 : PONT EXACT (3 projets, doublon d'org sur P1) ----
@@ -150,6 +166,7 @@ def _get(client, topic_id: int) -> dict:
 
 # ------------------------------------------------------- normalisation
 
+
 def test_families_match_the_audit_cases():
     assert strip_family("HORIZON-CL4-2027-SPACE-03-12") == "HORIZON-CL4-Y-SPACE"
     assert norm_year("HORIZON-CL4-2027-03") == "HORIZON-CL4-Y-03"
@@ -157,6 +174,7 @@ def test_families_match_the_audit_cases():
 
 
 # ----------------------------------------------------------- les neuf cas
+
 
 def test_exact_bridge_actors_and_no_double_counting(corpus, client):
     payload = _get(client, corpus["t_exact"])

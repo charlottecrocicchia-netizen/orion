@@ -60,9 +60,7 @@ def seed_indices(session: Session, vintage: date = VINTAGE) -> None:
                 vintage_date=vintage,
             )
         )
-    session.add(
-        ExchangeRate(currency="USD", year=2025, rate_to_eur=Decimal(USD_PER_EUR_2025))
-    )
+    session.add(ExchangeRate(currency="USD", year=2025, rate_to_eur=Decimal(USD_PER_EUR_2025)))
     session.flush()
 
 

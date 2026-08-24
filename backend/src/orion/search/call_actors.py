@@ -54,8 +54,7 @@ ACTORS_CACHE_MAX = 256
 # Les mêmes normalisations en SQL et en Python — testées face à face.
 SQL_NORM_YEAR = "regexp_replace(upper({col}), '20[0-9]{{2}}', 'Y', 'g')"
 SQL_STRIP_TAIL = (
-    "regexp_replace(regexp_replace(upper({col}), '20[0-9]{{2}}', 'Y', 'g'),"
-    " '(-[0-9]+)+$', '')"
+    "regexp_replace(regexp_replace(upper({col}), '20[0-9]{{2}}', 'Y', 'g'), '(-[0-9]+)+$', '')"
 )
 
 

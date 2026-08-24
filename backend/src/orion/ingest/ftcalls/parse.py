@@ -71,9 +71,15 @@ def _topic_budget(
                 continue
             # Un 0 de la source est un « non renseigné », pas une
             # fourchette : seules les contributions positives comptent.
-            if isinstance(action.get("minContribution"), int | float) and action["minContribution"] > 0:
+            if (
+                isinstance(action.get("minContribution"), int | float)
+                and action["minContribution"] > 0
+            ):
                 mins.append(float(action["minContribution"]))
-            if isinstance(action.get("maxContribution"), int | float) and action["maxContribution"] > 0:
+            if (
+                isinstance(action.get("maxContribution"), int | float)
+                and action["maxContribution"] > 0
+            ):
                 maxs.append(float(action["maxContribution"]))
             if isinstance(action.get("expectedGrants"), int):
                 grants += action["expectedGrants"]

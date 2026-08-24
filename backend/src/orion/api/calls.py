@@ -35,8 +35,7 @@ from orion.search.service import parse_sector
 router = APIRouter()
 
 ATTRIBUTION = (
-    "Contains data from the EU Funding & Tenders Portal, © European Union, "
-    "reused under CC BY 4.0."
+    "Contains data from the EU Funding & Tenders Portal, © European Union, reused under CC BY 4.0."
 )
 PAGE_SIZE_MAX = 50
 DERIVED_STATUSES = ("open", "upcoming", "closed")
@@ -69,12 +68,8 @@ def _row(topic: CallTopic, lens_tags: list[dict[str, str]], now: datetime) -> di
         "next_deadline": upcoming.isoformat() if upcoming else None,
         "deadline_model": topic.deadline_model,
         "types_of_action": topic.types_of_action,
-        "budget_min_eur": float(topic.budget_min_eur)
-        if topic.budget_min_eur is not None
-        else None,
-        "budget_max_eur": float(topic.budget_max_eur)
-        if topic.budget_max_eur is not None
-        else None,
+        "budget_min_eur": float(topic.budget_min_eur) if topic.budget_min_eur is not None else None,
+        "budget_max_eur": float(topic.budget_max_eur) if topic.budget_max_eur is not None else None,
         "expected_grants": topic.expected_grants,
         "lens_tags": lens_tags,
         "url": topic.url,
@@ -161,9 +156,7 @@ def list_calls(
             text(f"SELECT id FROM call_topics WHERE {' AND '.join(clauses)}"), params
         )
     ]
-    topics = (
-        db.query(CallTopic).filter(CallTopic.id.in_(ids)).all() if ids else []
-    )
+    topics = db.query(CallTopic).filter(CallTopic.id.in_(ids)).all() if ids else []
 
     now = datetime.now(UTC)
     tags = _lens_tags_for(db, [t.id for t in topics])
@@ -213,8 +206,7 @@ def call_programmes(db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
     ).all()
     return {
         "programmes": [
-            {"code": code, "label": label or code, "topics": count}
-            for code, label, count in rows
+            {"code": code, "label": label or code, "topics": count} for code, label, count in rows
         ]
     }
 
@@ -294,9 +286,7 @@ def call_historical_actors(
 
 
 @router.get("/calls/{call_topic_id}")
-def call_detail(
-    call_topic_id: int, db: Annotated[Session, Depends(get_db)]
-) -> dict[str, Any]:
+def call_detail(call_topic_id: int, db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
     topic = db.get(CallTopic, call_topic_id)
     if topic is None or topic.source != "ft-portal":
         raise HTTPException(status_code=404, detail={"error": "NOT_FOUND"})

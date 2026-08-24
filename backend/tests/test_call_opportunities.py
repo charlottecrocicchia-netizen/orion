@@ -29,39 +29,63 @@ def corpus(test_database):
             "INSERT INTO funders (code, name, jurisdiction, default_currency) "
             "VALUES ('e3t', 'Fonds E3', 'EU', 'EUR') RETURNING id"
         )
-        for key, name in (("org", "CANDIDATE SARL"), ("partner_a", "PARTENAIRE A"),
-                          ("partner_b", "PARTENAIRE B"), ("nobody", "SANS HISTOIRE SA")):
+        for key, name in (
+            ("org", "CANDIDATE SARL"),
+            ("partner_a", "PARTENAIRE A"),
+            ("partner_b", "PARTENAIRE B"),
+            ("nobody", "SANS HISTOIRE SA"),
+        ):
             ids[key] = one(
                 "INSERT INTO organisations (name, name_normalized, country_code) "
-                "VALUES (:n, lower(:n), 'FR') RETURNING id", n=name
+                "VALUES (:n, lower(:n), 'FR') RETURNING id",
+                n=name,
             )
 
         def call(code: str) -> int:
-            return one("INSERT INTO calls (funder_id, code) VALUES (:f, :c) RETURNING id",
-                       f=ids["funder"], c=code)
+            return one(
+                "INSERT INTO calls (funder_id, code) VALUES (:f, :c) RETURNING id",
+                f=ids["funder"],
+                c=code,
+            )
 
         def project(sid: str, call_id: int, year: int) -> int:
             return one(
                 "INSERT INTO projects (source, source_id, title, funder_id, call_id, "
                 "start_date, funding_amount_eur) "
                 "VALUES (:s, :sid, :t, :f, :c, make_date(:y, 3, 1), 50000) RETURNING id",
-                s=SRC, sid=sid, t=f"P {sid}", f=ids["funder"], c=call_id, y=year)
+                s=SRC,
+                sid=sid,
+                t=f"P {sid}",
+                f=ids["funder"],
+                c=call_id,
+                y=year,
+            )
 
         def take_part(pid: int, org: int, role: str, uid: str) -> None:
             session.execute(
-                text("INSERT INTO participations (project_id, organisation_id, role, "
-                     "country_code, amount, currency, amount_eur, source, source_uid) "
-                     "VALUES (:p, :o, :r, 'FR', 10000, 'EUR', 10000, :s, :u)"),
-                {"p": pid, "o": org, "r": role, "s": SRC, "u": uid})
+                text(
+                    "INSERT INTO participations (project_id, organisation_id, role, "
+                    "country_code, amount, currency, amount_eur, source, source_uid) "
+                    "VALUES (:p, :o, :r, 'FR', 10000, 'EUR', 10000, :s, :u)"
+                ),
+                {"p": pid, "o": org, "r": role, "s": SRC, "u": uid},
+            )
 
-        def topic(sid: str, identifier: str, call_code, call_id, opening: str, deadline: str) -> int:
+        def topic(
+            sid: str, identifier: str, call_code, call_id, opening: str, deadline: str
+        ) -> int:
             return one(
                 "INSERT INTO call_topics (source, source_id, identifier, call_code, call_id, "
                 "status_code, opening_date, deadline_dates, raw) "
                 "VALUES ('ft-portal', :sid, :i, :cc, :ci, '31094502', "
                 "CAST(:op AS timestamptz), CAST(:dl AS jsonb), '{}'::jsonb) RETURNING id",
-                sid=sid, i=identifier, cc=call_code, ci=call_id, op=opening,
-                dl=f'["{deadline}"]')
+                sid=sid,
+                i=identifier,
+                cc=call_code,
+                ci=call_id,
+                op=opening,
+                dl=f'["{deadline}"]',
+            )
 
         # PONT EXACT : l'appel récurrent E3T-REC-2024-AA-01, 2 projets de
         # l'org (1 coordination), 2 co-participants — et un topic OUVERT
@@ -73,8 +97,14 @@ def corpus(test_database):
         take_part(p1, ids["partner_a"], "partner", "r1-pa")
         take_part(p2, ids["org"], "partner", "r2-org")
         take_part(p2, ids["partner_b"], "partner", "r2-pb")
-        ids["t_exact"] = topic("e3-exact", "E3T-REC-2026-AA-01-01", "E3T-REC-2026-AA-01",
-                               c_rec, "2020-01-01T00:00:00+00:00", "2030-06-01T17:00:00+00:00")
+        ids["t_exact"] = topic(
+            "e3-exact",
+            "E3T-REC-2026-AA-01-01",
+            "E3T-REC-2026-AA-01",
+            c_rec,
+            "2020-01-01T00:00:00+00:00",
+            "2030-06-01T17:00:00+00:00",
+        )
 
         # FAMILLE PAR IDENTIFIANT : 3 projets historiques E3T-FAM-*-DEMO,
         # topic ouvert de la même famille (call_id absent).
@@ -82,21 +112,39 @@ def corpus(test_database):
         for i, c in enumerate((cf1, cf1, cf2)):
             p = project(f"fam-{i}", c, 2021 + i)
             take_part(p, ids["org"], "coordinator" if i == 2 else "partner", f"f{i}-org")
-        ids["t_family"] = topic("e3-family", "E3T-FAM-2026-DEMO-02-03", "E3T-FAM-2026-02",
-                                None, "2020-01-01T00:00:00+00:00", "2030-09-01T17:00:00+00:00")
+        ids["t_family"] = topic(
+            "e3-family",
+            "E3T-FAM-2026-DEMO-02-03",
+            "E3T-FAM-2026-02",
+            None,
+            "2020-01-01T00:00:00+00:00",
+            "2030-09-01T17:00:00+00:00",
+        )
 
         # SOUS LE SEUIL : 2 projets seulement dans E3T-SM-*-QQ.
         cs = call("E3T-SM-2022-QQ-01")
         for i in range(2):
             p = project(f"sm-{i}", cs, 2022)
             take_part(p, ids["org"], "partner", f"s{i}-org")
-        ids["t_small"] = topic("e3-small", "E3T-SM-2026-QQ-01-01", "E3T-SM-2026-QQ-01",
-                               None, "2020-01-01T00:00:00+00:00", "2030-01-01T17:00:00+00:00")
+        ids["t_small"] = topic(
+            "e3-small",
+            "E3T-SM-2026-QQ-01-01",
+            "E3T-SM-2026-QQ-01",
+            None,
+            "2020-01-01T00:00:00+00:00",
+            "2030-01-01T17:00:00+00:00",
+        )
 
         # CLOS : même famille riche que t_family, mais deadline passée —
         # jamais proposé, quoi que dise le statut source.
-        ids["t_closed"] = topic("e3-closed", "E3T-FAM-2025-DEMO-01-01", "E3T-FAM-2025-01",
-                                None, "2020-01-01T00:00:00+00:00", "2025-01-01T17:00:00+00:00")
+        ids["t_closed"] = topic(
+            "e3-closed",
+            "E3T-FAM-2025-DEMO-01-01",
+            "E3T-FAM-2025-01",
+            None,
+            "2020-01-01T00:00:00+00:00",
+            "2025-01-01T17:00:00+00:00",
+        )
 
         session.commit()
         yield ids
@@ -106,7 +154,10 @@ def corpus(test_database):
             ("participations", f"source = '{SRC}'"),
             ("projects", f"source = '{SRC}'"),
             ("calls", "code LIKE 'E3T-%'"),
-            ("organisations", "name IN ('CANDIDATE SARL','PARTENAIRE A','PARTENAIRE B','SANS HISTOIRE SA')"),
+            (
+                "organisations",
+                "name IN ('CANDIDATE SARL','PARTENAIRE A','PARTENAIRE B','SANS HISTOIRE SA')",
+            ),
             ("funders", "code = 'e3t'"),
             ("countries", "code = 'FR'"),
         ):

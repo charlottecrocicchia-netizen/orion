@@ -137,15 +137,9 @@ def _bridge_calls(session: Any, stats: RunStats) -> None:
 def _retag_lenses(session: Any, stats: RunStats) -> None:
     """La lecture Orion, rejouée entière à chaque run (comme le moteur
     des lentilles : les fichiers sont la seule vérité)."""
-    published = [
-        entry
-        for entry in parse_registry(REGISTRY_FILE)
-        if entry["status"] == "published"
-    ]
+    published = [entry for entry in parse_registry(REGISTRY_FILE) if entry["status"] == "published"]
     topics = session.execute(
-        text(
-            "SELECT id, identifier, call_code FROM call_topics WHERE source = 'ft-portal'"
-        )
+        text("SELECT id, identifier, call_code FROM call_topics WHERE source = 'ft-portal'")
     ).all()
 
     rows: dict[tuple[int, str], dict[str, Any]] = {}

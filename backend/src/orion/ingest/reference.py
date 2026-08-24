@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from orion.ingest.runlog import RunStats, record_run
 from orion.ingest.upsert import upsert
-from orion.models import Jurisdiction, Country, Funder
+from orion.models import Country, Funder, Jurisdiction
 
 EU_MEMBERS = {
     "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU",

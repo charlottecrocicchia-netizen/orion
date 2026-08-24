@@ -10,10 +10,7 @@ import httpx
 
 SERIES_SOURCE = "eurostat"
 SERIES_CODE = "prc_hicp_aind"
-URL = (
-    "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/"
-    "prc_hicp_aind"
-)
+URL = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_aind"
 PARAMS = {"format": "JSON", "unit": "INX_A_AVG", "coicop": "CP00", "geo": "EA", "lang": "EN"}
 
 

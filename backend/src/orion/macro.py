@@ -95,9 +95,7 @@ def macro_set(session: Session, concept: str) -> MacroSet | None:
 
     if not values:
         return None
-    built = MacroSet(
-        concept=concept, values=values, series_code=series_code, latest_vintage=latest
-    )
+    built = MacroSet(concept=concept, values=values, series_code=series_code, latest_vintage=latest)
     if len(_CACHE) >= _CACHE_MAX:
         _CACHE.clear()
     _CACHE[cache_key] = built

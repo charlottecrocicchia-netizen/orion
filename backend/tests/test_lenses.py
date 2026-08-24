@@ -885,22 +885,17 @@ def test_a_review_adjudication_has_the_last_word_over_core(db_session, tmp_path)
     ids = _seed(db_session)
     rules = [
         *RULES,
-        'project,zzsl-1,enabling,cordis,,,'
+        "project,zzsl-1,enabling,cordis,,,"
         '"Adjugé habilitant en revue — multisectoriel (I13)",revue test',
     ]
     load_lens(db_session, RunStats(), "space", _lens(tmp_path, rules))
     row = db_session.execute(
-        text(
-            "SELECT tag, proof FROM project_lens_tags "
-            "WHERE project_id = :i AND lens = 'space'"
-        ),
+        text("SELECT tag, proof FROM project_lens_tags WHERE project_id = :i AND lens = 'space'"),
         {"i": ids["zzsl-1"]},
     ).one()
     assert (row.tag, row.proof) == ("enabling", "review")
     assert (
-        db_session.execute(
-            text("SELECT rules_review FROM lenses WHERE slug = 'space'")
-        ).scalar()
+        db_session.execute(text("SELECT rules_review FROM lenses WHERE slug = 'space'")).scalar()
         == 1
     )
 
@@ -916,10 +911,7 @@ def test_a_veto_never_bites_a_review_adjudication(db_session, tmp_path):
     ]
     load_lens(db_session, RunStats(), "space", _lens(tmp_path, rules))
     row = db_session.execute(
-        text(
-            "SELECT tag, proof FROM project_lens_tags "
-            "WHERE project_id = :i AND lens = 'space'"
-        ),
+        text("SELECT tag, proof FROM project_lens_tags WHERE project_id = :i AND lens = 'space'"),
         {"i": ids["zzsl-5"]},
     ).one()
     assert (row.tag, row.proof) == ("core", "review")
@@ -929,6 +921,4 @@ def test_an_adjudication_without_a_source_frame_refuses(tmp_path):
     """Une adjudication vise UN projet chez UNE source — sans cadre,
     l'identifiant ne veut rien dire."""
     with pytest.raises(LensError, match="adjudication cadre sa source"):
-        parse_rules(
-            _lens(tmp_path, ['project,641553,enabling,,,,"Sans cadre de source",revue'])
-        )
+        parse_rules(_lens(tmp_path, ['project,641553,enabling,,,,"Sans cadre de source",revue']))

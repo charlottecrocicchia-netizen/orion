@@ -448,9 +448,7 @@ def _fold_programme(
     return out
 
 
-def _value(
-    metric: str, row: dict[str, Any], real: bool = False, decimals: int = 2
-) -> float | None:
+def _value(metric: str, row: dict[str, Any], real: bool = False, decimals: int = 2) -> float | None:
     if metric == "funding":
         # Mode real : une somme NULL signifie « aucune ligne
         # ajustable » — la valeur est ABSENTE, jamais un faux zéro
@@ -718,8 +716,7 @@ def _build(
         )
         if scale == "gdp":
             rate_values = ", ".join(
-                f"(CAST(:usdy{i} AS int), CAST(:usdr{i} AS numeric))"
-                for i in range(len(usd_rates))
+                f"(CAST(:usdy{i} AS int), CAST(:usdr{i} AS numeric))" for i in range(len(usd_rates))
             )
             for i, (rate_year, rate) in enumerate(sorted(usd_rates.items())):
                 params[f"usdy{i}"] = rate_year
@@ -772,7 +769,6 @@ def _build(
     )
     if "ranking" in cols:
         select_cols += f", {cols['ranking']} AS ranking"
-
 
     clauses = _filters(
         participation=participation,
@@ -919,8 +915,7 @@ def _build(
                 # Le PIB d'abord : une année 2026-2027 manque des DEUX
                 # référentiels — le dénominateur est l'histoire utile.
                 "no_gdp_year": (
-                    f"p.start_date IS NOT NULL AND {scale_jur} IS NOT NULL "
-                    "AND md.value IS NULL"
+                    f"p.start_date IS NOT NULL AND {scale_jur} IS NOT NULL AND md.value IS NULL"
                 ),
                 "no_rate_year": (
                     f"p.start_date IS NOT NULL AND {scale_jur} IS NOT NULL "
@@ -995,9 +990,7 @@ def _build(
         params["fx_covered"] = list(COVERED)
         excl = f"{eur_col} IS NOT NULL AND fx.factor IS NULL"
         no_date = f"{excl} AND p.start_date IS NULL"
-        no_index = (
-            f"{excl} AND p.start_date IS NOT NULL AND {currency_col} = ANY(:fx_covered)"
-        )
+        no_index = f"{excl} AND p.start_date IS NOT NULL AND {currency_col} = ANY(:fx_covered)"
         no_currency = (
             f"{excl} AND p.start_date IS NOT NULL "
             f"AND ({currency_col} IS NULL OR NOT ({currency_col} = ANY(:fx_covered)))"
@@ -1084,7 +1077,10 @@ def _build(
 
     if by == "year":
         points = sorted(
-            ({"year": r["key"], "value": _value(metric, r, keep_none, value_decimals)} for r in folded),
+            (
+                {"year": r["key"], "value": _value(metric, r, keep_none, value_decimals)}
+                for r in folded
+            ),
             key=lambda p: p["year"],
         )
         series = [{"key": "all", "label": None, "points": points}]
@@ -1118,7 +1114,9 @@ def _build(
                 r["key"], {"key": r["key"], "label": r["label"], "points": []}
             )
             serie["label"] = serie["label"] or r["label"]
-            serie["points"].append({"year": r["y"], "value": _value(metric, r, keep_none, value_decimals)})
+            serie["points"].append(
+                {"year": r["y"], "value": _value(metric, r, keep_none, value_decimals)}
+            )
         for serie in by_key.values():
             serie["points"].sort(key=lambda p: p["year"])
         series = sorted(by_key.values(), key=lambda s: kept.index(s["key"]))
@@ -1137,7 +1135,11 @@ def _build(
         )
         kept_rows = ranked if (compare or sample is not None) else ranked[:limit]
         series = [
-            {"key": r["key"], "label": r["label"], "value": _value(metric, r, keep_none, value_decimals)}
+            {
+                "key": r["key"],
+                "label": r["label"],
+                "value": _value(metric, r, keep_none, value_decimals),
+            }
             for r in kept_rows
         ]
         kept_total = round(

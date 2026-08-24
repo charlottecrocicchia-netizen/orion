@@ -97,9 +97,7 @@ def _org_history(session: Session, organisation_id: int) -> dict[str, Any]:
     dernière année d'activité."""
     rows = session.execute(
         text(
-            "SELECT c.id AS call_id, "
-            + SQL_STRIP_TAIL.format(col="c.code")
-            + " AS family, "
+            "SELECT c.id AS call_id, " + SQL_STRIP_TAIL.format(col="c.code") + " AS family, "
             "count(DISTINCT pa.project_id) AS projects, "
             "count(DISTINCT pa.project_id) FILTER (WHERE pa.role = 'coordinator') AS coords, "
             "max(extract(year FROM p.start_date))::int AS last_year "
@@ -214,9 +212,7 @@ def call_opportunities(session: Session, organisation_id: int) -> dict[str, Any]
     return result
 
 
-def decorate_partners(
-    session: Session, organisation_id: int, kept: list[dict[str, Any]]
-) -> None:
+def decorate_partners(session: Session, organisation_id: int, kept: list[dict[str, Any]]) -> None:
     """La composante co-participants, calculée pour les seules retenues
     (une requête par famille distincte, ≤ MAX_OPPORTUNITIES)."""
     cache: dict[tuple[int, ...], int] = {}

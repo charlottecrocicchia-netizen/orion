@@ -40,9 +40,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.UniqueConstraint(
-            "currency", "year", "vintage_date", name="uq_price_indices_vintage"
-        ),
+        sa.UniqueConstraint("currency", "year", "vintage_date", name="uq_price_indices_vintage"),
     )
     op.create_index(
         "ix_price_indices_currency_vintage", "price_indices", ["currency", "vintage_date"]

@@ -24,8 +24,8 @@ from orion.models import (
     Funder,
     Group,
     IngestionRun,
-    Organisation,
     MacroSeries,
+    Organisation,
     Participation,
     PriceIndex,
     Programme,
@@ -361,8 +361,22 @@ def _seed_price_indices(session: Session) -> None:
     en euros. 2026 n'a volontairement AUCUN indice : FUTUREWATT reste
     hors calcul constant (arbitrage A1) et la ligne d'exclusion se
     recette sur un vrai cas."""
-    hicp = {2020: "105.1", 2021: "107.8", 2022: "116.8", 2023: "123.2", 2024: "126.1", 2025: "128.9"}
-    cpiu = {2020: "258.8", 2021: "271.0", 2022: "292.7", 2023: "304.7", 2024: "313.7", 2025: "322.1"}
+    hicp = {
+        2020: "105.1",
+        2021: "107.8",
+        2022: "116.8",
+        2023: "123.2",
+        2024: "126.1",
+        2025: "128.9",
+    }
+    cpiu = {
+        2020: "258.8",
+        2021: "271.0",
+        2022: "292.7",
+        2023: "304.7",
+        2024: "313.7",
+        2025: "322.1",
+    }
     for currency, series, values in (
         ("EUR", ("eurostat", "prc_hicp_aind"), hicp),
         ("USD", ("bls", "CUUR0000SA0"), cpiu),

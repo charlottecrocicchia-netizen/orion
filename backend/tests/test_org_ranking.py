@@ -41,7 +41,8 @@ def corpus(test_database):
         for key, (name, amount, n_projects) in orgs.items():
             org_id = one(
                 "INSERT INTO organisations (name, name_normalized, country_code) "
-                "VALUES (:n, lower(:n), 'FR') RETURNING id", n=name
+                "VALUES (:n, lower(:n), 'FR') RETURNING id",
+                n=name,
             )
             ids[key] = org_id
             for i in range(n_projects):
@@ -49,7 +50,10 @@ def corpus(test_database):
                     "INSERT INTO projects (source, source_id, title, funder_id, start_date, "
                     "funding_amount_eur) VALUES (:s, :sid, :t, :f, make_date(2022, 1, 1), :a) "
                     "RETURNING id",
-                    s=SRC, sid=f"{key}-{i}", t=f"P {key} {i}", f=ids["funder"],
+                    s=SRC,
+                    sid=f"{key}-{i}",
+                    t=f"P {key} {i}",
+                    f=ids["funder"],
                     a=amount / n_projects,
                 )
                 session.execute(
@@ -58,8 +62,7 @@ def corpus(test_database):
                         "country_code, amount, currency, amount_eur, source, source_uid) "
                         "VALUES (:p, :o, 'coordinator', 'FR', :a, 'EUR', :a, :s, :u)"
                     ),
-                    {"p": pid, "o": org_id, "a": amount / n_projects, "s": SRC,
-                     "u": f"{key}-{i}"},
+                    {"p": pid, "o": org_id, "a": amount / n_projects, "s": SRC, "u": f"{key}-{i}"},
                 )
         session.commit()
         # Le tiebreak lit organisation_stats : rafraîchie comme après un dedup.

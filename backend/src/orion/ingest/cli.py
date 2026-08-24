@@ -10,10 +10,10 @@ from orion.ingest.ftcalls import load as ftcalls_load
 from orion.ingest.gleif import load as gleif_load
 from orion.ingest.groups import build as groups_build
 from orion.ingest.lenses import run as lenses_run
+from orion.ingest.macro import run as macro_run
 from orion.ingest.nih import load as nih_load
 from orion.ingest.nsf import load as nsf_load
 from orion.ingest.prices import run as prices_run
-from orion.ingest.macro import run as macro_run
 from orion.ingest.rates import run as rates_run
 from orion.ingest.subdivisions import run as subdivisions_run
 from orion.ingest.wikidata import load as wikidata_load
