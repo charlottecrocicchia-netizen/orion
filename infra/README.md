@@ -65,9 +65,16 @@ consequences worth knowing:
 - building outside the Makefile leaves the stamp at `inconnu`, which the
   launcher treats as stale — in doubt it rebuilds;
 - the stamp describes the **images**, not the server's clone. A commit
-  touching only tests or documentation is pulled without a rebuild, so
-  the clone legitimately sits ahead of the stamp. A stamp behind the
-  clone on *application* code means the build step was skipped.
+  with no effect at runtime — tests, documentation, or a pure
+  reformatting — is pulled without a rebuild, so the clone legitimately
+  sits ahead of the stamp, and that gap is not a bug to chase.
+
+  Before concluding that a build was skipped, measure instead of reading
+  the diff: parse each changed file at both revisions and compare the
+  syntax trees (`ast.dump(ast.parse(source))`). Identical trees mean
+  identical behaviour however large the textual diff — that is how the
+  2026-08-24 reformatting was cleared without redeploying. A tree that
+  really differs on application code is the signal to rebuild.
 
 ### Two traps verified in production
 
