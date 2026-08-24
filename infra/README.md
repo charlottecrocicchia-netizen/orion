@@ -38,6 +38,34 @@ Any Docker-capable VPS works (Hetzner CX32-class recommended, Scaleway if
 7. **Backups**: enable provider snapshots; a `pg_dump` cron ships in phase 1
    together with real data.
 
+## Approved emails — adding or removing one
+
+Access is closed by an allowlist of approved emails
+(docs/conception-workspace.md, amendment of 2026-08-21). There is no table
+and no admin screen while the list fits on one hand: the list IS
+`ORION_LOGIN_ALLOWLIST` in the SERVER's `.env`, comma-separated, compared
+case-insensitively (both sides are lowercased), and **empty = door closed
+for everyone**.
+
+The gesture, on the server:
+
+```bash
+cd ~/orion/infra
+# edit ../.env: ORION_LOGIN_ALLOWLIST=first@example.com,second@example.com
+docker compose --env-file ../.env -f compose.prod.yml up -d --no-deps api
+```
+
+Recreating the `api` container is what makes the new value exist inside it:
+settings are read at process start (`get_settings` is cached), so a running
+container keeps the list it booted with. Only `api` is recreated — Postgres,
+web and Caddy keep serving, and no session is dropped (sessions live in the
+database). `make up` works too but rebuilds the whole stack, which this
+change does not need: no code moves.
+
+Removing an email closes the door to NEW magic links only; an existing
+session survives until it expires. To cut access now, delete that user's
+rows from `sessions` as well.
+
 ## Scaling path (in order, no rewrites)
 
 1. Bigger VPS (vertical).

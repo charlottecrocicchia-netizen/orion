@@ -537,6 +537,12 @@ Décision fondatrice (2026-08-21, au lendemain de la mise en ligne de
 d'emails approuvés**. Au démarrage, un seul :
 `owner@example.com`.
 
+État de la liste au 2026-08-24 : deux adresses — celle de la fondatrice
+et `approved-user-1@example.com` (ajoutée le 2026-08-24). Deux comptes Orion
+ordinaires, sans privilège : chacun est owner de SON workspace
+personnel et de rien d'autre. Le geste d'ajout est écrit au runbook
+(`infra/README.md`, « Approved emails »).
+
 Le contrat, vérifiable en recette :
 
 - la liste vit dans `ORION_LOGIN_ALLOWLIST` (emails séparés par des

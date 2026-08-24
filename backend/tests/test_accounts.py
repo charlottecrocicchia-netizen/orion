@@ -108,6 +108,30 @@ def test_reponse_indiscernable_hors_liste(https_client):
     assert emails == [ALLOWED]
 
 
+def test_porte_insensible_a_la_casse_et_sans_doublon(https_client):
+    """La porte compare en lower() des DEUX côtés : une adresse inscrite
+    avec des majuscules s'ouvre quelle que soit la casse saisie — et deux
+    connexions en casses différentes ne font qu'UN compte (verrou 3 :
+    l'unicité est une contrainte de base, pas une politesse de code)."""
+    from orion.core.config import get_settings
+    from orion.main import app
+
+    os.environ["ORION_LOGIN_ALLOWLIST"] = "Mixte.Casse@Example.com"
+    get_settings.cache_clear()
+
+    sign_in(https_client, "MIXTE.CASSE@example.com")
+    assert https_client.get("/api/me").json()["email"] == "mixte.casse@example.com"
+
+    autre_navigateur = TestClient(app, base_url="https://testserver")
+    sign_in(autre_navigateur, "mixte.casse@EXAMPLE.COM")
+
+    with engine.connect() as conn:
+        emails = [r[0] for r in conn.execute(text("SELECT email FROM users")).fetchall()]
+        workspaces = conn.execute(text("SELECT count(*) FROM workspaces")).scalar()
+    assert emails == ["mixte.casse@example.com"]
+    assert workspaces == 1
+
+
 def test_premier_login_cree_compte_et_workspace_personnel(https_client):
     sign_in(https_client)
     res = https_client.get("/api/me")
