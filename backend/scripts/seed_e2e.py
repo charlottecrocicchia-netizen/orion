@@ -25,6 +25,7 @@ from orion.models import (
     Group,
     IngestionRun,
     Organisation,
+    MacroSeries,
     Participation,
     PriceIndex,
     Programme,
@@ -381,6 +382,46 @@ def _seed_price_indices(session: Session) -> None:
     session.commit()
 
 
+def _seed_macro(session: Session) -> None:
+    """Lot R3 (ECONOMIC SCALE) : les dénominateurs macro de la graine —
+    PIB courant USD et population, valeurs rondes calculables à la main,
+    2021-2025. 2026 n'a volontairement AUCUNE série : le projet
+    FUTUREWATT reste hors calcul (motif no_gdp_year/no_population_year)
+    et la bande d'indisponibilité se recette sur un vrai cas. Les taux
+    USD 2021-2024 alimentent le numérateur du % PIB (2025 est déjà semé
+    par les indices de prix, à 1.09 — les tests real en dépendent)."""
+    gdp = {"EU": 2.0e13, "US": 2.5e13, "FR": 3.0e12, "DE": 4.0e12, "NL": 1.0e12}
+    pop = {"EU": 4.5e8, "US": 3.4e8, "FR": 6.8e7, "DE": 8.0e7, "NL": 1.8e7}
+    for year in range(2021, 2026):
+        for code, value in gdp.items():
+            session.add(
+                MacroSeries(
+                    jurisdiction_code=code,
+                    concept="gdp_current_usd",
+                    year=year,
+                    value=value,
+                    series_source="wdi",
+                    series_code="NY.GDP.MKTP.CD",
+                    vintage_date="2026-01-15",
+                )
+            )
+        for code, value in pop.items():
+            session.add(
+                MacroSeries(
+                    jurisdiction_code=code,
+                    concept="population",
+                    year=year,
+                    value=value,
+                    series_source="wdi",
+                    series_code="SP.POP.TOTL",
+                    vintage_date="2026-01-15",
+                )
+            )
+    for year in range(2021, 2025):
+        session.add(ExchangeRate(currency="USD", year=year, rate_to_eur="1.25"))
+    session.commit()
+
+
 def _seed_call_topics(session: Session) -> None:
     """Les appels de la graine (E1) : un ouvert avec budget, un à venir,
     un CLOS DONT LA SOURCE DIT ENCORE « OPEN » (la dérivation par les
@@ -664,6 +705,7 @@ def main() -> None:
         _seed_synthetic_lens(session)
         _seed_call_topics(session)
         _seed_price_indices(session)
+        _seed_macro(session)
         # La maille sous le pays : le référentiel complet, et le MIT posé
         # dans son État (les caches ne sont pas là en CI — la graine dit
         # la maille comme le backfill la dirait).

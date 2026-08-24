@@ -26,6 +26,7 @@ import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
 import { applyTrend, indexBaseCandidates, resolveIndexBase, robustDomain } from "@/lib/trend";
+import { excludedYears } from "@/lib/excluded";
 import type { ExplorerState } from "@/lib/explore-state";
 import {
   countryFlag,
@@ -226,10 +227,15 @@ export function ExplorerPage() {
     // URL produite en real porte son année de référence ; la devise
     // d'affichage ne s'écrit que hors défaut (EUR omis). La
     // reconstruction efface d'elle-même les paramètres d'un mode quitté.
-    if (next.value === "real") {
-      out.set("value", "real");
+    if (next.value === "real" || next.value === "capita") {
+      // real et capita partagent année de référence et devise (R0 § D1).
+      out.set("value", next.value);
       if (next.base != null) out.set("base", String(next.base));
       if (next.cur) out.set("cur", next.cur);
+    } else if (next.value === "gdp") {
+      // % PIB : aucun paramètre — la perspective est forcée par la
+      // dimension, elle n'entre jamais dans l'URL (R0 § D3).
+      out.set("value", "gdp");
     } else if (next.value === "index") {
       // TREND (R2) : l'index porte son année de base, la croissance n'a
       // aucun paramètre — et aucune interaction (légende, fenêtre,
@@ -261,6 +267,15 @@ export function ExplorerPage() {
       ? (state.value as "index" | "growth")
       : null;
   const trendInvalid = trendMode != null && !temporal;
+  // ECONOMIC SCALE (R3, R0 § D3/D4) : la vue doit fournir un
+  // dénominateur résoluble — financeurs (effort), pays ou vue annuelle
+  // cadrée pays (intensité reçue), métrique funding. La perspective est
+  // FORCÉE par la dimension : aucun contrôle inutile, rien dans l'URL.
+  const scaleAvailable =
+    state.metric === "funding" &&
+    (state.by === "funder" || state.by === "country" || (state.by === "year" && !!state.country));
+  const scalePerspective: "funder" | "recipient" =
+    state.by === "funder" ? "funder" : "recipient";
 
   const { data: rawData, isPending, isError } = useQuery({
     queryKey: ["explore", apiParams.toString()],
@@ -310,7 +325,7 @@ export function ExplorerPage() {
   const referenceMeta = data?.meta.reference;
   useEffect(() => {
     if (anglesStory) return;
-    if (state.value === "real" && state.base == null && referenceMeta) {
+    if ((state.value === "real" || state.value === "capita") && state.base == null && referenceMeta?.base != null) {
       const out = new URLSearchParams(params);
       out.set("base", String(referenceMeta.base));
       setParams(out, { replace: true, preventScrollReset: true });
@@ -338,8 +353,34 @@ export function ExplorerPage() {
   // sélecteur « View funding as », l'axe du graphique et l'en-tête du
   // CSV — pas de répétition dans le sous-titre. En TREND, plus aucun
   // symbole monétaire : l'unité dit l'indice ou le pourcentage.
+  const countryName =
+    state.country !== ""
+      ? (() => {
+          try {
+            return new Intl.DisplayNames([i18n.language || "en"], { type: "region" }).of(
+              state.country,
+            );
+          } catch {
+            return state.country;
+          }
+        })()
+      : null;
   const unitLine =
-    data && trendMode === "index"
+    data && state.value === "gdp"
+      ? state.by === "year" && countryName
+        ? t("explorer.reference.unitGdpOf", { name: countryName })
+        : t(
+            scalePerspective === "funder"
+              ? "explorer.reference.unitGdpFunder"
+              : "explorer.reference.unitGdpRecipient",
+          )
+      : data && state.value === "capita" && referenceMeta
+        ? t("explorer.reference.unitCapita", {
+            year: referenceMeta.base,
+            cur: referenceMeta.cur,
+            symbol: moneySymbol((referenceMeta.cur ?? "EUR").toLowerCase()),
+          })
+        : data && trendMode === "index"
       ? t("explorer.reference.csvIndex", { base: canonicalBase ?? "" })
       : data && trendMode === "growth"
         ? t("explorer.reference.csvGrowth")
@@ -867,6 +908,7 @@ export function ExplorerPage() {
               resolvedBase={referenceMeta?.base ?? null}
               temporal={temporal}
               indexBases={indexBases}
+              scale={{ available: scaleAvailable, perspective: scalePerspective }}
               onChange={(next) => patch(next)}
             />
           ) : null}
@@ -927,11 +969,18 @@ export function ExplorerPage() {
             </div>
           ) : isPending ? (
             <Skeleton className="h-[380px] w-full" />
-          ) : isError && state.value === "real" ? (
-            /* Le refus explicite du mode (422 real_unavailable) : jamais
-               un repli silencieux — la sortie est un geste. */
+          ) : isError &&
+            (state.value === "real" || state.value === "gdp" || state.value === "capita") ? (
+            /* Le refus explicite du mode (422) : jamais un repli
+               silencieux — la sortie est un geste. */
             <div className="py-24 text-center text-muted-foreground">
-              <p className="mx-auto max-w-[52ch]">{t("explorer.reference.unavailable")}</p>
+              <p className="mx-auto max-w-[52ch]">
+                {t(
+                  state.value === "real"
+                    ? "explorer.reference.unavailable"
+                    : "explorer.reference.scaleUnavailable",
+                )}
+              </p>
               <button
                 type="button"
                 onClick={() => patch({ value: "", base: null, cur: "" })}
@@ -951,7 +1000,7 @@ export function ExplorerPage() {
               series={shownSeries}
               unit={data.unit}
               ariaLabel={boardTitle}
-              unavailableYears={data.excluded?.reasons.no_index_year.years}
+              unavailableYears={excludedYears(data)}
               unavailableLabel={t("explorer.reference.bandLabel")}
               colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
               fullRange={state.range === "full"}

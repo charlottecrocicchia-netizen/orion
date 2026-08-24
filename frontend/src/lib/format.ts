@@ -148,6 +148,14 @@ export function formatValue(
   // la croissance un pourcentage SIGNÉ — jamais confondue avec une part
   // du total.
   if (unit === "index") return value.toLocaleString(locale, { maximumFractionDigits: 1 });
+  // ECONOMIC SCALE (R3) : une intensité vit sous 0,1 % — trois chiffres
+  // significatifs ; le par-habitant est une monnaie à décimales.
+  if (unit === "gdppct")
+    return `${value.toLocaleString(locale, { maximumSignificantDigits: 3 })} %`;
+  if (unit === "eurcap" || unit === "usdcap")
+    return `${moneySymbol(unit === "usdcap" ? "usd" : "eur")}${value.toLocaleString(locale, {
+      maximumFractionDigits: value >= 100 ? 0 : 2,
+    })}`;
   if (unit === "growth")
     return `${value > 0 ? "+" : ""}${value.toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
   return formatInt(Math.round(value), locale);

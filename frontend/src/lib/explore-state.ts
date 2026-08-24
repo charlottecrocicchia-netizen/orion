@@ -62,7 +62,10 @@ export function readState(params: URLSearchParams): ExplorerState {
   // real — lus hors de lui, ils sont ignorés, et la prochaine écriture
   // d'URL les efface (canonicalisation par reconstruction).
   const raw = params.get("value");
-  const value = raw === "real" || raw === "index" || raw === "growth" ? raw : "";
+  const value =
+    raw === "real" || raw === "index" || raw === "growth" || raw === "gdp" || raw === "capita"
+      ? raw
+      : "";
   return {
     metric: params.get("metric") ?? "funding",
     by: params.get("by") ?? "country",
@@ -82,13 +85,15 @@ export function readState(params: URLSearchParams): ExplorerState {
     // d'`index` (R0 § D10 : un mode a au plus un paramètre d'année) ;
     // il est étranger à `growth` et au nominal — éliminé.
     base:
-      (value === "real" || value === "index") && /^\d{4}$/.test(params.get("base") ?? "")
+      (value === "real" || value === "index" || value === "capita") &&
+      /^\d{4}$/.test(params.get("base") ?? "")
         ? Number(params.get("base"))
         : null,
     // « EUR » explicite se normalise vers le défaut omis ; R1 n'offre
     // que l'USD comme ré-expression. La devise est étrangère à TREND :
     // un scalaire commun s'annule dans les ratios — éliminée.
-    cur: value === "real" && params.get("cur") === "USD" ? "USD" : "",
+    cur:
+      (value === "real" || value === "capita") && params.get("cur") === "USD" ? "USD" : "",
     range: value === "growth" && params.get("range") === "full" ? "full" : "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
@@ -113,10 +118,16 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
   if (state.subdivision) apiParams.set("subdivision", state.subdivision);
   // Le mode de lecture (Reference Engine) : mêmes noms côté API que
   // dans l'URL publique — value/base/cur, grammaire R0 § D10.
-  if (state.value === "real") {
-    apiParams.set("value", "real");
+  if (state.value === "real" || state.value === "capita") {
+    // real et capita partagent année de référence et devise d'affichage
+    // (le par-habitant divise la valeur RÉELLE — R0 § D1).
+    apiParams.set("value", state.value);
     if (state.base != null) apiParams.set("base", String(state.base));
     if (state.cur) apiParams.set("cur", state.cur);
+  } else if (state.value === "gdp") {
+    // % PIB : aucun paramètre secondaire — la perspective est FORCÉE
+    // par la dimension (R0 § D3), elle ne voyage pas.
+    apiParams.set("value", "gdp");
   } else if (state.value === "index" || state.value === "growth") {
     // TREND (R2) : le backend ne connaît ni index ni growth — la page
     // demande la série REAL (année de référence serveur par défaut) et
@@ -153,6 +164,14 @@ export function resolveView(state: ExplorerState): {
   if ((state.value === "index" || state.value === "growth") && temporal) {
     const view = state.view === "table" ? "table" : "lines";
     return { temporal, mappable: false, availableViews: ["lines", "table"], view };
+  }
+  // ECONOMIC SCALE (R3) : des intensités et des par-habitant — jamais
+  // de donut (aucun total), jamais de carte de niveaux. Trajectoires en
+  // temporel, barres classées sinon.
+  if (state.value === "gdp" || state.value === "capita") {
+    const availableViews = temporal ? ["lines", "table"] : ["bars", "table"];
+    const view = availableViews.includes(state.view) ? state.view : availableViews[0];
+    return { temporal, mappable: false, availableViews, view };
   }
   // Bump (ranks) and delta (before/after windows) need several series over
   // time — a single-series "year" dimension has nothing to race.

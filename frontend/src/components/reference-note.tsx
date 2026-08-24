@@ -2,18 +2,21 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 import type { ExploreResponse } from "@/lib/api";
+import { REASON_KEYS } from "@/lib/excluded";
 import { formatCompactEur, moneySymbol } from "@/lib/format";
 
-/** ⓘ Reference — la méthodologie au point d'usage (R0 § D8), pour le
- *  mode `real`. Toujours les mêmes blocs, dans cet ordre : définition ·
- *  sources (avec millésimes) · exclusions · lien méthodologique.
+/** ⓘ Reference — la méthodologie au point d'usage (R0 § D8), pour tous
+ *  les modes du Reference Engine. Toujours les mêmes blocs, dans cet
+ *  ordre : définition (et perspective en ECONOMIC SCALE) · sources avec
+ *  millésimes · exclusions ventilées · lien méthodologique.
  *
- *  Règle gravée (A1) : les montants exclus du calcul real (indice non
- *  publié pour 2026-2027, date manquante) ne « disparaissent » JAMAIS
- *  en silence — la part exclue s'annonce AU POINT D'AFFICHAGE, chiffrée
- *  par l'API depuis le périmètre affiché (filtres compris), toujours en
- *  EUR NOMINAL (le périmètre exclu n'a pas de valeur réelle). L'API
- *  fournit les valeurs ; l'UI fournit les phrases EN/FR. */
+ *  Règle gravée (A1, généralisée) : les montants exclus du calcul ne
+ *  « disparaissent » JAMAIS en silence — la part exclue s'annonce AU
+ *  POINT D'AFFICHAGE, chiffrée par l'API depuis le périmètre affiché
+ *  (filtres compris), toujours en EUR NOMINAL. Les motifs sont un
+ *  dictionnaire OUVERT (R0 § D13) rendu par la carte unique
+ *  REASON_KEYS. L'API fournit les valeurs ; l'UI fournit les phrases
+ *  EN/FR. */
 export function ReferenceNote({
   data,
   trend,
@@ -30,15 +33,18 @@ export function ReferenceNote({
   if (!reference) return null;
   const excluded = data.excluded;
   const amount = (value: number) => formatCompactEur(value, i18n.language);
-  const vintage = [...new Set(Object.values(reference.vintages))].join(" · ");
-  const method = t("explorer.reference.method", {
-    year: reference.base,
-    cur: reference.cur,
-    symbol: moneySymbol(reference.cur.toLowerCase()),
-    vintage,
-  });
+  const scale = reference.mode === "gdp" || reference.mode === "capita";
+  const vintage = [...new Set(Object.values(reference.vintages ?? {}))].join(" · ");
+  const realMethod =
+    reference.base != null
+      ? t("explorer.reference.method", {
+          year: reference.base,
+          cur: reference.cur,
+          symbol: moneySymbol((reference.cur ?? "EUR").toLowerCase()),
+          vintage,
+        })
+      : null;
   const hasExcluded = excluded != null && excluded.projects > 0;
-  const reasons = excluded?.reasons;
 
   return (
     <details className="mt-4 max-w-[74ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
@@ -80,34 +86,49 @@ export function ReferenceNote({
           <p className="mt-1.5">{t("explorer.reference.trendCohortWarning")}</p>
         </>
       ) : null}
-      <p className="mt-1.5">{method}</p>
-      {hasExcluded && reasons ? (
+      {scale ? (
+        <>
+          {/* La perspective, en toutes lettres : l'utilisateur ne se
+              demande JAMAIS « le PIB de qui ? » (R0 § D3). */}
+          <p className="mt-1.5">
+            {t(
+              reference.perspective === "funder"
+                ? "explorer.reference.perspectiveFunder"
+                : "explorer.reference.perspectiveRecipient",
+            )}
+          </p>
+          <p className="mt-1.5">
+            {t(
+              reference.mode === "gdp"
+                ? "explorer.reference.gdpMethod"
+                : "explorer.reference.capitaMethod",
+              {
+                year: reference.base ?? "",
+                code: reference.denominator?.series_code ?? "",
+                vintage: reference.denominator?.vintage ?? "",
+              },
+            )}
+          </p>
+        </>
+      ) : null}
+      {realMethod && (!scale || reference.mode === "capita") ? (
+        <p className="mt-1.5">{realMethod}</p>
+      ) : null}
+      {hasExcluded ? (
         <ul className="mt-1.5 list-disc space-y-0.5 pl-4">
-          {reasons.no_index_year.projects > 0 ? (
-            <li>
-              {t("explorer.reference.noIndex", {
-                count: reasons.no_index_year.projects,
-                years: reasons.no_index_year.years.join(", "),
-                amount: amount(reasons.no_index_year.amount_eur_nominal),
-              })}
-            </li>
-          ) : null}
-          {reasons.no_date.projects > 0 ? (
-            <li>
-              {t("explorer.reference.noDate", {
-                count: reasons.no_date.projects,
-                amount: amount(reasons.no_date.amount_eur_nominal),
-              })}
-            </li>
-          ) : null}
-          {reasons.no_currency_index.projects > 0 ? (
-            <li>
-              {t("explorer.reference.noCurrency", {
-                count: reasons.no_currency_index.projects,
-                amount: amount(reasons.no_currency_index.amount_eur_nominal),
-              })}
-            </li>
-          ) : null}
+          {Object.entries(excluded.reasons).map(([reason, detail]) => {
+            const key = REASON_KEYS[reason];
+            if (!key || detail.projects === 0) return null;
+            return (
+              <li key={reason}>
+                {t(`explorer.reference.${key}`, {
+                  count: detail.projects,
+                  amount: amount(detail.amount_eur_nominal),
+                  years: (detail.years ?? []).join(", "),
+                })}
+              </li>
+            );
+          })}
         </ul>
       ) : null}
       <p className="mt-1.5">

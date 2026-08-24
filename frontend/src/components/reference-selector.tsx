@@ -40,6 +40,7 @@ export function ReferenceSelector({
   resolvedBase,
   temporal,
   indexBases,
+  scale,
   onChange,
 }: {
   value: string;
@@ -53,6 +54,10 @@ export function ReferenceSelector({
   temporal: boolean;
   /** Années de base exploitables pour Index 100 (fenêtre visible). */
   indexBases: number[];
+  /** ECONOMIC SCALE (R3) : présent quand la vue a un dénominateur
+   *  résoluble — la perspective, FORCÉE par la dimension, choisit les
+   *  intitulés (l'utilisateur ne se demande jamais « le PIB de qui ? »). */
+  scale?: { available: boolean; perspective: "funder" | "recipient" };
   onChange: (next: ReferenceChange) => void;
 }) {
   const { t } = useTranslation();
@@ -85,18 +90,27 @@ export function ReferenceSelector({
   const currentLabel =
     value === "real"
       ? t("explorer.reference.unit", { year: refYear ?? "", cur: curCode, symbol }).trim()
-      : value === "index"
-        ? t("explorer.reference.indexCurrent", { base: base ?? indexBases[0] ?? "…" })
-        : value === "growth"
-          ? t("explorer.reference.growthMode")
-          : t("explorer.reference.nominal");
+      : value === "gdp"
+        ? t("explorer.reference.gdpMode")
+        : value === "capita"
+          ? t("explorer.reference.capitaCurrent", {
+              year: refYear ?? "",
+              cur: curCode,
+              symbol,
+            }).trim()
+          : value === "index"
+            ? t("explorer.reference.indexCurrent", { base: base ?? indexBases[0] ?? "…" })
+            : value === "growth"
+              ? t("explorer.reference.growthMode")
+              : t("explorer.reference.nominal");
 
   // Changer de mode repart sur SES défauts — jamais l'année d'un autre
   // mode recyclée en silence. Re-cliquer le mode courant ne touche rien
   // (une devise ou une base choisies ne se perdent pas sur un clic).
   const pick = (mode: string) => {
     if (mode === value) return;
-    if (mode === "real") onChange({ value: "real", base: null, cur: "" });
+    if (mode === "real" || mode === "capita" || mode === "gdp")
+      onChange({ value: mode, base: null, cur: "" });
     else if (mode === "index") onChange({ value: "index", base: indexBases[0] ?? null, cur: "" });
     else if (mode === "growth") onChange({ value: "growth", base: null, cur: "" });
     else onChange({ value: "", base: null, cur: "" });
@@ -111,6 +125,34 @@ export function ReferenceSelector({
         { key: "real", name: t("explorer.reference.real"), hint: t("explorer.reference.realHint") },
       ],
     },
+    ...(scale?.available
+      ? [
+          {
+            key: "scale",
+            label: t("explorer.reference.groupScale"),
+            modes: [
+              {
+                key: "gdp",
+                name: t("explorer.reference.gdpMode"),
+                hint: t(
+                  scale.perspective === "funder"
+                    ? "explorer.reference.gdpFunderHint"
+                    : "explorer.reference.gdpRecipientHint",
+                ),
+              },
+              {
+                key: "capita",
+                name: t("explorer.reference.capitaMode"),
+                hint: t(
+                  scale.perspective === "funder"
+                    ? "explorer.reference.capitaFunderHint"
+                    : "explorer.reference.capitaRecipientHint",
+                ),
+              },
+            ],
+          },
+        ]
+      : []),
     ...(temporal
       ? [
           {
@@ -199,7 +241,7 @@ export function ReferenceSelector({
                       </button>
                       {/* Les paramètres du mode choisi, révélés SOUS lui —
                           seulement les siens (R0 § D6). */}
-                      {mode.key === "real" && value === "real" ? (
+                      {(mode.key === "real" || mode.key === "capita") && value === mode.key ? (
                         <div className="mb-1 ml-2.5 mt-0.5 space-y-2 border-l pl-3 pt-1">
                           <label className="flex items-center justify-between gap-3 text-[12.5px]">
                             <span className="text-muted-foreground">
@@ -209,7 +251,7 @@ export function ReferenceSelector({
                               <select
                                 value={refYear ?? ""}
                                 onChange={(event) =>
-                                  onChange({ value: "real", base: Number(event.target.value), cur })
+                                  onChange({ value, base: Number(event.target.value), cur })
                                 }
                                 className="rounded-lg border bg-background px-2 py-1 text-[12.5px]"
                               >
@@ -240,7 +282,7 @@ export function ReferenceSelector({
                                   aria-checked={curCode === candidate}
                                   onClick={() =>
                                     onChange({
-                                      value: "real",
+                                      value,
                                       base: refYear ?? null,
                                       cur: candidate === "EUR" ? "" : candidate,
                                     })

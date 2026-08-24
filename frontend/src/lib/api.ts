@@ -140,7 +140,7 @@ export interface ExploreResponse {
    *  `index` et `growth` ne viennent JAMAIS de l'API : ce sont les
    *  unités posées par la transformation TREND côté client
    *  (lib/trend.ts) — plus des montants monétaires. */
-  unit: "eur" | "usd" | "count" | "pct" | "index" | "growth";
+  unit: "eur" | "usd" | "count" | "pct" | "index" | "growth" | "gdppct" | "eurcap" | "usdcap";
   basis: "participants" | "projects";
   series: ExploreSeries[];
   total: number | null;
@@ -151,11 +151,14 @@ export interface ExploreResponse {
   excluded?: {
     projects: number;
     amount_eur_nominal: number;
-    reasons: {
-      no_index_year: { projects: number; amount_eur_nominal: number; years: number[] };
-      no_date: { projects: number; amount_eur_nominal: number };
-      no_currency_index: { projects: number; amount_eur_nominal: number };
-    };
+    /** Dictionnaire OUVERT de motifs précis (R0 § D13) : real porte
+     *  no_index_year/no_date/no_currency_index ; gdp et capita ajoutent
+     *  no_jurisdiction, no_gdp_year, no_population_year, no_rate_year.
+     *  Les motifs porteurs d'années alimentent la bande hachurée. */
+    reasons: Record<
+      string,
+      { projects: number; amount_eur_nominal: number; years?: number[] }
+    >;
   };
   meta: {
     limit: number;
@@ -169,12 +172,21 @@ export interface ExploreResponse {
      *  référence, cur = devise d'affichage, bases = années que le
      *  serveur peut honorer, vintages = millésimes d'indices lus). */
     reference?: {
-      mode: "real";
-      base: number;
-      cur: string;
-      bases: number[];
-      vintages: Record<string, string>;
-      series: Record<string, string>;
+      mode: "real" | "gdp" | "capita";
+      /** ECONOMIC SCALE : la perspective FORCÉE par la dimension. */
+      perspective?: "funder" | "recipient";
+      /** ECONOMIC SCALE : le dénominateur macro et sa provenance. */
+      denominator?: {
+        concept: string;
+        source: string;
+        series_code: string;
+        vintage: string;
+      };
+      base?: number;
+      cur?: string;
+      bases?: number[];
+      vintages?: Record<string, string>;
+      series?: Record<string, string>;
       rates_source: string;
     };
     /** La couverture de la VUE (lot E) : présente SEULEMENT quand la vue

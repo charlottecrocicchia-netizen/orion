@@ -134,6 +134,41 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
     expect(view).toBe("lines");
   });
 
+  it("ECONOMIC SCALE (R3) : gdp nu, capita avec base et cur — mêmes noms vers l'API", () => {
+    const gdp = readState(new URLSearchParams("by=funder&value=gdp&base=2025&cur=USD"));
+    expect(gdp.value).toBe("gdp");
+    // base et cur sont étrangers au % PIB : éliminés à la lecture.
+    expect(gdp.base).toBeNull();
+    expect(gdp.cur).toBe("");
+    const gdpApi = toApiParams(gdp);
+    expect(gdpApi.get("value")).toBe("gdp");
+    expect(gdpApi.has("base")).toBe(false);
+
+    const capita = readState(new URLSearchParams("by=country&value=capita&base=2025&cur=USD"));
+    expect(capita.base).toBe(2025);
+    expect(capita.cur).toBe("USD");
+    const capitaApi = toApiParams(capita);
+    expect(capitaApi.get("value")).toBe("capita");
+    expect(capitaApi.get("base")).toBe("2025");
+    expect(capitaApi.get("cur")).toBe("USD");
+  });
+
+  it("ECONOMIC SCALE : vues restreintes — lignes en temporel, barres sinon, jamais de donut ni carte", () => {
+    const bars = resolveView(readState(new URLSearchParams("by=country&value=gdp")));
+    expect(bars.availableViews).toEqual(["bars", "table"]);
+    expect(bars.mappable).toBe(false);
+    const lines = resolveView(readState(new URLSearchParams("by=funder&split=1&value=capita")));
+    expect(lines.availableViews).toEqual(["lines", "table"]);
+  });
+
+  it("ECONOMIC SCALE compose avec hidden — le masquage n'atteint jamais l'API", () => {
+    const state = readState(new URLSearchParams("by=country&value=gdp&hidden=US"));
+    expect(state.hidden).toEqual(["US"]);
+    const api = toApiParams(state);
+    expect(api.get("value")).toBe("gdp");
+    expect(api.has("hidden")).toBe(false);
+  });
+
   it("composition avec la légende : value=real&base=2025&cur=USD&hidden=US", () => {
     const state = readState(
       new URLSearchParams("by=country&split=1&value=real&base=2025&cur=USD&hidden=US"),

@@ -147,9 +147,13 @@ export function LinesChart({
   const years = [
     ...new Set(series.flatMap((s) => (s.points ?? []).map((p) => p.year))),
   ].sort((a, b) => a - b);
+  // Le plancher « 1 » date des montants en euros (éviter un axe vide) ;
+  // les intensités % PIB et les €/habitant (R3) vivent bien en dessous
+  // de 1 — leur axe suit les données, jamais un plancher monétaire.
+  const scaleUnit = unit === "gdppct" || unit === "eurcap" || unit === "usdcap";
   const maxValue = Math.max(
     ...series.flatMap((s) => (s.points ?? []).map((p) => p.value ?? 0)),
-    1,
+    scaleUnit ? 1e-9 : 1,
   );
   // Le domaine descend sous zéro quand les valeurs le font (croissance
   // annuelle, R2) : une baisse se DESSINE, jamais écrasée sur l'axe.

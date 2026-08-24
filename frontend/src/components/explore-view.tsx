@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
 import { applyTrend, resolveIndexBase } from "@/lib/trend";
+import { excludedYears } from "@/lib/excluded";
 import { countryFlag, formatValue, seriesColor, seriesLabel } from "@/lib/format";
 
 /** One self-contained Explorer view — an Angles slide's body. Same state
@@ -140,7 +141,7 @@ export function ExploreView({
           series={shownSeries}
           unit={data.unit}
           ariaLabel={title}
-          unavailableYears={data.excluded?.reasons.no_index_year.years}
+          unavailableYears={excludedYears(data)}
           unavailableLabel={t("explorer.reference.bandLabel")}
           colorOf={legendColorOf}
           fullRange={state.range === "full"}
