@@ -109,6 +109,9 @@ export function ReferenceNote({
               },
             )}
           </p>
+          {/* L'avertissement cohorte (verrou R3) : impossible à
+              confondre avec une dépense publique annuelle. */}
+          <p className="mt-1.5">{t("explorer.reference.cohortNote")}</p>
         </>
       ) : null}
       {realMethod && (!scale || reference.mode === "capita") ? (

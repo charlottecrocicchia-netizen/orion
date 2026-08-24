@@ -23,7 +23,7 @@ test("% of GDP depuis le sélecteur sur les financeurs : effort, valeurs en %", 
   await page.getByRole("button", { name: /View funding as/ }).click();
   await expect(page.getByText("Economic scale", { exact: true })).toBeVisible();
   // L'intitulé dit la perspective : jamais un « % GDP » ambigu.
-  await expect(page.getByText(/each funder relative to its own economy/)).toBeVisible();
+  await expect(page.getByText(/amounts awarded by each funder/)).toBeVisible();
   await page.getByRole("radio", { name: /% of GDP/ }).click();
   await expect(page).toHaveURL(/value=gdp/);
   expect(page.url()).not.toContain("base=");
@@ -33,7 +33,10 @@ test("% of GDP depuis le sélecteur sur les financeurs : effort, valeurs en %", 
   // on le ferme avant d'ouvrir la note.
   await page.keyboard.press("Escape");
   await page.getByText(/ⓘ Reference/).click();
-  await expect(page.getByText(/Funding effort: each funder relative to its own/)).toBeVisible();
+  await expect(page.getByText(/Funding effort: the amounts each funder awarded/)).toBeVisible();
+  // L'avertissement cohorte (verrou R3) et la double conversion, dits.
+  await expect(page.getByText(/not annual public expenditure/)).toBeVisible();
+  await expect(page.getByText(/never an exact exchange identity/)).toBeVisible();
   await expect(page.getByText(/NY\.GDP\.MKTP\.CD/)).toBeVisible();
 });
 

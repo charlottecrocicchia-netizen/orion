@@ -365,21 +365,33 @@ export function ExplorerPage() {
           }
         })()
       : null;
+  // La période affichée — celle du chip temporel, la seule que
+  // l'utilisateur voit. Les agrégats pluriannuels la DISENT (verrou
+  // R3) : un % PIB agrégé porte sur la période, un par-habitant agrégé
+  // est un cumul sur la période.
+  const period = `${state.from ?? YEAR_MIN}–${state.to ?? YEAR_MAX}`;
   const unitLine =
     data && state.value === "gdp"
-      ? state.by === "year" && countryName
-        ? t("explorer.reference.unitGdpOf", { name: countryName })
-        : t(
-            scalePerspective === "funder"
-              ? "explorer.reference.unitGdpFunder"
-              : "explorer.reference.unitGdpRecipient",
-          )
+      ? (state.by === "year" && countryName
+          ? t("explorer.reference.unitGdpOf", { name: countryName })
+          : t(
+              scalePerspective === "funder"
+                ? "explorer.reference.unitGdpFunder"
+                : "explorer.reference.unitGdpRecipient",
+            )) + (temporal ? "" : ` · ${period}`)
       : data && state.value === "capita" && referenceMeta
-        ? t("explorer.reference.unitCapita", {
-            year: referenceMeta.base,
-            cur: referenceMeta.cur,
-            symbol: moneySymbol((referenceMeta.cur ?? "EUR").toLowerCase()),
-          })
+        ? temporal
+          ? t("explorer.reference.unitCapita", {
+              year: referenceMeta.base,
+              cur: referenceMeta.cur,
+              symbol: moneySymbol((referenceMeta.cur ?? "EUR").toLowerCase()),
+            })
+          : t("explorer.reference.unitCapitaCumulative", {
+              period,
+              year: referenceMeta.base,
+              cur: referenceMeta.cur,
+              symbol: moneySymbol((referenceMeta.cur ?? "EUR").toLowerCase()),
+            })
         : data && trendMode === "index"
       ? t("explorer.reference.csvIndex", { base: canonicalBase ?? "" })
       : data && trendMode === "growth"

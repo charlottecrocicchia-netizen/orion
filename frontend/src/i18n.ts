@@ -839,24 +839,29 @@ const resources = {
           noCurrency_other: "currency without an admitted index: {{count}} projects, {{amount}}",
           groupScale: "Economic scale",
           gdpMode: "% of GDP",
-          gdpFunderHint: "Funding effort — each funder relative to its own economy",
-          gdpRecipientHint: "Received funding intensity — relative to each country's economy",
+          gdpFunderHint: "Funding effort — amounts awarded by each funder, relative to its own economy",
+          gdpRecipientHint:
+            "Received funding intensity — amounts awarded to each country's organisations, relative to that country's economy",
           capitaMode: "Per capita",
-          capitaFunderHint: "Funding effort — per inhabitant of the funder's jurisdiction",
-          capitaRecipientHint: "Received funding — per inhabitant of each country",
+          capitaFunderHint: "Awarded amounts — per inhabitant of the funder's jurisdiction",
+          capitaRecipientHint: "Awarded amounts — per inhabitant of each receiving country",
           capitaCurrent: "Per capita · {{year}} {{cur}}",
-          unitGdpFunder: "% of GDP · funder economy",
-          unitGdpRecipient: "% of GDP · recipient economy",
-          unitGdpOf: "% of GDP · {{name}}",
+          unitGdpFunder: "Funding awarded · % of GDP · funder economy",
+          unitGdpRecipient: "Funding awarded · % of GDP · recipient economy",
+          unitGdpOf: "Funding awarded · % of GDP · {{name}}",
           unitCapita: "Real {{cur}} · {{year}} prices per capita",
+          unitCapitaCumulative:
+            "Cumulative awarded funding per capita · {{period}} · real {{cur}} {{year}}",
           gdpMethod:
-            "Funding converted to US dollars at the yearly ECB rate, divided by the jurisdiction's GDP in current US dollars for the same year (World Bank WDI, {{code}} — vintage {{vintage}}). Multi-year views show the average annual intensity.",
+            "Award amounts are converted to current US dollars at Orion's yearly ECB rate. GDP is the current-US$ series published by the World Bank (WDI, {{code}} — vintage {{vintage}}), converted with its own official rates: two distinct conversions, close in practice (identical for the euro area and the US; measured gaps elsewhere under 0.4%), never an exact exchange identity. Multi-year views show 100 × Σ funding / Σ GDP over the same valid years — an intensity weighted by GDP.",
+          cohortNote:
+            "Project award cohorts relative to the economy — this is not annual public expenditure.",
           capitaMethod:
-            "Real funding ({{year}} prices) divided by the jurisdiction's population for each year (World Bank WDI, {{code}} — vintage {{vintage}}). Yearly amounts add up: a cumulative amount per inhabitant.",
+            "Real awarded funding ({{year}} prices) divided by the jurisdiction's population for each year (World Bank WDI, {{code}} — vintage {{vintage}}). Yearly amounts add up: a cumulative awarded amount per inhabitant over the selected period.",
           perspectiveFunder:
-            "Funding effort: each funder relative to its own jurisdiction's economy — a project counts once, never the sum of its recipients.",
+            "Funding effort: the amounts each funder awarded, relative to its own jurisdiction's economy — a project counts once, never the sum of its recipients.",
           perspectiveRecipient:
-            "Received funding intensity: amounts received by each country's organisations, relative to that same country.",
+            "Received funding intensity: the amounts awarded to each country's organisations, relative to that same country.",
           noJurisdiction_one: "no resolvable jurisdiction: {{count}} project, {{amount}}",
           noJurisdiction_other: "no resolvable jurisdiction: {{count}} projects, {{amount}}",
           noGdpYear_one: "GDP for {{years}} not yet published: {{count}} project, {{amount}}",
@@ -1951,24 +1956,30 @@ const resources = {
           noCurrency_other: "devise sans indice admis : {{count}} projets, {{amount}}",
           groupScale: "Échelle économique",
           gdpMode: "% du PIB",
-          gdpFunderHint: "Effort de financement — chaque financeur rapporté à sa propre économie",
-          gdpRecipientHint: "Intensité de financement reçu — rapportée à l'économie de chaque pays",
+          gdpFunderHint:
+            "Effort de financement — les montants attribués par chaque financeur, rapportés à sa propre économie",
+          gdpRecipientHint:
+            "Intensité de financement reçu — les montants attribués aux organisations de chaque pays, rapportés à son économie",
           capitaMode: "Par habitant",
-          capitaFunderHint: "Effort de financement — par habitant de la juridiction du financeur",
-          capitaRecipientHint: "Financement reçu — par habitant de chaque pays",
+          capitaFunderHint: "Montants attribués — par habitant de la juridiction du financeur",
+          capitaRecipientHint: "Montants attribués — par habitant de chaque pays bénéficiaire",
           capitaCurrent: "Par habitant · {{symbol}} {{year}}",
-          unitGdpFunder: "% du PIB · économie du financeur",
-          unitGdpRecipient: "% du PIB · économie du bénéficiaire",
-          unitGdpOf: "% du PIB · {{name}}",
+          unitGdpFunder: "Montants attribués · % du PIB · économie du financeur",
+          unitGdpRecipient: "Montants attribués · % du PIB · économie du bénéficiaire",
+          unitGdpOf: "Montants attribués · % du PIB · {{name}}",
           unitCapita: "{{symbol}} constants {{year}} / habitant",
+          unitCapitaCumulative:
+            "Cumul attribué par habitant · {{period}} · {{symbol}} constants {{year}}",
           gdpMethod:
-            "Financements convertis en dollars US au taux annuel BCE, divisés par le PIB courant en dollars de la même juridiction et de la même année (World Bank WDI, {{code}} — vintage {{vintage}}). Les vues pluriannuelles affichent l'intensité annuelle moyenne.",
+            "Les montants attribués sont convertis en dollars courants au taux annuel BCE d'Orion. Le PIB est la série en dollars courants PUBLIÉE par la Banque mondiale (WDI, {{code}} — vintage {{vintage}}), convertie à ses propres taux officiels : deux conversions distinctes, proches en pratique (identiques pour la zone euro et les États-Unis ; écarts mesurés ailleurs sous 0,4 %), jamais une identité de change exacte. Les vues pluriannuelles affichent 100 × Σ financements / Σ PIB sur les mêmes années valides — une intensité pondérée par le PIB.",
+          cohortNote:
+            "Des cohortes de montants attribués, rattachées à l'année de démarrage — pas une dépense publique annuelle.",
           capitaMethod:
-            "Valeur réelle (prix de {{year}}) divisée par la population de la juridiction, année par année (World Bank WDI, {{code}} — vintage {{vintage}}). Les années s'additionnent : un cumul par habitant.",
+            "Valeur réelle des montants attribués (prix de {{year}}) divisée par la population de la juridiction, année par année (World Bank WDI, {{code}} — vintage {{vintage}}). Les années s'additionnent : un cumul attribué par habitant sur la période sélectionnée.",
           perspectiveFunder:
-            "Effort de financement : chaque financeur rapporté à l'économie de SA juridiction — un projet compte une fois, jamais la somme de ses bénéficiaires.",
+            "Effort de financement : les montants attribués par chaque financeur, rapportés à l'économie de SA juridiction — un projet compte une fois, jamais la somme de ses bénéficiaires.",
           perspectiveRecipient:
-            "Intensité de financement reçu : les montants reçus par les organisations de chaque pays, rapportés à ce même pays.",
+            "Intensité de financement reçu : les montants attribués aux organisations de chaque pays, rapportés à ce même pays.",
           noJurisdiction_one: "juridiction non résoluble : {{count}} projet, {{amount}}",
           noJurisdiction_other: "juridiction non résoluble : {{count}} projets, {{amount}}",
           noGdpYear_one: "PIB {{years}} non publié : {{count}} projet, {{amount}}",

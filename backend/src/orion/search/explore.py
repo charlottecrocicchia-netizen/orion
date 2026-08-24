@@ -759,18 +759,7 @@ def _build(
         f"{cols.get('organisations', 'NULL')} AS organisations, "
         f"{cols.get('coordination', 'NULL')} AS coordination"
     )
-    if scale == "gdp":
-        # % PIB s'affiche en INTENSITÉ ANNUELLE MOYENNE (Σ ratios
-        # annuels / années valides) : identique au ratio de l'année sur
-        # les vues temporelles (N=1), moyenne des intensités sur les
-        # vues agrégées — jamais une somme de parts qui se lirait comme
-        # une part.
-        eur_num = "pa.amount_eur" if participation else "p.funding_amount_eur"
-        select_cols += (
-            ", count(DISTINCT CASE WHEN "
-            f"{eur_num} IS NOT NULL AND usdr.rate IS NOT NULL AND md.value IS NOT NULL "
-            "THEN extract(year FROM p.start_date)::int END) AS denom_years"
-        )
+
 
     clauses = _filters(
         participation=participation,
@@ -838,16 +827,53 @@ def _build(
     split_col = ", extract(year FROM p.start_date)::int AS y" if split else ""
     split_group = ", y" if split else ""
 
-    rows = session.execute(
-        text(f"""
-        SELECT {select_cols}{split_col}
-        {base} {dim["joins"]} {fx_join} {md_join}
-        {where}
-        GROUP BY key{split_group}
-        {having}
-        """),
-        params,
-    ).all()
+    if scale == "gdp":
+        # % PIB agrégé = RATIO DES SOMMES (verrou R3, 2026-08-24) :
+        # 100 × Σ funding_USD(a) / Σ PIB_USD(a) sur les MÊMES années
+        # valides — la moyenne des intensités pondérée par le PIB,
+        # jamais une moyenne arithmétique de pourcentages ni une somme
+        # de parts. Sur une vue temporelle (groupe par année), la
+        # formule se réduit au ratio de l'année. Deux niveaux : l'année
+        # d'abord (le PIB d'une juridiction n'y compte qu'une fois),
+        # la période ensuite.
+        eur_num = "pa.amount_eur" if participation else "p.funding_amount_eur"
+        inner = f"""
+            SELECT {dim["key"]} AS key, {dim["label"]} AS label,
+                   extract(year FROM p.start_date)::int AS yr,
+                   sum(CASE WHEN {eur_num} IS NOT NULL AND md.value IS NOT NULL
+                            AND usdr.rate IS NOT NULL
+                            THEN {eur_num} * usdr.rate END) AS f_usd,
+                   max(md.value) AS gdp,
+                   {cols["projects"]} AS projects
+            {base} {dim["joins"]} {md_join}
+            {where}
+            GROUP BY {dim["key"]}, extract(year FROM p.start_date)::int
+        """
+        outer_group = "key, yr" if split else "key"
+        y_col = ", yr AS y" if split else ""
+        rows = session.execute(
+            text(f"""
+            SELECT key, max(label) AS label{y_col},
+                   sum(f_usd) / NULLIF(sum(gdp), 0) * 100 AS funding,
+                   sum(projects) AS projects,
+                   NULL AS organisations, NULL AS coordination
+            FROM ({inner}) yearly
+            WHERE f_usd IS NOT NULL
+            GROUP BY {outer_group}
+            """),
+            params,
+        ).all()
+    else:
+        rows = session.execute(
+            text(f"""
+            SELECT {select_cols}{split_col}
+            {base} {dim["joins"]} {fx_join} {md_join}
+            {where}
+            GROUP BY key{split_group}
+            {having}
+            """),
+            params,
+        ).all()
 
     # La part exclue du calcul real — MÊME périmètre (mêmes
     # jointures, mêmes clauses), une passe sans GROUP BY : les comptes
@@ -1004,23 +1030,12 @@ def _build(
     elif by == "programme":
         folded = _fold_programme(rows, roots, to_root, split, keep_null=keep_none)
     else:
-        # % PIB : l'INTENSITÉ ANNUELLE MOYENNE — Σ ratios annuels /
-        # années valides (N=1 sur les vues temporelles : identité de
-        # l'année ; moyenne des intensités ailleurs — jamais une somme
-        # de parts qui se lirait comme une part).
-        def _row_funding(r: Any) -> float | None:
-            if scale != "gdp":
-                return r.funding
-            if r.funding is None or not r.denom_years:
-                return None
-            return float(r.funding) / r.denom_years
-
         folded = [
             {
                 "key": r.key,
                 "label": r.label,
                 "y": getattr(r, "y", None),
-                "funding": _row_funding(r),
+                "funding": r.funding,
                 "projects": r.projects,
                 "organisations": r.organisations,
                 "coordination": r.coordination,

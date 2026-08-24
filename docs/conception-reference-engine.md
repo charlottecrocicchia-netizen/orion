@@ -1,6 +1,7 @@
 # Conception — Reference Engine (chantier R0)
 
 > **Statut : validé — GO R1** (2026-08-23). Conception de référence du Reference Engine, arbitrée par Charlotte.
+> **Amendement R3 (2026-08-24, accepté)** — le % PIB se calcule en **devise commune USD** : `financement_USD_courant(a) / PIB_USD_courant(juridiction, a)`, dénominateur `NY.GDP.MKTP.CD` publié par le WDI. La formule en monnaie locale du § D1 est remplacée : ~200 monnaies de bénéficiaires contre 9 taux BCE l'auraient trouée selon nos taux, et l'agrégat UE n'est PAS publié en LCU. Les deux côtés du ratio suivent des conversions **distinctes** (numérateur : convention FX Orion/BCE ; dénominateur : taux officiels de la Banque mondiale) — jamais présentées comme une identité de change (contrôle sur pièces 2026-08-24 : zone euro et US identiques à 0,000 %, hors euro ≤ 0,34 %). Agrégats pluriannuels figés : % PIB = `100 × Σ financement_USD / Σ PIB_USD` sur les mêmes années valides (intensité pondérée par le PIB) ; par-habitant = `Σ [réel(a)/pop(a)]` (cumul par habitant sur la période). Au point d'usage : « Funding awarded / Montants attribués » — des cohortes d'attribution, jamais une dépense publique annuelle.
 > Décision : R1 (Nominal + Real) s'implémente directement sous la grammaire finale `value`/`base`/`cur` — l'ancienne grammaire `money`/`moneyYear` n'est jamais publiée.
 > Le moteur A (euros constants, `docs/conception-a-euros-constants.md`) est réutilisé tel que conçu : il devient la première brique (le mode `real`) du système décrit ici.
 > Audit des sources et licences réalisé sur pièces officielles le 2026-08-23 (§ D11).
@@ -79,7 +80,7 @@ Conventions communes à tous les modes :
 | | |
 |---|---|
 | Question | Quel poids ce financement représente-t-il par rapport à l'économie de la juridiction concernée ? |
-| Formule | `Σ montants de l'année a, exprimés dans la devise de la juridiction (aux taux de l'année a) / PIB courant LCU de la juridiction pour a`. Numérateur et dénominateur sont **tous deux à prix courants, même devise** : le ratio est pur, aucune déflation ni année de référence n'intervient. |
+| Formule | *(amendée R3)* `financement_USD_courant(a) / PIB_USD_courant(juridiction, a)` — numérateur : nominal × taux annuel BCE (convention ④ généralisée par le pivot USD) ; dénominateur : `NY.GDP.MKTP.CD` publié par le WDI, converti à ses propres taux officiels. **Tous deux à prix courants, même devise commune** : ratio pur, aucune déflation — mais deux conversions distinctes, proches en pratique, jamais une identité de change. Agrégat pluriannuel : `100 × Σ financement / Σ PIB` sur les mêmes années valides. |
 | Unité | « % of GDP · {juridiction} » — le dénominateur est toujours nommé (§ D3, § D7). |
 | Limites | Exige une juridiction de dénominateur **unique et résolue pour toute la vue** ; le PIB de l'année en cours n'est pas publié (la série s'arrête avant la série de financement — bande hachurée) ; les révisions du PIB déplacent le ratio (millésimes, § D2). |
 | Pertinent | Effort d'un financeur (Horizon/PIB UE vs NSF/PIB US) ; intensité reçue par un pays. |
@@ -165,11 +166,11 @@ jurisdictions
 
 macro_series
   jurisdiction_code  -- FK jurisdictions.code
-  concept            -- gdp_current_lcu | population | ppp_lcu_per_intl_usd | … (vocabulaire fermé, extensible par migration)
+  concept            -- gdp_current_usd (amendement R3) | population | ppp_lcu_per_intl_usd | … (vocabulaire fermé, extensible par migration)
   year
   value              -- Numeric, unité définie par le concept
   series_source      -- « wdi », « eurostat », « bea »…
-  series_code        -- code officiel de la série (« NY.GDP.MKTP.CN », « SP.POP.TOTL »…)
+  series_code        -- code officiel de la série (« NY.GDP.MKTP.CD », « SP.POP.TOTL »…)
   vintage_date       -- même discipline que price_indices : append-only, dernière vintage gagne
   imported_at
   -- unicité (jurisdiction_code, concept, year, vintage_date)
@@ -342,7 +343,7 @@ Methodology →
 ⓘ Reference — % of GDP
 Funding relative to the economic size of the selected jurisdiction
 (European Union — funding effort).
-Sources: World Bank WDI (GDP, current LCU · vintage 2026-07).
+Sources: World Bank WDI (GDP, current US$ · vintage 2026-07).
 GDP not yet published for 2026: series ends 2025.
 Methodology →
 ```
@@ -422,7 +423,7 @@ Audit mené sur les pages officielles des institutions uniquement. Doctrine : **
 | Eurostat (HICP, PIB, population, PPP) | CC BY 4.0 (décision 2011/833/UE) | Oui, attribution ; **exception : données de pays tiers (US/JP/UK, d'origine OCDE) non commerciales** | **Retenue** (HICP déjà ingéré). Lignes pays tiers de `prc_ppp_ind` exclues. Rôle R3 : source de contrôle UE. |
 | BCE (taux de change EXR) | Réutilisation libre avec citation ; mention « disponible gratuitement à la BCE » si contenu vendu ; transformations signalées | Oui, conditions | **Retenue** (déjà ingérée). Conditions à refléter sur `/about-data`. |
 | BLS (CPI-U `CUUR0000SA0`) | Domaine public (gouvernement fédéral US) | Oui | **Retenue** (déjà ingérée). CPI-U NSA final dès publication. |
-| World Bank WDI | **CC BY 4.0** (défaut des datasets Banque mondiale ; ≠ des terms du *site*, non commerciaux) | Oui, attribution format prescrit | **Retenue — source unique R3/R4** : PIB courant LCU (`NY.GDP.MKTP.CN`), population (`SP.POP.TOTL`), PPP annuels (`PA.NUS.PPP`), agrégat UE (`EUU`). Vérifier à l'ingestion les métadonnées de licence des indicateurs retenus (certains indicateurs WDI sont d'origine tierce). |
+| World Bank WDI | **CC BY 4.0** (défaut des datasets Banque mondiale ; ≠ des terms du *site*, non commerciaux) | Oui, attribution format prescrit | **Retenue — source unique R3/R4** : PIB courant US$ (`NY.GDP.MKTP.CD`, amendement R3), population (`SP.POP.TOTL`), PPP annuels (`PA.NUS.PPP`), agrégat UE (`EUU`). Vérifier à l'ingestion les métadonnées de licence des indicateurs retenus (certains indicateurs WDI sont d'origine tierce). |
 | BEA (PIB US, NIPA) | Domaine public | Oui | Source de **contrôle** du PIB US (révisions annual/comprehensive fréquentes → discipline vintage indispensable). |
 | ONU WPP (population) | CC BY 3.0 IGO | Oui, attribution | Source de **contrôle** population (révision ~biennale, WPP 2024 courante, archives disponibles). |
 | OCDE (Data Explorer : PPP, MSTI, GBARD) | Terms « Data » propres (≠ CC BY) : commercial autorisé, citation avec date d'accès, **obligation d'attribution propagée à toute sous-licence** | Oui, conditions | **En réserve.** Non nécessaire en R1–R3. Candidate R4 (PPP de contrôle) / R5 (GBARD) — exige d'abord de refléter la clause de pass-through dans les CGU d'Orion. MSTI gelé jusqu'au 31/03/2027. Couverture non mondiale. |
@@ -588,7 +589,7 @@ URL /explore?by=funder&split=1&time=2014..2025&value=gdp
 │ [lines] ec : ‰ du PIB UE · nih/nsf : ‰ du PIB US             │
 │ bande hachurée sur 2026 : « GDP not yet published »          │
 │ ⓘ : « Each funder's funding relative to its own economy.     │
-│   GDP: World Bank WDI, current LCU (vintage 2026-07). »      │
+│   GDP: World Bank WDI, current US$ (vintage 2026-07). »      │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -640,7 +641,7 @@ URL /explore?by=year&programme=<id-horizon>&value=real&base=2025&cur=USD
 ### R3 — Per capita + % PIB, juridictions, perspectives
 
 *Capacité* : ECONOMIC SCALE ; effort de financement et intensité reçue, perspectives forcées par la dimension.
-*Données* : tables `jurisdictions` + `macro_series` ; chargeur WDI (`orion-ingest macro`) : `NY.GDP.MKTP.CN`, `SP.POP.TOTL` pour les juridictions actives (EU via `EUU`, US, FR, DE, … tous pays bénéficiaires) ; discipline vintage complète ; contrôles de cohérence Eurostat/BEA/ONU (écart relatif > 2 % → alerte d'ingestion, arbitrage humain).
+*Données* : tables `jurisdictions` + `macro_series` ; chargeur WDI (`orion-ingest macro`) : `NY.GDP.MKTP.CD` (amendement R3), `SP.POP.TOTL` pour les juridictions actives (EU via `EUU`, US, FR, DE, … tous pays bénéficiaires) ; discipline vintage complète ; contrôles de cohérence Eurostat/BEA/ONU (écart relatif > 2 % → alerte d'ingestion, arbitrage humain).
 *Sources/licences* : WDI CC BY 4.0 (vérification des métadonnées des indicateurs retenus à l'ingestion — certains indicateurs WDI sont d'origine tierce) ; attributions sur `/about-data`.
 *UI* : entrées % of GDP / Per capita libellées par perspective, ligne d'unité avec juridiction, bande « GDP not yet published », ⓘ enrichi.
 *Tests* : tests-or des ratios (cas fermés calculés à la main), grain projet vs participation par perspective, exclusions `no_gdp_year`/`no_population_year`, condition « dénominateur unique ».
