@@ -19,6 +19,20 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+
+# Garde-fou global (incident du 2026-08-24 : un deadlock wait4 de bash —
+# SIGCHLD du build perdu — a suspendu le harnais 1 h 34 sans verdict,
+# l'API d'arrière-plan le maintenant endormi) : au-delà de 20 minutes,
+# le harnais ÉCHOUE bruyamment. Une suite qui peut rester suspendue est
+# elle-même un bug — jamais d'attente indéfinie.
+WATCHDOG_LIMIT=1200
+(
+  sleep "$WATCHDOG_LIMIT"
+  echo "GARDE-FOU : harnais e2e au-delà de ${WATCHDOG_LIMIT}s — abandon bruyant." >&2
+  pkill -TERM -P $$ 2>/dev/null || true
+  kill -TERM $$ 2>/dev/null || true
+) &
+WATCHDOG_PID=$!
 export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$HOME/.venvs/orion-backend}"
 
 E2E_DB="orion_e2e"
@@ -53,28 +67,41 @@ export ORION_LOGIN_ALLOWLIST="e2e-a@lensorion.test,e2e-b@lensorion.test,e2e-c@le
 export ORION_LOGIN_LIMIT_PER_IP_HOUR=1000
 export ORION_LOGIN_LIMIT_PER_PAIR_HOUR=200
 export ORION_LOGIN_LIMIT_PER_EMAIL_HOUR=400
-(cd backend && uv run uvicorn orion.main:app --port 8000 >/tmp/orion-e2e-api.log 2>&1) &
-API_PID=$!
-
-echo "==> Bundle + vite preview (:4173)"
-(cd frontend && pnpm build >/tmp/orion-e2e-build.log 2>&1)
-(cd frontend && pnpm exec vite preview --port 4173 >/tmp/orion-e2e-preview.log 2>&1) &
-PREVIEW_PID=$!
 # Le piège « uv run n'exec pas » : le PID enregistré est le PARENT
 # (uv/pnpm), le processus qui ÉCOUTE est son fils — tuer le seul parent
 # laissait un orphelin sur le port à chaque run. On abat l'arbre
 # entier, feuilles d'abord, et uniquement NOS arbres.
 kill_tree() {
   local pid="$1" child
+  [ -n "$pid" ] || return 0
   for child in $(pgrep -P "$pid" 2>/dev/null); do
     kill_tree "$child"
   done
   kill "$pid" 2>/dev/null || true
 }
-trap 'kill_tree "$API_PID"; kill_tree "$PREVIEW_PID"' EXIT
+# Le trap se pose AVANT tout lancement (incident du 2026-08-24 : posé
+# après le build, il laissait un uvicorn orphelin sur :8000 à chaque
+# échec de build — le run suivant refusait le port).
+API_PID=""
+PREVIEW_PID=""
+trap 'kill_tree "$API_PID"; kill_tree "$PREVIEW_PID"; kill "$WATCHDOG_PID" 2>/dev/null || true' EXIT
 
-curl -sf --retry 30 --retry-delay 1 --retry-connrefused http://localhost:8000/api/health >/dev/null
-curl -sf --retry 30 --retry-delay 1 --retry-connrefused http://localhost:4173 -o /dev/null
+(cd backend && uv run uvicorn orion.main:app --port 8000 >/tmp/orion-e2e-api.log 2>&1) &
+API_PID=$!
+
+echo "==> Bundle + vite preview (:4173)"
+(cd frontend && pnpm build >/tmp/orion-e2e-build.log 2>&1) || {
+  echo "ERREUR : le build a échoué — journal complet :" >&2
+  cat /tmp/orion-e2e-build.log >&2
+  exit 2
+}
+(cd frontend && pnpm exec vite preview --port 4173 >/tmp/orion-e2e-preview.log 2>&1) &
+PREVIEW_PID=$!
+
+# --max-time : un port zombie qui accepte sans répondre ne suspend
+# jamais le harnais — chaque tentative est bornée.
+curl -sf --max-time 5 --retry 30 --retry-delay 1 --retry-connrefused http://localhost:8000/api/health >/dev/null
+curl -sf --max-time 5 --retry 30 --retry-delay 1 --retry-connrefused http://localhost:4173 -o /dev/null
 
 echo "==> Playwright (verdict au journal COMPLET — jamais un tail)"
 cd frontend
