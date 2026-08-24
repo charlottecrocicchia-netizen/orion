@@ -269,7 +269,10 @@ def _method_meta() -> dict[str, Any]:
     return {
         "min_projects": MIN_PROJECTS,
         "unit": "organisation × projet distinct ; coordination comptée au niveau projet",
-        "amounts": "contributions attribuées à l'organisation (participations), jamais le budget projet répété",
-        "corpus": "historique des appels du corpus Orion (CORDIS : FP7, H2020, Horizon Europe) — les programmes hors corpus n'ont pas d'historique comparable",
+        "amounts": "contributions attribuées à l'organisation (participations),"
+        " jamais le budget projet répété",
+        "corpus": "historique des appels du corpus Orion (CORDIS : FP7, H2020,"
+        " Horizon Europe) — les programmes hors corpus n'ont pas d'historique"
+        " comparable",
         "wording": "constats historiques observés — aucune prédiction",
     }

@@ -130,7 +130,8 @@ def list_calls(
         params["programme"] = programme
     if action:
         clauses.append(
-            "EXISTS (SELECT 1 FROM jsonb_array_elements_text(coalesce(types_of_action, '[]'::jsonb)) a"
+            "EXISTS (SELECT 1 FROM jsonb_array_elements_text("
+            "coalesce(types_of_action, '[]'::jsonb)) a"
             " WHERE unaccent(lower(a)) LIKE '%' || unaccent(lower(:action)) || '%')"
         )
         params["action"] = action
@@ -138,7 +139,8 @@ def list_calls(
         clauses.append(
             "(unaccent(lower(identifier)) LIKE '%' || unaccent(lower(:q)) || '%'"
             " OR unaccent(lower(coalesce(title, ''))) LIKE '%' || unaccent(lower(:q)) || '%'"
-            " OR unaccent(lower(coalesce(keywords::text, ''))) LIKE '%' || unaccent(lower(:q)) || '%')"
+            " OR unaccent(lower(coalesce(keywords::text, ''))) LIKE '%'"
+            " || unaccent(lower(:q)) || '%')"
         )
         params["q"] = q
     if lens:

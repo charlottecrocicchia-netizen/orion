@@ -230,7 +230,11 @@ def _method_meta() -> dict[str, Any]:
         "bases": "pont exact (dès 1 projet) · famille par identifiant (seuil "
         f"{MIN_PROJECTS} projets, résolution et gardes d'E2)",
         "unit": "organisation × projet distinct ; coordination comptée au niveau projet",
-        "eligibility": "non évaluée — le portail ne la publie pas en structuré ; un critère inconnu n'est jamais traité comme incompatible",
-        "ranking": "tri déclaré : pont exact, puis projets historiques, puis échéance la plus proche — aucun score agrégé (pondération = arbitrage de méthode à venir)",
-        "wording": "pertinence historique observée dans le corpus Orion — jamais une garantie d'éligibilité ni un pronostic",
+        "eligibility": "non évaluée — le portail ne la publie pas en structuré ;"
+        " un critère inconnu n'est jamais traité comme incompatible",
+        "ranking": "tri déclaré : pont exact, puis projets historiques, puis"
+        " échéance la plus proche — aucun score agrégé (pondération = arbitrage"
+        " de méthode à venir)",
+        "wording": "pertinence historique observée dans le corpus Orion — jamais"
+        " une garantie d'éligibilité ni un pronostic",
     }

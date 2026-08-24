@@ -65,7 +65,8 @@ def corpus(test_database):  # la base migrée suffit ; le client vient par test
             return one(
                 "INSERT INTO projects (source, source_id, title, funder_id, programme_id, "
                 "call_id, start_date, funding_amount_eur) "
-                "VALUES (:s, :sid, :title, :f, :prog, :c, make_date(:y, 6, 1), 100000) RETURNING id",
+                "VALUES (:s, :sid, :title, :f, :prog, :c, make_date(:y, 6, 1), 100000)"
+                " RETURNING id",
                 s=SRC,
                 sid=sid,
                 title=f"Projet {sid}",
