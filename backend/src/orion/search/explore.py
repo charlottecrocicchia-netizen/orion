@@ -723,6 +723,35 @@ def _build(
     else:
         base = "FROM projects p"
         cols = _METRIC_COLS[False]
+
+    # Pondération JV : l'ARGENT d'un groupe replié porte le poids de
+    # chaque adhésion ; les comptes (projets, organisations, part en
+    # coordination) restent entiers — c'est l'argent que le pacte
+    # partage, pas les faits.
+    #
+    # Le poids se détermine ICI, AVANT toute colonne monétaire, et une
+    # seule fois. La première rédaction le posait APRÈS, en réécrivant
+    # `cols["funding"]` depuis `_funding_col` — qui ne connaît que
+    # nominal et réel : le par-habitant y perdait sa division par la
+    # population et servait des euros, et le % PIB, qui construit son
+    # propre SQL, ignorait le poids purement et simplement. Deux
+    # symptômes, une seule cause : la colonne était écrite à plusieurs
+    # endroits et le dernier écrivain gagnait.
+    #
+    # Les deux cas sont exclusifs : le benchmark composable exige
+    # `by=organisation`, que le filtre entité refuse justement.
+    weight = ""
+    if cmp_entity_refs is not None:
+        weight = " * cmp.weight"
+    elif organisation is not None and organisation.startswith("g"):
+        # Vue cadrée sur un GROUPE : le poids se lit sur l'adhésion
+        # active de chaque participation.
+        params["orgf_gid"] = int(organisation[1:])
+        weight = (
+            " * (SELECT coalesce(m.share, 100) / 100.0 FROM entity_group_map m "
+            "WHERE m.group_id = :orgf_gid "
+            "AND m.organisation_id = pa.organisation_id AND m.status = 'active')"
+        )
     # Le mode « euros constants » (lot A) : la table des facteurs vient
     # de constanteuro.py (source unique) et se joint en VALUES sur
     # (devise NATIVE, année de début) — LEFT JOIN : une ligne sans
@@ -746,10 +775,12 @@ def _build(
             f"ON fx.cur = {currency_col} "
             "AND fx.yr = extract(year FROM p.start_date)::int"
         )
-        cols = {**cols, "funding": _funding_col(participation, "", real=True)}
+        cols = {**cols, "funding": _funding_col(participation, weight, real=True)}
         # Le CLASSEMENT reste nominal (verrou de recette R3) : « View
         # funding as » change comment on regarde, jamais QUI on regarde.
-        cols = {**cols, "ranking": _funding_col(participation, "", real=False)}
+        # Pondéré lui aussi — sinon l'échantillon d'une vue de groupe ne
+        # serait pas celui du nominal de la même vue.
+        cols = {**cols, "ranking": _funding_col(participation, weight, real=False)}
     # ECONOMIC SCALE (lot R3) : le dénominateur macro se joint depuis la
     # TABLE macro_series (dernière vintage par juridiction, sous-requête
     # minuscule) sur (juridiction de la ligne, année de début). % PIB en
@@ -791,7 +822,7 @@ def _build(
                 **cols,
                 "funding": (
                     f"sum(CASE WHEN {eur_num} IS NOT NULL "
-                    f"THEN {eur_num} * usdr.rate / md.value * 100 END)"
+                    f"THEN {eur_num}{weight} * usdr.rate / md.value * 100 END)"
                 ),
             }
         else:  # capita — numérateur réel via les facteurs déjà joints (fx)
@@ -799,7 +830,7 @@ def _build(
                 **cols,
                 "funding": (
                     f"sum(CASE WHEN {eur_num} IS NOT NULL "
-                    f"THEN {native_num} * fx.factor / md.value END)"
+                    f"THEN {native_num}{weight} * fx.factor / md.value END)"
                 ),
             }
     # PURCHASING POWER (lot R4B) : le facteur se joint en table VALUES,
@@ -832,47 +863,22 @@ def _build(
         ppp_join = (
             f"LEFT JOIN (VALUES {values_sql}) AS ppp(code, ratio) ON ppp.code = pa.country_code"
         )
-        cols = {**cols, "funding": _ppp_funding_col(), "covered_nominal": _ppp_covered_col()}
+        cols = {
+            **cols,
+            "funding": _ppp_funding_col(weight),
+            "covered_nominal": _ppp_covered_col(weight),
+        }
         # Le CLASSEMENT reste nominal (verrou § 11). Sans cette ligne,
         # `ranking` n'existerait pas en PPP — le Top deviendrait l'ordre
         # arbitraire de PostgreSQL et le périmètre nominal `N` vaudrait
         # zéro, mettant toute vue en refus.
-        cols = {**cols, "ranking": _funding_col(True, "", real=False)}
-    # Pondération JV : l'ARGENT d'un groupe replié porte le poids de
-    # chaque adhésion ; les comptes (projets, organisations, part en
-    # coordination) restent entiers — c'est l'argent que le pacte
-    # partage, pas les faits. AVANT la construction du SELECT : une
-    # surcharge posée après ne serait qu'un dictionnaire mort.
-    if cmp_entity_refs is not None:
-        if ppp is not None:
-            cols = {
-                **cols,
-                "funding": _ppp_funding_col(" * cmp.weight"),
-                "covered_nominal": _ppp_covered_col(" * cmp.weight"),
-            }
-        else:
-            cols = {**cols, "funding": _funding_col(True, " * cmp.weight", real)}
-        if real or ppp is not None:
-            cols = {**cols, "ranking": _funding_col(True, " * cmp.weight", False)}
-    if organisation is not None and organisation.startswith("g"):
-        # Vue cadrée sur un GROUPE (organisation=g<id>) : même règle, le
-        # poids se lit sur l'adhésion active de chaque participation.
-        params["orgf_gid"] = int(organisation[1:])
-        weight_sub = (
-            "(SELECT coalesce(m.share, 100) / 100.0 FROM entity_group_map m "
-            "WHERE m.group_id = :orgf_gid "
-            "AND m.organisation_id = pa.organisation_id AND m.status = 'active')"
-        )
-        if ppp is not None:
-            cols = {
-                **cols,
-                "funding": _ppp_funding_col(f" * {weight_sub}"),
-                "covered_nominal": _ppp_covered_col(f" * {weight_sub}"),
-            }
-        else:
-            cols = {**cols, "funding": _funding_col(True, f" * {weight_sub}", real)}
-        if real or ppp is not None:
-            cols = {**cols, "ranking": _funding_col(True, f" * {weight_sub}", False)}
+        cols = {**cols, "ranking": _funding_col(True, weight, real=False)}
+    # Le nominal porte le poids par la MÊME source que les autres modes.
+    # Sans mode actif, `_funding_col(participation, "", real=False)` rend
+    # exactement le texte de `_METRIC_COLS` : le chemin nominal non
+    # pondéré ne bouge pas d'un octet.
+    if not (real or scale or ppp is not None):
+        cols = {**cols, "funding": _funding_col(participation, weight, real=False)}
     select_cols = (
         f"{dim['key']} AS key, {dim['label']} AS label, "
         f"{cols['funding']} AS funding, {cols['projects']} AS projects, "
@@ -965,8 +971,8 @@ def _build(
                    extract(year FROM p.start_date)::int AS yr,
                    sum(CASE WHEN {eur_num} IS NOT NULL AND md.value IS NOT NULL
                             AND usdr.rate IS NOT NULL
-                            THEN {eur_num} * usdr.rate END) AS f_usd,
-                   sum({eur_num}) AS f_nom,
+                            THEN {eur_num}{weight} * usdr.rate END) AS f_usd,
+                   sum({eur_num}{weight}) AS f_nom,
                    max(md.value) AS gdp,
                    {cols["projects"]} AS projects
             {base} {dim["joins"]} {md_join}

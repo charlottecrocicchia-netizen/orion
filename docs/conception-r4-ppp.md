@@ -1986,6 +1986,54 @@ exactement ce que sert l'API.
 **Suites** : 302 tests backend, 132 tests frontend, 142 e2e, `tsc -b`,
 `ruff`, `oxlint` — tous verts, aucun ignoré. Le nominal est inchangé.
 
+### 18.1 Porte zéro-dette avant déploiement (2026-08-25)
+
+Trois dettes relevées pendant le lot, toutes soldées. Les deux premières
+sont des défauts **R3 préexistants** que la cartographie R4B a mis au
+jour ; R4 ne les avait ni créés ni aggravés.
+
+**Le poids de pacte perdu par deux modes de lecture.** Quand une vue est
+cadrée sur un groupe (`organisation=g<id>`), l'argent d'une adhésion à
+50 % ne compte que pour moitié. Le nominal et le réel l'appliquaient ;
+le **par-habitant** servait des euros au lieu d'un par-habitant, et le
+**% PIB** ignorait le poids et servait le double de l'intensité réelle.
+
+*Cause racine unique* : la colonne monétaire était écrite à plusieurs
+endroits — chaque mode posait la sienne, puis une surcharge de
+pondération la réécrivait depuis `_funding_col`, qui ne connaît que
+nominal et réel. Le dernier écrivain gagnait, et emportait la division
+par la population. Le % PIB, lui, construit son propre SQL à deux
+niveaux et n'a jamais lu la colonne du tout.
+
+*Correction* : le poids se détermine **une fois**, avant toute colonne
+monétaire, et chaque mode construit la sienne avec — y compris la
+branche à deux niveaux du % PIB, qui pondère désormais son numérateur et
+son classement. Les deux surcharges tardives disparaissent : la classe
+de bug entière disparaît avec elles. Le chemin nominal non pondéré rend
+un SQL identique au caractère près.
+
+*Verrou* : `backend/tests/test_explore_scale_weight.py`, huit tests sur
+corpus calculable à la main. Restaurer les deux défauts en fait tomber
+**quatre** — vérifié. La formule agrégée de R3 y est figée
+(100 × Σ financement_USD / Σ PIB_USD, jamais une moyenne de ratios), sur
+la branche simple comme sur la branche à deux niveaux, et le Top reste
+nominal — pondéré lui aussi, sinon l'échantillon d'une vue de groupe ne
+serait pas celui de son propre nominal.
+
+**Le `StarletteDeprecationWarning`** : dette Orion, actionnable, soldée.
+`starlette` 1.3.1 tente `import httpx2` à l'import de
+`starlette.testclient`, se replie sur `httpx` 0.28.1 et déprécie
+bruyamment ; l'appel déclencheur est le `from fastapi.testclient import
+TestClient` de la fixture `client`. Correction : `httpx2>=2.12` dans le
+groupe **dev** seulement — le code de production continue d'appeler
+`httpx` (les six chargeurs d'ingestion), rien n'y change. Aucun
+`filterwarnings`, aucun ignore : la suite sort à **zéro warning**.
+
+**Après correction, R4B rejoué** : couverture, totaux, ventilation des
+trois motifs, refus de vue, invariant de millésime et contrôle manuel —
+identiques au chiffre près. Performance PPP 1,29× (2023) et 1,37×
+(2025) le nominal, budget tenu.
+
 **Reste à la fondatrice** : la recette visuelle (thèmes sombre et clair,
 mobile, `reduced-motion`) et la passe Firefox, l'application locale
 étant fermée par lien magique.
