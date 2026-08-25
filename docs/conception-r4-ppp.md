@@ -1812,14 +1812,21 @@ de 0 % ; une vue **vide** (aucune valeur nominale) répond `200` comme en
 nominal, sans couverture ni exclusions — la référence n'y est pas en
 cause. Aucun autre endpoint modifié. OpenAPI à jour.
 
-**Étape 7 — performance.** Deux jointures `macro_series` de plus que
-`gdp` (deux concepts au lieu d'un). **Risque nommé** : le surcoût
-consigné du mode `real` (jusqu'à ~5,9× sur `by=funder`) montre que la
-passe d'exclusion est le poste coûteux. Budget : ≤ 2× le nominal sur
-`by=country`. **Déclencheur d'optimisation nommé** : si la recette
-ressent le premier appel, matérialiser une vue `ppp_ratios` (pays ×
-année × ratio × millésimes) — quelques milliers de lignes — jamais une
-colonne sur `projects` ou `participations`.
+**Étape 7 — performance. Mesurée le 2026-08-25**, corpus complet
+(699 798 projets), `by=country`, hors cache applicatif, médiane de trois
+passes après préchauffage commun :
+
+| Vue | Nominal | PPP | Budget |
+|---|---:|---:|---:|
+| `by=country`, 2023 | 436 ms | 671 ms | **1,54×** |
+| `by=country`, 2025 | 408 ms | 527 ms | **1,29×** |
+
+Budget ≤ 2× **tenu**, sans matérialisation. Cache d'agrégats chaud :
+1,0 à 2,5 ms. La forme `VALUES` (étape 4) est ce qui le permet : le jeu
+de ratios **est** la vue matérialisée, en mémoire, mémoïsée par
+millésime — le déclencheur d'optimisation envisagé (une table
+`ppp_ratios`) est donc sans objet. Il reste interdit, quoi qu'il
+arrive, d'ajouter une colonne sur `projects` ou `participations`.
 
 ### Lot 3 — surface et filets
 
@@ -1923,6 +1930,65 @@ main depuis les deux séries publiées ; ⑦ page `/compare` inchangée, et
 un dossier contenant une vue `ppp` se rejoue ou se refuse proprement ;
 ⑧ FR/EN, sombre/clair, mobile, reduced-motion ; ⑨ checklist design
 (10 pièges).
+
+---
+
+## 18. Recette R4B — ce qui a été mesuré (2026-08-25)
+
+Corpus complet local, couple WDI ingéré le 2026-08-25 (204 juridictions,
+7 056 observations pour le numérateur, 7 412 réécrites pour le
+dénominateur au titre de la règle de couple).
+
+**L'invariant de millésime, sur données réelles** : 204 couples alignés,
+**0 désaligné**, 10 juridictions ne publiant qu'un seul concept (cas
+légitime). Le journal d'ingestion porte `couple_paired_writes=204` — le
+dénominateur réécrit bien que ses valeurs n'aient pas bougé, ce qui est
+exactement la règle — et `population_vintages=0`, le concept hors couple
+n'ayant pas été entraîné.
+
+**Une valeur extrême, comptée sans bloquer** : `couple_ratio_outliers=1`,
+l'Azerbaïdjan de 1992 à 70,06. Le premier chargement avait échoué dessus
+et la bande est devenue un garde **structurel** (médiane par
+juridiction) — mesure à l'appui : une cellule hors bande sur 2 346 entre
+1990 et 1999.
+
+**Les chiffres servis, contre les chiffres prédits par R4A :**
+
+| | Prédit § 17 étape 12 | Servi | |
+|---|---:|---:|---|
+| 2023 `country` — couverture | 99,9982 % | **99,9982 %** | ✓ |
+| 2023 `country` — total | — | **51 275,5203 M $intl** | ✓ |
+| 2023 — `no_jurisdiction_series` | 0,6557 M€ | **0,6557 M€** | ✓ |
+| 2023 — `no_reference_year` | 0,0620 M€ | **0,0620 M€** | ✓ |
+| 2025 `country` — couverture | 99,9168 % | **99,9168 %** | ✓ |
+| 2025 `country` — total | — | **27 891,4854 M $intl** | ✓ |
+| 2025 — `no_reference_year` | 16,9311 M€ | **16,9311 M€** | ✓ |
+| 2025 `organisation` — couverture | 99,9127 % | **99,9127 %** | ✓ |
+| 2025 `organisation` — `no_country` | 0,8530 M€ | **0,8530 M€** | ✓ |
+| 2025 `orgtype` — couverture | 99,9669 % | **99,9669 %** | ✓ |
+
+`no_country` est bien **nul** sur `country` et `region`, conformément au
+constat qui avait fait recalculer ces chiffres par dimension.
+
+**La règle du périmètre filtré (§ 15.3), sur le corpus réel** :
+`2025` + `BM` et `2025` + `NC` posent le marqueur de vue non définie,
+sans couverture ni exclusions — l'API les traduit en
+`422 ppp_reference_unavailable_for_view` ; `2025` + `FR` est servie à
+100 %. L'année 2026 n'est dans aucun jeu de ratios : refus avant
+requête.
+
+**Le contrôle manuel**, recalculé à la main depuis les deux séries
+stockées : PIB PPP Pologne 2023 = 1 778 349 511 631 $ intl., PIB USD =
+812 451 193 396 US$, ratio 2,188869345, taux BCE 1,081269.
+194,8534 M€ × 1,081269 × 2,188869345 = **461,1705 M $ intl.** —
+exactement ce que sert l'API.
+
+**Suites** : 302 tests backend, 132 tests frontend, 142 e2e, `tsc -b`,
+`ruff`, `oxlint` — tous verts, aucun ignoré. Le nominal est inchangé.
+
+**Reste à la fondatrice** : la recette visuelle (thèmes sombre et clair,
+mobile, `reduced-motion`) et la passe Firefox, l'application locale
+étant fermée par lien magique.
 
 ---
 
