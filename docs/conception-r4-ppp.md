@@ -1169,10 +1169,13 @@ choisit pas).
 
 ## 13. `ⓘ Reference` — les textes proposés (EN / FR)
 
-Structure imposée par R0 § D8 et déjà en place dans `reference-note.tsx` :
-**sens humain · calcul · sources et millésimes · couverture · exclusions ·
-méthodologie →**. Les phrases viennent de l'i18n ; l'API ne fournit que
-des valeurs.
+Structure **déjà en place** dans `reference-note.tsx`, que les cinq
+modes existants partagent et que PPP suit sans la modifier : **sens
+humain · couverture et exclusions · calcul · sources et snapshot ·
+méthodologie →**. (R0 § D8 annonçait un ordre différent ; c'est le
+composant qui fait foi — le changer casserait `real`, `gdp`, `capita`,
+`index` et `growth` pour un gain nul.) Les phrases viennent de l'i18n ;
+l'API ne fournit que des valeurs.
 
 ### 13.1 Niveau 1 — le sens, avant tout calcul
 
@@ -1304,8 +1307,8 @@ Sources (clé `sectionSources`, valeurs venant de `meta`) :
 ⓘ ne parle d'exclusions que lorsqu'une vue **existe**. Une vue refusée
 n'a pas de note de couverture — elle a un message d'indisponibilité.
 
-*Exclusions partielles* — les seules que la note PPP affiche, et il n'y
-en a que deux :
+*Exclusions partielles* — les seules que la note PPP affiche, au nombre
+de trois :
 
 | Clé | EN | FR |
 |---|---|---|
@@ -1332,7 +1335,7 @@ couverture, aucun pourcentage :
 
 | Clé | EN | FR |
 |---|---|---|
-| `pppYearUnavailable` | Purchasing-power figures are not available for {{year}}: the World Bank has not yet published the series for that year. | Le pouvoir d'achat n'est pas disponible pour {{year}} : la Banque mondiale n'a pas encore publié les séries de cette année. |
+| `pppYearUnavailable` | Purchasing-power figures are not available for {{year}}: the reference data for that year is not published yet. | Le pouvoir d'achat n'est pas disponible pour {{year}} : les données de référence de cette année ne sont pas encore publiées. |
 | `pppRequiresSingleYear` | This view compares purchasing power within one award year. Select a single year to use it. | Cette vue compare le pouvoir d'achat au sein d'une seule année d'attribution. Choisissez une année pour l'utiliser. |
 | `pppReferenceUnavailableForView` | No purchasing-power reference is available for the territories in this view in {{year}}. | Aucune référence de pouvoir d'achat n'est disponible en {{year}} pour les territoires de cette vue. |
 
@@ -1447,7 +1450,7 @@ premiers :
    « exclue à 100 % », elle n'existe pas.
 2. **Vue définie, partie non convertible** → calcul sur la partie valide,
    bloc `excluded` chiffré **depuis le périmètre affiché**, ventilé sur
-   les **deux** motifs partiels, dépliable. C'est le seul niveau où le
+   les **trois** motifs partiels, dépliable. C'est le seul niveau où le
    mot « exclu » est employé.
 3. **Valeur absente dans un bucket** → `None`, jamais `0.0`.
 
@@ -1676,11 +1679,42 @@ indisponible (`422`) avec les juridictions fautives au journal ;
 aucun état incohérent n'est jamais servi. La clé de cache porte la
 vintage commune. Une seule définition du ratio, en Python comme en SQL.
 
-*Aucun rattrapage nécessaire.* `gdp_ppp_current_intl` n'existe pas
-encore et `gdp_current_usd` ne porte aujourd'hui qu'**une seule
-vintage** (2026-08-24, vérifié en base) : la première exécution R4B écrit
-donc les deux concepts le même jour, et l'invariant tient dès l'origine —
-sans migration ni reprise de données.
+*Le premier chargement doit porter la règle — sinon il fabrique le
+défaut qu'il prétend éviter.* `gdp_current_usd` est inchangé depuis le
+2026-08-24 : sans la règle de couple, `_differs` rendrait `False` pour
+lui, seul `gdp_ppp_current_intl` s'écrirait à la date du jour, et
+**l'invariant serait violé mondialement dès le premier run**. La règle
+doit donc être livrée **avant ou avec** le premier chargement, pas
+après.
+
+*Et elle doit être auto-réparatrice.* Un état dépareillé n'est
+**jamais** rattrapé par la seule règle « si l'un écrit, l'autre écrit » :
+les valeurs étant inchangées des deux côtés, rien ne déclenche
+l'écriture, et le mode resterait en `422` jusqu'à la prochaine révision
+WDI — potentiellement des mois. Le chargeur porte donc un prédicat
+**indépendant des valeurs** : si les deux concepts d'une juridiction
+portent des dernières vintages différentes, le couple est réécrit, même
+inchangé.
+
+*Ce que l'invariant protège — et ce qu'il ne protège pas.* Il barre le
+mélange **entre jours**. Il ne barre pas, à lui seul, un couple
+recomposé **dans la même journée** à partir de deux éditions de la
+source : la granularité de `vintage_date` étant le jour, deux écritures
+du même jour portent la même date et l'invariant ne voit rien. La vraie
+protection est que le couple soit une unité **de lecture et d'écriture
+dans le même run** — un run récupère les deux séries puis les écrit
+ensemble, jamais l'une sans l'autre. C'est la justification de fond de
+la règle, au-delà du cas du premier jour.
+
+*Écrasement du même jour, assumé et rendu visible.* Le modèle R3
+remplace la vintage du jour lorsqu'une seconde exécution apporte des
+valeurs différentes (`DELETE` de la date du jour puis réécriture) : la
+table est append-only **entre** jours, pas **dans** la journée. Le
+comportement est conservé — le changer demanderait une migration pour
+un cas qui ne se produit qu'en rejouant un chargement annuel manuel le
+même jour. Il cesse en revanche d'être muet : un compteur dédié au
+journal d'ingestion dit combien de vintages du jour ont été remplacées,
+seule trace permettant de le constater après coup.
 
 *Test qui doit pouvoir échouer.* Un corpus semé où
 `gdp_ppp_current_intl` porte la vintage `2026-11-01` et
@@ -1692,12 +1726,36 @@ qu'un mélange est **impossible**, pas qu'un calcul est juste.
 
 **Étape 4 — la colonne.** `backend/src/orion/search/explore.py` : mode
 `ppp` ⇒ grain participation forcé, perspective `recipient` forcée,
-`funding = sum(pa.amount_eur × usdr.rate × mdp.value / mdu.value)` avec
-deux `LEFT JOIN macro_series` (même mécanique de dernière vintage que
-`md_join` en R3) et la table de taux USD **déjà** jointe par R3. La
-colonne `ranking` reste **nominale** (verrou du § 11, déjà en place).
-Le chemin nominal n'ajoute rien : aucun octet de SQL ne change quand
-`value` est absent.
+`funding = sum(pa.amount_eur × facteur)` où le facteur est joint en
+**table `VALUES`**, sur le modèle exact du mode `real` — et **non** par
+deux `LEFT JOIN macro_series` comme l'annonçait la première rédaction
+de ce plan. Trois raisons, toutes vérifiées en cartographie :
+
+1. la double sous-requête `max(vintage_date) GROUP BY jurisdiction_code`
+   de R3 prendrait **chaque concept séparément** : elle ne peut pas
+   vérifier l'invariant de couple du § 17 étape 3, alors que
+   `ppp_ratio_set` le vérifie une fois, en Python, avant de produire la
+   table ;
+2. elle dupliquerait la formule en SQL, contre la règle « une seule
+   définition du ratio » ;
+3. elle coûte cher : la forme R3 est mesurée à 5,9× le nominal sur une
+   vue lourde, la forme `VALUES` à ~1,4× — le budget de l'étape 7
+   (≤ 2×) n'est tenable qu'avec la seconde.
+
+La table `VALUES` porte `(pays, facteur)` pour la **seule année cadrée**
+— une année unique (§ 4.4) réduit le jeu à ~230 lignes, contre ~7 400
+si l'on joignait toutes les années. Le facteur est **pré-multiplié en
+Python** par le taux BCE USD de l'année : `facteur = taux × ratio`, un
+seul `Decimal` par pays. La colonne `ranking` reste **nominale** (verrou
+du § 11, déjà en place). Le chemin nominal n'ajoute rien : aucun octet
+de SQL ne change quand `value` est absent.
+
+**Étape 4 bis — périmètre métrique.** `ppp` n'existe que pour
+`metric=funding`, comme `gdp` et `capita` en R3. `avg` mélangerait un
+numérateur au grain participation et un dénominateur au grain projet
+(§ 6.2) ; les métriques de comptes (`projects`, `organisations`,
+`coordination`) ignorent le Reference Engine depuis le lot A. Toute
+autre métrique est refusée avec le code de l'étape 6.
 
 **Étape 5 — exclusions partielles.** `sum(...) FILTER (WHERE ratio IS
 NULL)` dans la même passe, ventilé sur les **trois** motifs partiels du
@@ -1719,12 +1777,20 @@ alors ni agrégat, ni `excluded`, ni couverture.
 
 **Avant tout calcul** — décidables depuis l'état de la vue :
 
+- `422 ppp_unavailable` — dimension hors matrice (§ 12.2) ou métrique
+  autre que `funding` (étape 4 bis). Le nom suit le précédent existant
+  `f"{value}_unavailable"` de R3, que les tests reconnaissent déjà ;
 - `422 ppp_requires_single_award_year` — la fenêtre temporelle ne résout
   pas exactement une année ;
-- `422 ppp_year_unavailable` — **aucune** juridiction ne publie l'année
-  cadrée (2026, 2027 aujourd'hui) ; la réponse nomme l'année. Test :
-  le jeu de ratios ne contient aucune entrée pour cette année — une
-  lecture de dictionnaire, pas une requête.
+- `422 ppp_year_unavailable` — l'année cadrée **ne peut pas être
+  servie** : soit aucune juridiction ne publie le couple pour elle
+  (2026, 2027 aujourd'hui), soit le **taux BCE USD de cette année**
+  manque. Les deux sont des préconditions globales de l'année, et le
+  message ne doit donc **pas** attribuer la cause à la seule Banque
+  mondiale — d'où le libellé du § 13.4, qui parle d'indisponibilité,
+  pas de publication. Test : le jeu de ratios ne contient aucune entrée
+  pour cette année, ou le taux manque — deux lectures de dictionnaire,
+  pas une requête.
 
 **Après la requête** — indécidable autrement (§ 15.3) :
 
@@ -1821,14 +1887,33 @@ nominal — jamais une vue vide, jamais un « 0 % ».
 *e2e* : bascule → `value=ppp` dans l'URL, unité changée, ligne
 d'exclusion chiffrée sur ses trois motifs, rechargement fidèle, EN et FR.
 
-**Étape 12 — recette locale** (corpus complet, Firefox) : ① nominal
-inchangé au chiffre près ; ② vue pays **cadrée sur 2023** en PPP →
-couverture affichée **99,984 %**, exclusion 6,630 M€ ventilée
-`no_country` 5,912 · `no_jurisdiction_series` 0,656 ·
-`no_reference_year` 0,062 ; ② bis vue **cadrée sur 2025** → couverture
-**99,913 %**, exclusion 18,150 M€ dont **16,931 M€ en
-`no_reference_year`** (Bermudes 12,645 · Féroé 2,433 · Groenland 1,255 ·
-Liban 0,599) et 0,366 M€ en `no_jurisdiction_series` ; ② ter
+**Étape 12 — recette locale** (corpus complet, Firefox).
+
+*Les chiffres attendus dépendent de la dimension*, et la première
+rédaction de cette étape se trompait en les annonçant tous sur
+`by=country` : la clause `pa.country_code IS NOT NULL` de cette
+dimension — et le `JOIN countries` de `by=region` — **écartent du
+périmètre** les participations sans pays, qui n'y sont donc jamais une
+exclusion. Le motif `no_country` n'est observable que sur
+`by=organisation` et `by=orgtype`. Valeurs mesurées sur le corpus
+complet, à vérifier telles quelles :
+
+| Année | Dimension | Nominal du périmètre | Couverture | `no_country` | `no_jur_series` | `no_reference_year` |
+|---|---|---:|---:|---:|---:|---:|
+| 2023 | `country` / `region` | 40 325,3647 M€ | **99,9982 %** | — | 0,6557 | 0,0620 |
+| 2023 | `organisation` | 40 331,2770 M€ | **99,9836 %** | 5,9124 | 0,6557 | 0,0620 |
+| 2023 | `orgtype` | 27 497,3789 M€ | **99,9974 %** | — | 0,6557 | 0,0620 |
+| 2025 | `country` / `region` | 20 789,1412 M€ | **99,9168 %** | — | 0,3661 | **16,9311** |
+| 2025 | `organisation` | 20 789,9943 M€ | **99,9127 %** | 0,8530 | 0,3661 | **16,9311** |
+| 2025 | `orgtype` | 15 691,3784 M€ | **99,9669 %** | 0,5419 | 0,3661 | 4,2862 |
+
+Totaux PPP attendus : **51 275,52 M intl$** en 2023 sur `country`,
+**27 891,49 M intl$** en 2025 sur `country`. Le détail 2025 de
+`no_reference_year` : Bermudes 12,6449 · Féroé 2,4328 · Groenland
+1,2546 · Liban 0,5988.
+
+Le reste de la recette : ① nominal inchangé au chiffre près ; ② les
+couvertures et ventilations du tableau ci-dessus ; ② ter
 `2025`+`country=BM` → refus `ppp_reference_unavailable_for_view` ; ③ vue cadrée sur **2026** → refus propre
 `ppp_year_unavailable`, retour au nominal proposé ; ④ vue **sans borne
 temporelle** → le groupe PURCHASING POWER n'apparaît pas, et le forcer
