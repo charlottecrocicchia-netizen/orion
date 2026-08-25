@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { readState, resolveView, toApiParams } from "@/lib/explore-state";
+import {
+  pppAvailable,
+  readState,
+  resolveView,
+  toApiParams,
+} from "@/lib/explore-state";
 
 /** La grammaire `hidden=` (chantier légende, 2026-08-22) : identifiants
  *  canoniques dans l'URL, et JAMAIS transmis à l'API — masquer une
@@ -18,7 +23,9 @@ describe("explore-state · séries masquées", () => {
   });
 
   it("hidden n'atteint JAMAIS l'API — présentation pure", () => {
-    const state = readState(new URLSearchParams("by=country&hidden=US~DE&metric=funding"));
+    const state = readState(
+      new URLSearchParams("by=country&hidden=US~DE&metric=funding"),
+    );
     const api = toApiParams(state);
     expect(api.has("hidden")).toBe(false);
     expect(api.get("by")).toBe("country");
@@ -47,7 +54,9 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   });
 
   it("value=real&base=2025&cur=USD voyage vers l'API sous les mêmes noms", () => {
-    const state = readState(new URLSearchParams("value=real&base=2025&cur=USD"));
+    const state = readState(
+      new URLSearchParams("value=real&base=2025&cur=USD"),
+    );
     expect(state.value).toBe("real");
     expect(state.base).toBe(2025);
     expect(state.cur).toBe("USD");
@@ -58,7 +67,9 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   });
 
   it("cur=EUR explicite se normalise vers le défaut omis", () => {
-    const state = readState(new URLSearchParams("value=real&base=2025&cur=EUR"));
+    const state = readState(
+      new URLSearchParams("value=real&base=2025&cur=EUR"),
+    );
     expect(state.cur).toBe("");
     expect(toApiParams(state).has("cur")).toBe(false);
   });
@@ -76,18 +87,24 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   });
 
   it("TREND (R2) : index garde base, growth l'élimine, la devise leur est étrangère", () => {
-    const index = readState(new URLSearchParams("by=year&value=index&base=2015&cur=USD"));
+    const index = readState(
+      new URLSearchParams("by=year&value=index&base=2015&cur=USD"),
+    );
     expect(index.value).toBe("index");
     expect(index.base).toBe(2015);
     expect(index.cur).toBe("");
-    const growth = readState(new URLSearchParams("by=year&value=growth&base=2015"));
+    const growth = readState(
+      new URLSearchParams("by=year&value=growth&base=2015"),
+    );
     expect(growth.value).toBe("growth");
     expect(growth.base).toBeNull();
   });
 
   it("TREND voyage vers l'API en value=real, sans base ni cur — le backend ignore index/growth", () => {
     for (const query of ["value=index&base=2015", "value=growth"]) {
-      const api = toApiParams(readState(new URLSearchParams(`by=year&${query}`)));
+      const api = toApiParams(
+        readState(new URLSearchParams(`by=year&${query}`)),
+      );
       expect(api.get("value")).toBe("real");
       expect(api.has("base")).toBe(false);
       expect(api.has("cur")).toBe(false);
@@ -95,20 +112,31 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   });
 
   it("range=full : lu en growth seulement, jamais envoyé à l'API (recette R2)", () => {
-    const growth = readState(new URLSearchParams("by=year&value=growth&range=full"));
+    const growth = readState(
+      new URLSearchParams("by=year&value=growth&range=full"),
+    );
     expect(growth.range).toBe("full");
     expect(toApiParams(growth).has("range")).toBe(false);
     // Étranger à tout autre mode : éliminé à la lecture.
-    expect(readState(new URLSearchParams("by=year&value=index&base=2021&range=full")).range).toBe("");
-    expect(readState(new URLSearchParams("by=year&value=real&range=full")).range).toBe("");
+    expect(
+      readState(new URLSearchParams("by=year&value=index&base=2021&range=full"))
+        .range,
+    ).toBe("");
+    expect(
+      readState(new URLSearchParams("by=year&value=real&range=full")).range,
+    ).toBe("");
     expect(readState(new URLSearchParams("by=year&range=full")).range).toBe("");
     // Absent = domaine robuste par défaut.
-    expect(readState(new URLSearchParams("by=year&value=growth")).range).toBe("");
+    expect(readState(new URLSearchParams("by=year&value=growth")).range).toBe(
+      "",
+    );
   });
 
   it("range=full compose avec hidden — aucun des deux n'atteint l'API", () => {
     const state = readState(
-      new URLSearchParams("by=country&split=1&value=growth&range=full&hidden=US"),
+      new URLSearchParams(
+        "by=country&split=1&value=growth&range=full&hidden=US",
+      ),
     );
     expect(state.range).toBe("full");
     expect(state.hidden).toEqual(["US"]);
@@ -119,7 +147,9 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   });
 
   it("TREND compose avec la légende : value=index&base=2015&hidden=US", () => {
-    const state = readState(new URLSearchParams("by=country&split=1&value=index&base=2015&hidden=US"));
+    const state = readState(
+      new URLSearchParams("by=country&split=1&value=index&base=2015&hidden=US"),
+    );
     expect(state.hidden).toEqual(["US"]);
     expect(state.value).toBe("index");
     expect(state.base).toBe(2015);
@@ -127,7 +157,9 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   });
 
   it("TREND sur vue temporelle : lines et table seulement — jamais de donut ni de carte", () => {
-    const state = readState(new URLSearchParams("by=country&split=1&value=growth"));
+    const state = readState(
+      new URLSearchParams("by=country&split=1&value=growth"),
+    );
     const { availableViews, view, temporal } = resolveView(state);
     expect(temporal).toBe(true);
     expect(availableViews).toEqual(["lines", "table"]);
@@ -135,7 +167,9 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   });
 
   it("ECONOMIC SCALE (R3) : gdp nu, capita avec base et cur — mêmes noms vers l'API", () => {
-    const gdp = readState(new URLSearchParams("by=funder&value=gdp&base=2025&cur=USD"));
+    const gdp = readState(
+      new URLSearchParams("by=funder&value=gdp&base=2025&cur=USD"),
+    );
     expect(gdp.value).toBe("gdp");
     // base et cur sont étrangers au % PIB : éliminés à la lecture.
     expect(gdp.base).toBeNull();
@@ -144,7 +178,9 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
     expect(gdpApi.get("value")).toBe("gdp");
     expect(gdpApi.has("base")).toBe(false);
 
-    const capita = readState(new URLSearchParams("by=country&value=capita&base=2025&cur=USD"));
+    const capita = readState(
+      new URLSearchParams("by=country&value=capita&base=2025&cur=USD"),
+    );
     expect(capita.base).toBe(2025);
     expect(capita.cur).toBe("USD");
     const capitaApi = toApiParams(capita);
@@ -154,15 +190,21 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
   });
 
   it("ECONOMIC SCALE : vues restreintes — lignes en temporel, barres sinon, jamais de donut ni carte", () => {
-    const bars = resolveView(readState(new URLSearchParams("by=country&value=gdp")));
+    const bars = resolveView(
+      readState(new URLSearchParams("by=country&value=gdp")),
+    );
     expect(bars.availableViews).toEqual(["bars", "table"]);
     expect(bars.mappable).toBe(false);
-    const lines = resolveView(readState(new URLSearchParams("by=funder&split=1&value=capita")));
+    const lines = resolveView(
+      readState(new URLSearchParams("by=funder&split=1&value=capita")),
+    );
     expect(lines.availableViews).toEqual(["lines", "table"]);
   });
 
   it("ECONOMIC SCALE compose avec hidden — le masquage n'atteint jamais l'API", () => {
-    const state = readState(new URLSearchParams("by=country&value=gdp&hidden=US"));
+    const state = readState(
+      new URLSearchParams("by=country&value=gdp&hidden=US"),
+    );
     expect(state.hidden).toEqual(["US"]);
     const api = toApiParams(state);
     expect(api.get("value")).toBe("gdp");
@@ -171,7 +213,9 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
 
   it("composition avec la légende : value=real&base=2025&cur=USD&hidden=US", () => {
     const state = readState(
-      new URLSearchParams("by=country&split=1&value=real&base=2025&cur=USD&hidden=US"),
+      new URLSearchParams(
+        "by=country&split=1&value=real&base=2025&cur=USD&hidden=US",
+      ),
     );
     expect(state.hidden).toEqual(["US"]);
     expect(state.value).toBe("real");
@@ -182,5 +226,85 @@ describe("explore-state · mode de lecture (value/base/cur)", () => {
     expect(api.get("base")).toBe("2025");
     expect(api.get("cur")).toBe("USD");
     expect(api.has("hidden")).toBe(false);
+  });
+});
+
+/** PURCHASING POWER (R4) : un seul paramètre, une seule année, quatre
+ *  dimensions. La grammaire ne doit jamais encoder une notion
+ *  méthodologique qui n'existe pas — ni année de référence, ni devise
+ *  d'affichage, ni perspective. */
+describe("explore-state · pouvoir d'achat (value=ppp)", () => {
+  it("voyage vers l'API en un seul paramètre", () => {
+    const state = readState(
+      new URLSearchParams("by=country&time=2023..2023&value=ppp"),
+    );
+    expect(state.value).toBe("ppp");
+    const api = toApiParams(state);
+    expect(api.get("value")).toBe("ppp");
+    expect(api.get("year_from")).toBe("2023");
+    expect(api.get("year_to")).toBe("2023");
+  });
+
+  it("canonicalise : base, cur et perspective sont étrangers au mode", () => {
+    const state = readState(
+      new URLSearchParams(
+        "by=country&time=2023..2023&value=ppp&base=2025&cur=USD&perspective=funder",
+      ),
+    );
+    expect(state.base).toBeNull();
+    expect(state.cur).toBe("");
+    expect(state).not.toHaveProperty("perspective");
+    const api = toApiParams(state);
+    expect(api.has("base")).toBe(false);
+    expect(api.has("cur")).toBe(false);
+    expect(api.has("perspective")).toBe(false);
+  });
+
+  it("un mode voisin mal orthographié retombe en nominal", () => {
+    for (const raw of ["PPP", "ppp-adjusted", "purchasing"]) {
+      expect(readState(new URLSearchParams(`value=${raw}`)).value).toBe("");
+    }
+  });
+
+  it("le mode ne touche jamais au filtre temporel", () => {
+    const nominal = readState(
+      new URLSearchParams("by=country&time=2023..2023"),
+    );
+    const ppp = readState(
+      new URLSearchParams("by=country&time=2023..2023&value=ppp"),
+    );
+    expect(ppp.from).toBe(nominal.from);
+    expect(ppp.to).toBe(nominal.to);
+  });
+});
+
+describe("explore-state · disponibilité du pouvoir d'achat", () => {
+  const base = (query: string) => readState(new URLSearchParams(query));
+
+  it("exige une année d'attribution unique", () => {
+    expect(pppAvailable(base("by=country&time=2023..2023"))).toBe(true);
+    expect(pppAvailable(base("by=country&time=2020..2023"))).toBe(false);
+    // Sans borne : la fenêtre ne résout pas une année. Le test est
+    // STRICT — un repli sur les bornes du corpus rendrait « sans borne »
+    // indiscernable de « toute la fenêtre ».
+    expect(pppAvailable(base("by=country"))).toBe(false);
+  });
+
+  it("n'existe que sur les dimensions au grain participation", () => {
+    for (const by of ["country", "region", "organisation", "orgtype"]) {
+      expect(pppAvailable(base(`by=${by}&time=2023..2023`))).toBe(true);
+    }
+    for (const by of ["year", "funder", "programme", "subdivision", "theme"]) {
+      expect(pppAvailable(base(`by=${by}&time=2023..2023`))).toBe(false);
+    }
+  });
+
+  it("n'existe que pour la métrique monétaire, et jamais éclatée", () => {
+    expect(
+      pppAvailable(base("by=country&time=2023..2023&metric=projects")),
+    ).toBe(false);
+    expect(pppAvailable(base("by=country&time=2023..2023&split=1"))).toBe(
+      false,
+    );
   });
 });

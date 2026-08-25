@@ -156,6 +156,14 @@ export function formatValue(
     return `${moneySymbol(unit === "usdcap" ? "usd" : "eur")}${value.toLocaleString(locale, {
       maximumFractionDigits: value >= 100 ? 0 : 2,
     })}`;
+  // PURCHASING POWER (R4) : le dollar international n'est PAS une devise
+  // de marché — il ne rejoint pas MONEY_SYMBOLS, mais il se lit comme un
+  // montant. Le glyphe « Int$ » le dit sans laisser croire à des dollars
+  // américains.
+  if (unit === "intl")
+    return `Int$${value.toLocaleString(locale, {
+      maximumFractionDigits: value >= 100 ? 0 : 2,
+    })}`;
   if (unit === "growth")
     return `${value > 0 ? "+" : ""}${value.toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
   return formatInt(Math.round(value), locale);

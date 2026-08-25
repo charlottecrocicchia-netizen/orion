@@ -63,7 +63,12 @@ export function readState(params: URLSearchParams): ExplorerState {
   // d'URL les efface (canonicalisation par reconstruction).
   const raw = params.get("value");
   const value =
-    raw === "real" || raw === "index" || raw === "growth" || raw === "gdp" || raw === "capita"
+    raw === "real" ||
+    raw === "index" ||
+    raw === "growth" ||
+    raw === "gdp" ||
+    raw === "capita" ||
+    raw === "ppp"
       ? raw
       : "";
   return {
@@ -128,6 +133,14 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
     // % PIB : aucun paramètre secondaire — la perspective est FORCÉE
     // par la dimension (R0 § D3), elle ne voyage pas.
     apiParams.set("value", "gdp");
+  } else if (state.value === "ppp") {
+    // PURCHASING POWER (R4) : un seul paramètre. Ni `base` (il n'y a pas
+    // d'année de référence : le ratio est celui de l'année cadrée), ni
+    // `cur` (le dollar international n'est pas une devise de marché et
+    // ne se choisit pas), ni `perspective` (forcée bénéficiaire). Et
+    // surtout pas de second paramètre d'année : elle vit déjà dans le
+    // filtre temporel, qui appartient au périmètre, pas au référentiel.
+    apiParams.set("value", "ppp");
   } else if (state.value === "index" || state.value === "growth") {
     // TREND (R2) : le backend ne connaît ni index ni growth — la page
     // demande la série REAL (année de référence serveur par défaut) et
@@ -200,4 +213,32 @@ export function resolveView(state: ExplorerState): {
         : ["bars", "table"];
   const view = availableViews.includes(state.view) ? state.view : availableViews[0];
   return { temporal, mappable, availableViews, view };
+}
+
+
+/** PURCHASING POWER (R4) : le mode existe-t-il pour cette vue ?
+ *
+ *  DEUX conditions, et la page, `ExploreView` et les tests lisent la
+ *  même — c'est la raison d'être de ce module. ① Le périmètre résout
+ *  exactement UNE année d'attribution : additionner des dollars
+ *  internationaux de millésimes différents mélangerait des unités
+ *  (§ 4.4). ② La dimension est l'une des quatre dont le nominal est
+ *  déjà au grain participation, ce qui garantit qu'entre nominal et PPP
+ *  la population comptée est identique (§ 12.1).
+ *
+ *  Le test d'année est STRICT (`from === to`, aucun repli sur les
+ *  bornes du corpus) : « sans borne » et « toute la fenêtre » relèvent
+ *  du même refus, mais les confondre avec une année unique servirait un
+ *  chiffre faux. */
+export const PPP_DIMS = ["country", "region", "organisation", "orgtype"];
+
+export function pppAvailable(state: ExplorerState): boolean {
+  return (
+    state.metric === "funding" &&
+    !state.split &&
+    PPP_DIMS.includes(state.by) &&
+    state.from != null &&
+    state.to != null &&
+    state.from === state.to
+  );
 }

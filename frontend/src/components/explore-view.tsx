@@ -14,11 +14,16 @@ import { CoverageNote } from "@/components/coverage-note";
 import { ReferenceNote } from "@/components/reference-note";
 import { ExploreTable } from "@/components/explore-table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api } from "@/lib/api";
+import { ApiError, api } from "@/lib/api";
 import { readState, resolveView, toApiParams } from "@/lib/explore-state";
 import { applyTrend, resolveIndexBase } from "@/lib/trend";
 import { excludedYears } from "@/lib/excluded";
-import { countryFlag, formatValue, seriesColor, seriesLabel } from "@/lib/format";
+import {
+  countryFlag,
+  formatValue,
+  seriesColor,
+  seriesLabel,
+} from "@/lib/format";
 
 /** One self-contained Explorer view — an Angles slide's body. Same state
  *  grammar, same API cache keys and same chart components as the page
@@ -38,7 +43,9 @@ export function ExploreView({
 }) {
   const carried = useCarriedLens();
   const { t, i18n } = useTranslation();
-  const [drill, setDrill] = useState<{ id: string; label: string } | null>(null);
+  const [drill, setDrill] = useState<{ id: string; label: string } | null>(
+    null,
+  );
   // Map rule: first click selects (summary line below), second click on
   // the selected shape zooms into the country file.
   const [mapSelected, setMapSelected] = useState<string | null>(null);
@@ -47,7 +54,12 @@ export function ExploreView({
   const { temporal, view } = resolveView(state);
   const apiParams = toApiParams(state);
 
-  const { data: rawData, isPending } = useQuery({
+  const {
+    data: rawData,
+    isPending,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["explore", apiParams.toString()],
     queryFn: () => api.explore(apiParams),
     enabled: active,
@@ -66,15 +78,44 @@ export function ExploreView({
       ? resolveIndexBase(rawData, state.from, state.to, state.base)
       : null;
   const trend =
-    trendMode && temporal && rawData ? applyTrend(rawData, trendMode, canonicalBase) : null;
+    trendMode && temporal && rawData
+      ? applyTrend(rawData, trendMode, canonicalBase)
+      : null;
   const data = trend ? trend.data : rawData;
-  const { data: countryIndex } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
+  const { data: countryIndex } = useQuery({
+    queryKey: ["countries"],
+    queryFn: api.countries,
+  });
   const { data: flows } = useQuery({
     queryKey: ["country-flows"],
     queryFn: api.countryFlows,
     enabled: active && view === "map",
   });
 
+  // Un mode refusé par l'API (422) sur une vue REJOUÉE — dossier,
+  // planche — doit se dire. Sans ce traitement, `data` reste indéfini et
+  // le composant rendait un bloc vide de 340 px : exactement la « vue
+  // vide » que la doctrine interdit. Le rejeu étant en lecture seule, il
+  // ne réécrit aucune URL : il nomme le refus, et c'est tout.
+  if (isError) {
+    const detail = error instanceof ApiError ? error.detail : null;
+    const key =
+      detail === "ppp_year_unavailable"
+        ? "explorer.reference.pppYearUnavailable"
+        : detail === "ppp_reference_unavailable_for_view"
+          ? "explorer.reference.pppReferenceUnavailableForView"
+          : detail === "ppp_requires_single_award_year" ||
+              detail === "ppp_unavailable"
+            ? "explorer.reference.pppRequiresSingleYear"
+            : state.value === "real"
+              ? "explorer.reference.unavailable"
+              : "explorer.reference.scaleUnavailable";
+    return (
+      <p className="py-24 text-center text-muted-foreground">
+        {t(key, { year: state.from ?? "" })}
+      </p>
+    );
+  }
   if (!data) {
     return isPending && active ? (
       <Skeleton className="h-[340px] w-full" />
@@ -83,7 +124,11 @@ export function ExploreView({
     );
   }
   if (data.series.length === 0) {
-    return <p className="py-24 text-center text-muted-foreground">{t("explorer.emptyView")}</p>;
+    return (
+      <p className="py-24 text-center text-muted-foreground">
+        {t("explorer.emptyView")}
+      </p>
+    );
   }
   if (trendMode && !temporal) {
     // Un état rejoué incohérent (TREND sans axe temporel) se refuse en
@@ -112,7 +157,9 @@ export function ExploreView({
   // A drill into a childless programme folds everything back onto itself:
   // say so instead of drawing a one-slice ring.
   const leafDrill =
-    drill != null && data.series.length === 1 && String(data.series[0].key) === drill.id;
+    drill != null &&
+    data.series.length === 1 &&
+    String(data.series[0].key) === drill.id;
   const donutSeries = drill
     ? data.series.map((serie) =>
         String(serie.key) === drill.id
@@ -147,16 +194,26 @@ export function ExploreView({
           fullRange={state.range === "full"}
         />
       ) : view === "bump" ? (
-        <BumpChart series={shownSeries} ariaLabel={title} colorOf={legendColorOf} />
+        <BumpChart
+          series={shownSeries}
+          ariaLabel={title}
+          colorOf={legendColorOf}
+        />
       ) : view === "delta" ? (
-        <DumbbellChart series={shownSeries} unit={data.unit} ariaLabel={title} />
+        <DumbbellChart
+          series={shownSeries}
+          unit={data.unit}
+          ariaLabel={title}
+        />
       ) : view === "bars" ? (
         <BarsChart series={shownSeries} unit={data.unit} ariaLabel={title} />
       ) : view === "map" ? (
         <>
           <WorldMap
             countries={data.series
-              .filter((serie) => typeof serie.key === "string" && serie.value != null)
+              .filter(
+                (serie) => typeof serie.key === "string" && serie.value != null,
+              )
               .map((serie) => ({
                 code: String(serie.key),
                 name: serie.label ?? String(serie.key),
@@ -165,9 +222,12 @@ export function ExploreView({
                 // La couverture voyage avec : les hachures d'honnêteté
                 // valent aussi dans les decks, le dossier, le benchmark.
                 region:
-                  countryIndex?.find((entry) => entry.code === String(serie.key))?.region ?? null,
-                coverage: countryIndex?.find((entry) => entry.code === String(serie.key))
-                  ?.coverage,
+                  countryIndex?.find(
+                    (entry) => entry.code === String(serie.key),
+                  )?.region ?? null,
+                coverage: countryIndex?.find(
+                  (entry) => entry.code === String(serie.key),
+                )?.coverage,
                 projects_count: 0,
                 funding_eur: serie.value ?? 0,
               }))}

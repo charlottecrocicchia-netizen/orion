@@ -28,7 +28,8 @@ const resources = {
           aboutData: "About the data",
           aboutDataDesc: "sources, licences, freshness",
           analyses: "Ready-made analyses",
-          analysesDesc: "one question, several angles — click, then make it yours",
+          analysesDesc:
+            "one question, several angles — click, then make it yours",
           explorerDesc: "compose: metric × dimension × comparison",
           compare: "Compare",
           compareDesc: "up to four organisations side by side",
@@ -75,14 +76,16 @@ const resources = {
           "No domestic funder of this zone is loaded yet: everything shown here comes from the consortiums it joins \u2014 its own budgets are invisible here, not zero.",
         mixedPhrase:
           "This view mixes coverages: {{funders}} are loaded, so their countries show their domestic funding. The others appear only through the consortiums they join — their own budgets are invisible here, not zero.",
-        heroBasis: "from official sources — Europe (EU framework programmes), United States (NIH, NSF)",
+        heroBasis:
+          "from official sources — Europe (EU framework programmes), United States (NIH, NSF)",
       },
       hero: {
         eyebrow: "Orion",
         sub: "of public R&D funding, mapped. {{from}} → {{to}}.",
         // Motifs de repli : une lentille publiée sans mots curés reste
         // lisible, et nomme ce qu'elle montre.
-        subLens: "of public {{lens}} funding (direct + enabling), mapped. {{from}} → {{to}}.",
+        subLens:
+          "of public {{lens}} funding (direct + enabling), mapped. {{from}} → {{to}}.",
         lensProjects: "{{lens}} projects",
         lensOrgs: "{{lens}} organisations",
         lensGroups: "industrial groups",
@@ -113,18 +116,24 @@ const resources = {
           "Up to four organisations side by side — portfolios, recurring partners, themes.",
         entryOrgsFigure: "{{count, number}} organisations",
         entryCountries: "Open the country files",
-        entryCountriesDesc: "The globe, the collaboration flows, one hub per country.",
+        entryCountriesDesc:
+          "The globe, the collaboration flows, one hub per country.",
         entryCountriesFigure: "{{count, number}} countries",
-        doorDiscoverDesc: "the {{name}} file — watch-post, partners, trajectory",
+        doorDiscoverDesc:
+          "the {{name}} file — watch-post, partners, trajectory",
         doorDiscoverFigure: "among {{count, number}} organisations",
         doorAnalyseDesc: "“{{deck}}” — {{count}} angles, slid",
         doorAnalyseLibrary: "The library of ready-made analyses",
         doorAnalyseFigure: "{{count}} ready-made analyses",
-        doorBuildDescEmpty: "collect views, assemble, take away — from any chart",
-        doorBuildDescSome_one: "your session dossier: {{count}} view — pick it back up",
-        doorBuildDescSome_other: "your session dossier: {{count}} views — pick it back up",
+        doorBuildDescEmpty:
+          "collect views, assemble, take away — from any chart",
+        doorBuildDescSome_one:
+          "your session dossier: {{count}} view — pick it back up",
+        doorBuildDescSome_other:
+          "your session dossier: {{count}} views — pick it back up",
         doorFollow: "Follow",
-        doorFollowNote: "alerts and follows — calls are live today, the workspace in 2027",
+        doorFollowNote:
+          "alerts and follows — calls are live today, the workspace in 2027",
         newsTitle: "News",
         newsPrev: "Previous story",
         newsNext: "Next story",
@@ -150,7 +159,8 @@ const resources = {
           "Every funded country tinted by its region; grey only where no data lives yet — hover a country for its collaborations, click to meet it.",
         globeFlowsHint: "top 5 collaborations",
         panelRank_one: "Top funded country worldwide — in {{brand}}'s data",
-        panelRank_other: "No. {{count}} funded country worldwide — in {{brand}}'s data",
+        panelRank_other:
+          "No. {{count}} funded country worldwide — in {{brand}}'s data",
         panelHook: "{{amount}} across {{projects}} projects since 2005.",
         panelFunding: "funding",
         panelProjects: "projects",
@@ -191,7 +201,8 @@ const resources = {
         },
         showMore: "Show the next {{count}}",
         loadingMore: "Loading",
-        closedHint: "Deadline passed in the last six months — kept for the record.",
+        closedHint:
+          "Deadline passed in the last six months — kept for the record.",
         clearFilters: "Clear filters",
         glance: "At a glance",
         glanceStatus: "Status",
@@ -199,10 +210,15 @@ const resources = {
         synced: "Synchronised {{date}} from the EU Funding & Tenders Portal.",
         attribution:
           "Contains data from the EU Funding & Tenders Portal, © European Union, CC BY 4.0.",
-        brusselsNote: "Deadlines are shown in Brussels time, the official submission timezone.",
+        brusselsNote:
+          "Deadlines are shown in Brussels time, the official submission timezone.",
         back: "Calls",
         notFound: "This call is not in the catalogue.",
-        status: { open: "Open for submission", upcoming: "Upcoming", closed: "Closed" },
+        status: {
+          open: "Open for submission",
+          upcoming: "Upcoming",
+          closed: "Closed",
+        },
         statusShort: { open: "Open", upcoming: "Upcoming", closed: "Closed" },
         parentCall: "call",
         openingDate: "Opening",
@@ -234,16 +250,20 @@ const resources = {
         actorContributions: "{{amount}} in observed contributions",
         actorsEmpty: "Not enough comparable history in the Orion corpus.",
         actorsReason: {
-          no_comparable_history: "No historical call matches this call's structure.",
-          below_threshold: "{{found}} historical project(s) found — threshold: {{min}}.",
+          no_comparable_history:
+            "No historical call matches this call's structure.",
+          below_threshold:
+            "{{found}} historical project(s) found — threshold: {{min}}.",
           family_too_transversal:
             "The only available family mixes several destinations of its cluster — refused rather than showing misleading neighbours.",
         },
         actorsMethod: "Method",
         actorsMethodCorpus:
           "Corpus: historical calls in the Orion corpus (CORDIS — FP7, H2020, Horizon Europe); programmes outside the corpus have no comparable history.",
-        actorsMethodUnit: "Counting unit: organisation × distinct project; coordination counted at project level.",
-        actorsMethodAmounts: "Amounts: contributions attributed to the organisation — never a project budget repeated per participant.",
+        actorsMethodUnit:
+          "Counting unit: organisation × distinct project; coordination counted at project level.",
+        actorsMethodAmounts:
+          "Amounts: contributions attributed to the organisation — never a project budget repeated per participant.",
         actorsMethodThreshold: "Shown from {{min}} historical projects.",
         actorsMethodWording: "Observed historical facts — no prediction.",
         viewSource: "View on the official portal",
@@ -269,14 +289,16 @@ const resources = {
         honest: "This page says the date, and stops there.",
         signInLead: "Access is by approved email, magic link, no password.",
         spaceEyebrow: "Orion · my space",
-        spaceLead: "Your personal workspace — dossiers kept here outlive any browser.",
+        spaceLead:
+          "Your personal workspace — dossiers kept here outlive any browser.",
         savedDossiers: "Kept dossiers",
         noDossiers: "Nothing kept yet.",
         noDossiersCta: "Start from the session dossier",
         dossierMeta_one: "{{count}} view · {{date}}",
         dossierMeta_other: "{{count}} views · {{date}}",
         account: "Account",
-        identityNote: "Magic-link sign-in: your email is the identity. No password exists.",
+        identityNote:
+          "Magic-link sign-in: your email is the identity. No password exists.",
         deleteAccount: "Delete my account",
         deleteWarning: "Everything goes — space, kept dossiers, sessions:",
         deleteConfirm: "Delete permanently",
@@ -286,7 +308,8 @@ const resources = {
         resume: "Resume as a new version",
         savedFooter:
           "A kept dossier is read-only — “Resume as a new version” reloads it into your session dossier; keeping again creates a new copy, never an overwrite.",
-        savedNeedsAccount: "This kept dossier belongs to a workspace — sign in to open it.",
+        savedNeedsAccount:
+          "This kept dossier belongs to a workspace — sign in to open it.",
       },
       analyses: {
         seeAll: "See all analyses",
@@ -336,11 +359,14 @@ const resources = {
         heroBasis:
           "Europe and the United States · projects · organisations · programmes · industrial ecosystems",
         invite: "Access is by invitation.",
-        doorDiscover: "Projects, organisations, programmes, countries — every view is a URL.",
-        doorAnalyse: "Compare actors, sectors and trajectories, on curated perimeters.",
+        doorDiscover:
+          "Projects, organisations, programmes, countries — every view is a URL.",
+        doorAnalyse:
+          "Compare actors, sectors and trajectories, on curated perimeters.",
         doorBuild: "Turn live views into evidence — dossiers that travel.",
         doorSignIn: "Sign in →",
-        lensesLead: "Curated sector perimeters — every figure has its source, every lens has its version.",
+        lensesLead:
+          "Curated sector perimeters — every figure has its source, every lens has its version.",
         globeTitle: "The world of funding",
         globeLead:
           "The covered countries, on the same globe the product navigates — the detailed files open once signed in.",
@@ -362,7 +388,8 @@ const resources = {
         emailPlaceholder: "you@example.com",
         submit: "Send me a link",
         sent: "If this account exists, a sign-in link is on its way.",
-        sentHint: "The link is valid for 15 minutes and works once. Check your inbox.",
+        sentHint:
+          "The link is valid for 15 minutes and works once. Check your inbox.",
         devLink: "Dev mode: open the link",
         identityNote:
           "Your email is your identity: losing access to it means losing the account.",
@@ -400,14 +427,17 @@ const resources = {
         showAll: "Show all {{count, number}} programmes",
         programmesFilter: "Filter the {{count}} programmes…",
         themesTitle: "Themes",
-        themesLead: "The 41 euroSciVoc disciplines — their weight, their twenty-year spark, and who gained ground (mature windows).",
+        themesLead:
+          "The 41 euroSciVoc disciplines — their weight, their twenty-year spark, and who gained ground (mature windows).",
         themesShare: "{{pct}} % of the corpus",
         sortFunding: "By funding",
         sortDelta: "By momentum",
         frameworksSection: "Framework programmes",
         allSources: "All sources",
-        sourcesLead: "One row per funding agency — its programmes unfold inside. NIH and NSF are here; wave 1 continues with UKRI.",
-        sourceMeta: "{{programmes}} programmes · {{projects}} projects · {{amount}}",
+        sourcesLead:
+          "One row per funding agency — its programmes unfold inside. NIH and NSF are here; wave 1 continues with UKRI.",
+        sourceMeta:
+          "{{programmes}} programmes · {{projects}} projects · {{amount}}",
         sourcesSoon: "wave 1 · UKRI (UK) in instruction",
         nationalSection: "Funding institutes",
         programmesCount: "{{count}} programmes · {{amount}}",
@@ -423,12 +453,15 @@ const resources = {
         viewGlobe: "Globe",
         viewMap: "Map",
         coverageSoon: "no data yet",
-        coverageNote: "Coverage: Europe — CORDIS (Horizon Europe, H2020, FP7) · United States — NIH, NSF.",
-        coverageDetail: "Next: United Kingdom (UKRI), Switzerland (SNSF), Netherlands (NWO), Sweden (Vinnova).",
+        coverageNote:
+          "Coverage: Europe — CORDIS (Horizon Europe, H2020, FP7) · United States — NIH, NSF.",
+        coverageDetail:
+          "Next: United Kingdom (UKRI), Switzerland (SNSF), Netherlands (NWO), Sweden (Vinnova).",
       },
       search: {
         composer: {
-          placeholder: "Compose: a country, a funder, a programme, years, free text…",
+          placeholder:
+            "Compose: a country, a funder, a programme, years, free text…",
           placeholderOrgs: "Compose: a name, a country…",
           typeCountry: "country",
           typeFunder: "funder",
@@ -526,19 +559,22 @@ const resources = {
         headerLine_one: "Group of {{count, number}} legal entity",
         headerLine_other: "Group of {{count, number}} legal entities",
         lei: "LEI",
-        totalFunding: "Consolidated public R&D funding of the attached perimeter",
+        totalFunding:
+          "Consolidated public R&D funding of the attached perimeter",
         doubleMeasure:
           "{{attributed}} attributed to the legal entities · {{exposure}} exposure by participation. Attributed figures summed across groups count joint ventures twice — that is the nature of this reading.",
         jvWeighted:
           "Joint-venture amounts are weighted by their pact — a 67/33 counts 67 and 33, never twice 100.",
-        coverageBasis: "Memberships built from public registries (GLEIF, Wikidata) and manual curation.",
+        coverageBasis:
+          "Memberships built from public registries (GLEIF, Wikidata) and manual curation.",
         coverageGap_one:
           "{{count}} corpus organisation carrying this group\u2019s name is not attached yet{{weight}} — totals state the attached perimeter, never the whole group.",
         coverageGap_other:
           "{{count}} corpus organisations carrying this group\u2019s name are not attached yet{{weight}} — totals state the attached perimeter, never the whole group.",
         coverageWeight: " ({{amount}} of funding)",
         compareCta: "Benchmark this group",
-        byEntityLabel: "The trajectory, entity by entity — top 5, the rest consolidated",
+        byEntityLabel:
+          "The trajectory, entity by entity — top 5, the rest consolidated",
         othersSeries: "— other entities —",
         actPartnersKicker: "partners",
         actPartners: "Who the group works with",
@@ -588,11 +624,16 @@ const resources = {
           active: "active in {{year}}",
           partners_one: "{{count}} historical co-participant",
           partners_other: "{{count}} historical co-participants",
-          methodBases: "Bases: exact bridge (from 1 project — already funded under this call code), then identifier family (E2 resolution and guards, threshold {{min}} projects).",
-          methodUnit: "Counting unit: organisation × distinct project; coordination counted at project level.",
-          methodEligibility: "Eligibility: not assessed — the portal does not publish it in structured form; an unknown criterion is never treated as incompatible.",
-          methodRanking: "Declared ordering: exact bridge, then historical projects, then nearest deadline — no aggregate score (weighting is a method decision to come).",
-          methodWording: "Observed historical relevance within the Orion corpus — never a guarantee of eligibility or success.",
+          methodBases:
+            "Bases: exact bridge (from 1 project — already funded under this call code), then identifier family (E2 resolution and guards, threshold {{min}} projects).",
+          methodUnit:
+            "Counting unit: organisation × distinct project; coordination counted at project level.",
+          methodEligibility:
+            "Eligibility: not assessed — the portal does not publish it in structured form; an unknown criterion is never treated as incompatible.",
+          methodRanking:
+            "Declared ordering: exact bridge, then historical projects, then nearest deadline — no aggregate score (weighting is a method decision to come).",
+          methodWording:
+            "Observed historical relevance within the Orion corpus — never a guarantee of eligibility or success.",
           countOpen_one: "{{count}} OPEN",
           countOpen_other: "{{count}} OPEN",
           countUpcoming_one: "{{count}} UPCOMING",
@@ -775,8 +816,8 @@ const resources = {
           // motifs servent de repli à une lentille sans ses mots.
           chipLabel: "Perimeter of this view",
           directHint: "core projects only, by the versioned lens",
-        soloHint:
-          "a single qualified perimeter today — “+ enabling” will appear when enabling projects have passed review",
+          soloHint:
+            "a single qualified perimeter today — “+ enabling” will appear when enabling projects have passed review",
           enablingHint: "core + enabling technologies",
           directPattern: "{{lens}} direct",
           enablingPattern: "{{lens}} + enabling",
@@ -838,12 +879,15 @@ const resources = {
           meaningGdp: "% of GDP",
           meaningGdpBody:
             "% of GDP puts awarded funding in relation to the size of the relevant economy. A value of 0.10% means the awards represented the equivalent of 0.10% of that economy's GDP over the same period.",
-          meaningGdpWhoseFunder: "Here: the economy of each funder's own jurisdiction.",
-          meaningGdpWhoseRecipient: "Here: the economy of each receiving country.",
+          meaningGdpWhoseFunder:
+            "Here: the economy of each funder's own jurisdiction.",
+          meaningGdpWhoseRecipient:
+            "Here: the economy of each receiving country.",
           meaningCapita: "Per capita",
           meaningCapitaBody:
             "Per capita divides awarded funding by the population of the country concerned. It answers: how much funding was awarded per inhabitant?",
-          meaningCapitaCumulative: "Values are cumulative over the selected period.",
+          meaningCapitaCumulative:
+            "Values are cumulative over the selected period.",
           meaningIndex: "Index 100",
           meaningIndexBody:
             "Index 100 compares trajectories rather than absolute amounts. The base year ({{base}}) is set to 100 for every series. 125 = 25% above the base year; 80 = 20% below it.",
@@ -863,14 +907,20 @@ const resources = {
           sectionSources: "Sources",
           method:
             "Adjusts funding for price changes in the original currency (Eurostat HICP, BLS CPI-U), then expresses it in {{year}} {{cur}} at the {{year}} ECB annual rate. An Orion analysis: the observed nominal amounts never change.",
-          excludedLine_one: "excluded from this view: {{count}} project ({{amount}} nominal)",
-          excludedLine_other: "excluded from this view: {{count}} projects ({{amount}} nominal)",
-          noIndex_one: "index for {{years}} not yet published: {{count}} project, {{amount}}",
-          noIndex_other: "index for {{years}} not yet published: {{count}} projects, {{amount}}",
+          excludedLine_one:
+            "excluded from this view: {{count}} project ({{amount}} nominal)",
+          excludedLine_other:
+            "excluded from this view: {{count}} projects ({{amount}} nominal)",
+          noIndex_one:
+            "index for {{years}} not yet published: {{count}} project, {{amount}}",
+          noIndex_other:
+            "index for {{years}} not yet published: {{count}} projects, {{amount}}",
           noDate_one: "missing start date: {{count}} project, {{amount}}",
           noDate_other: "missing start date: {{count}} projects, {{amount}}",
-          noCurrency_one: "currency without an admitted index: {{count}} project, {{amount}}",
-          noCurrency_other: "currency without an admitted index: {{count}} projects, {{amount}}",
+          noCurrency_one:
+            "currency without an admitted index: {{count}} project, {{amount}}",
+          noCurrency_other:
+            "currency without an admitted index: {{count}} projects, {{amount}}",
           groupScale: "Economic scale",
           gdpMode: "% of GDP",
           gdpHint: "Relative to economic size",
@@ -893,16 +943,65 @@ const resources = {
             "Funding effort: the amounts each funder awarded, relative to its own jurisdiction's economy — a project counts once, never the sum of its recipients.",
           perspectiveRecipient:
             "Received funding intensity: the amounts awarded to each country's organisations, relative to that same country.",
-          noJurisdiction_one: "no resolvable jurisdiction: {{count}} project, {{amount}}",
-          noJurisdiction_other: "no resolvable jurisdiction: {{count}} projects, {{amount}}",
-          noGdpYear_one: "GDP for {{years}} not yet published: {{count}} project, {{amount}}",
-          noGdpYear_other: "GDP for {{years}} not yet published: {{count}} projects, {{amount}}",
-          noPopulationYear_one: "population for {{years}} not published: {{count}} project, {{amount}}",
-          noPopulationYear_other: "population for {{years}} not published: {{count}} projects, {{amount}}",
-          noRateYear_one: "ECB rate for {{years}} missing: {{count}} project, {{amount}}",
-          noRateYear_other: "ECB rate for {{years}} missing: {{count}} projects, {{amount}}",
+          noJurisdiction_one:
+            "no resolvable jurisdiction: {{count}} project, {{amount}}",
+          noJurisdiction_other:
+            "no resolvable jurisdiction: {{count}} projects, {{amount}}",
+          noGdpYear_one:
+            "GDP for {{years}} not yet published: {{count}} project, {{amount}}",
+          noGdpYear_other:
+            "GDP for {{years}} not yet published: {{count}} projects, {{amount}}",
+          noPopulationYear_one:
+            "population for {{years}} not published: {{count}} project, {{amount}}",
+          noPopulationYear_other:
+            "population for {{years}} not published: {{count}} projects, {{amount}}",
+          noRateYear_one:
+            "ECB rate for {{years}} missing: {{count}} project, {{amount}}",
+          noRateYear_other:
+            "ECB rate for {{years}} missing: {{count}} projects, {{amount}}",
           scaleUnavailable:
             "% of GDP and per-capita readings need a view with a resolvable economy — funders, countries, or a year view framed on one country. The view stays nominal.",
+          // PURCHASING POWER (R4) — le mode n'existe que sur une année
+          // d'attribution unique, et dit ce qu'il ne mesure pas.
+          groupPurchasing: "Purchasing power",
+          pppMode: "PPP-adjusted",
+          pppHint: "Compare purchasing power across countries",
+          unitPppRecipient: "Intl $ (PPP) · recipient country",
+          meaningPpp: "Purchasing-power adjusted",
+          meaningPppBody:
+            "Expresses funding according to the general price level of the recipient country. The same market-value amount can therefore represent a different capacity to buy local resources in different countries.",
+          meaningPppLimit:
+            "This uses economy-wide purchasing power parities. It does not measure the specific cost of researchers, laboratories, scientific equipment or computing.",
+          meaningPppSpatial:
+            "This compares countries within a single award year ({{year}}). Amounts are expressed in that year's international dollars: figures from different years are not made comparable in PPP mode, so Orion does not aggregate them across years. For change over time, use Real value.",
+          pppMethod:
+            "Award amounts are converted to current US dollars at Orion's yearly ECB rate, then multiplied by the recipient country's ratio of GDP in current international dollars to GDP in current US dollars for the same year — the World Bank's published purchasing-power adjustment, built on its own national-accounts conversion factor rather than on a market rate. Multinational projects are converted participation by participation, each at its own country's ratio, then added: no coordinator's country, no funder's country, no average. An Orion analysis: the observed nominal amounts never change.",
+          pppFlowNote:
+            "Purchasing power parities are designed to compare the size of economies, not financial flows. This view answers what resources an amount could command locally — not how much money changed hands. They are statistical estimates: small differences between countries should not be read as meaningful.",
+          pppRateNote:
+            "The adjustment relies on the World Bank's own conversion conventions for national accounts, not on the rate any recipient actually obtained. Where an economy has multiple or administered exchange rates, or where its accounting year is not the calendar year, that convention can differ substantially from the official rate.",
+          pppSources:
+            "Sources: World Bank WDI — GDP, PPP (current international $) and GDP (current US$), Orion reference snapshot {{vintage}} · ECB annual rates. Purchasing power parities from the International Comparison Program; figures between benchmark rounds (2011, 2017, 2021) are extrapolated and revised when a new round is published.",
+          pppTrailingYearNote:
+            "The World Bank publishes the most recent year progressively, so a few territories may still be missing from it.",
+          noCountry_one:
+            "participation without a country: {{count}}, {{amount}}",
+          noCountry_other:
+            "participations without a country: {{count}}, {{amount}}",
+          noJurisdictionSeries_one:
+            "no published series for this territory: {{count}} project, {{amount}}",
+          noJurisdictionSeries_other:
+            "no published series for this territory: {{count}} projects, {{amount}}",
+          noReferenceYear_one:
+            "reference not yet published for {{years}} in this territory: {{count}} project, {{amount}}",
+          noReferenceYear_other:
+            "reference not yet published for {{years}} in this territory: {{count}} projects, {{amount}}",
+          pppRequiresSingleYear:
+            "This view compares purchasing power within one award year. Select a single year to use it.",
+          pppYearUnavailable:
+            "Purchasing-power figures are not available for {{year}}: the reference data for that year is not published yet.",
+          pppReferenceUnavailableForView:
+            "No purchasing-power reference is available for the territories in this view in {{year}}.",
           groupTrend: "Trend",
           indexMode: "Index 100",
           indexHint: "Compare growth trajectories",
@@ -940,7 +1039,16 @@ const resources = {
           participants: "participants' share",
           projects: "project budgets",
         },
-        views: { auto: "Auto", lines: "Lines", bump: "Ranks", delta: "Before / after", bars: "Bars", donut: "Donut", map: "Map", table: "Table" },
+        views: {
+          auto: "Auto",
+          lines: "Lines",
+          bump: "Ranks",
+          delta: "Before / after",
+          bars: "Bars",
+          donut: "Donut",
+          map: "Map",
+          table: "Table",
+        },
         bumpTop: "no. 1",
         deltaNew: "new",
         deltaLegend: "window totals, {{a}} versus {{b}}",
@@ -951,7 +1059,8 @@ const resources = {
         donutEnter: "Zoom into {{label}}",
         mapOpenCountry: "Open the country file",
         mapDeselect: "Clear the selection",
-        donutNoChildren: "This programme has no sub-programmes — everything is attached to it directly.",
+        donutNoChildren:
+          "This programme has no sub-programmes — everything is attached to it directly.",
         angles: {
           label: "The angles of this question",
           open: "Open in the composer",
@@ -1016,11 +1125,19 @@ const resources = {
             a2: "Before / after — who gained ground",
             a3: "The country race (ranks)",
           },
-          hydrogen: { a1: "The trajectory", a2: "By programme", a3: "By country, on the map", a4: "Who gets funded", a5: "The country race (ranks)",
+          hydrogen: {
+            a1: "The trajectory",
+            a2: "By programme",
+            a3: "By country, on the map",
+            a4: "Who gets funded",
+            a5: "The country race (ranks)",
             title: "Where does hydrogen money go?",
             desc: "Every hydrogen project, aggregated by programme. The theme filter is the bilingual search.",
           },
-          brexit: { a1: "UK vs France", a2: "The country race (ranks)", a3: "The UK by programme",
+          brexit: {
+            a1: "UK vs France",
+            a2: "The country race (ranks)",
+            a3: "The UK by programme",
             title: "Brexit, seen from the funding",
             desc: "UK participation collapses in 2022, then returns with the Horizon Europe association.",
           },
@@ -1032,8 +1149,14 @@ const resources = {
             title: "Twenty years of framework programmes",
             desc: "FP7, Horizon 2020, Horizon Europe, year by year.",
           },
-          quantum: { title: "The rise of quantum", desc: "Quantum-related funding since 2005." },
-          themeRace: { a1: "The race, in curves", a2: "The race, in ranks", a3: "Before / after — who gained ground",
+          quantum: {
+            title: "The rise of quantum",
+            desc: "Quantum-related funding since 2005.",
+          },
+          themeRace: {
+            a1: "The race, in curves",
+            a2: "The race, in ranks",
+            a3: "Before / after — who gained ground",
             title: "Five themes, twenty years",
             desc: "The disciplines that dominate European funding, year by year.",
           },
@@ -1049,7 +1172,8 @@ const resources = {
         emptyView: "No data for this view — loosen the filters.",
         tableKey: "Entry",
         tableValue: "Value",
-        sources: "© European Union, CORDIS (CC BY 4.0) · NIH RePORTER and NSF (public domain) · Eurostat, NUTS nomenclature (CC BY 4.0)",
+        sources:
+          "© European Union, CORDIS (CC BY 4.0) · NIH RePORTER and NSF (public domain) · Eurostat, NUTS nomenclature (CC BY 4.0)",
       },
       compare: {
         eyebrow: "Benchmark",
@@ -1084,7 +1208,8 @@ const resources = {
         remove: "Remove {{name}}",
         themes: "Top themes",
         chartLabel: "Funding by year, compared",
-        empty: "Search an organisation above to start the comparison — up to four side by side.",
+        empty:
+          "Search an organisation above to start the comparison — up to four side by side.",
       },
       about: {
         title: "About the data",
@@ -1109,7 +1234,8 @@ const resources = {
         lensTitle: "The {{lens}} lens",
         lensPerimeters: "Two perimeters follow, always named on screen:",
         and: "and",
-        lensRules: "{{total}} rules, each with its evidence: {{programme}} programme rules, {{theme}} theme rules (by code, never by label) and {{text}} hand-checked text patterns framed by source. Nothing inflated, nothing deleted: every run re-tags the whole corpus from the rules file.",
+        lensRules:
+          "{{total}} rules, each with its evidence: {{programme}} programme rules, {{theme}} theme rules (by code, never by label) and {{text}} hand-checked text patterns framed by source. Nothing inflated, nothing deleted: every run re-tags the whole corpus from the rules file.",
         lensRulesWithReview:
           "{{total}} rules, each with its evidence: {{programme}} programme rules, {{theme}} theme rules (by code, never by label), {{text}} hand-checked text patterns framed by source, and {{review}} review adjudications — named projects judged piece in hand, the last word over every rule. Nothing inflated, nothing deleted: every run re-tags the whole corpus from the rules file.",
         lensLastRun: "Last run: {{date}}.",
@@ -1118,11 +1244,13 @@ const resources = {
           "Published with: {{core}} core · {{enabling}} enabling · {{funding}}.",
         lensBeforeAfter:
           "Before: {{coreBefore}} core · {{enablingBefore}} enabling · {{fundingBefore}}. After: {{coreAfter}} core · {{enablingAfter}} enabling · {{fundingAfter}}.",
-        lensUrls: "A framed view carries its perimeter as a chip, and the URL says it (« {{direct}} » / « {{enabling}} »).",
+        lensUrls:
+          "A framed view carries its perimeter as a chip, and the URL says it (« {{direct}} » / « {{enabling}} »).",
         lensMethodFallback:
           "The {{lens}} lens identifies its projects one by one from a versioned, auditable rules file.",
         lensDirectFallback: "the projects at the core",
-        lensEnablingFallback: "the core plus the technologies the rules identify as enabling",
+        lensEnablingFallback:
+          "the core plus the technologies the rules identify as enabling",
         overlapTitle: "Overlap",
         overlapBody:
           "{{count}} projects are read by more than one lens. A lens is a reading of the corpus, never a partition: such a project counts in full under each lens — which is why two lenses' figures are never added up.",
@@ -1177,11 +1305,13 @@ const resources = {
           programmes: "Programmes",
           programmesDesc: "les programmes-cadres et les instituts financeurs",
           calls: "Appels",
-          callsDesc: "les appels ouverts et à venir, depuis le portail officiel",
+          callsDesc:
+            "les appels ouverts et à venir, depuis le portail officiel",
           aboutData: "À propos des données",
           aboutDataDesc: "sources, licences, fraîcheur",
           analyses: "Analyses prêtes",
-          analysesDesc: "une question, plusieurs angles — cliquez, puis modifiez",
+          analysesDesc:
+            "une question, plusieurs angles — cliquez, puis modifiez",
           explorerDesc: "composez : métrique × dimension × comparaison",
           compare: "Comparer",
           compareDesc: "jusqu'à quatre organisations côte à côte",
@@ -1228,12 +1358,14 @@ const resources = {
           "Aucun bailleur domestique de cette zone n\u2019est encore chargé : tout ce qui s\u2019affiche vient des consortiums qu\u2019elle rejoint \u2014 ses budgets propres sont invisibles ici, pas nuls.",
         mixedPhrase:
           "Cette vue mélange des couvertures : {{funders}} sont chargés, leurs pays montrent donc leurs financements domestiques. Les autres n\u2019apparaissent que par les consortiums qu\u2019ils rejoignent — leur budget propre est invisible ici, pas nul.",
-        heroBasis: "sur des sources officielles — Europe (programmes-cadres de l\u2019UE), États-Unis (NIH, NSF)",
+        heroBasis:
+          "sur des sources officielles — Europe (programmes-cadres de l\u2019UE), États-Unis (NIH, NSF)",
       },
       hero: {
         eyebrow: "Orion",
         sub: "de financements R&D publics, cartographiés. {{from}} → {{to}}.",
-        subLens: "de financements publics {{lens}} (direct + habilitant), cartographiés. {{from}} → {{to}}.",
+        subLens:
+          "de financements publics {{lens}} (direct + habilitant), cartographiés. {{from}} → {{to}}.",
         lensProjects: "projets {{lens}}",
         lensOrgs: "organisations {{lens}}",
         lensGroups: "groupes industriels",
@@ -1264,18 +1396,24 @@ const resources = {
           "Jusqu'à quatre organisations côte à côte — portefeuilles, partenaires récurrents, thèmes.",
         entryOrgsFigure: "{{count, number}} organisations",
         entryCountries: "Ouvrir les fiches pays",
-        entryCountriesDesc: "Le globe, les flux de collaboration, une fiche par pays.",
+        entryCountriesDesc:
+          "Le globe, les flux de collaboration, une fiche par pays.",
         entryCountriesFigure: "{{count, number}} pays",
-        doorDiscoverDesc: "la fiche {{name}} — poste de veille, partenaires, trajectoire",
+        doorDiscoverDesc:
+          "la fiche {{name}} — poste de veille, partenaires, trajectoire",
         doorDiscoverFigure: "parmi {{count, number}} organisations",
         doorAnalyseDesc: "« {{deck}} » — {{count}} angles, glissés",
         doorAnalyseLibrary: "La bibliothèque d’analyses prêtes",
         doorAnalyseFigure: "{{count}} analyses prêtes",
-        doorBuildDescEmpty: "collectionnez des vues, assemblez, emportez — depuis n'importe quel graphique",
-        doorBuildDescSome_one: "votre dossier de session : {{count}} vue — reprenez-le",
-        doorBuildDescSome_other: "votre dossier de session : {{count}} vues — reprenez-le",
+        doorBuildDescEmpty:
+          "collectionnez des vues, assemblez, emportez — depuis n'importe quel graphique",
+        doorBuildDescSome_one:
+          "votre dossier de session : {{count}} vue — reprenez-le",
+        doorBuildDescSome_other:
+          "votre dossier de session : {{count}} vues — reprenez-le",
         doorFollow: "Suivre",
-        doorFollowNote: "alertes et suivis — les appels sont là, l'espace de travail en 2027",
+        doorFollowNote:
+          "alertes et suivis — les appels sont là, l'espace de travail en 2027",
         newsTitle: "Actualités",
         newsPrev: "Actualité précédente",
         newsNext: "Actualité suivante",
@@ -1300,8 +1438,10 @@ const resources = {
         act3Lead:
           "Chaque pays financé porte la teinte de sa région ; le gris ne dit qu'une chose, aucune donnée encore — survolez un pays pour ses collaborations, cliquez pour le rencontrer.",
         globeFlowsHint: "5 premières collaborations",
-        panelRank_one: "Premier pays financé du monde — dans les données {{brand}}",
-        panelRank_other: "{{count}}ᵉ pays financé du monde — dans les données {{brand}}",
+        panelRank_one:
+          "Premier pays financé du monde — dans les données {{brand}}",
+        panelRank_other:
+          "{{count}}ᵉ pays financé du monde — dans les données {{brand}}",
         panelHook: "{{amount}} répartis sur {{projects}} projets depuis 2005.",
         panelFunding: "financements",
         panelProjects: "projets",
@@ -1342,19 +1482,25 @@ const resources = {
         },
         showMore: "Afficher les {{count}} suivants",
         loadingMore: "Chargement",
-        closedHint: "Échéance passée dans les six derniers mois — gardés pour mémoire.",
+        closedHint:
+          "Échéance passée dans les six derniers mois — gardés pour mémoire.",
         clearFilters: "Effacer les filtres",
         glance: "En un coup d'œil",
         glanceStatus: "Statut",
         inThisDocument: "Dans ce document",
-        synced: "Synchronisé le {{date}} depuis le portail EU Funding & Tenders.",
+        synced:
+          "Synchronisé le {{date}} depuis le portail EU Funding & Tenders.",
         attribution:
           "Contient des données du portail EU Funding & Tenders, © Union européenne, CC BY 4.0.",
         brusselsNote:
           "Les échéances sont affichées en heure de Bruxelles, le fuseau officiel de soumission.",
         back: "Les appels",
         notFound: "Cet appel n'est pas au catalogue.",
-        status: { open: "Ouvert aux candidatures", upcoming: "À venir", closed: "Clos" },
+        status: {
+          open: "Ouvert aux candidatures",
+          upcoming: "À venir",
+          closed: "Clos",
+        },
         statusShort: { open: "Ouvert", upcoming: "À venir", closed: "Clos" },
         parentCall: "appel",
         openingDate: "Ouverture",
@@ -1386,18 +1532,24 @@ const resources = {
         actorContributions: "{{amount}} de contributions observées",
         actorsEmpty: "Pas assez d'historique comparable dans le corpus Orion.",
         actorsReason: {
-          no_comparable_history: "Aucun appel historique ne correspond à la structure de cet appel.",
-          below_threshold: "{{found}} projet(s) historique(s) trouvé(s) — seuil : {{min}}.",
+          no_comparable_history:
+            "Aucun appel historique ne correspond à la structure de cet appel.",
+          below_threshold:
+            "{{found}} projet(s) historique(s) trouvé(s) — seuil : {{min}}.",
           family_too_transversal:
             "La seule famille disponible mélange plusieurs destinations de son cluster — refusée plutôt que d'afficher de faux voisins.",
         },
         actorsMethod: "Méthode",
         actorsMethodCorpus:
           "Corpus : les appels historiques du corpus Orion (CORDIS — FP7, H2020, Horizon Europe) ; les programmes hors corpus n'ont pas d'historique comparable.",
-        actorsMethodUnit: "Unité de comptage : organisation × projet distinct ; coordination comptée au niveau projet.",
-        actorsMethodAmounts: "Montants : contributions attribuées à l'organisation — jamais un budget projet répété par participant.",
-        actorsMethodThreshold: "Affiché à partir de {{min}} projets historiques.",
-        actorsMethodWording: "Constats historiques observés — aucune prédiction.",
+        actorsMethodUnit:
+          "Unité de comptage : organisation × projet distinct ; coordination comptée au niveau projet.",
+        actorsMethodAmounts:
+          "Montants : contributions attribuées à l'organisation — jamais un budget projet répété par participant.",
+        actorsMethodThreshold:
+          "Affiché à partir de {{min}} projets historiques.",
+        actorsMethodWording:
+          "Constats historiques observés — aucune prédiction.",
         viewSource: "Voir sur le portail officiel",
         sourceStatus: "Statut source",
         lastSeen: "vu le {{date}}",
@@ -1419,7 +1571,8 @@ const resources = {
         bridgeUrl: "Chaque vue de l'Explorateur est une URL — envoyez-la",
         bridgeDossier: "Le dossier assemble et s'emporte",
         honest: "Cette page dit la date, et s'arrête là.",
-        signInLead: "L'accès se fait par email approuvé, lien magique, sans mot de passe.",
+        signInLead:
+          "L'accès se fait par email approuvé, lien magique, sans mot de passe.",
         spaceEyebrow: "Orion · mon espace",
         spaceLead:
           "Votre espace de travail personnel — les dossiers gardés ici survivent à tous les navigateurs.",
@@ -1440,7 +1593,8 @@ const resources = {
         resume: "Reprendre comme nouvelle version",
         savedFooter:
           "Un dossier gardé se lit — « Reprendre comme nouvelle version » le recharge dans votre dossier de session ; re-garder crée une nouvelle copie, jamais un écrasement.",
-        savedNeedsAccount: "Ce dossier gardé appartient à un espace — connectez-vous pour l'ouvrir.",
+        savedNeedsAccount:
+          "Ce dossier gardé appartient à un espace — connectez-vous pour l'ouvrir.",
       },
       analyses: {
         seeAll: "Voir toutes les analyses",
@@ -1485,22 +1639,29 @@ const resources = {
       },
       landing: {
         eyebrow: "Orion · intelligence des financements publics de R&D",
-        heroSub: "de financements publics de R&D, cartographiés · {{from}}–{{to}}",
+        heroSub:
+          "de financements publics de R&D, cartographiés · {{from}}–{{to}}",
         heroSubBare: "de financements publics de R&D, cartographiés",
         heroBasis:
           "Europe et États-Unis · projets · organisations · programmes · écosystèmes industriels",
         invite: "L'accès est sur invitation.",
-        doorDiscover: "Projets, organisations, programmes, pays — chaque vue est une URL.",
-        doorAnalyse: "Comparer les acteurs, les secteurs et les trajectoires, sur des périmètres curés.",
-        doorBuild: "Faire des vues vivantes des preuves — des dossiers qui s'emportent.",
+        doorDiscover:
+          "Projets, organisations, programmes, pays — chaque vue est une URL.",
+        doorAnalyse:
+          "Comparer les acteurs, les secteurs et les trajectoires, sur des périmètres curés.",
+        doorBuild:
+          "Faire des vues vivantes des preuves — des dossiers qui s'emportent.",
         doorSignIn: "Se connecter →",
-        lensesLead: "Des périmètres sectoriels curés — chaque chiffre a sa source, chaque lentille sa version.",
+        lensesLead:
+          "Des périmètres sectoriels curés — chaque chiffre a sa source, chaque lentille sa version.",
         globeTitle: "Le monde du financement",
         globeLead:
           "Les pays couverts, sur le globe même que le produit navigue — les fiches détaillées s'ouvrent une fois connecté.",
         sourcesEyebrow: "Méthode",
-        sourcesTitle: "Construit sur sources publiques. Reconstruit pour l'analyse.",
-        sourcesLine: "Chaque chiffre a sa source. Chaque lentille a sa version.",
+        sourcesTitle:
+          "Construit sur sources publiques. Reconstruit pour l'analyse.",
+        sourcesLine:
+          "Chaque chiffre a sa source. Chaque lentille a sa version.",
         finalTitle: "Entrer dans Orion",
         footerLine: "Accès sur invitation",
       },
@@ -1516,7 +1677,8 @@ const resources = {
         emailPlaceholder: "vous@exemple.com",
         submit: "M'envoyer un lien",
         sent: "Si ce compte existe, un lien de connexion est en route.",
-        sentHint: "Le lien vaut 15 minutes et ne sert qu'une fois. Regardez votre boîte de réception.",
+        sentHint:
+          "Le lien vaut 15 minutes et ne sert qu'une fois. Regardez votre boîte de réception.",
         devLink: "Mode développement : ouvrir le lien",
         identityNote:
           "Votre email est votre identité : en perdre l'accès, c'est perdre le compte.",
@@ -1554,14 +1716,17 @@ const resources = {
         showAll: "Voir les {{count, number}} programmes",
         programmesFilter: "Filtrer les {{count}} programmes…",
         themesTitle: "Thèmes",
-        themesLead: "Les 41 disciplines euroSciVoc — leur poids, leur étincelle sur vingt ans, et qui a gagné du terrain (fenêtres mûres).",
+        themesLead:
+          "Les 41 disciplines euroSciVoc — leur poids, leur étincelle sur vingt ans, et qui a gagné du terrain (fenêtres mûres).",
         themesShare: "{{pct}} % du corpus",
         sortFunding: "Par montant",
         sortDelta: "Par progression",
         frameworksSection: "Les programmes-cadres",
         allSources: "Toutes les sources",
-        sourcesLead: "Une rangée par agence de financement — ses programmes se déplient à l'intérieur. NIH et NSF sont là ; la vague 1 continue avec UKRI.",
-        sourceMeta: "{{programmes}} programmes · {{projects}} projets · {{amount}}",
+        sourcesLead:
+          "Une rangée par agence de financement — ses programmes se déplient à l'intérieur. NIH et NSF sont là ; la vague 1 continue avec UKRI.",
+        sourceMeta:
+          "{{programmes}} programmes · {{projects}} projets · {{amount}}",
         sourcesSoon: "vague 1 · UKRI (Royaume-Uni) à l'instruction",
         nationalSection: "Les instituts financeurs",
         programmesCount: "{{count}} programmes · {{amount}}",
@@ -1571,18 +1736,23 @@ const resources = {
         mapLabel: "Carte du monde — financements par pays, teintés par région",
         mapLegend: "Financements publics R&D",
         mapFlows: "au survol, les principales collaborations du pays",
-        mapHint: "Premier clic : le pays se sélectionne · un second ouvre sa fiche",
-        globeLabel: "Globe mondial — la couverture de {{brand}}, teintée par région",
+        mapHint:
+          "Premier clic : le pays se sélectionne · un second ouvre sa fiche",
+        globeLabel:
+          "Globe mondial — la couverture de {{brand}}, teintée par région",
         globeHint: "glisser pour tourner · cliquer un pays couvert",
         viewGlobe: "Globe",
         viewMap: "Carte",
         coverageSoon: "pas encore de donnée",
-        coverageNote: "Couverture : Europe — CORDIS (Horizon Europe, H2020, FP7) · États-Unis — NIH, NSF.",
-        coverageDetail: "À venir : Royaume-Uni (UKRI), Suisse (SNSF), Pays-Bas (NWO), Suède (Vinnova).",
+        coverageNote:
+          "Couverture : Europe — CORDIS (Horizon Europe, H2020, FP7) · États-Unis — NIH, NSF.",
+        coverageDetail:
+          "À venir : Royaume-Uni (UKRI), Suisse (SNSF), Pays-Bas (NWO), Suède (Vinnova).",
       },
       search: {
         composer: {
-          placeholder: "Composez : un pays, un bailleur, un programme, des années, du texte…",
+          placeholder:
+            "Composez : un pays, un bailleur, un programme, des années, du texte…",
           placeholderOrgs: "Composez : un nom, un pays…",
           typeCountry: "pays",
           typeFunder: "bailleur",
@@ -1680,19 +1850,22 @@ const resources = {
         headerLine_one: "Groupe de {{count, number}} entité légale",
         headerLine_other: "Groupe de {{count, number}} entités légales",
         lei: "LEI",
-        totalFunding: "Financements publics R&D consolidés du périmètre rattaché",
+        totalFunding:
+          "Financements publics R&D consolidés du périmètre rattaché",
         doubleMeasure:
           "{{attributed}} attribués aux entités légales · {{exposure}} d\u2019exposition par participation. L\u2019attribué, additionné entre groupes, compte deux fois les coentreprises — c\u2019est la nature de cette lecture.",
         jvWeighted:
           "Les montants des coentreprises sont pondérés par leur pacte — un 67/33 compte 67 et 33, jamais deux fois 100.",
-        coverageBasis: "Rattachements fondés sur les registres publics (GLEIF, Wikidata) et la curation manuelle.",
+        coverageBasis:
+          "Rattachements fondés sur les registres publics (GLEIF, Wikidata) et la curation manuelle.",
         coverageGap_one:
           "{{count}} organisation du corpus portant le nom du groupe n\u2019est pas encore rattachée{{weight}} — les totaux disent le périmètre rattaché, jamais le groupe entier.",
         coverageGap_other:
           "{{count}} organisations du corpus portant le nom du groupe ne sont pas encore rattachées{{weight}} — les totaux disent le périmètre rattaché, jamais le groupe entier.",
         coverageWeight: " ({{amount}} de financements)",
         compareCta: "Comparer ce groupe",
-        byEntityLabel: "La trajectoire, entité par entité — top 5, le reste consolidé",
+        byEntityLabel:
+          "La trajectoire, entité par entité — top 5, le reste consolidé",
         othersSeries: "— autres entités —",
         actPartnersKicker: "partenaires",
         actPartners: "Avec qui le groupe travaille",
@@ -1742,11 +1915,16 @@ const resources = {
           active: "active en {{year}}",
           partners_one: "{{count}} co-participant historique",
           partners_other: "{{count}} co-participants historiques",
-          methodBases: "Bases : pont exact (dès 1 projet — déjà financée sous ce code d'appel), puis famille par identifiant (résolution et gardes d'E2, seuil {{min}} projets).",
-          methodUnit: "Unité de comptage : organisation × projet distinct ; coordination comptée au niveau projet.",
-          methodEligibility: "Éligibilité : non évaluée — le portail ne la publie pas en structuré ; un critère inconnu n'est jamais traité comme incompatible.",
-          methodRanking: "Tri déclaré : pont exact, puis projets historiques, puis échéance la plus proche — aucun score agrégé (la pondération est un arbitrage de méthode à venir).",
-          methodWording: "Pertinence historique observée dans le corpus Orion — jamais une garantie d'éligibilité ou de succès.",
+          methodBases:
+            "Bases : pont exact (dès 1 projet — déjà financée sous ce code d'appel), puis famille par identifiant (résolution et gardes d'E2, seuil {{min}} projets).",
+          methodUnit:
+            "Unité de comptage : organisation × projet distinct ; coordination comptée au niveau projet.",
+          methodEligibility:
+            "Éligibilité : non évaluée — le portail ne la publie pas en structuré ; un critère inconnu n'est jamais traité comme incompatible.",
+          methodRanking:
+            "Tri déclaré : pont exact, puis projets historiques, puis échéance la plus proche — aucun score agrégé (la pondération est un arbitrage de méthode à venir).",
+          methodWording:
+            "Pertinence historique observée dans le corpus Orion — jamais une garantie d'éligibilité ou de succès.",
           countOpen_one: "{{count}} OUVERT",
           countOpen_other: "{{count}} OUVERTS",
           countUpcoming_one: "{{count}} À VENIR",
@@ -1774,7 +1952,8 @@ const resources = {
         mapPartners_other: "{{count}} partenaires",
         mapShared_one: "{{count}} projet partagé",
         mapShared_other: "{{count}} projets partagés",
-        mapHint: "Le premier clic sélectionne un pays ; le second ouvre sa fiche.",
+        mapHint:
+          "Le premier clic sélectionne un pays ; le second ouvre sa fiche.",
         mapBeyond: "Hors carte :",
         projects: "Projets",
         asCoordinator: "En coordination",
@@ -1827,7 +2006,10 @@ const resources = {
         byMeshBars:
           "Chaque région classée par les financements reçus par ses bénéficiaires — un clic sélectionne, un second ouvre la vue. Nommées, jamais dessinées : nomenclature officielle Eurostat, pas de carte par licence.",
         meshLegend: "Financements par État",
-        meshOpen: { US: "Ouvrir la vue de cet État", default: "Ouvrir cette vue" },
+        meshOpen: {
+          US: "Ouvrir la vue de cet État",
+          default: "Ouvrir cette vue",
+        },
         meshResidue: "Non rattaché à une région :",
         topOrganisations: "Principales organisations",
         topProjects: "Principaux projets",
@@ -1845,7 +2027,8 @@ const resources = {
         title: "Choisis ta lentille",
         sub: "Le même corpus. Une autre façon de le regarder.",
         allName: "Tout le corpus",
-        allFigures: "{{formatted}} projets · tous les thèmes, toutes les sources",
+        allFigures:
+          "{{formatted}} projets · tous les thèmes, toutes les sources",
         enterAll: "Explorer le corpus entier",
         projects_one: "{{formatted}} projet",
         projects_other: "{{formatted}} projets",
@@ -1923,8 +2106,8 @@ const resources = {
         sector: {
           chipLabel: "Périmètre de cette vue",
           directHint: "les projets cœur seuls, par la lentille versionnée",
-        soloHint:
-          "un seul périmètre qualifié à ce jour — « + habilitant » apparaîtra quand des projets habilitants auront passé la recette",
+          soloHint:
+            "un seul périmètre qualifié à ce jour — « + habilitant » apparaîtra quand des projets habilitants auront passé la recette",
           enablingHint: "cœur + technologies habilitantes",
           directPattern: "{{lens}} direct",
           enablingPattern: "{{lens}} + habilitant",
@@ -1984,8 +2167,10 @@ const resources = {
           meaningGdp: "% du PIB",
           meaningGdpBody:
             "Rapporte les montants attribués à la taille de l'économie concernée. Une valeur de 0,10 % signifie que les financements attribués représentent l'équivalent de 0,10 % du PIB sur le même périmètre temporel.",
-          meaningGdpWhoseFunder: "Ici : l'économie de la juridiction de chaque financeur.",
-          meaningGdpWhoseRecipient: "Ici : l'économie de chaque pays bénéficiaire.",
+          meaningGdpWhoseFunder:
+            "Ici : l'économie de la juridiction de chaque financeur.",
+          meaningGdpWhoseRecipient:
+            "Ici : l'économie de chaque pays bénéficiaire.",
           meaningCapita: "Par habitant",
           meaningCapitaBody:
             "Rapporte les montants attribués à la population du pays concerné. Cela répond à la question : « combien de financement cela représente-t-il par habitant ? »",
@@ -2010,22 +2195,31 @@ const resources = {
           sectionSources: "Sources",
           method:
             "Montants corrigés de l'évolution des prix dans leur monnaie d'origine (HICP Eurostat, CPI-U BLS), puis exprimés en {{cur}} de {{year}} au taux annuel BCE de {{year}}. Une analyse Orion : les montants nominaux observés ne changent jamais.",
-          excludedLine_one: "hors calcul : {{count}} projet ({{amount}} nominal)",
-          excludedLine_other: "hors calcul : {{count}} projets ({{amount}} nominal)",
-          noIndex_one: "indice {{years}} non publié : {{count}} projet, {{amount}}",
-          noIndex_other: "indice {{years}} non publié : {{count}} projets, {{amount}}",
+          excludedLine_one:
+            "hors calcul : {{count}} projet ({{amount}} nominal)",
+          excludedLine_other:
+            "hors calcul : {{count}} projets ({{amount}} nominal)",
+          noIndex_one:
+            "indice {{years}} non publié : {{count}} projet, {{amount}}",
+          noIndex_other:
+            "indice {{years}} non publié : {{count}} projets, {{amount}}",
           noDate_one: "date de début manquante : {{count}} projet, {{amount}}",
-          noDate_other: "date de début manquante : {{count}} projets, {{amount}}",
-          noCurrency_one: "devise sans indice admis : {{count}} projet, {{amount}}",
-          noCurrency_other: "devise sans indice admis : {{count}} projets, {{amount}}",
+          noDate_other:
+            "date de début manquante : {{count}} projets, {{amount}}",
+          noCurrency_one:
+            "devise sans indice admis : {{count}} projet, {{amount}}",
+          noCurrency_other:
+            "devise sans indice admis : {{count}} projets, {{amount}}",
           groupScale: "Échelle économique",
           gdpMode: "% du PIB",
           gdpHint: "Rapporté à la taille de l'économie",
           capitaMode: "Par habitant",
           capitaHint: "Rapporté à la population",
           capitaCurrent: "Par habitant · {{symbol}} {{year}}",
-          unitGdpFunder: "Montants attribués · % du PIB · économie du financeur",
-          unitGdpRecipient: "Montants attribués · % du PIB · économie du bénéficiaire",
+          unitGdpFunder:
+            "Montants attribués · % du PIB · économie du financeur",
+          unitGdpRecipient:
+            "Montants attribués · % du PIB · économie du bénéficiaire",
           unitGdpOf: "Montants attribués · % du PIB · {{name}}",
           unitCapita: "{{symbol}} constants {{year}} / habitant",
           unitCapitaCumulative:
@@ -2040,16 +2234,63 @@ const resources = {
             "Effort de financement : les montants attribués par chaque financeur, rapportés à l'économie de SA juridiction — un projet compte une fois, jamais la somme de ses bénéficiaires.",
           perspectiveRecipient:
             "Intensité de financement reçu : les montants attribués aux organisations de chaque pays, rapportés à ce même pays.",
-          noJurisdiction_one: "juridiction non résoluble : {{count}} projet, {{amount}}",
-          noJurisdiction_other: "juridiction non résoluble : {{count}} projets, {{amount}}",
-          noGdpYear_one: "PIB {{years}} non publié : {{count}} projet, {{amount}}",
-          noGdpYear_other: "PIB {{years}} non publié : {{count}} projets, {{amount}}",
-          noPopulationYear_one: "population {{years}} non publiée : {{count}} projet, {{amount}}",
-          noPopulationYear_other: "population {{years}} non publiée : {{count}} projets, {{amount}}",
-          noRateYear_one: "taux BCE {{years}} absent : {{count}} projet, {{amount}}",
-          noRateYear_other: "taux BCE {{years}} absent : {{count}} projets, {{amount}}",
+          noJurisdiction_one:
+            "juridiction non résoluble : {{count}} projet, {{amount}}",
+          noJurisdiction_other:
+            "juridiction non résoluble : {{count}} projets, {{amount}}",
+          noGdpYear_one:
+            "PIB {{years}} non publié : {{count}} projet, {{amount}}",
+          noGdpYear_other:
+            "PIB {{years}} non publié : {{count}} projets, {{amount}}",
+          noPopulationYear_one:
+            "population {{years}} non publiée : {{count}} projet, {{amount}}",
+          noPopulationYear_other:
+            "population {{years}} non publiée : {{count}} projets, {{amount}}",
+          noRateYear_one:
+            "taux BCE {{years}} absent : {{count}} projet, {{amount}}",
+          noRateYear_other:
+            "taux BCE {{years}} absent : {{count}} projets, {{amount}}",
           scaleUnavailable:
             "Les lectures % du PIB et par habitant demandent une vue à économie résoluble — financeurs, pays, ou une vue annuelle cadrée sur un pays. La vue reste en nominal.",
+          // PURCHASING POWER (R4) — le mode n'existe que sur une année
+          // d'attribution unique, et dit ce qu'il ne mesure pas.
+          groupPurchasing: "Pouvoir d'achat",
+          pppMode: "Parité de pouvoir d'achat",
+          pppHint: "Comparer le pouvoir d'achat entre pays",
+          unitPppRecipient: "$ intl. (PPA) · pays bénéficiaire",
+          meaningPpp: "En parité de pouvoir d'achat",
+          meaningPppBody:
+            "Exprime le financement selon le niveau général des prix du pays bénéficiaire. Un même montant en valeur de marché peut donc représenter une capacité d'achat de ressources locales différente d'un pays à l'autre.",
+          meaningPppLimit:
+            "Cette lecture repose sur des parités de pouvoir d'achat calculées pour l'ensemble de l'économie. Elle ne mesure pas le coût propre des chercheurs, des laboratoires, des équipements scientifiques ni du calcul.",
+          meaningPppSpatial:
+            "Cette vue compare des pays au sein d'une même année d'attribution ({{year}}). Les montants sont exprimés en dollars internationaux de cette année-là : les chiffres d'années différentes ne sont pas rendus comparables dans ce mode, et Orion ne les agrège donc pas entre années. Pour l'évolution dans le temps, utiliser la valeur réelle.",
+          pppMethod:
+            "Les montants attribués sont convertis en dollars US courants au taux BCE annuel d'Orion, puis multipliés par le rapport, pour le pays bénéficiaire et la même année, entre son PIB en dollars internationaux courants et son PIB en dollars US courants — l'ajustement de pouvoir d'achat publié par la Banque mondiale, construit sur son propre facteur de conversion des comptes nationaux et non sur un taux de marché. Les projets multinationaux sont convertis participation par participation, chacune au ratio de son pays, puis additionnés : jamais le pays du coordinateur, jamais celui du financeur, jamais une moyenne. Analyse Orion : les montants nominaux observés ne changent jamais.",
+          pppFlowNote:
+            "Les parités de pouvoir d'achat sont conçues pour comparer la taille des économies, pas des flux financiers. Cette vue répond à ce qu'un montant permettait de commander localement — pas au montant qui a changé de mains. Ce sont des estimations statistiques : de petits écarts entre pays ne doivent pas être interprétés.",
+          pppRateNote:
+            "L'ajustement repose sur les conventions de conversion des comptes nationaux propres à la Banque mondiale, pas sur le taux qu'un bénéficiaire a réellement obtenu. Pour une économie à taux de change multiples ou administrés, ou dont l'année comptable n'est pas l'année civile, cette convention peut s'écarter sensiblement du taux officiel.",
+          pppSources:
+            "Sources : Banque mondiale WDI — PIB en dollars internationaux courants et PIB en dollars US courants, instantané de référence Orion du {{vintage}} · taux annuels BCE. Parités issues du Programme de comparaison internationale ; les valeurs situées entre les cycles de référence (2011, 2017, 2021) sont extrapolées et révisées à chaque nouveau cycle.",
+          pppTrailingYearNote:
+            "La Banque mondiale publie l'année la plus récente progressivement : quelques territoires peuvent encore y manquer.",
+          noCountry_one: "participation sans pays : {{count}}, {{amount}}",
+          noCountry_other: "participations sans pays : {{count}}, {{amount}}",
+          noJurisdictionSeries_one:
+            "aucune série publiée pour ce territoire : {{count}} projet, {{amount}}",
+          noJurisdictionSeries_other:
+            "aucune série publiée pour ce territoire : {{count}} projets, {{amount}}",
+          noReferenceYear_one:
+            "référence {{years}} non encore publiée pour ce territoire : {{count}} projet, {{amount}}",
+          noReferenceYear_other:
+            "référence {{years}} non encore publiée pour ce territoire : {{count}} projets, {{amount}}",
+          pppRequiresSingleYear:
+            "Cette vue compare le pouvoir d'achat au sein d'une seule année d'attribution. Choisissez une année pour l'utiliser.",
+          pppYearUnavailable:
+            "Le pouvoir d'achat n'est pas disponible pour {{year}} : les données de référence de cette année ne sont pas encore publiées.",
+          pppReferenceUnavailableForView:
+            "Aucune référence de pouvoir d'achat n'est disponible en {{year}} pour les territoires de cette vue.",
           groupTrend: "Trajectoire",
           indexMode: "Indice 100",
           indexHint: "Comparer les trajectoires de croissance",
@@ -2087,7 +2328,16 @@ const resources = {
           participants: "part des participants",
           projects: "budget des projets",
         },
-        views: { auto: "Auto", lines: "Courbes", bump: "Rangs", delta: "Avant / après", bars: "Barres", donut: "Donut", map: "Carte", table: "Table" },
+        views: {
+          auto: "Auto",
+          lines: "Courbes",
+          bump: "Rangs",
+          delta: "Avant / après",
+          bars: "Barres",
+          donut: "Donut",
+          map: "Carte",
+          table: "Table",
+        },
         bumpTop: "n° 1",
         deltaNew: "nouveau",
         deltaLegend: "totaux par fenêtre, {{a}} contre {{b}}",
@@ -2098,7 +2348,8 @@ const resources = {
         donutEnter: "Entrer dans {{label}}",
         mapOpenCountry: "Ouvrir la fiche pays",
         mapDeselect: "Effacer la sélection",
-        donutNoChildren: "Ce programme n'a pas de sous-programmes — tout y est rattaché directement.",
+        donutNoChildren:
+          "Ce programme n'a pas de sous-programmes — tout y est rattaché directement.",
         angles: {
           label: "Les angles de cette question",
           open: "Ouvrir dans le composeur",
@@ -2163,11 +2414,19 @@ const resources = {
             a2: "Avant / après — qui a gagné du terrain",
             a3: "La course des pays (rangs)",
           },
-          hydrogen: { a1: "La trajectoire", a2: "Par programme", a3: "Par pays, sur la carte", a4: "Qui est financé", a5: "La course des pays (rangs)",
+          hydrogen: {
+            a1: "La trajectoire",
+            a2: "Par programme",
+            a3: "Par pays, sur la carte",
+            a4: "Qui est financé",
+            a5: "La course des pays (rangs)",
             title: "Où va l'argent de l'hydrogène ?",
             desc: "Tous les projets hydrogène, agrégés par programme. Le filtre thème est la recherche bilingue.",
           },
-          brexit: { a1: "Royaume-Uni vs France", a2: "La course des pays (rangs)", a3: "Le Royaume-Uni par programme",
+          brexit: {
+            a1: "Royaume-Uni vs France",
+            a2: "La course des pays (rangs)",
+            a3: "Le Royaume-Uni par programme",
             title: "Le Brexit vu des financements",
             desc: "La participation britannique s'effondre en 2022, puis revient avec l'association à Horizon Europe.",
           },
@@ -2179,8 +2438,14 @@ const resources = {
             title: "Vingt ans de programmes-cadres",
             desc: "FP7, Horizon 2020, Horizon Europe, année par année.",
           },
-          quantum: { title: "L'essor du quantique", desc: "Les financements liés au quantique depuis 2005." },
-          themeRace: { a1: "La course, en courbes", a2: "La course, en rangs", a3: "Avant / après — qui a gagné du terrain",
+          quantum: {
+            title: "L'essor du quantique",
+            desc: "Les financements liés au quantique depuis 2005.",
+          },
+          themeRace: {
+            a1: "La course, en courbes",
+            a2: "La course, en rangs",
+            a3: "Avant / après — qui a gagné du terrain",
             title: "Cinq thèmes, vingt ans",
             desc: "Les disciplines qui dominent le financement européen, année par année.",
           },
@@ -2196,7 +2461,8 @@ const resources = {
         emptyView: "Aucune donnée pour cette vue — élargissez les filtres.",
         tableKey: "Entrée",
         tableValue: "Valeur",
-        sources: "© Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER et NSF (domaine public) · Eurostat, nomenclature NUTS (CC BY 4.0)",
+        sources:
+          "© Union européenne, CORDIS (CC BY 4.0) · NIH RePORTER et NSF (domaine public) · Eurostat, nomenclature NUTS (CC BY 4.0)",
       },
       themes: {
         "/21/33": "sciences de la santé",
@@ -2274,7 +2540,8 @@ const resources = {
         remove: "Retirer {{name}}",
         themes: "Thèmes principaux",
         chartLabel: "Financement par année, comparé",
-        empty: "Cherchez une organisation ci-dessus pour démarrer la comparaison — jusqu'à quatre côte à côte.",
+        empty:
+          "Cherchez une organisation ci-dessus pour démarrer la comparaison — jusqu'à quatre côte à côte.",
       },
       about: {
         title: "À propos des données",
@@ -2297,9 +2564,11 @@ const resources = {
         down: "Injoignable",
         licences: "Licences et attribution",
         lensTitle: "La lentille « {{lens}} »",
-        lensPerimeters: "Deux périmètres en découlent, toujours nommés à l’écran :",
+        lensPerimeters:
+          "Deux périmètres en découlent, toujours nommés à l’écran :",
         and: "et",
-        lensRules: "{{total}} règles, chacune avec sa preuve : {{programme}} règles de programme, {{theme}} règles de thème (par code, jamais par libellé) et {{text}} motifs de texte validés à la main et cadrés par source. Rien de gonflé, rien de supprimé : chaque exécution retague le corpus entier depuis le fichier de règles.",
+        lensRules:
+          "{{total}} règles, chacune avec sa preuve : {{programme}} règles de programme, {{theme}} règles de thème (par code, jamais par libellé) et {{text}} motifs de texte validés à la main et cadrés par source. Rien de gonflé, rien de supprimé : chaque exécution retague le corpus entier depuis le fichier de règles.",
         lensRulesWithReview:
           "{{total}} règles, chacune avec sa preuve : {{programme}} règles de programme, {{theme}} règles de thème (par code, jamais par libellé), {{text}} motifs de texte validés à la main et cadrés par source, et {{review}} adjudications de revue — des projets nommés, jugés pièce en main, le dernier mot sur toute règle. Rien de gonflé, rien de supprimé : chaque exécution retague le corpus entier depuis le fichier de règles.",
         lensLastRun: "Dernier passage : {{date}}.",
@@ -2308,7 +2577,8 @@ const resources = {
           "Publiée avec : {{core}} cœur · {{enabling}} habilitant · {{funding}}.",
         lensBeforeAfter:
           "Avant : {{coreBefore}} cœur · {{enablingBefore}} habilitant · {{fundingBefore}}. Après : {{coreAfter}} cœur · {{enablingAfter}} habilitant · {{fundingAfter}}.",
-        lensUrls: "Une vue cadrée porte son périmètre en chip, et l’URL le dit (« {{direct}} » / « {{enabling}} »).",
+        lensUrls:
+          "Une vue cadrée porte son périmètre en chip, et l’URL le dit (« {{direct}} » / « {{enabling}} »).",
         lensMethodFallback:
           "La lentille « {{lens}} » identifie ses projets un à un depuis un fichier de règles versionné et auditable.",
         lensDirectFallback: "les projets au cœur du sujet",
@@ -2321,7 +2591,8 @@ const resources = {
       footer: {
         data: "À propos des données",
         phase: "v0.4.0",
-        tagline: "Intelligence des financements et écosystèmes industriels du spatial",
+        tagline:
+          "Intelligence des financements et écosystèmes industriels du spatial",
         scope: "Europe · États-Unis · 2005–2027",
         product: "Produit",
         exploreCol: "Explorer",

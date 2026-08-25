@@ -15,17 +15,32 @@ import { ReferenceSelector } from "@/components/reference-selector";
 import { LensUnavailable } from "@/components/lens-unavailable";
 import { SectorChip } from "@/components/sector-chip";
 import { SeriesLegend } from "@/components/series-legend";
-import { LENS_PARAM, useActiveLensState, useCarriedLens, withLens } from "@/lib/lens";
+import {
+  LENS_PARAM,
+  useActiveLensState,
+  useCarriedLens,
+  withLens,
+} from "@/lib/lens";
 import { ExploreTable } from "@/components/explore-table";
 import { WorldMap } from "@/components/world-map";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api } from "@/lib/api";
+import { ApiError, api } from "@/lib/api";
 import { regionColor } from "@/lib/regions";
 import { addToDossier, isCollected, removeByParams } from "@/lib/dossier";
 import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
-import { readState, resolveView, toApiParams } from "@/lib/explore-state";
-import { applyTrend, indexBaseCandidates, resolveIndexBase, robustDomain } from "@/lib/trend";
+import {
+  pppAvailable,
+  readState,
+  resolveView,
+  toApiParams,
+} from "@/lib/explore-state";
+import {
+  applyTrend,
+  indexBaseCandidates,
+  resolveIndexBase,
+  robustDomain,
+} from "@/lib/trend";
 import { excludedYears } from "@/lib/excluded";
 import type { ExplorerState } from "@/lib/explore-state";
 import {
@@ -38,7 +53,13 @@ import {
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const METRICS = ["funding", "projects", "organisations", "avg", "coordination"] as const;
+const METRICS = [
+  "funding",
+  "projects",
+  "organisations",
+  "avg",
+  "coordination",
+] as const;
 const DIMENSIONS = [
   "country",
   "region",
@@ -64,6 +85,24 @@ const YEAR_MIN = 2005;
 const YEAR_MAX = 2027;
 
 /* ————— A dotted-underline sentence segment opening a small menu ————— */
+
+/** Le message d'un refus PPP suit le CODE renvoyé, jamais le mode.
+ *
+ *  Trois refus, trois faits distincts : la vue ne cadre pas une seule
+ *  année (prédictible ici, aucune requête n'est émise) ; l'année n'est
+ *  publiée par aucune juridiction ; ou aucun territoire de CETTE vue
+ *  n'a de référence pour elle. Se tromper de phrase dirait quelque
+ *  chose de faux — par exemple accuser la source de ne pas avoir publié
+ *  2025 alors qu'elle l'a publiée pour deux cent trente pays. */
+function pppRefusalKey(predictive: boolean, error: unknown): string {
+  if (predictive) return "explorer.reference.pppRequiresSingleYear";
+  const detail = error instanceof ApiError ? error.detail : null;
+  if (detail === "ppp_year_unavailable")
+    return "explorer.reference.pppYearUnavailable";
+  if (detail === "ppp_reference_unavailable_for_view")
+    return "explorer.reference.pppReferenceUnavailableForView";
+  return "explorer.reference.pppRequiresSingleYear";
+}
 
 function Segment({
   display,
@@ -112,7 +151,10 @@ function Segment({
       >
         {display}
         {!chip ? (
-          <span aria-hidden="true" className="ml-1 align-[2px] text-[0.6em] opacity-60">
+          <span
+            aria-hidden="true"
+            className="ml-1 align-[2px] text-[0.6em] opacity-60"
+          >
             ▾
           </span>
         ) : null}
@@ -176,7 +218,9 @@ export function ExplorerPage() {
       )
     : 0;
   const activeSlide = anglesStory?.deck?.[angleIndex];
-  const state = readState(activeSlide ? new URLSearchParams(activeSlide.params) : params);
+  const state = readState(
+    activeSlide ? new URLSearchParams(activeSlide.params) : params,
+  );
 
   const setAngle = (index: number) => {
     if (!anglesStory) return;
@@ -212,10 +256,12 @@ export function ExplorerPage() {
     if (next.by !== "country") out.set("by", next.by);
     if (next.by !== "year") out.set("split", next.split ? "1" : "0");
     if (next.compare.length > 0) out.set("compare", next.compare.join("~"));
-    if (next.from != null && next.to != null) out.set("time", `${next.from}..${next.to}`);
+    if (next.from != null && next.to != null)
+      out.set("time", `${next.from}..${next.to}`);
     if (next.q) out.set("q", next.q);
     if (next.country) out.set("country", next.country);
-    if (next.programme && next.by === "programme") out.set("programme", next.programme);
+    if (next.programme && next.by === "programme")
+      out.set("programme", next.programme);
     if (next.limit !== 5) out.set("limit", String(next.limit));
     if (next.view !== "auto") out.set("view", next.view);
     // Les cadrages traversent l'interaction (Space natif, lot 0) : les
@@ -236,6 +282,12 @@ export function ExplorerPage() {
       // % PIB : aucun paramètre — la perspective est forcée par la
       // dimension, elle n'entre jamais dans l'URL (R0 § D3).
       out.set("value", "gdp");
+    } else if (next.value === "ppp") {
+      // PURCHASING POWER (R4) : un seul paramètre. Pas de `base` (il n'y
+      // a pas d'année de référence), pas de `cur` (le dollar
+      // international ne se choisit pas), pas de `perspective` (forcée),
+      // et pas de second paramètre d'année — elle vit déjà dans `time`.
+      out.set("value", "ppp");
     } else if (next.value === "index") {
       // TREND (R2) : l'index porte son année de base, la croissance n'a
       // aucun paramètre — et aucune interaction (légende, fenêtre,
@@ -273,18 +325,35 @@ export function ExplorerPage() {
   // FORCÉE par la dimension : aucun contrôle inutile, rien dans l'URL.
   const scaleAvailable =
     state.metric === "funding" &&
-    (state.by === "funder" || state.by === "country" || (state.by === "year" && !!state.country));
+    (state.by === "funder" ||
+      state.by === "country" ||
+      (state.by === "year" && !!state.country));
   const scalePerspective: "funder" | "recipient" =
     state.by === "funder" ? "funder" : "recipient";
+  // PURCHASING POWER (R4) : le prédicat vit dans `explore-state` — la
+  // page, le rejeu et les tests lisent la même règle.
+  const isPppAvailable = pppAvailable(state);
+  // Deux des trois refus PPP sont PRÉDICTIBLES : le mode est demandé
+  // alors que la vue ne le porte pas. Comme pour TREND, on ne lance
+  // aucune requête — on affiche le motif.
+  const pppInvalid = state.value === "ppp" && !isPppAvailable;
 
-  const { data: rawData, isPending, isError } = useQuery({
+  const {
+    data: rawData,
+    isPending,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["explore", apiParams.toString()],
     queryFn: () => api.explore(apiParams),
     placeholderData: keepPreviousData,
     // Une vue déjà refusée ne demande rien : l'API dirait la même chose.
-    enabled: lensState.kind !== "invalid" && !trendInvalid,
+    enabled: lensState.kind !== "invalid" && !trendInvalid && !pppInvalid,
   });
-  const { data: countries } = useQuery({ queryKey: ["countries"], queryFn: api.countries });
+  const { data: countries } = useQuery({
+    queryKey: ["countries"],
+    queryFn: api.countries,
+  });
   const { data: programmes } = useQuery({
     queryKey: ["programmes"],
     queryFn: api.programmes,
@@ -293,7 +362,9 @@ export function ExplorerPage() {
   const { data: themes } = useQuery({
     queryKey: ["explore-themes"],
     queryFn: () =>
-      api.explore(new URLSearchParams({ metric: "projects", by: "theme", limit: "25" })),
+      api.explore(
+        new URLSearchParams({ metric: "projects", by: "theme", limit: "25" }),
+      ),
     enabled: state.by === "theme",
   });
   const { data: flows } = useQuery({
@@ -307,13 +378,17 @@ export function ExplorerPage() {
   // `data` transformé — jamais deux calculs légèrement différents. La
   // base d'index est CANONIQUE : dans la fenêtre visible et
   // exploitable, sinon ré-ancrée (l'URL est réécrite plus bas).
-  const indexBases = rawData ? indexBaseCandidates(rawData, state.from, state.to) : [];
+  const indexBases = rawData
+    ? indexBaseCandidates(rawData, state.from, state.to)
+    : [];
   const canonicalBase =
     trendMode === "index" && rawData
       ? resolveIndexBase(rawData, state.from, state.to, state.base)
       : null;
   const trend =
-    trendMode && !trendInvalid && rawData ? applyTrend(rawData, trendMode, canonicalBase) : null;
+    trendMode && !trendInvalid && rawData
+      ? applyTrend(rawData, trendMode, canonicalBase)
+      : null;
   const data = trend ? trend.data : rawData;
 
   // L'année de référence dans l'URL, TOUJOURS (arbitrage du 2026-08-22,
@@ -325,7 +400,11 @@ export function ExplorerPage() {
   const referenceMeta = data?.meta.reference;
   useEffect(() => {
     if (anglesStory) return;
-    if ((state.value === "real" || state.value === "capita") && state.base == null && referenceMeta?.base != null) {
+    if (
+      (state.value === "real" || state.value === "capita") &&
+      state.base == null &&
+      referenceMeta?.base != null
+    ) {
       const out = new URLSearchParams(params);
       out.set("base", String(referenceMeta.base));
       setParams(out, { replace: true, preventScrollReset: true });
@@ -341,7 +420,11 @@ export function ExplorerPage() {
   // implicite.
   useEffect(() => {
     if (anglesStory) return;
-    if (trendMode === "index" && canonicalBase != null && state.base !== canonicalBase) {
+    if (
+      trendMode === "index" &&
+      canonicalBase != null &&
+      state.base !== canonicalBase
+    ) {
       const out = new URLSearchParams(params);
       out.set("base", String(canonicalBase));
       setParams(out, { replace: true, preventScrollReset: true });
@@ -357,9 +440,9 @@ export function ExplorerPage() {
     state.country !== ""
       ? (() => {
           try {
-            return new Intl.DisplayNames([i18n.language || "en"], { type: "region" }).of(
-              state.country,
-            );
+            return new Intl.DisplayNames([i18n.language || "en"], {
+              type: "region",
+            }).of(state.country);
           } catch {
             return state.country;
           }
@@ -371,40 +454,45 @@ export function ExplorerPage() {
   // est un cumul sur la période.
   const period = `${state.from ?? YEAR_MIN}–${state.to ?? YEAR_MAX}`;
   const unitLine =
-    data && state.value === "gdp"
-      ? (state.by === "year" && countryName
-          ? t("explorer.reference.unitGdpOf", { name: countryName })
-          : t(
-              scalePerspective === "funder"
-                ? "explorer.reference.unitGdpFunder"
-                : "explorer.reference.unitGdpRecipient",
-            )) + (temporal ? "" : ` · ${period}`)
-      : data && state.value === "capita" && referenceMeta
-        ? temporal
-          ? t("explorer.reference.unitCapita", {
-              year: referenceMeta.base,
-              cur: referenceMeta.cur,
-              symbol: moneySymbol((referenceMeta.cur ?? "EUR").toLowerCase()),
-            })
-          : t("explorer.reference.unitCapitaCumulative", {
-              period,
-              year: referenceMeta.base,
-              cur: referenceMeta.cur,
-              symbol: moneySymbol((referenceMeta.cur ?? "EUR").toLowerCase()),
-            })
-        : data && trendMode === "index"
-      ? t("explorer.reference.csvIndex", { base: canonicalBase ?? "" })
-      : data && trendMode === "growth"
-        ? t("explorer.reference.csvGrowth")
-        : data && isMoneyUnit(data.unit)
-          ? referenceMeta
-            ? t("explorer.reference.unit", {
+    // PURCHASING POWER : l'unité nomme la perspective, comme « % of GDP
+    // · European Union » en R3 — jamais « Intl $ » nu, qui laisserait
+    // croire à une comparaison de montants reçus.
+    data && state.value === "ppp"
+      ? t("explorer.reference.unitPppRecipient")
+      : data && state.value === "gdp"
+        ? (state.by === "year" && countryName
+            ? t("explorer.reference.unitGdpOf", { name: countryName })
+            : t(
+                scalePerspective === "funder"
+                  ? "explorer.reference.unitGdpFunder"
+                  : "explorer.reference.unitGdpRecipient",
+              )) + (temporal ? "" : ` · ${period}`)
+        : data && state.value === "capita" && referenceMeta
+          ? temporal
+            ? t("explorer.reference.unitCapita", {
                 year: referenceMeta.base,
                 cur: referenceMeta.cur,
-                symbol: moneySymbol(data.unit),
+                symbol: moneySymbol((referenceMeta.cur ?? "EUR").toLowerCase()),
               })
-            : t("explorer.reference.unitNominal")
-          : null;
+            : t("explorer.reference.unitCapitaCumulative", {
+                period,
+                year: referenceMeta.base,
+                cur: referenceMeta.cur,
+                symbol: moneySymbol((referenceMeta.cur ?? "EUR").toLowerCase()),
+              })
+          : data && trendMode === "index"
+            ? t("explorer.reference.csvIndex", { base: canonicalBase ?? "" })
+            : data && trendMode === "growth"
+              ? t("explorer.reference.csvGrowth")
+              : data && isMoneyUnit(data.unit)
+                ? referenceMeta
+                  ? t("explorer.reference.unit", {
+                      year: referenceMeta.base,
+                      cur: referenceMeta.cur,
+                      symbol: moneySymbol(data.unit),
+                    })
+                  : t("explorer.reference.unitNominal")
+                : null;
 
   const toggleCompare = (key: string) => {
     const next = state.compare.includes(key)
@@ -424,27 +512,42 @@ export function ExplorerPage() {
     if (!data) return;
     const rows: string[][] = [];
     if (temporal) {
-      const years = [...new Set(data.series.flatMap((s) => (s.points ?? []).map((p) => p.year)))].sort();
+      const years = [
+        ...new Set(
+          data.series.flatMap((s) => (s.points ?? []).map((p) => p.year)),
+        ),
+      ].sort();
       rows.push(["year", ...data.series.map((s) => seriesLabel(s, t))]);
       for (const year of years) {
         rows.push([
           String(year),
-          ...data.series.map((s) => String((s.points ?? []).find((p) => p.year === year)?.value ?? "")),
+          ...data.series.map((s) =>
+            String((s.points ?? []).find((p) => p.year === year)?.value ?? ""),
+          ),
         ]);
       }
     } else {
       // La ligne d'unité voyage avec l'export (R0 § D7) : une colonne
       // monétaire dit son référentiel dans son propre en-tête.
-      rows.push(["key", "label", unitLine ? `${data.metric} (${unitLine})` : data.metric]);
-      for (const s of data.series) rows.push([String(s.key), seriesLabel(s, t), String(s.value ?? "")]);
+      rows.push([
+        "key",
+        "label",
+        unitLine ? `${data.metric} (${unitLine})` : data.metric,
+      ]);
+      for (const s of data.series)
+        rows.push([String(s.key), seriesLabel(s, t), String(s.value ?? "")]);
     }
     const csv = [
-      ...rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(",")),
+      ...rows.map((row) =>
+        row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(","),
+      ),
       ...(unitLine ? [`# ${unitLine}`] : []),
       `# ${t("explorer.sources")} — orion ${new URL(window.location.href).search}`,
     ].join("\n");
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    link.href = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
+    );
     link.download = `orion-${data.metric}-by-${data.by}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
@@ -456,7 +559,9 @@ export function ExplorerPage() {
           .map((key) => {
             if (state.by === "orgtype") return t(`orgType.${key}`);
             if (state.by === "programme")
-              return programmes?.find((p) => String(p.id) === key)?.label ?? key;
+              return (
+                programmes?.find((p) => String(p.id) === key)?.label ?? key
+              );
             if (state.by === "theme")
               return themes?.series.find((s) => s.key === key)?.label ?? key;
             return key;
@@ -481,7 +586,9 @@ export function ExplorerPage() {
     .join(" · ");
 
   // Programme drill context (board only — deck slides drill locally).
-  const drilledLabel = state.programme ? (data?.meta.programme_label ?? "…") : null;
+  const drilledLabel = state.programme
+    ? (data?.meta.programme_label ?? "…")
+    : null;
   const leafDrill =
     state.programme != null &&
     state.programme !== "" &&
@@ -505,14 +612,20 @@ export function ExplorerPage() {
   // (donut), la carte et la table restent entières — masquer une part
   // d'un donut mentirait sur le total.
   const LEGEND_VIEWS = ["lines", "bump", "delta", "bars"];
-  const legendActive = LEGEND_VIEWS.includes(view) && (data?.series.length ?? 0) > 1;
+  const legendActive =
+    LEGEND_VIEWS.includes(view) && (data?.series.length ?? 0) > 1;
   // La couleur suit l'entité : figée sur l'ordre COMPLET du top, jamais
   // recompactée quand une série se masque.
   const colorByKey = new Map(
-    (data?.series ?? []).map((serie, index) => [String(serie.key), seriesColor(index)]),
+    (data?.series ?? []).map((serie, index) => [
+      String(serie.key),
+      seriesColor(index),
+    ]),
   );
   const shownSeries = legendActive
-    ? (data?.series ?? []).filter((serie) => !state.hidden.includes(String(serie.key)))
+    ? (data?.series ?? []).filter(
+        (serie) => !state.hidden.includes(String(serie.key)),
+      )
     : (data?.series ?? []);
   // `range=full` canonique (recette R2) : calculé sur les observations
   // effectivement VISIBLES (après hidden=) — une série masquée ne dicte
@@ -528,7 +641,12 @@ export function ExplorerPage() {
       : null;
   useEffect(() => {
     if (anglesStory) return;
-    if (state.range === "full" && trendMode === "growth" && data && growthRobust == null) {
+    if (
+      state.range === "full" &&
+      trendMode === "growth" &&
+      data &&
+      growthRobust == null
+    ) {
       const out = new URLSearchParams(params);
       out.delete("range");
       setParams(out, { replace: true, preventScrollReset: true });
@@ -546,12 +664,22 @@ export function ExplorerPage() {
   const submitFreeText = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
-    const intent = parseIntent(String(new FormData(form).get("free") ?? ""), i18n.language);
+    const intent = parseIntent(
+      String(new FormData(form).get("free") ?? ""),
+      i18n.language,
+    );
     if (!intent) return;
     if (intent.to === "explore") {
-      setParams(new URLSearchParams(intent.params), { preventScrollReset: true });
+      setParams(new URLSearchParams(intent.params), {
+        preventScrollReset: true,
+      });
     } else {
-      navigate(withLens(`/${intent.to === "projects" ? "projects" : "compare"}?${intent.params}`, carried));
+      navigate(
+        withLens(
+          `/${intent.to === "projects" ? "projects" : "compare"}?${intent.params}`,
+          carried,
+        ),
+      );
     }
     form.reset();
   };
@@ -565,8 +693,13 @@ export function ExplorerPage() {
   return (
     <div className="mx-auto w-full max-w-[1240px] px-6 pt-12">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <p className="text-sm font-medium text-accent">{t("explorer.eyebrow")}</p>
-        <form onSubmit={submitFreeText} className="min-w-[260px] flex-1 sm:max-w-[380px]">
+        <p className="text-sm font-medium text-accent">
+          {t("explorer.eyebrow")}
+        </p>
+        <form
+          onSubmit={submitFreeText}
+          className="min-w-[260px] flex-1 sm:max-w-[380px]"
+        >
           <input
             name="free"
             type="text"
@@ -593,9 +726,12 @@ export function ExplorerPage() {
           <div className="flex items-center gap-2.5">
             <button
               type="button"
-              aria-pressed={activeSlide ? isCollected(activeSlide.params) : false}
+              aria-pressed={
+                activeSlide ? isCollected(activeSlide.params) : false
+              }
               onClick={() =>
-                activeSlide && collect(activeSlide.params, t(activeSlide.titleKey))
+                activeSlide &&
+                collect(activeSlide.params, t(activeSlide.titleKey))
               }
               className={
                 activeSlide && isCollected(activeSlide.params)
@@ -617,257 +753,297 @@ export function ExplorerPage() {
           </div>
         </div>
       ) : (
-      /* The composition sentence — the interface itself */
-      <p className="display-tight mt-3 max-w-[34ch] text-[clamp(24px,3.2vw,34px)] font-semibold leading-[1.5]">
-        {t("explorer.show")}{" "}
-        <Segment menuLabel={t("explorer.show")} display={t(`explorer.metric.${state.metric}`)}>
-          {(close) =>
-            METRICS.map((metric) => (
-              <MenuItem
-                key={metric}
-                selected={metric === state.metric}
-                onClick={() => {
-                  patch({ metric });
-                  close();
-                }}
+        /* The composition sentence — the interface itself */
+        <p className="display-tight mt-3 max-w-[34ch] text-[clamp(24px,3.2vw,34px)] font-semibold leading-[1.5]">
+          {t("explorer.show")}{" "}
+          <Segment
+            menuLabel={t("explorer.show")}
+            display={t(`explorer.metric.${state.metric}`)}
+          >
+            {(close) =>
+              METRICS.map((metric) => (
+                <MenuItem
+                  key={metric}
+                  selected={metric === state.metric}
+                  onClick={() => {
+                    patch({ metric });
+                    close();
+                  }}
+                >
+                  {t(`explorer.metric.${metric}`)}
+                </MenuItem>
+              ))
+            }
+          </Segment>{" "}
+          {t("explorer.by")}{" "}
+          <Segment
+            menuLabel={t("explorer.by")}
+            display={t(`explorer.dim.${state.by}`)}
+          >
+            {(close) =>
+              DIMENSIONS.map((by) => (
+                <MenuItem
+                  key={by}
+                  selected={by === state.by}
+                  onClick={() => {
+                    patch({
+                      by,
+                      compare: [],
+                      programme: "",
+                      view: "auto",
+                      split: by === "year" ? false : state.split,
+                      // Les identifiants masqués appartiennent à LEUR
+                      // dimension : changer de dimension repart net.
+                      hidden: [],
+                    });
+                    close();
+                  }}
+                >
+                  {t(`explorer.dim.${by}`)}
+                </MenuItem>
+              ))
+            }
+          </Segment>
+          {state.by !== "year" ? (
+            <>
+              {", "}
+              <Segment
+                menuLabel={t("explorer.top", { count: state.limit })}
+                display={compareDisplay}
               >
-                {t(`explorer.metric.${metric}`)}
-              </MenuItem>
-            ))
-          }
-        </Segment>{" "}
-        {t("explorer.by")}{" "}
-        <Segment menuLabel={t("explorer.by")} display={t(`explorer.dim.${state.by}`)}>
-          {(close) =>
-            DIMENSIONS.map((by) => (
-              <MenuItem
-                key={by}
-                selected={by === state.by}
-                onClick={() => {
+                {(close) => (
+                  <>
+                    <div className="flex gap-1 border-b px-2 pb-1.5 pt-0.5">
+                      {[5, 10, 25].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => {
+                            patch({ limit: n, compare: [] });
+                            close();
+                          }}
+                          className={cn(
+                            "rounded-full px-3 py-1 text-[12.5px] hover:bg-surface",
+                            state.compare.length === 0 &&
+                              state.limit === n &&
+                              "bg-foreground text-background",
+                          )}
+                        >
+                          {t("explorer.top", { count: n })}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto pt-1">
+                      {state.by === "country" &&
+                        countries?.slice(0, 24).map((c) => (
+                          <MenuItem
+                            key={c.code}
+                            selected={state.compare.includes(c.code)}
+                            onClick={() => toggleCompare(c.code)}
+                          >
+                            {countryFlag(c.code)} {c.name}
+                          </MenuItem>
+                        ))}
+                      {state.by === "programme" &&
+                        programmes?.slice(0, 12).map((p) => (
+                          <MenuItem
+                            key={p.id}
+                            selected={state.compare.includes(String(p.id))}
+                            onClick={() => toggleCompare(String(p.id))}
+                          >
+                            {p.label}
+                          </MenuItem>
+                        ))}
+                      {state.by === "orgtype" &&
+                        ORG_TYPE_OPTIONS.map((key) => (
+                          <MenuItem
+                            key={key}
+                            selected={state.compare.includes(key)}
+                            onClick={() => toggleCompare(key)}
+                          >
+                            {t(`orgType.${key}`)}
+                          </MenuItem>
+                        ))}
+                      {state.by === "theme" &&
+                        themes?.series.map((serie) => (
+                          <MenuItem
+                            key={String(serie.key)}
+                            selected={state.compare.includes(String(serie.key))}
+                            onClick={() => toggleCompare(String(serie.key))}
+                          >
+                            {serie.label ?? String(serie.key)}
+                          </MenuItem>
+                        ))}
+                    </div>
+                  </>
+                )}
+              </Segment>
+              {", "}
+              <button
+                type="button"
+                aria-pressed={state.split}
+                onClick={() => patch({ split: !state.split, view: "auto" })}
+                className={cn(
+                  "whitespace-nowrap border-b-2 pb-px",
+                  state.split
+                    ? "border-accent/45 border-dotted text-accent"
+                    : "border-transparent text-muted-foreground hover:text-accent",
+                )}
+              >
+                {t("explorer.overTime")}
+              </button>
+            </>
+          ) : null}{" "}
+          <Segment
+            chip
+            menuLabel={t("search.filters.years")}
+            display={`${state.from ?? YEAR_MIN} → ${state.to ?? YEAR_MAX}`}
+          >
+            {(close) => (
+              <div className="flex items-center gap-2 p-2">
+                {(["from", "to"] as const).map((bound) => (
+                  <select
+                    key={bound}
+                    aria-label={t(`search.filters.${bound}`)}
+                    value={
+                      bound === "from"
+                        ? (state.from ?? YEAR_MIN)
+                        : (state.to ?? YEAR_MAX)
+                    }
+                    onChange={(event) => {
+                      const year = Number(event.target.value);
+                      patch({
+                        from:
+                          bound === "from" ? year : (state.from ?? YEAR_MIN),
+                        to: bound === "to" ? year : (state.to ?? YEAR_MAX),
+                      });
+                    }}
+                    className="rounded-lg border bg-background px-2 py-1.5 text-[13px]"
+                  >
+                    {Array.from(
+                      { length: YEAR_MAX - YEAR_MIN + 1 },
+                      (_, i) => YEAR_MIN + i,
+                    ).map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                ))}
+                <button
+                  type="button"
+                  onClick={close}
+                  className="rounded-full bg-foreground px-3 py-1.5 text-[12.5px] text-background"
+                >
+                  {t("explorer.apply")}
+                </button>
+              </div>
+            )}
+          </Segment>{" "}
+          {state.q ? (
+            <button
+              type="button"
+              onClick={() => patch({ q: "" })}
+              className="rounded-full bg-accent-soft px-3.5 py-1 align-middle text-[0.55em] font-medium text-accent"
+            >
+              « {state.q} » <span className="opacity-55">×</span>
+            </button>
+          ) : null}
+          {state.country ? (
+            <button
+              type="button"
+              onClick={() => patch({ country: "" })}
+              className="rounded-full bg-accent-soft px-3.5 py-1 align-middle text-[0.55em] font-medium text-accent"
+            >
+              {countryFlag(state.country)} {state.country}{" "}
+              <span className="opacity-55">×</span>
+            </button>
+          ) : null}
+          {drilledLabel ? (
+            <button
+              type="button"
+              onClick={() => patch({ programme: "" })}
+              className="rounded-full bg-accent-soft px-3.5 py-1 align-middle text-[0.55em] font-medium text-accent"
+            >
+              {t("explorer.donutWithin", { label: drilledLabel })}{" "}
+              <span className="opacity-55">×</span>
+            </button>
+          ) : null}
+          {/* Le périmètre spatial, NOMMÉ dans la phrase même (Space natif,
+            lot 1) : trois états, l'URL comme seule vérité. */}
+          <span className="align-middle text-[0.55em] font-normal tracking-normal">
+            <SectorChip
+              sector={state.sector}
+              onChange={(next) => patch({ sector: next })}
+            />
+          </span>
+          <Segment
+            chip
+            menuLabel={t("explorer.addFilter")}
+            display={t("explorer.addFilter")}
+          >
+            {(close) => (
+              <form
+                className="w-[280px] p-2"
+                onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                  event.preventDefault();
+                  const form = new FormData(event.currentTarget);
                   patch({
-                    by,
-                    compare: [],
-                    programme: "",
-                    view: "auto",
-                    split: by === "year" ? false : state.split,
-                    // Les identifiants masqués appartiennent à LEUR
-                    // dimension : changer de dimension repart net.
-                    hidden: [],
+                    q: String(form.get("q") ?? "").trim(),
+                    country:
+                      state.by === "country"
+                        ? ""
+                        : String(form.get("country") ?? ""),
                   });
                   close();
                 }}
               >
-                {t(`explorer.dim.${by}`)}
-              </MenuItem>
-            ))
-          }
-        </Segment>
-        {state.by !== "year" ? (
-          <>
-            {", "}
-            <Segment menuLabel={t("explorer.top", { count: state.limit })} display={compareDisplay}>
-              {(close) => (
-                <>
-                  <div className="flex gap-1 border-b px-2 pb-1.5 pt-0.5">
-                    {[5, 10, 25].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => {
-                          patch({ limit: n, compare: [] });
-                          close();
-                        }}
-                        className={cn(
-                          "rounded-full px-3 py-1 text-[12.5px] hover:bg-surface",
-                          state.compare.length === 0 && state.limit === n && "bg-foreground text-background",
-                        )}
-                      >
-                        {t("explorer.top", { count: n })}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="max-h-[300px] overflow-y-auto pt-1">
-                    {state.by === "country" &&
-                      countries?.slice(0, 24).map((c) => (
-                        <MenuItem
-                          key={c.code}
-                          selected={state.compare.includes(c.code)}
-                          onClick={() => toggleCompare(c.code)}
-                        >
-                          {countryFlag(c.code)} {c.name}
-                        </MenuItem>
-                      ))}
-                    {state.by === "programme" &&
-                      programmes?.slice(0, 12).map((p) => (
-                        <MenuItem
-                          key={p.id}
-                          selected={state.compare.includes(String(p.id))}
-                          onClick={() => toggleCompare(String(p.id))}
-                        >
-                          {p.label}
-                        </MenuItem>
-                      ))}
-                    {state.by === "orgtype" &&
-                      ORG_TYPE_OPTIONS.map((key) => (
-                        <MenuItem
-                          key={key}
-                          selected={state.compare.includes(key)}
-                          onClick={() => toggleCompare(key)}
-                        >
-                          {t(`orgType.${key}`)}
-                        </MenuItem>
-                      ))}
-                    {state.by === "theme" &&
-                      themes?.series.map((serie) => (
-                        <MenuItem
-                          key={String(serie.key)}
-                          selected={state.compare.includes(String(serie.key))}
-                          onClick={() => toggleCompare(String(serie.key))}
-                        >
-                          {serie.label ?? String(serie.key)}
-                        </MenuItem>
-                      ))}
-                  </div>
-                </>
-              )}
-            </Segment>
-            {", "}
-            <button
-              type="button"
-              aria-pressed={state.split}
-              onClick={() => patch({ split: !state.split, view: "auto" })}
-              className={cn(
-                "whitespace-nowrap border-b-2 pb-px",
-                state.split
-                  ? "border-accent/45 border-dotted text-accent"
-                  : "border-transparent text-muted-foreground hover:text-accent",
-              )}
-            >
-              {t("explorer.overTime")}
-            </button>
-          </>
-        ) : null}{" "}
-        <Segment
-          chip
-          menuLabel={t("search.filters.years")}
-          display={`${state.from ?? YEAR_MIN} → ${state.to ?? YEAR_MAX}`}
-        >
-          {(close) => (
-            <div className="flex items-center gap-2 p-2">
-              {(["from", "to"] as const).map((bound) => (
-                <select
-                  key={bound}
-                  aria-label={t(`search.filters.${bound}`)}
-                  value={bound === "from" ? (state.from ?? YEAR_MIN) : (state.to ?? YEAR_MAX)}
-                  onChange={(event) => {
-                    const year = Number(event.target.value);
-                    patch({
-                      from: bound === "from" ? year : (state.from ?? YEAR_MIN),
-                      to: bound === "to" ? year : (state.to ?? YEAR_MAX),
-                    });
-                  }}
-                  className="rounded-lg border bg-background px-2 py-1.5 text-[13px]"
+                <label
+                  className="block text-[12px] text-muted-foreground"
+                  htmlFor="explorer-q"
                 >
-                  {Array.from({ length: YEAR_MAX - YEAR_MIN + 1 }, (_, i) => YEAR_MIN + i).map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              ))}
-              <button type="button" onClick={close} className="rounded-full bg-foreground px-3 py-1.5 text-[12.5px] text-background">
-                {t("explorer.apply")}
-              </button>
-            </div>
-          )}
-        </Segment>{" "}
-        {state.q ? (
-          <button
-            type="button"
-            onClick={() => patch({ q: "" })}
-            className="rounded-full bg-accent-soft px-3.5 py-1 align-middle text-[0.55em] font-medium text-accent"
-          >
-            « {state.q} » <span className="opacity-55">×</span>
-          </button>
-        ) : null}
-        {state.country ? (
-          <button
-            type="button"
-            onClick={() => patch({ country: "" })}
-            className="rounded-full bg-accent-soft px-3.5 py-1 align-middle text-[0.55em] font-medium text-accent"
-          >
-            {countryFlag(state.country)} {state.country} <span className="opacity-55">×</span>
-          </button>
-        ) : null}
-        {drilledLabel ? (
-          <button
-            type="button"
-            onClick={() => patch({ programme: "" })}
-            className="rounded-full bg-accent-soft px-3.5 py-1 align-middle text-[0.55em] font-medium text-accent"
-          >
-            {t("explorer.donutWithin", { label: drilledLabel })}{" "}
-            <span className="opacity-55">×</span>
-          </button>
-        ) : null}
-        {/* Le périmètre spatial, NOMMÉ dans la phrase même (Space natif,
-            lot 1) : trois états, l'URL comme seule vérité. */}
-        <span className="align-middle text-[0.55em] font-normal tracking-normal">
-          <SectorChip sector={state.sector} onChange={(next) => patch({ sector: next })} />
-        </span>
-        <Segment chip menuLabel={t("explorer.addFilter")} display={t("explorer.addFilter")}>
-          {(close) => (
-            <form
-              className="w-[280px] p-2"
-              onSubmit={(event: FormEvent<HTMLFormElement>) => {
-                event.preventDefault();
-                const form = new FormData(event.currentTarget);
-                patch({
-                  q: String(form.get("q") ?? "").trim(),
-                  country: state.by === "country" ? "" : String(form.get("country") ?? ""),
-                });
-                close();
-              }}
-            >
-              <label className="block text-[12px] text-muted-foreground" htmlFor="explorer-q">
-                {t("explorer.theme")} · {t("explorer.themeHint")}
-              </label>
-              <input
-                id="explorer-q"
-                name="q"
-                defaultValue={state.q}
-                placeholder="hydrogen, quantum…"
-                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-[13.5px] outline-none focus:ring-2 focus:ring-accent"
-              />
-              {state.by !== "country" ? (
-                <>
-                  <label className="mt-3 block text-[12px] text-muted-foreground" htmlFor="explorer-country">
-                    {t("explorer.countryFilter")}
-                  </label>
-                  <select
-                    id="explorer-country"
-                    name="country"
-                    defaultValue={state.country}
-                    className="mt-1 w-full rounded-lg border bg-background px-2 py-2 text-[13.5px]"
-                  >
-                    <option value="">{t("explorer.anyCountry")}</option>
-                    {countries?.slice(0, 24).map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </>
-              ) : null}
-              <button
-                type="submit"
-                className="mt-3 rounded-full bg-foreground px-4 py-1.5 text-[12.5px] text-background"
-              >
-                {t("explorer.apply")}
-              </button>
-            </form>
-          )}
-        </Segment>
-      </p>
+                  {t("explorer.theme")} · {t("explorer.themeHint")}
+                </label>
+                <input
+                  id="explorer-q"
+                  name="q"
+                  defaultValue={state.q}
+                  placeholder="hydrogen, quantum…"
+                  className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-[13.5px] outline-none focus:ring-2 focus:ring-accent"
+                />
+                {state.by !== "country" ? (
+                  <>
+                    <label
+                      className="mt-3 block text-[12px] text-muted-foreground"
+                      htmlFor="explorer-country"
+                    >
+                      {t("explorer.countryFilter")}
+                    </label>
+                    <select
+                      id="explorer-country"
+                      name="country"
+                      defaultValue={state.country}
+                      className="mt-1 w-full rounded-lg border bg-background px-2 py-2 text-[13.5px]"
+                    >
+                      <option value="">{t("explorer.anyCountry")}</option>
+                      {countries?.slice(0, 24).map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                ) : null}
+                <button
+                  type="submit"
+                  className="mt-3 rounded-full bg-foreground px-4 py-1.5 text-[12.5px] text-background"
+                >
+                  {t("explorer.apply")}
+                </button>
+              </form>
+            )}
+          </Segment>
+        </p>
       )}
 
       {/* The view — or, for a story with a deck, its Angles */}
@@ -900,290 +1076,338 @@ export function ExplorerPage() {
           />
         </>
       ) : (
-      <section className="mt-9 rounded-[20px] border p-7 pb-5">
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-          <h1 className="text-[15px] font-semibold">{boardTitle}</h1>
-          <span className="text-[12.5px] text-muted-foreground">
-            {data ? t(`explorer.basis.${data.basis}`) : ""}
-            {state.by === "theme" ? ` · ${t("explorer.multiTheme")}` : ""}
-          </span>
-          {/* Le sélecteur de lecture (R0 § D5) : LE contrôle, explicite,
+        <section className="mt-9 rounded-[20px] border p-7 pb-5">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+            <h1 className="text-[15px] font-semibold">{boardTitle}</h1>
+            <span className="text-[12.5px] text-muted-foreground">
+              {data ? t(`explorer.basis.${data.basis}`) : ""}
+              {state.by === "theme" ? ` · ${t("explorer.multiTheme")}` : ""}
+            </span>
+            {/* Le sélecteur de lecture (R0 § D5) : LE contrôle, explicite,
               porté par l'URL — jamais activé en silence. En TREND,
               l'unité transformée n'est plus monétaire : la condition
               lit la réponse BRUTE. */}
-          {(rawData && isMoneyUnit(rawData.unit)) || state.value !== "" ? (
-            <ReferenceSelector
-              value={state.value}
-              base={state.base}
-              cur={state.cur}
-              bases={referenceMeta?.bases ?? []}
-              resolvedBase={referenceMeta?.base ?? null}
-              temporal={temporal}
-              indexBases={indexBases}
-              scaleAvailable={scaleAvailable}
-              onChange={(next) => patch(next)}
-            />
-          ) : null}
-          {/* L'accès ⓘ voisin du contrôle (verrou de recette R3) :
+            {(rawData && isMoneyUnit(rawData.unit)) || state.value !== "" ? (
+              <ReferenceSelector
+                value={state.value}
+                base={state.base}
+                cur={state.cur}
+                bases={referenceMeta?.bases ?? []}
+                resolvedBase={referenceMeta?.base ?? null}
+                temporal={temporal}
+                indexBases={indexBases}
+                scaleAvailable={scaleAvailable}
+                pppAvailable={isPppAvailable}
+                onChange={(next) => patch(next)}
+              />
+            ) : null}
+            {/* L'accès ⓘ voisin du contrôle (verrou de recette R3) :
               il OUVRE la note Reference sous le graphique — jamais une
               méthodologie dupliquée. */}
-          {data ? (
-            <button
-              type="button"
-              aria-label={t("explorer.reference.title")}
-              onClick={() => {
-                const note = document.getElementById("reference-note");
-                if (note) {
-                  note.setAttribute("open", "");
-                  note.scrollIntoView({ behavior: "smooth", block: "center" });
+            {data ? (
+              <button
+                type="button"
+                aria-label={t("explorer.reference.title")}
+                onClick={() => {
+                  const note = document.getElementById("reference-note");
+                  if (note) {
+                    note.setAttribute("open", "");
+                    note.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
+                  }
+                }}
+                className="rounded-full border px-2 py-1 text-[12px] text-muted-foreground transition-colors hover:border-accent hover:text-accent"
+              >
+                ⓘ
+              </button>
+            ) : null}
+            <div className="ml-auto flex gap-2">
+              <button
+                type="button"
+                aria-pressed={isCollected(params.toString())}
+                onClick={() => collect(params.toString(), boardTitle)}
+                className={
+                  isCollected(params.toString())
+                    ? "rounded-full border border-accent bg-accent-soft px-3.5 py-1.5 text-[12.5px] text-accent transition-colors hover:border-destructive hover:bg-transparent hover:text-destructive"
+                    : "rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
                 }
-              }}
-              className="rounded-full border px-2 py-1 text-[12px] text-muted-foreground transition-colors hover:border-accent hover:text-accent"
-            >
-              ⓘ
-            </button>
-          ) : null}
-          <div className="ml-auto flex gap-2">
-            <button
-              type="button"
-              aria-pressed={isCollected(params.toString())}
-              onClick={() => collect(params.toString(), boardTitle)}
-              className={
-                isCollected(params.toString())
-                  ? "rounded-full border border-accent bg-accent-soft px-3.5 py-1.5 text-[12.5px] text-accent transition-colors hover:border-destructive hover:bg-transparent hover:text-destructive"
-                  : "rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
-              }
-            >
-              {isCollected(params.toString())
-                ? `✓ ${t("dossier.inDossier")}`
-                : `+ ${t("dossier.add")}`}
-            </button>
-            <button
-              type="button"
-              onClick={downloadCsv}
-              className="rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
-            >
-              {t("explorer.csv")}
-            </button>
-            <button
-              type="button"
-              onClick={share}
-              className="rounded-full bg-foreground px-3.5 py-1.5 text-[12.5px] text-background hover:opacity-90"
-            >
-              {copied ? t("explorer.shared") : t("explorer.share")}
-            </button>
+              >
+                {isCollected(params.toString())
+                  ? `✓ ${t("dossier.inDossier")}`
+                  : `+ ${t("dossier.add")}`}
+              </button>
+              <button
+                type="button"
+                onClick={downloadCsv}
+                className="rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
+              >
+                {t("explorer.csv")}
+              </button>
+              <button
+                type="button"
+                onClick={share}
+                className="rounded-full bg-foreground px-3.5 py-1.5 text-[12.5px] text-background hover:opacity-90"
+              >
+                {copied ? t("explorer.shared") : t("explorer.share")}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="mt-5">
-          {state.programme && data ? (
-            <button
-              type="button"
-              onClick={() => patch({ programme: "" })}
-              className="mb-3 text-[13px] text-accent underline-offset-2 hover:underline"
-            >
-              ‹ {drilledLabel}
-            </button>
-          ) : null}
-          {trendInvalid ? (
-            /* TREND sans axe temporel : refus explicite (GO R2 § 4) —
+          <div className="mt-5">
+            {state.programme && data ? (
+              <button
+                type="button"
+                onClick={() => patch({ programme: "" })}
+                className="mb-3 text-[13px] text-accent underline-offset-2 hover:underline"
+              >
+                ‹ {drilledLabel}
+              </button>
+            ) : null}
+            {trendInvalid ? (
+              /* TREND sans axe temporel : refus explicite (GO R2 § 4) —
                jamais une interprétation silencieuse différente. */
-            <div className="py-24 text-center text-muted-foreground">
-              <p className="mx-auto max-w-[52ch]">{t("explorer.reference.trendUnavailable")}</p>
-              <button
-                type="button"
-                onClick={() => patch({ value: "", base: null, cur: "" })}
-                className="mt-4 rounded-full border px-4 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
-              >
-                {t("explorer.reference.nominal")}
-              </button>
-            </div>
-          ) : isPending ? (
-            <Skeleton className="h-[380px] w-full" />
-          ) : isError &&
-            (state.value === "real" || state.value === "gdp" || state.value === "capita") ? (
-            /* Le refus explicite du mode (422) : jamais un repli
-               silencieux — la sortie est un geste. */
-            <div className="py-24 text-center text-muted-foreground">
-              <p className="mx-auto max-w-[52ch]">
-                {t(
-                  state.value === "real"
-                    ? "explorer.reference.unavailable"
-                    : "explorer.reference.scaleUnavailable",
-                )}
+              <div className="py-24 text-center text-muted-foreground">
+                <p className="mx-auto max-w-[52ch]">
+                  {t("explorer.reference.trendUnavailable")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => patch({ value: "", base: null, cur: "" })}
+                  className="mt-4 rounded-full border px-4 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
+                >
+                  {t("explorer.reference.nominal")}
+                </button>
+              </div>
+            ) : isPending ? (
+              <Skeleton className="h-[380px] w-full" />
+            ) : pppInvalid ||
+              (isError &&
+                (state.value === "real" ||
+                  state.value === "gdp" ||
+                  state.value === "capita" ||
+                  state.value === "ppp")) ? (
+              /* Le refus explicite du mode (422) : jamais un repli
+               silencieux — la sortie est un geste. En PPP le message
+               suit le CODE du refus, jamais le mode : « l'année n'est
+               pas publiée » et « aucun territoire de cette vue n'a de
+               référence » sont deux faits différents, et se tromper de
+               phrase serait dire quelque chose de faux. */
+              <div className="py-24 text-center text-muted-foreground">
+                <p className="mx-auto max-w-[52ch]">
+                  {state.value === "ppp"
+                    ? t(pppRefusalKey(pppInvalid, error), {
+                        year: state.from ?? "",
+                      })
+                    : t(
+                        state.value === "real"
+                          ? "explorer.reference.unavailable"
+                          : "explorer.reference.scaleUnavailable",
+                      )}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => patch({ value: "", base: null, cur: "" })}
+                  className="mt-4 rounded-full border px-4 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
+                >
+                  {t("explorer.reference.nominal")}
+                </button>
+              </div>
+            ) : isError || !data || data.series.length === 0 ? (
+              <p className="py-24 text-center text-muted-foreground">
+                {t("explorer.emptyView")}
               </p>
-              <button
-                type="button"
-                onClick={() => patch({ value: "", base: null, cur: "" })}
-                className="mt-4 rounded-full border px-4 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
-              >
-                {t("explorer.reference.nominal")}
-              </button>
-            </div>
-          ) : isError || !data || data.series.length === 0 ? (
-            <p className="py-24 text-center text-muted-foreground">{t("explorer.emptyView")}</p>
-          ) : leafDrill ? (
-            <p className="py-24 text-center text-[14px] text-muted-foreground">
-              {t("explorer.donutNoChildren")}
-            </p>
-          ) : view === "lines" ? (
-            <LinesChart
-              series={shownSeries}
-              unit={data.unit}
-              ariaLabel={boardTitle}
-              unavailableYears={excludedYears(data)}
-              unavailableLabel={t("explorer.reference.bandLabel")}
-              colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
-              fullRange={state.range === "full"}
-              onFullRange={(full) => patch({ range: full ? "full" : "" })}
-            />
-          ) : view === "bump" ? (
-            <BumpChart
-              series={shownSeries}
-              ariaLabel={boardTitle}
-              colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
-            />
-          ) : view === "delta" ? (
-            <DumbbellChart series={shownSeries} unit={data.unit} ariaLabel={boardTitle} />
-          ) : view === "bars" ? (
-            <BarsChart series={shownSeries} unit={data.unit} ariaLabel={boardTitle} />
-          ) : view === "map" ? (
-            <>
-              <WorldMap
-                countries={data.series
-                  .filter((serie) => typeof serie.key === "string" && serie.value != null)
-                  .map((serie) => ({
-                    code: String(serie.key),
-                    name: serie.label ?? String(serie.key),
-                    eu_member: false,
-                    // La région vient de l'index des pays (le référentiel
-                    // backend) — jamais devinée côté front. La classe de
-                    // couverture voyage avec (aspérité du mémo,
-                    // 2026-08-17) : la carte de l'Explorateur hachure les
-                    // financements domestiques non couverts comme toutes
-                    // les cartes géographiques.
-                    region:
-                      countries?.find((entry) => entry.code === String(serie.key))?.region ?? null,
-                    coverage: countries?.find((entry) => entry.code === String(serie.key))
-                      ?.coverage,
-                    projects_count: 0,
-                    funding_eur: serie.value ?? 0,
-                  }))}
-                flows={flows ?? []}
-                legendLabel={`${t(`explorer.metric.${state.metric}`)} · ${moneySymbol(data.unit)}`}
-                selected={mapSelected}
-                onSelect={setMapSelected}
+            ) : leafDrill ? (
+              <p className="py-24 text-center text-[14px] text-muted-foreground">
+                {t("explorer.donutNoChildren")}
+              </p>
+            ) : view === "lines" ? (
+              <LinesChart
+                series={shownSeries}
+                unit={data.unit}
+                ariaLabel={boardTitle}
+                unavailableYears={excludedYears(data)}
+                unavailableLabel={t("explorer.reference.bandLabel")}
+                colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
+                fullRange={state.range === "full"}
+                onFullRange={(full) => patch({ range: full ? "full" : "" })}
               />
-              {(() => {
-                const picked = mapSelected
-                  ? data.series.find((serie) => String(serie.key) === mapSelected)
-                  : null;
-                return picked ? (
-                  <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-border-soft pt-3 text-[13.5px]">
-                    <span>
-                      {countryFlag(mapSelected!)}{" "}
-                      <b className="font-semibold">{seriesLabel(picked, t)}</b>
-                      <span className="tnum ml-2 text-muted-foreground">
-                        {formatValue(picked.value, data.unit, i18n.language)}
+            ) : view === "bump" ? (
+              <BumpChart
+                series={shownSeries}
+                ariaLabel={boardTitle}
+                colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
+              />
+            ) : view === "delta" ? (
+              <DumbbellChart
+                series={shownSeries}
+                unit={data.unit}
+                ariaLabel={boardTitle}
+              />
+            ) : view === "bars" ? (
+              <BarsChart
+                series={shownSeries}
+                unit={data.unit}
+                ariaLabel={boardTitle}
+              />
+            ) : view === "map" ? (
+              <>
+                <WorldMap
+                  countries={data.series
+                    .filter(
+                      (serie) =>
+                        typeof serie.key === "string" && serie.value != null,
+                    )
+                    .map((serie) => ({
+                      code: String(serie.key),
+                      name: serie.label ?? String(serie.key),
+                      eu_member: false,
+                      // La région vient de l'index des pays (le référentiel
+                      // backend) — jamais devinée côté front. La classe de
+                      // couverture voyage avec (aspérité du mémo,
+                      // 2026-08-17) : la carte de l'Explorateur hachure les
+                      // financements domestiques non couverts comme toutes
+                      // les cartes géographiques.
+                      region:
+                        countries?.find(
+                          (entry) => entry.code === String(serie.key),
+                        )?.region ?? null,
+                      coverage: countries?.find(
+                        (entry) => entry.code === String(serie.key),
+                      )?.coverage,
+                      projects_count: 0,
+                      funding_eur: serie.value ?? 0,
+                    }))}
+                  flows={flows ?? []}
+                  legendLabel={`${t(`explorer.metric.${state.metric}`)} · ${moneySymbol(data.unit)}`}
+                  selected={mapSelected}
+                  onSelect={setMapSelected}
+                />
+                {(() => {
+                  const picked = mapSelected
+                    ? data.series.find(
+                        (serie) => String(serie.key) === mapSelected,
+                      )
+                    : null;
+                  return picked ? (
+                    <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-border-soft pt-3 text-[13.5px]">
+                      <span>
+                        {countryFlag(mapSelected!)}{" "}
+                        <b className="font-semibold">
+                          {seriesLabel(picked, t)}
+                        </b>
+                        <span className="tnum ml-2 text-muted-foreground">
+                          {formatValue(picked.value, data.unit, i18n.language)}
+                        </span>
                       </span>
-                    </span>
-                    <Link
-                      to={withLens(`/explore/countries/${mapSelected}`, carried)}
-                      className="text-accent underline-offset-2 hover:underline"
-                    >
-                      {t("explorer.mapOpenCountry")} →
-                    </Link>
-                    <button
-                      type="button"
-                      aria-label={t("explorer.mapDeselect")}
-                      onClick={() => setMapSelected(null)}
-                      className="ml-auto rounded-md px-2 text-muted-foreground hover:text-foreground"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ) : null;
-              })()}
-            </>
-          ) : view === "donut" ? (
-            <DonutChart
-              series={donutSeries}
-              unit={data.unit}
-              total={data.total}
-              ariaLabel={boardTitle}
-              colorOf={state.by === "region" ? (key) => regionColor(key) : undefined}
-              onSlice={
-                state.by === "programme" && !state.programme
-                  ? (key) => patch({ programme: key })
-                  : undefined
-              }
-            />
-          ) : (
-            <ExploreTable data={data} temporal={temporal} />
-          )}
-        </div>
+                      <Link
+                        to={withLens(
+                          `/explore/countries/${mapSelected}`,
+                          carried,
+                        )}
+                        className="text-accent underline-offset-2 hover:underline"
+                      >
+                        {t("explorer.mapOpenCountry")} →
+                      </Link>
+                      <button
+                        type="button"
+                        aria-label={t("explorer.mapDeselect")}
+                        onClick={() => setMapSelected(null)}
+                        className="ml-auto rounded-md px-2 text-muted-foreground hover:text-foreground"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : null;
+                })()}
+              </>
+            ) : view === "donut" ? (
+              <DonutChart
+                series={donutSeries}
+                unit={data.unit}
+                total={data.total}
+                ariaLabel={boardTitle}
+                colorOf={
+                  state.by === "region" ? (key) => regionColor(key) : undefined
+                }
+                onSlice={
+                  state.by === "programme" && !state.programme
+                    ? (key) => patch({ programme: key })
+                    : undefined
+                }
+              />
+            ) : (
+              <ExploreTable data={data} temporal={temporal} />
+            )}
+          </div>
 
-        {/* La légende interactive : LE contrôle de visibilité — jamais
+          {/* La légende interactive : LE contrôle de visibilité — jamais
             un clic sur la courbe. Masquer = composer sa lecture, les
             données et les tops ne bougent pas. */}
-        {data && legendActive && !leafDrill && !isError ? (
-          <SeriesLegend
-            series={data.series}
-            hidden={state.hidden}
-            colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
-            onToggle={toggleHidden}
-            onShowAll={() => patch({ hidden: [] })}
-          />
-        ) : null}
+          {data && legendActive && !leafDrill && !isError ? (
+            <SeriesLegend
+              series={data.series}
+              hidden={state.hidden}
+              colorOf={(key) => colorByKey.get(key) ?? "var(--color-border)"}
+              onToggle={toggleHidden}
+              onShowAll={() => patch({ hidden: [] })}
+            />
+          ) : null}
 
-        {/* L'honnêteté au POINT DE COMPARAISON (lot E) : la phrase naît
+          {/* L'honnêteté au POINT DE COMPARAISON (lot E) : la phrase naît
             quand la vue mélange des couvertures, et seulement là. */}
-        {data ? <CoverageNote meta={data.meta} /> : null}
-        {/* ⓘ Reference (R0 § D8) : la méthodologie au point d'usage —
+          {data ? <CoverageNote meta={data.meta} /> : null}
+          {/* ⓘ Reference (R0 § D8) : la méthodologie au point d'usage —
             part exclue chiffrée depuis le périmètre affiché (A1) ; en
             TREND, la transformation se dit d'abord, la méthode Real
             dont elle hérite ensuite. */}
-        {data ? (
-          <ReferenceNote
-            id="reference-note"
-            data={data}
-            period={{ label: period, multiYear: (state.from ?? YEAR_MIN) !== (state.to ?? YEAR_MAX) }}
-            trend={
-              trend && trendMode
-                ? {
-                    mode: trendMode,
-                    base: canonicalBase,
-                    nonIndexable: trend.nonIndexable.map((key) => {
-                      const serie = data.series.find((s) => String(s.key) === key);
-                      return serie ? seriesLabel(serie, t) : key;
-                    }),
-                  }
-                : undefined
-            }
-          />
-        ) : null}
+          {data ? (
+            <ReferenceNote
+              id="reference-note"
+              data={data}
+              period={{
+                label: period,
+                multiYear: (state.from ?? YEAR_MIN) !== (state.to ?? YEAR_MAX),
+              }}
+              trend={
+                trend && trendMode
+                  ? {
+                      mode: trendMode,
+                      base: canonicalBase,
+                      nonIndexable: trend.nonIndexable.map((key) => {
+                        const serie = data.series.find(
+                          (s) => String(s.key) === key,
+                        );
+                        return serie ? seriesLabel(serie, t) : key;
+                      }),
+                    }
+                  : undefined
+              }
+            />
+          ) : null}
 
-        <div className="mt-4 flex items-center gap-1.5 border-t border-border-soft pt-3.5">
-          {availableViews.map((candidate) => (
-            <button
-              key={candidate}
-              type="button"
-              onClick={() => patch({ view: candidate })}
-              className={cn(
-                "rounded-full px-3.5 py-1.5 text-[12.5px]",
-                view === candidate
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground transition-colors hover:text-foreground",
-              )}
-            >
-              {t(`explorer.views.${candidate}`)}
-            </button>
-          ))}
-          <span className="ml-auto hidden text-[11.5px] text-muted-foreground sm:block">
-            {t("explorer.sources")}
-          </span>
-        </div>
-      </section>
+          <div className="mt-4 flex items-center gap-1.5 border-t border-border-soft pt-3.5">
+            {availableViews.map((candidate) => (
+              <button
+                key={candidate}
+                type="button"
+                onClick={() => patch({ view: candidate })}
+                className={cn(
+                  "rounded-full px-3.5 py-1.5 text-[12.5px]",
+                  view === candidate
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground transition-colors hover:text-foreground",
+                )}
+              >
+                {t(`explorer.views.${candidate}`)}
+              </button>
+            ))}
+            <span className="ml-auto hidden text-[11.5px] text-muted-foreground sm:block">
+              {t("explorer.sources")}
+            </span>
+          </div>
+        </section>
       )}
 
       {/* The ready-made analyses moved to their own library (/analyses);
@@ -1207,4 +1431,3 @@ export function ExplorerPage() {
     </div>
   );
 }
-

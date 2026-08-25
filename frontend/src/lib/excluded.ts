@@ -17,6 +17,12 @@ export const REASON_KEYS: Record<string, string> = {
   no_gdp_year: "noGdpYear",
   no_population_year: "noPopulationYear",
   no_rate_year: "noRateYear",
+  // PURCHASING POWER (R4) — trois motifs qui ne se confondent JAMAIS :
+  // sans pays ; territoire dont le couple n'existe sur AUCUNE année ;
+  // territoire qui l'a sur d'autres années mais pas sur celle cadrée.
+  no_country: "noCountry",
+  no_jurisdiction_series: "noJurisdictionSeries",
+  no_reference_year: "noReferenceYear",
 };
 
 /** Toutes les années non calculables de la vue, tous motifs confondus. */

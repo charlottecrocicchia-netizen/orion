@@ -1,6 +1,34 @@
+/** L'erreur d'API porte le CODE du refus, pas seulement son numéro.
+ *  Le Reference Engine refuse une vue avec un motif nommé (`422
+ *  ppp_year_unavailable`, `ppp_requires_single_award_year`…) et la
+ *  surface doit dire lequel : sans le `detail`, tous les refus d'une
+ *  famille se ressembleraient et le message serait faux une fois sur
+ *  deux. */
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly detail: string | null,
+    url: string,
+  ) {
+    super(`${url}: HTTP ${status}${detail ? ` (${detail})` : ""}`);
+    this.name = "ApiError";
+  }
+}
+
 async function get<T>(url: string): Promise<T> {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  if (!res.ok) {
+    let detail: string | null = null;
+    try {
+      const body = (await res.json()) as { detail?: unknown };
+      // Le 422 natif de FastAPI porte une LISTE ; les refus de doctrine
+      // portent une chaîne. Ne garder que la seconde forme.
+      if (typeof body?.detail === "string") detail = body.detail;
+    } catch {
+      /* corps absent ou non JSON : le statut suffit */
+    }
+    throw new ApiError(res.status, detail, url);
+  }
   return (await res.json()) as T;
 }
 
@@ -140,7 +168,17 @@ export interface ExploreResponse {
    *  `index` et `growth` ne viennent JAMAIS de l'API : ce sont les
    *  unités posées par la transformation TREND côté client
    *  (lib/trend.ts) — plus des montants monétaires. */
-  unit: "eur" | "usd" | "count" | "pct" | "index" | "growth" | "gdppct" | "eurcap" | "usdcap";
+  unit:
+    | "eur"
+    | "usd"
+    | "count"
+    | "pct"
+    | "index"
+    | "growth"
+    | "gdppct"
+    | "eurcap"
+    | "usdcap"
+    | "intl";
   basis: "participants" | "projects";
   series: ExploreSeries[];
   total: number | null;
@@ -172,7 +210,7 @@ export interface ExploreResponse {
      *  référence, cur = devise d'affichage, bases = années que le
      *  serveur peut honorer, vintages = millésimes d'indices lus). */
     reference?: {
-      mode: "real" | "gdp" | "capita";
+      mode: "real" | "gdp" | "capita" | "ppp";
       /** ECONOMIC SCALE : la perspective FORCÉE par la dimension. */
       perspective?: "funder" | "recipient";
       /** ECONOMIC SCALE : le dénominateur macro et sa provenance. */
@@ -187,6 +225,12 @@ export interface ExploreResponse {
       bases?: number[];
       vintages?: Record<string, string>;
       series?: Record<string, string>;
+      /** PURCHASING POWER : l'année d'attribution cadrée — le mode
+       *  n'existe que sur une seule (§ 4.4), et elle n'est PAS un
+       *  paramètre d'URL (elle vient du filtre temporel). */
+      year?: number;
+      /** PURCHASING POWER : part convertible de la valeur affichée. */
+      coverage?: number;
       rates_source: string;
     };
     /** La couverture de la VUE (lot E) : présente SEULEMENT quand la vue
