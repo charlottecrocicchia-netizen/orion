@@ -14,6 +14,15 @@
 > `infra/README.md` décrit la production réelle depuis 6ee173f. Aucune
 > dette connue n'a été reportée dans ce lot.
 >
+> **Amendement du 2026-08-25 (porte § 5 de R4B, arbitré)** — la mesure
+> préalable au codage des exclusions a infirmé la taxonomie à deux
+> motifs : une juridiction peut posséder le couple sur d'autres années
+> et pas sur l'année cadrée. Un **troisième motif partiel**
+> `no_reference_year` est ajouté (§ 15.2), et un **troisième refus de
+> vue** `ppp_reference_unavailable_for_view` couvre le périmètre filtré
+> dont plus rien n'est convertible (§ 15.3). P14 bis, § 4.4, § 13.4,
+> § 15 et le plan § 17 sont amendés en conséquence.
+>
 > Ce document **amende R0** (`docs/conception-reference-engine.md`) : la
 > formule `ppp` de son § D1, la ligne `ppp` de la matrice § D4, le
 > paramètre « Reference year » du § D6 et la grammaire `value=ppp&base=`
@@ -42,7 +51,7 @@
 | P12 | **Surfaces V1 : `by=country`, `by=region`, `by=organisation`, `by=orgtype`**, **sur une année unique**, dans l'**Explorateur** — paramètre `compare=` compris, qui est un filtre de la même vue. Absent de `by=year`, `by=funder`, `by=programme`, `by=subdivision`, de toute fenêtre pluriannuelle, et de la **page `/compare`**, surface distincte à endpoint propre jamais raccordée au Reference Engine. Règle vérifiable : `ppp` n'apparaît que là où le nominal est **déjà** au grain participation — aucun changement de population entre les deux modes. | 12 |
 | P13 | Grammaire URL : **`value=ppp`**, sans `base`, sans `cur`. | 14 |
 | P14 | Couverture mesurée sur une vue à année unique : **> 99,9 %** de la valeur affichée (99,997 % en 2019, 99,913 % en 2025). 2026 et 2027 n'ont pas encore leurs séries : ces années **refusent la vue entière** (`422`) au lieu d'exclure en silence. | 15 |
-| P14 bis | **Deux natures séparées, jamais confondues** : *exclusions partielles* (`no_country`, `no_jurisdiction_series`) dans une vue qui existe, et *refus de vue* (`422 ppp_requires_single_award_year`, `422 ppp_year_unavailable`) pour une vue non définie. Une vue refusée n'est **jamais** présentée comme « 100 % exclu ». | 13.4, 15.2 |
+| P14 bis | **Deux natures séparées, jamais confondues.** *Exclusions partielles*, dans une vue qui existe : `no_country`, `no_jurisdiction_series`, `no_reference_year` (la juridiction a le couple sur d'autres années, pas sur celle cadrée). *Refus de vue*, pour une vue non définie : `422 ppp_requires_single_award_year`, `422 ppp_year_unavailable` (aucune juridiction ne publie l'année — 2026, 2027), `422 ppp_reference_unavailable_for_view` (le **périmètre filtré affiché** a de la valeur nominale mais rien de convertible). Une vue refusée n'est **jamais** présentée comme « 100 % exclu ». | 13.4, 15.2, 15.3 |
 | P15 | Verdict : **GO R4B à périmètre réduit** — voir le dernier chapitre. | fin |
 
 ---
@@ -652,15 +661,15 @@ nombre juste au sens du calcul et faux au sens de la lecture.**
 En vue à **année unique**, la part convertible de la valeur affichée
 monte à :
 
-| Année | Valeur | Convertible | Sans pays | Hors série |
-|---|---:|---:|---:|---:|
-| 2015 | 36 438,6 M€ | **99,955 %** | 15,01 M€ | 1,35 M€ |
-| 2019 | 46 845,2 M€ | **99,997 %** | 1,17 M€ | 0,35 M€ |
-| 2021 | 42 368,8 M€ | **99,992 %** | 2,47 M€ | 0,78 M€ |
-| 2023 | 40 331,3 M€ | **99,984 %** | 5,91 M€ | 0,72 M€ |
-| 2024 | 31 939,1 M€ | **99,993 %** | 0,81 M€ | 1,34 M€ |
-| 2025 | 20 790,0 M€ | **99,913 %** | 0,85 M€ | 17,30 M€ |
-| 2026 | 11 290,2 M€ | *vue non définie* | — | — |
+| Année | Valeur | Convertible | `no_country` | `no_jurisdiction_series` | `no_reference_year` |
+|---|---:|---:|---:|---:|---:|
+| 2015 | 36 438,6 M€ | **99,955 %** | 15,010 M€ | 1,221 M€ | 0,134 M€ |
+| 2019 | 46 845,2 M€ | **99,997 %** | 1,170 M€ | 0,352 M€ | 0,000 M€ |
+| 2021 | 42 368,8 M€ | **99,992 %** | 2,475 M€ | 0,780 M€ | 0,000 M€ |
+| 2023 | 40 331,3 M€ | **99,984 %** | 5,912 M€ | 0,656 M€ | 0,062 M€ |
+| 2024 | 31 939,1 M€ | **99,993 %** | 0,812 M€ | 0,069 M€ | 1,275 M€ |
+| 2025 | 20 790,0 M€ | **99,913 %** | 0,853 M€ | 0,366 M€ | **16,931 M€** |
+| 2026 | 11 290,2 M€ | *vue non définie* | — | — | — |
 
 La ligne 2026 n'est **pas** une couverture de 0 % : les séries de cette
 année ne sont pas publiées, donc la vue n'existe pas et l'API la refuse
@@ -670,10 +679,21 @@ couverture — la distinction est reprise au § 13.4 et au § 15.2.
 Contre 98,236 % en pluriannuel. Le bloc d'exclusion `no_ppp_year`
 (12,2 Md€) **disparaît** : il n'était que l'ombre portée des années
 2026-2027 mélangées aux autres. Et `no_date` disparaît aussi — un projet
-sans date de début n'appartient à aucune vue d'année unique. Il ne reste
-que deux motifs, minuscules : `no_country` et `no_jurisdiction_series`.
-L'année 2026 devient un refus **de vue entière** (`422`), propre et
-lisible, au lieu d'une exclusion partielle silencieuse.
+sans date de début n'appartient à aucune vue d'année unique. L'année
+2026 devient un refus **de vue entière** (`422`), propre et lisible, au
+lieu d'une exclusion partielle silencieuse.
+
+**Le bord haut n'est pas uniforme, et c'est le troisième motif.** Le WDI
+remplit l'année la plus récente progressivement : 244 juridictions ont
+le couple en 2023, 242 en 2024, **232 en 2025**, 0 en 2026. Dix-huit
+juridictions ont donc le couple sur d'autres années mais pas sur 2025 —
+Bermudes (couple 2000-2024), Féroé (2008-2024), Groenland (2000-2023),
+Liban (2000-2024)… Les appeler « territoire sans série publiée » serait
+faux. D'où `no_reference_year`, motif distinct (§ 15.2), qui pèse
+16,931 M€ des 18,150 M€ non convertibles de 2025 — soit 93,3 % de
+l'exclusion de cette année, et 0,081 % de la valeur affichée. **Ce motif
+réapparaîtra chaque année sur l'année la plus récente** : c'est un
+calendrier de publication, pas une lacune.
 
 #### Décision
 
@@ -1291,10 +1311,21 @@ en a que deux :
 |---|---|---|
 | `noCountry` | participation without a country: {{count}}, {{amount}} | participation sans pays : {{count}}, {{amount}} |
 | `noJurisdictionSeries` | no published series for this territory: {{count}} projects, {{amount}} | aucune série publiée pour ce territoire : {{count}} projets, {{amount}} |
+| `noReferenceYear` | reference not yet published for {{year}} in this territory: {{count}} projects, {{amount}} | référence {{year}} non encore publiée pour ce territoire : {{count}} projets, {{amount}} |
 
 `noPppYear` et `noDate` **n'existent pas** dans la note PPP : après la
 décision d'année unique (§ 4.4), le premier est devenu un refus de vue
 et le second est structurellement impossible.
+
+Comme `no_reference_year` frappe surtout **l'année la plus récente**,
+la note ajoute une phrase de contexte quand ce motif est non nul — clé
+`pppTrailingYearNote` :
+
+> **EN** — The World Bank publishes the most recent year progressively,
+> so a few territories may still be missing from it.
+>
+> **FR** — La Banque mondiale publie l'année la plus récente
+> progressivement : quelques territoires peuvent encore y manquer.
 
 *Refus de vue entière* — messages, pas exclusions ; aucun chiffre de
 couverture, aucun pourcentage :
@@ -1303,6 +1334,7 @@ couverture, aucun pourcentage :
 |---|---|---|
 | `pppYearUnavailable` | Purchasing-power figures are not available for {{year}}: the World Bank has not yet published the series for that year. | Le pouvoir d'achat n'est pas disponible pour {{year}} : la Banque mondiale n'a pas encore publié les séries de cette année. |
 | `pppRequiresSingleYear` | This view compares purchasing power within one award year. Select a single year to use it. | Cette vue compare le pouvoir d'achat au sein d'une seule année d'attribution. Choisissez une année pour l'utiliser. |
+| `pppReferenceUnavailableForView` | No purchasing-power reference is available for the territories in this view in {{year}}. | Aucune référence de pouvoir d'achat n'est disponible en {{year}} pour les territoires de cette vue. |
 
 **Règle de rédaction gravée** : une vue refusée n'est **jamais** montrée
 comme « 100 % exclu » ni comme une couverture nulle. Ce n'est pas une
@@ -1366,14 +1398,26 @@ sens.** Sur une vue ancrée sur une année, la part convertible de la
 valeur affichée dépasse **99,9 %** (tableau du § 4.4) : 99,997 % en 2019,
 99,984 % en 2023, 99,913 % en 2025.
 
-Deux motifs subsistent, et deux seulement :
+**Trois** motifs subsistent — la mesure de la porte § 5 de R4B, faite
+sur le couple réellement retenu avant tout codage, a infirmé la
+taxonomie à deux :
 
 | Motif | Ordre de grandeur sur une année | Nature |
 |---|---:|---|
-| `no_country` — participation sans pays | 0,8 à 15 M€ selon l'année | la participation n'a pas de pays de rattachement |
-| `no_jurisdiction_series` — territoire sans série WDI | 0,3 à 17 M€ selon l'année | Taïwan, Groenland, Gibraltar, Nouvelle-Calédonie, Liechtenstein, Cuba, Monaco… |
+| `no_country` — participation sans pays | 0,8 à 15 M€ | la participation n'a pas de pays de rattachement |
+| `no_jurisdiction_series` — territoire jamais couvert | 0,07 à 1,2 M€ | Taïwan, Gibraltar, Nouvelle-Calédonie, Bonaire, Polynésie, Cuba… : **aucune** année du couple, jamais |
+| **`no_reference_year`** — année cadrée non publiée pour ce territoire | 0 à **16,9 M€** | la juridiction **a** le couple sur d'autres années : Bermudes 2000-2024, Féroé 2008-2024, Groenland 2000-2023, Liban 2000-2024 |
 
-Deux motifs **disparaissent** par construction :
+**Pourquoi les fusionner serait faux** : en 2025, sur 18,150 M€ non
+convertibles, **16,931 M€ (93,3 %)** relèvent du troisième motif — dont
+12,645 M€ pour les seules Bermudes, qui possèdent vingt-cinq années du
+couple. Les étiqueter « territoire sans série publiée » aurait été un
+libellé mensonger. Le motif suit le calendrier de publication du WDI et
+frappera **chaque année l'année la plus récente** (232 juridictions
+couvertes en 2025 contre 244 en 2023).
+
+Deux motifs de la première rédaction **disparaissent** par
+construction :
 
 - `no_ppp_year` — il ne peut plus s'agir d'une exclusion partielle : soit
   l'année a ses séries, soit **la vue entière** est refusée (`422`). Le
@@ -1409,14 +1453,74 @@ premiers :
 
 | Motif / code | Condition | Statut |
 |---|---|---|
-| `no_country` | participation sans `country_code` | nouveau, **exclusion partielle** |
-| `no_jurisdiction_series` | pays connu d'Orion, absent des séries WDI (Taïwan, Groenland, Gibraltar, Nouvelle-Calédonie, Liechtenstein, Cuba, Monaco…) | nouveau, **exclusion partielle** |
-| `ppp_year_unavailable` | l'année cadrée n'a pas ses deux séries (2026, 2027) | nouveau, **refus de vue entière** (`422`) — remplace l'entrée `no_ppp_year` de R0 § D13 |
-| `ppp_requires_single_award_year` | la vue couvre plusieurs années ou n'a pas de borne | nouveau, **refus de vue entière** (`422`), § 4.4 |
+| `no_country` | participation sans `country_code` | **exclusion partielle** |
+| `no_jurisdiction_series` | juridiction connue d'Orion dont le couple n'existe **sur aucune année** (Taïwan, Gibraltar, Nouvelle-Calédonie, Bonaire, Polynésie, Cuba…) | **exclusion partielle** |
+| `no_reference_year` | juridiction dont le couple existe sur d'autres années mais **pas sur l'année cadrée** (Bermudes, Féroé, Groenland, Liban en 2025) | **exclusion partielle** — ajouté le 2026-08-25 |
+| `ppp_requires_single_award_year` | la vue couvre plusieurs années ou n'a pas de borne | **refus de vue** (`422`), § 4.4 |
+| `ppp_year_unavailable` | **aucune** juridiction ne publie l'année cadrée (2026, 2027) | **refus de vue** (`422`) — remplace l'entrée `no_ppp_year` de R0 § D13 |
+| `ppp_reference_unavailable_for_view` | le périmètre filtré affiché porte de la valeur nominale, mais **rien n'y est convertible** | **refus de vue** (`422`), § 15.3 |
 
 **Interdits absolus** : jamais de zéro inventé, jamais de moyenne
 artificielle, jamais de facteur 1,0 par défaut, jamais de PPP d'un pays
 voisin, jamais d'extrapolation maison au-delà de ce que le WDI publie.
+
+### 15.3 La règle du périmètre filtré — une vue sans rien de convertible
+
+Cas limite instruit le 2026-08-25, avant tout codage. `year=2025` +
+`country=BM` : les Bermudes possèdent le couple jusqu'en 2024 mais pas
+en 2025. L'année 2025 **existe** mondialement (232 juridictions), donc
+`ppp_year_unavailable` serait un message **faux**. Et une réponse `200`
+annonçant une couverture de 0 % avec tout en exclusions est refusée par
+la doctrine (§ 15.2, niveau 1).
+
+> **Règle unique, fondée sur le périmètre filtré réellement affiché — et
+> non sur la disponibilité mondiale de l'année.**
+>
+> Soit `N` la valeur nominale monétaire du périmètre filtré (ce que le
+> mode nominal totaliserait sur exactement la même vue), et `C` la part
+> de `N` qui porte un ratio.
+>
+> | | Réponse |
+> |---|---|
+> | `N = 0` | **`200`, vue vide** — exactement comme en nominal. Ni couverture, ni exclusions, ni `422` : il n'y a pas d'argent, la référence n'est pas en cause. |
+> | `N > 0` et `C > 0` | **`200`** — agrégat sur la part convertible, `coverage = C/N`, exclusions ventilées sur les trois motifs. |
+> | `N > 0` et `C = 0` | **`422 ppp_reference_unavailable_for_view`** — vue non définie. Ni agrégat, ni couverture, ni bloc `excluded`. |
+
+La troisième ligne est la seule addition ; la première est la
+précision qui empêche le code de mentir sur une vue simplement vide.
+
+**Les quatre cas de contrôle**, tous réalisables sur le corpus :
+
+| Vue | `N` | `C` | Réponse |
+|---|---:|---:|---|
+| `2025` + `country=BM` | 12,6449 M€ | 0 | **`422 ppp_reference_unavailable_for_view`** |
+| `2025` + `country=BM~FR` | 12,6449 M€ + FR | > 0 | **`200`** — BM dans `no_reference_year` |
+| `2025` + `country=NC` (jamais couverte) | 0,2643 M€ | 0 | **`422 ppp_reference_unavailable_for_view`** |
+| vue dont toutes les participations sont sans pays | > 0 | 0 | **`422 ppp_reference_unavailable_for_view`** |
+| *(idem, mais sans aucun montant)* | 0 | 0 | **`200`, vue vide** |
+
+**Un même code pour deux causes** — territoire jamais couvert, ou année
+non encore publiée pour lui — parce que le message ne présume rien :
+« aucune référence de pouvoir d'achat n'est disponible en {{année}} pour
+les territoires de cette vue ». Distinguer les deux causes dans un refus
+n'apporterait rien : la vue n'existe pas, il n'y a pas de ventilation à
+montrer.
+
+**Conséquence d'architecture, à assumer explicitement.** Les deux
+premiers refus sont **prédictibles côté client** — le nombre d'années
+cadrées et la dimension sont dans l'état de la vue, donc le sélecteur
+n'offre pas le mode. Le troisième ne l'est **pas** : savoir si les
+Bermudes ont une référence en 2025 demande la requête. Le sélecteur
+proposera donc PPP sur une vue `BM` + `2025`, et l'API refusera. C'est
+le comportement de repli déjà spécifié depuis le lot A
+(`constant_mode_unavailable` → message explicite et retour au nominal
+proposé), et il reste obligatoire : jamais d'écran vide, jamais un
+« 0 % ». Le refus se décide **après** la requête, à partir de l'agrégat
+— le précédent existe déjà dans `api/explore.py`, où une combinaison
+métrique/dimension invalide est refusée sur le résultat. La décision
+étant une fonction déterministe de l'agrégat, le cache d'agrégats reste
+valide : c'est la décision qui est rejouée, pas un refus qui serait
+mémorisé.
 
 ---
 
@@ -1596,34 +1700,51 @@ Le chemin nominal n'ajoute rien : aucun octet de SQL ne change quand
 `value` est absent.
 
 **Étape 5 — exclusions partielles.** `sum(...) FILTER (WHERE ratio IS
-NULL)` dans la même passe, ventilé sur les **deux** motifs partiels du
-§ 15.2 — `no_country` et `no_jurisdiction_series`. Calculé depuis le
-périmètre affiché, par construction. Les deux autres situations ne sont
-**pas** des exclusions et ne passent pas par ce bloc : ce sont des refus
-de vue traités à l'étape 6.
+NULL)` dans la même passe, ventilé sur les **trois** motifs partiels du
+§ 15.2 — `no_country`, `no_jurisdiction_series`, `no_reference_year`.
+Le troisième se distingue du deuxième par une question posée au jeu de
+ratios, pas à la ligne : *cette juridiction a-t-elle le couple sur au
+moins une année ?* `ppp_ratio_set` expose donc, à côté du dictionnaire
+`(pays, année) → ratio`, l'ensemble des juridictions **couvertes au
+moins une fois** — une projection du même jeu, aucune requête de plus.
+Calculé depuis le périmètre affiché, par construction. Les trois refus
+de vue ne passent **pas** par ce bloc : étape 6.
 
 **Étape 6 — API, et la séparation des deux natures.**
 `GET /explore/aggregate` accepte `value=ppp` ;
 `base`/`cur`/`perspective` refusés (`400`).
 
-*Deux refus de vue*, chacun avec son code, **avant tout calcul** — la
-réponse ne contient alors ni agrégat, ni `excluded`, ni couverture :
+*Trois refus de vue*, chacun avec son code. La réponse ne contient
+alors ni agrégat, ni `excluded`, ni couverture.
+
+**Avant tout calcul** — décidables depuis l'état de la vue :
 
 - `422 ppp_requires_single_award_year` — la fenêtre temporelle ne résout
   pas exactement une année ;
-- `422 ppp_year_unavailable` — l'année cadrée n'a pas ses deux séries
-  (2026, 2027 aujourd'hui) ; la réponse nomme l'année.
+- `422 ppp_year_unavailable` — **aucune** juridiction ne publie l'année
+  cadrée (2026, 2027 aujourd'hui) ; la réponse nomme l'année. Test :
+  le jeu de ratios ne contient aucune entrée pour cette année — une
+  lecture de dictionnaire, pas une requête.
 
-*Deux exclusions partielles*, dans une réponse qui, elle, contient un
-agrégat : `excluded = {no_country: {...}, no_jurisdiction_series: {...}}`
-et `meta.reference.coverage` en part de la valeur affichée.
-`meta.reference` porte aussi le mode, la perspective forcée, l'année
-résolue et **les deux séries avec leurs millésimes**.
+**Après la requête** — indécidable autrement (§ 15.3) :
 
-**Invariant vérifiable** : `coverage` et `excluded` n'existent que dans
-une réponse `200`. Aucun chemin de code ne peut produire une couverture
-de 0 % — l'absence de référence pour l'année est un `422`, pas un
-agrégat vide. Aucun autre endpoint modifié. OpenAPI à jour.
+- `422 ppp_reference_unavailable_for_view` — le périmètre filtré porte
+  de la valeur nominale mais rien de convertible. Le précédent
+  architectural existe : `api/explore.py` refuse déjà sur le résultat
+  (`if result is None → 400`). La décision est une fonction
+  déterministe de l'agrégat, donc le cache reste valide.
+
+*Trois exclusions partielles*, dans une réponse qui, elle, contient un
+agrégat : `excluded = {no_country: {...}, no_jurisdiction_series: {...},
+no_reference_year: {...}}` et `meta.reference.coverage` en part de la
+valeur affichée. `meta.reference` porte aussi le mode, la perspective
+forcée, l'année résolue et **les deux séries avec leur snapshot**.
+
+**Invariants vérifiables** : `coverage` et `excluded` n'existent que
+dans une réponse `200` ; aucun chemin de code ne produit une couverture
+de 0 % ; une vue **vide** (aucune valeur nominale) répond `200` comme en
+nominal, sans couverture ni exclusions — la référence n'y est pas en
+cause. Aucun autre endpoint modifié. OpenAPI à jour.
 
 **Étape 7 — performance.** Deux jointures `macro_series` de plus que
 `gdp` (deux concepts au lieu d'un). **Risque nommé** : le surcoût
@@ -1669,8 +1790,17 @@ borne temporelle n'expose pas le mode, et le force par l'URL répond
 `422 ppp_requires_single_award_year` ; une vue cadrée sur 2026 répond
 `422 ppp_year_unavailable`. Un test de non-régression vérifie que
 basculer en `ppp` **ne modifie pas** le filtre temporel de l'état.
-*Refus* : pays sans série → exclu et compté ; participation sans pays →
-exclue et comptée ; `by=year`, `by=funder`, `by=programme`,
+*Test-or 8 — la règle du périmètre filtré* (§ 15.3), les cinq états :
+`2025`+`BM` → `422 ppp_reference_unavailable_for_view` ;
+`2025`+`BM~FR` → `200`, BM dans `no_reference_year` ;
+`2025`+`NC` → `422` même code ; vue entièrement `no_country` avec
+montants → `422` même code ; vue sans aucune valeur nominale → `200`
+vide, sans couverture ni exclusions. Aucun de ces cas ne doit produire
+`ppp_year_unavailable`, dont le message serait faux.
+*Refus* : territoire jamais couvert → exclu et compté
+(`no_jurisdiction_series`) ; territoire couvert ailleurs mais pas cette
+année → exclu et compté (`no_reference_year`), **jamais confondu avec le
+précédent** ; participation sans pays → exclue et comptée ; `by=year`, `by=funder`, `by=programme`,
 `by=subdivision` → mode absent, et `422` s'il est forcé par l'URL.
 *Test-or 7 — millésimes incompatibles* : couple semé à vintages
 divergentes pour une même juridiction → `ppp_ratio_set` refuse, API
@@ -1689,12 +1819,17 @@ reste inchangé octet pour octet.
 l'API refuse (`422`) affiche le message d'indisponibilité et propose le
 nominal — jamais une vue vide, jamais un « 0 % ».
 *e2e* : bascule → `value=ppp` dans l'URL, unité changée, ligne
-d'exclusion chiffrée sur ses deux motifs, rechargement fidèle, EN et FR.
+d'exclusion chiffrée sur ses trois motifs, rechargement fidèle, EN et FR.
 
 **Étape 12 — recette locale** (corpus complet, Firefox) : ① nominal
 inchangé au chiffre près ; ② vue pays **cadrée sur 2023** en PPP →
-couverture affichée **99,98 %**, exclusion ≈ 6,6 M€ répartie sur les deux
-seuls motifs ; ③ vue cadrée sur **2026** → refus propre
+couverture affichée **99,984 %**, exclusion 6,630 M€ ventilée
+`no_country` 5,912 · `no_jurisdiction_series` 0,656 ·
+`no_reference_year` 0,062 ; ② bis vue **cadrée sur 2025** → couverture
+**99,913 %**, exclusion 18,150 M€ dont **16,931 M€ en
+`no_reference_year`** (Bermudes 12,645 · Féroé 2,433 · Groenland 1,255 ·
+Liban 0,599) et 0,366 M€ en `no_jurisdiction_series` ; ② ter
+`2025`+`country=BM` → refus `ppp_reference_unavailable_for_view` ; ③ vue cadrée sur **2026** → refus propre
 `ppp_year_unavailable`, retour au nominal proposé ; ④ vue **sans borne
 temporelle** → le groupe PURCHASING POWER n'apparaît pas, et le forcer
 par l'URL donne `ppp_requires_single_award_year` ; ⑤ Top identique au
