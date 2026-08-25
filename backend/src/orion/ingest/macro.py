@@ -9,9 +9,33 @@ vérifié PAR INDICATEUR le 2026-08-24 — License_Type des métadonnées).
 Le WDI révise EN PLACE et republie trimestriellement : le versionnement
 côté Orion est la condition de rejouabilité.
 
-Deux concepts R3 :
-- `gdp_current_usd` ← NY.GDP.MKTP.CD (PIB courant, US$) ;
-- `population`      ← SP.POP.TOTL.
+Trois concepts :
+- `gdp_current_usd`      ← NY.GDP.MKTP.CD (PIB courant, US$) ;
+- `population`           ← SP.POP.TOTL ;
+- `gdp_ppp_current_intl` ← NY.GDP.MKTP.PP.CD (PIB courant, $ intl.).
+
+LE COUPLE PPP EST UNE UNITÉ D'ÉCRITURE (lot R4B, doc § 17 étape 3).
+`gdp_ppp_current_intl` et `gdp_current_usd` forment le rapport qui
+convertit un financement en dollars internationaux ; les diviser l'un
+par l'autre n'a de sens que s'ils viennent du MÊME état de la source.
+Or `vintage_date` est la date d'ingestion Orion, écrite par
+(juridiction, concept) et seulement si les valeurs changent : deux
+concepts parfaitement cohérents porteraient donc des dates différentes,
+et « dernière vintage de chacun » ne prouverait rien. D'où la règle :
+quand l'un des deux s'écrit pour une juridiction, l'AUTRE s'écrit
+aussi, à la même date, même inchangé. L'invariant devient une propriété
+de la donnée — `ppp_ratio_set()` le vérifie et refuse sinon.
+
+Deux corollaires qui ne vont pas de soi :
+- la règle doit être AUTO-RÉPARATRICE. Un état dépareillé ne se
+  rattrape pas tout seul : les valeurs étant inchangées des deux côtés,
+  rien ne déclenche l'écriture. `_vintages_disagree()` déclenche donc
+  sur les DATES, indépendamment des valeurs ;
+- le couple est une unité de LECTURE autant que d'écriture : un run
+  récupère les deux séries puis les écrit ensemble. La granularité de
+  `vintage_date` étant le jour, deux écritures séparées d'une même
+  journée porteraient la même date et l'invariant ne verrait rien —
+  seul le fetch groupé protège de ce recomposé-là.
 
 Périmètre : les juridictions du référentiel (`jurisdictions`) connues
 du WDI — l'agrégat Union européenne est la série publiée par la source
@@ -33,7 +57,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from orion.core.db import SessionLocal
-from orion.ingest.runlog import record_run
+from orion.ingest.runlog import RunStats, record_run
 from orion.models import MacroSeries
 
 SOURCE = "macro"
@@ -41,7 +65,24 @@ SERIES_SOURCE = "wdi"
 INDICATORS = {
     "gdp_current_usd": "NY.GDP.MKTP.CD",
     "population": "SP.POP.TOTL",
+    "gdp_ppp_current_intl": "NY.GDP.MKTP.PP.CD",
 }
+# Numérateur puis dénominateur du ratio PPP — l'ordre compte pour les
+# garde-fous ci-dessous, jamais pour l'écriture (les deux sont égaux
+# devant la règle de couple).
+COUPLE = ("gdp_ppp_current_intl", "gdp_current_usd")
+# Bande de plausibilité du ratio : large à dessein. Elle n'arbitre
+# aucune valeur économique, elle attrape une inversion de concepts, un
+# mauvais indicateur ou un changement d'unité chez la source. Mesuré au
+# 2026-07-13 : le ratio va de 0,64 (Bermudes) à 7,79 (Nigeria).
+RATIO_BAND = (Decimal("0.1"), Decimal("20"))
+# Le dollar international est ancré sur les États-Unis : leur ratio vaut
+# 1 par construction. Les deux séries y sont la même grandeur, mais le
+# JSON de la source porte du bruit de représentation flottante
+# (27 811 516 999 999,9 contre 27 811 517 000 000 en 2023) — le contrôle
+# se fait donc à six décimales, pas au bit près.
+ANCHOR = "US"
+ANCHOR_PRECISION = Decimal("0.000001")
 API = "https://api.worldbank.org/v2"
 FROM_YEAR = 1990
 TIMEOUT = 60.0
@@ -67,50 +108,56 @@ def _wdi_known(client: httpx.Client) -> set[str]:
     known: set[str] = set()
     page = 1
     while True:
-        payload = client.get(
-            f"{API}/country", params={"format": "json", "per_page": 300, "page": page}
-        ).json()
+        response = _get_with_retry(
+            client, f"{API}/country", {"format": "json", "per_page": 300, "page": page}
+        )
+        if response.status_code != 200:
+            raise ValueError(f"liste des pays : WDI a répondu {response.status_code}")
+        payload = response.json()
         known |= {entry["iso2Code"] for entry in payload[1]}
         if page >= payload[0]["pages"]:
             return known
         page += 1
 
 
-def fetch(concept: str, codes: list[str]) -> dict[str, dict[int, float]]:
-    """Le jeu complet d'un indicateur pour les juridictions demandées :
-    {juridiction: {année: valeur}} — valeurs nulles ou ≤ 0 écartées au
-    parsing (la validation de couverture tranche en aval).
+def fetch_all(codes: list[str]) -> dict[str, dict[str, dict[int, float]]]:
+    """Les trois indicateurs pour les juridictions demandées, en UNE passe
+    réseau : {concept: {juridiction: {année: valeur}}}. Valeurs nulles ou
+    ≤ 0 écartées au parsing (la validation tranche en aval).
 
-    UNE requête PAR juridiction : le WAF de la Banque mondiale bloque
-    certaines simples séquences de codes dans les listes semi-colonées
-    (mesuré le 2026-08-24 : « LR;LS » → 403) — la requête unitaire est
-    déterministe et immune, et ce geste est annuel."""
-    indicator = INDICATORS[concept]
-    out: dict[str, dict[int, float]] = {}
+    UNE requête PAR (concept, juridiction) : le WAF de la Banque mondiale
+    bloque certaines simples séquences de codes dans les listes
+    semi-colonées (mesuré le 2026-08-24 : « LR;LS » → 403) — la requête
+    unitaire est déterministe et immune, et ce geste est annuel.
+
+    Tout le réseau AVANT toute écriture : c'est ce qui fait du couple une
+    unité de lecture (docstring du module). Un échec sur le second
+    concept ne laisse pas le premier écrit."""
+    out: dict[str, dict[str, dict[int, float]]] = {concept: {} for concept in INDICATORS}
     with httpx.Client(timeout=TIMEOUT) as client:
-        known = _wdi_known(client)
-        for code in codes:
-            if code not in known:
-                continue
-            response = _get_with_retry(
-                client,
-                f"{API}/country/{code}/indicator/{indicator}",
-                {
-                    "format": "json",
-                    "per_page": 200,
-                    "date": f"{FROM_YEAR}:{date.today().year}",
-                },
-            )
-            if response.status_code != 200:
-                raise ValueError(f"{concept}/{code}: WDI a répondu {response.status_code}")
-            payload = response.json()
-            if len(payload) < 2 or payload[1] is None:
-                continue  # juridiction connue mais sans série pour cet indicateur
-            for row in payload[1]:
-                value = row["value"]
-                if value is None or value <= 0:
-                    continue
-                out.setdefault(code, {})[int(row["date"])] = float(value)
+        known = _wdi_known(client)  # une seule fois pour les trois concepts
+        wanted = [code for code in codes if code in known]
+        for concept, indicator in INDICATORS.items():
+            for code in wanted:
+                response = _get_with_retry(
+                    client,
+                    f"{API}/country/{code}/indicator/{indicator}",
+                    {
+                        "format": "json",
+                        "per_page": 200,
+                        "date": f"{FROM_YEAR}:{date.today().year}",
+                    },
+                )
+                if response.status_code != 200:
+                    raise ValueError(f"{concept}/{code}: WDI a répondu {response.status_code}")
+                payload = response.json()
+                if len(payload) < 2 or payload[1] is None:
+                    continue  # juridiction connue mais sans série pour cet indicateur
+                for row in payload[1]:
+                    value = row["value"]
+                    if value is None or value <= 0:
+                        continue
+                    out[concept].setdefault(code, {})[int(row["date"])] = float(value)
     return out
 
 
@@ -127,26 +174,36 @@ def _current_vintage(session: Session, code: str, concept: str) -> dict[int, Dec
     return {int(year): Decimal(value) for year, value in rows}
 
 
-def _store(session: Session, code: str, concept: str, values: dict[int, float]) -> bool:
-    """Écrit une nouvelle vintage si les valeurs diffèrent — idempotent.
-    Rejouer le même jour après divergence remplace la vintage DU JOUR."""
-    if not values:
-        return False
+def _prepare(concept: str, code: str, values: dict[int, float]) -> dict[int, Decimal]:
+    """Le jeu tel qu'il sera écrit — quantifié comme la colonne."""
     if any(value <= 0 for value in values.values()):
         raise ValueError(f"{code}/{concept}: valeur non positive reçue")
-    fresh = {
-        year: Decimal(str(value)).quantize(Decimal("0.0001")) for year, value in values.items()
-    }
-    if fresh == _current_vintage(session, code, concept):
-        return False
-    vintage = date.today()
-    session.execute(
+    return {year: Decimal(str(value)).quantize(Decimal("0.0001")) for year, value in values.items()}
+
+
+def _differs(session: Session, code: str, concept: str, fresh: dict[int, Decimal]) -> bool:
+    """La source a-t-elle bougé depuis la dernière vintage ?"""
+    return bool(fresh) and fresh != _current_vintage(session, code, concept)
+
+
+def _write(
+    session: Session, code: str, concept: str, fresh: dict[int, Decimal], vintage: date
+) -> bool:
+    """Écrit le jeu complet à `vintage`. Rend True si une vintage du MÊME
+    JOUR a été remplacée — la table est append-only entre jours, pas dans
+    la journée, et c'est la seule trace de ce remplacement.
+
+    À N'APPELER QU'UNE FOIS par (code, concept) et par run : la session
+    est en `autoflush=False`, donc un second DELETE ne verrait pas les
+    lignes encore en attente et le commit lèverait sur la contrainte
+    d'unicité."""
+    deleted = session.execute(
         text(
             "DELETE FROM macro_series WHERE jurisdiction_code = :j AND concept = :c"
             " AND vintage_date = :v"
         ),
         {"j": code, "c": concept, "v": vintage},
-    )
+    ).rowcount
     session.add_all(
         MacroSeries(
             jurisdiction_code=code,
@@ -159,7 +216,142 @@ def _store(session: Session, code: str, concept: str, values: dict[int, float]) 
         )
         for year, value in sorted(fresh.items())
     )
-    return True
+    return bool(deleted)
+
+
+def _latest_vintages(session: Session, code: str) -> dict[str, date]:
+    """Dernière vintage de chaque concept du couple, pour une juridiction."""
+    rows = session.execute(
+        text(
+            "SELECT concept, max(vintage_date) FROM macro_series"
+            " WHERE jurisdiction_code = :j AND concept = ANY(:cs) GROUP BY concept"
+        ),
+        {"j": code, "cs": list(COUPLE)},
+    )
+    return {str(concept): vintage for concept, vintage in rows}
+
+
+def _vintages_disagree(session: Session, code: str) -> bool:
+    """L'invariant de couple est-il rompu pour cette juridiction ?
+
+    Déclencheur INDÉPENDANT DES VALEURS : sans lui, un état dépareillé ne
+    serait jamais réparé, puisque `_differs` rendrait False des deux
+    côtés. Une juridiction qui ne porte qu'UN des deux concepts n'est pas
+    une faute (une poignée d'économies publient le PIB en dollars sans le
+    PIB en dollars internationaux) — la réécrire à chaque run ne
+    servirait à rien."""
+    latest = _latest_vintages(session, code)
+    return len(latest) == len(COUPLE) and len(set(latest.values())) > 1
+
+
+def _check_couple(fetched: dict[str, dict[str, dict[int, float]]]) -> None:
+    """Garde-fous BLOQUANTS du couple, en mémoire, avant toute écriture.
+
+    Ils ne supposent aucune identité externe : ils portent sur le couple
+    réellement consommé en production (doc § 17 étape 2, niveau 1). Un
+    échec lève — le run est journalisé en échec et la vintage courante
+    reste en service."""
+    numerator, denominator = COUPLE
+    lo, hi = RATIO_BAND
+    anchor_seen = False
+    for code, years in fetched[numerator].items():
+        other = fetched[denominator].get(code, {})
+        for year, value in years.items():
+            if year not in other:
+                continue
+            ratio = Decimal(str(value)) / Decimal(str(other[year]))
+            if not lo <= ratio <= hi:
+                raise ValueError(f"{code}/{year}: ratio PPP {ratio} hors bande [{lo} ; {hi}]")
+            if code == ANCHOR:
+                anchor_seen = True
+                if ratio.quantize(ANCHOR_PRECISION) != Decimal(1):
+                    raise ValueError(f"{ANCHOR}/{year}: ratio PPP {ratio} devrait valoir 1")
+    if not anchor_seen:
+        raise ValueError(f"aucune année du couple pour {ANCHOR} — ancre du dollar international")
+
+
+def _check_coverage(session: Session, concept: str, fresh: dict[str, dict[int, float]]) -> None:
+    """La couverture historique ne régresse pas en silence : le nombre
+    d'observations reçues doit rester au moins égal à celui de la vintage
+    en service. Une source qui perd la moitié de son histoire est un
+    incident, pas une mise à jour."""
+    stored = session.execute(
+        text(
+            "SELECT count(*) FROM macro_series ms JOIN ("
+            "  SELECT jurisdiction_code, max(vintage_date) AS v FROM macro_series"
+            "  WHERE concept = :c GROUP BY jurisdiction_code) latest"
+            " ON latest.jurisdiction_code = ms.jurisdiction_code AND latest.v = ms.vintage_date"
+            " WHERE ms.concept = :c"
+        ),
+        {"c": concept},
+    ).scalar_one()
+    received = sum(len(years) for years in fresh.values())
+    if stored and received < stored:
+        raise ValueError(
+            f"{concept}: couverture en régression — {received} observations reçues"
+            f" contre {stored} en service"
+        )
+
+
+def store(
+    session: Session,
+    fetched: dict[str, dict[str, dict[int, float]]],
+    vintage: date,
+    stats: RunStats,
+) -> None:
+    """La phase d'écriture, séparée du réseau pour être testable telle
+    quelle. Les concepts hors couple gardent le comportement R3 ; le
+    couple s'écrit par juridiction, les deux concepts ensemble."""
+    _check_couple(fetched)
+    for concept in INDICATORS:
+        _check_coverage(session, concept, fetched[concept])
+
+    prepared = {
+        concept: {
+            code: _prepare(concept, code, values) for code, values in fetched[concept].items()
+        }
+        for concept in INDICATORS
+    }
+
+    for concept in INDICATORS:
+        if concept in COUPLE:
+            continue  # traités ensemble ci-dessous — jamais deux _write sur la même clé
+        fresh_vintages = 0
+        same_day = 0
+        for code, fresh in sorted(prepared[concept].items()):
+            if _differs(session, code, concept, fresh):
+                same_day += _write(session, code, concept, fresh, vintage)
+                fresh_vintages += 1
+        stats.add(f"{concept}_jurisdictions", len(prepared[concept]))
+        stats.add(f"{concept}_years", sum(len(v) for v in prepared[concept].values()))
+        stats.add(f"{concept}_vintages", fresh_vintages)
+        stats.add(f"{concept}_sameday_overwrites", same_day)
+
+    # LE COUPLE — une passe par juridiction, les deux concepts liés.
+    codes = sorted({code for concept in COUPLE for code in prepared[concept]})
+    written = {concept: 0 for concept in COUPLE}
+    same_day = {concept: 0 for concept in COUPLE}
+    paired = repairs = 0
+    for code in codes:
+        changed = [c for c in COUPLE if _differs(session, code, c, prepared[c].get(code, {}))]
+        disagree = _vintages_disagree(session, code)
+        if not changed and not disagree:
+            continue
+        repairs += bool(disagree and not changed)
+        for concept in COUPLE:
+            fresh = prepared[concept].get(code)
+            if not fresh:
+                continue
+            paired += concept not in changed
+            same_day[concept] += _write(session, code, concept, fresh, vintage)
+            written[concept] += 1
+    for concept in COUPLE:
+        stats.add(f"{concept}_jurisdictions", len(prepared[concept]))
+        stats.add(f"{concept}_years", sum(len(v) for v in prepared[concept].values()))
+        stats.add(f"{concept}_vintages", written[concept])
+        stats.add(f"{concept}_sameday_overwrites", same_day[concept])
+    stats.add("couple_paired_writes", paired)
+    stats.add("couple_vintage_repairs", repairs)
 
 
 def run(force: bool = False) -> dict[str, int]:  # noqa: ARG001 — toujours re-vérifié
@@ -174,17 +366,11 @@ def run(force: bool = False) -> dict[str, int]:  # noqa: ARG001 — toujours re-
                 raise ValueError(
                     "aucune juridiction seedée — lancer orion-ingest reference d'abord"
                 )
-            for concept in INDICATORS:
-                sets = fetch(concept, codes)
-                fresh_vintages = 0
-                years_total = 0
-                for code, values in sorted(sets.items()):
-                    if _store(session, code, concept, values):
-                        fresh_vintages += 1
-                    years_total += len(values)
-                stats.add(f"{concept}_jurisdictions", len(sets))
-                stats.add(f"{concept}_years", years_total)
-                stats.add(f"{concept}_vintages", fresh_vintages)
+            # La date est fixée UNE fois : le fetch complet dure de longues
+            # minutes et pourrait sinon franchir minuit, fabriquant un
+            # couple à deux dates par simple effet d'horloge.
+            vintage = date.today()
+            store(session, fetch_all(codes), vintage, stats)
             session.commit()
         finally:
             session.close()

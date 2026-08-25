@@ -25,13 +25,25 @@ Règles gravées, vérifiées ici et nulle part ailleurs :
 - aucun agrégat maison : l'UE est la série publiée par la source ;
 - tout en `Decimal`."""
 
+import logging
 from dataclasses import dataclass, field
 from decimal import Decimal
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-CONCEPTS: tuple[str, ...] = ("gdp_current_usd", "population")
+logger = logging.getLogger(__name__)
+
+CONCEPTS: tuple[str, ...] = ("gdp_current_usd", "population", "gdp_ppp_current_intl")
+
+# PURCHASING POWER (lot R4B) — le couple, dans l'ordre numérateur puis
+# dénominateur. Il ne se lit JAMAIS concept par concept : voir
+# `ppp_ratio_set()`.
+PPP_CONCEPTS: tuple[str, str] = ("gdp_ppp_current_intl", "gdp_current_usd")
+PPP_SERIES: dict[str, str] = {
+    "gdp_ppp_current_intl": "wdi:NY.GDP.MKTP.PP.CD",
+    "gdp_current_usd": "wdi:NY.GDP.MKTP.CD",
+}
 
 
 @dataclass(frozen=True)
@@ -51,7 +63,8 @@ class MacroSet:
 
 
 _CACHE: dict[str, MacroSet] = {}
-_CACHE_MAX = 4
+_PPP_CACHE: dict[str, "PppRatioSet"] = {}
+_CACHE_MAX = 8
 
 
 def macro_set(session: Session, concept: str) -> MacroSet | None:
@@ -114,3 +127,138 @@ def usd_rates(session: Session) -> dict[int, Decimal]:
             )
         )
     }
+
+
+@dataclass(frozen=True)
+class PppRatioSet:
+    """Le jeu des ratios de pouvoir d'achat, prêt à joindre.
+
+    `ratios[(pays, année)] = PIB_PPP_courant / PIB_courant_USD`, lu du
+    couple publié et de lui seul — jamais reconstruit depuis un facteur
+    PPP ou un taux de change (doc § 3.6).
+
+    `covered` distingue les deux motifs d'exclusion qui se ressemblent :
+    une juridiction ABSENTE de `covered` n'a le couple sur AUCUNE année
+    (`no_jurisdiction_series`) ; une juridiction présente mais sans ratio
+    pour l'année cadrée a le couple ailleurs (`no_reference_year`).
+    Confondre les deux produirait le libellé mensonger que la porte § 5
+    de R4B a précisément écarté."""
+
+    ratios: dict[tuple[str, int], Decimal] = field(hash=False)
+    covered: frozenset[str] = frozenset()
+    years: frozenset[int] = frozenset()
+    vintages: dict[str, str] = field(default_factory=dict, hash=False)
+
+    @property
+    def series(self) -> dict[str, str]:
+        return dict(PPP_SERIES)
+
+    @property
+    def key(self) -> str:
+        """Part de clé de cache d'agrégat. `_data_stamp` n'observe pas la
+        source `macro` : cette clé est le SEUL vecteur d'invalidation
+        après un rechargement WDI — d'où les deux millésimes ET le
+        cardinal."""
+        stamp = ",".join(f"{c}@{self.vintages.get(c, '')}" for c in PPP_CONCEPTS)
+        return f"ppp|{stamp}|{len(self.ratios)}"
+
+
+def ppp_ratio_set(session: Session) -> PppRatioSet | None:
+    """Le couple, lu à vintage ALIGNÉE par juridiction — ou rien.
+
+    Deux refus, aucun silence :
+    - une année qui n'a pas son homologue sort du dictionnaire (la ligne
+      se comptera en `no_reference_year` à l'affichage) ;
+    - une juridiction dont les deux dernières vintages DIFFÈRENT fait
+      échouer la construction entière. C'est un défaut de chargement,
+      pas un cas d'exécution : le mode devient indisponible et les
+      juridicions fautives partent au journal. Servir un numérateur et
+      un dénominateur de deux éditions de la source serait pire qu'un
+      refus.
+
+    L'invariant porte sur l'INTERSECTION des deux concepts : une
+    juridiction qui n'en publie qu'un (une poignée d'économies) n'est pas
+    une faute — la faire échouer mettrait le mode en refus mondial."""
+    stamp_rows = session.execute(
+        text(
+            "SELECT jurisdiction_code, concept, max(vintage_date) FROM macro_series"
+            " WHERE concept = ANY(:cs) GROUP BY jurisdiction_code, concept"
+        ),
+        {"cs": list(PPP_CONCEPTS)},
+    ).all()
+    if not stamp_rows:
+        return None
+
+    latest: dict[str, dict[str, str]] = {}
+    for code, concept, vintage in stamp_rows:
+        latest.setdefault(str(code), {})[str(concept)] = vintage.isoformat()
+    disagreeing = sorted(
+        code
+        for code, per_concept in latest.items()
+        if len(per_concept) == len(PPP_CONCEPTS) and len(set(per_concept.values())) > 1
+    )
+    if disagreeing:
+        logger.error(
+            "ppp: couple à millésimes divergents, mode refusé — juridictions %s",
+            ", ".join(disagreeing),
+        )
+        return None
+
+    # La clé de cache tient AUSSI compte du désaccord potentiel : elle est
+    # construite depuis l'estampille, donc une réparation la change.
+    cache_key = "ppp|" + "|".join(
+        f"{code}:{per_concept[c]}"
+        for code, per_concept in sorted(latest.items())
+        for c in PPP_CONCEPTS
+        if c in per_concept
+    )
+    hit = _PPP_CACHE.get(cache_key)
+    if hit is not None:
+        return hit
+
+    numerator, denominator = PPP_CONCEPTS
+    values: dict[str, dict[str, dict[int, Decimal]]] = {c: {} for c in PPP_CONCEPTS}
+    for code, concept, year, value in session.execute(
+        text(
+            "SELECT ms.jurisdiction_code, ms.concept, ms.year, ms.value FROM macro_series ms"
+            " JOIN (SELECT jurisdiction_code, concept, max(vintage_date) AS v FROM macro_series"
+            "       WHERE concept = ANY(:cs) GROUP BY jurisdiction_code, concept) latest"
+            "   ON latest.jurisdiction_code = ms.jurisdiction_code"
+            "  AND latest.concept = ms.concept AND latest.v = ms.vintage_date"
+            " WHERE ms.concept = ANY(:cs)"
+        ),
+        {"cs": list(PPP_CONCEPTS)},
+    ):
+        if value is None or value <= 0:
+            continue
+        values[str(concept)].setdefault(str(code), {})[int(year)] = Decimal(value)
+
+    ratios: dict[tuple[str, int], Decimal] = {}
+    for code, per_year in values[numerator].items():
+        other = values[denominator].get(code, {})
+        for year, value in per_year.items():
+            if year in other:
+                ratios[(code, year)] = value / other[year]
+    if not ratios:
+        return None
+
+    vintages = {
+        concept: max(
+            (per_concept[concept] for per_concept in latest.values() if concept in per_concept),
+            default="",
+        )
+        for concept in PPP_CONCEPTS
+    }
+    built = PppRatioSet(
+        ratios=ratios,
+        # Construit sur les couples COMPLETS : une juridiction qui ne
+        # publie qu'un concept ne produit aucun ratio et doit rester en
+        # `no_jurisdiction_series`.
+        covered=frozenset(code for code, _ in ratios),
+        years=frozenset(year for _, year in ratios),
+        vintages=vintages,
+    )
+    if len(_PPP_CACHE) >= _CACHE_MAX:
+        _PPP_CACHE.clear()
+    _PPP_CACHE[cache_key] = built
+    return built

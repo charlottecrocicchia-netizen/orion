@@ -18,7 +18,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from orion.constanteuro import COVERED, FactorSet
-from orion.macro import MacroSet
+from orion.macro import MacroSet, PppRatioSet
 from orion.search.service import (
     _cached_bounded,
     _materialize_match,
@@ -35,6 +35,14 @@ from orion.ingest.reference import REGIONS as _REGIONS  # noqa: E402
 
 MANAGER_REGIONS: frozenset[str] = frozenset(_REGIONS)
 PARTICIPATION_DIMS = {"country", "region", "subdivision", "organisation", "orgtype"}
+
+# PURCHASING POWER (lot R4B, doc § 12.2) : les dimensions dont le NOMINAL
+# est déjà au grain participation, moins `subdivision` — les parités sont
+# nationales, et appliquer la parité d'un pays à l'une de ses régions
+# serait la lecture infranationale que l'ICP ne soutient pas. La règle
+# garantit qu'entre nominal et PPP la population comptée est identique :
+# aucun glissement de grain, donc aucun Top qui bouge.
+PPP_DIMS = {"country", "region", "organisation", "orgtype"}
 
 # (metric, dimension) pairs served in V1. Deliberately absent:
 # organisations×programme and coordination×programme/funder — the programme
@@ -194,6 +202,30 @@ def _funding_col(participation: bool, weight: str, real: bool) -> str:
         return f"sum({eur}{weight})"
     native = "pa.amount" if participation else "p.funding_amount"
     return f"sum(CASE WHEN {eur} IS NOT NULL THEN {native} * fx.factor{weight} END)"
+
+
+def _ppp_funding_col(weight: str = "") -> str:
+    """LA colonne funding du mode PPP (lot R4B) — point de définition
+    unique, comme `_funding_col` pour nominal et real.
+
+    Le montant reçu par la participation, converti en dollars US
+    courants au taux BCE de l'année cadrée — un SCALAIRE, le mode
+    n'existe que sur une année (§ 4.4) — puis au ratio de pouvoir
+    d'achat du pays bénéficiaire. Un ratio absent rend NULL : la ligne
+    sort de la somme et se compte dans `excluded`, jamais en silence."""
+    return f"sum(pa.amount_eur{weight} * CAST(:ppp_rate AS numeric) * ppp.ratio)"
+
+
+def _ppp_covered_col(weight: str = "") -> str:
+    """Le nominal de la part CONVERTIBLE, au même poids que la colonne
+    funding — le « C » de la règle du périmètre filtré (§ 15.3).
+
+    Il ne peut pas se déduire de `ranking − excluded.amount` : la passe
+    d'exclusion n'est jamais pondérée, alors que `ranking` l'est sur une
+    vue de groupe. La soustraction serait fausse dès qu'un poids de
+    pacte s'applique — et `by=organisation` avec un groupe est une
+    surface autorisée."""
+    return f"sum(pa.amount_eur{weight}) FILTER (WHERE ppp.ratio IS NOT NULL)"
 
 
 def _org_type_case(params: dict[str, Any]) -> str:
@@ -495,6 +527,7 @@ def aggregate(
     scale: str | None = None,
     macro: MacroSet | None = None,
     usd_rates: dict[int, Decimal] | None = None,
+    ppp: PppRatioSet | None = None,
 ) -> dict[str, Any] | None:
     if (metric, by) not in VALID or (by == "year" and (split or compare)):
         return None
@@ -530,6 +563,22 @@ def aggregate(
         if by != "programme" or metric not in ("funding", "projects", "avg"):
             return None
         compare = None
+    # PURCHASING POWER : garde DÉFENSIVE. L'API valide et nomme le refus
+    # (quatre codes distincts) ; ici on refuse simplement de construire
+    # une requête qui n'a pas de sens — une table VALUES vide, ou un
+    # ratio d'une autre année que celle affichée.
+    if ppp is not None and (
+        metric != "funding"
+        or by not in PPP_DIMS
+        or year_from is None
+        or year_from != year_to
+        or year_from not in ppp.years
+        or not usd_rates
+        or year_from not in usd_rates
+        or scale is not None
+        or factor_set is not None
+    ):
+        return None
     limit = min(max(limit, 1), LIMIT_MAX)
     compare = [c for c in (compare or []) if c][:6] or None
 
@@ -537,7 +586,13 @@ def aggregate(
     # devise d'affichage, via factor_set.key) : une nouvelle vintage
     # d'indices invalide d'elle-même tout cache real (jamais de
     # collision nominal/real, § 5 étape 13).
-    if scale:
+    if ppp is not None:
+        # `_data_stamp` n'observe pas la source `macro` : cette clé est le
+        # SEUL vecteur d'invalidation des agrégats PPP après un
+        # rechargement WDI. Le taux BCE y entre aussi — il multiplie
+        # chaque valeur servie.
+        reference_key = f":ppp:{ppp.key}:{usd_rates[year_from]}"
+    elif scale:
         reference_key = f":{scale}:{macro.key}" + (
             f":{factor_set.key}" if factor_set is not None else ""
         )
@@ -571,6 +626,7 @@ def aggregate(
             scale=scale,
             macro=macro,
             usd_rates=usd_rates,
+            ppp=ppp,
         )
 
     if q:
@@ -599,6 +655,7 @@ def _build(
     scale: str | None = None,
     macro: MacroSet | None = None,
     usd_rates: dict[int, Decimal] | None = None,
+    ppp: PppRatioSet | None = None,
 ) -> dict[str, Any]:
     # Le filtre entité force la base participations : l'argent COMPTÉ est
     # celui des participations de l'entité, jamais les totaux projets.
@@ -608,6 +665,11 @@ def _build(
     # (grain PARTICIPATION, l'argent compté est la part reçue — jamais
     # le total du projet, sinon double comptage). L'API a validé la vue.
     scale_perspective = ("funder" if by == "funder" else "recipient") if scale else None
+    # PURCHASING POWER : perspective bénéficiaire et grain participation
+    # ne sont pas des options — les quatre dimensions autorisées sont
+    # toutes dans PARTICIPATION_DIMS, donc `participation` est déjà True.
+    # L'invariant est garanti par la matrice, pas par une ligne de code ;
+    # un test le fige (§ 12.1, condition ②).
     participation = (
         by in PARTICIPATION_DIMS
         or metric in ("organisations", "coordination")
@@ -619,7 +681,7 @@ def _build(
     real = factor_set is not None and metric in MONETARY_METRICS
     # Toute transformation monétaire (real, gdp, capita) garde le NULL :
     # absence de chiffre ≠ zéro (A1, généralisé R3).
-    keep_none = real or scale is not None
+    keep_none = real or scale is not None or ppp is not None
     value_decimals = 6 if scale else 2
     params: dict[str, Any] = {}
     dim = _dimension(by, participation, params)
@@ -740,14 +802,57 @@ def _build(
                     f"THEN {native_num} * fx.factor / md.value END)"
                 ),
             }
+    # PURCHASING POWER (lot R4B) : le facteur se joint en table VALUES,
+    # comme le mode real — et NON par deux jointures sur `macro_series`
+    # comme le fait ECONOMIC SCALE. Deux raisons, l'une doctrinale :
+    # le `max(vintage_date)` d'une sous-requête SQL prendrait chaque
+    # concept SÉPARÉMENT et servirait un couple dépareillé, précisément
+    # le mélange que l'invariant de `ppp_ratio_set` interdit ; et la
+    # sous-requête coûte ~5,9× le nominal quand la table VALUES coûte
+    # ~1,2×. Le ratio est résolu UNE fois, en Python, pour la seule
+    # année cadrée : ~230 lignes, le calibre exact de la table `fx`.
+    ppp_join = ""
+    if ppp is not None:
+        pairs = sorted(
+            (code, ratio)
+            for (code, ratio_year), ratio in ppp.ratios.items()
+            if ratio_year == year_from
+        )
+        values_sql = ", ".join(
+            f"(CAST(:pppc{i} AS text), CAST(:pppr{i} AS numeric))" for i in range(len(pairs))
+        )
+        for i, (code, ratio) in enumerate(pairs):
+            params[f"pppc{i}"] = code
+            params[f"pppr{i}"] = ratio
+        # Un seul taux : le mode n'existe que sur une année.
+        params["ppp_rate"] = usd_rates[year_from]
+        # Les juridictions couvertes AU MOINS UNE FOIS — ce qui sépare
+        # `no_jurisdiction_series` de `no_reference_year`.
+        params["ppp_covered"] = sorted(ppp.covered)
+        ppp_join = (
+            f"LEFT JOIN (VALUES {values_sql}) AS ppp(code, ratio) ON ppp.code = pa.country_code"
+        )
+        cols = {**cols, "funding": _ppp_funding_col(), "covered_nominal": _ppp_covered_col()}
+        # Le CLASSEMENT reste nominal (verrou § 11). Sans cette ligne,
+        # `ranking` n'existerait pas en PPP — le Top deviendrait l'ordre
+        # arbitraire de PostgreSQL et le périmètre nominal `N` vaudrait
+        # zéro, mettant toute vue en refus.
+        cols = {**cols, "ranking": _funding_col(True, "", real=False)}
     # Pondération JV : l'ARGENT d'un groupe replié porte le poids de
     # chaque adhésion ; les comptes (projets, organisations, part en
     # coordination) restent entiers — c'est l'argent que le pacte
     # partage, pas les faits. AVANT la construction du SELECT : une
     # surcharge posée après ne serait qu'un dictionnaire mort.
     if cmp_entity_refs is not None:
-        cols = {**cols, "funding": _funding_col(True, " * cmp.weight", real)}
-        if real:
+        if ppp is not None:
+            cols = {
+                **cols,
+                "funding": _ppp_funding_col(" * cmp.weight"),
+                "covered_nominal": _ppp_covered_col(" * cmp.weight"),
+            }
+        else:
+            cols = {**cols, "funding": _funding_col(True, " * cmp.weight", real)}
+        if real or ppp is not None:
             cols = {**cols, "ranking": _funding_col(True, " * cmp.weight", False)}
     if organisation is not None and organisation.startswith("g"):
         # Vue cadrée sur un GROUPE (organisation=g<id>) : même règle, le
@@ -758,8 +863,15 @@ def _build(
             "WHERE m.group_id = :orgf_gid "
             "AND m.organisation_id = pa.organisation_id AND m.status = 'active')"
         )
-        cols = {**cols, "funding": _funding_col(True, f" * {weight_sub}", real)}
-        if real:
+        if ppp is not None:
+            cols = {
+                **cols,
+                "funding": _ppp_funding_col(f" * {weight_sub}"),
+                "covered_nominal": _ppp_covered_col(f" * {weight_sub}"),
+            }
+        else:
+            cols = {**cols, "funding": _funding_col(True, f" * {weight_sub}", real)}
+        if real or ppp is not None:
             cols = {**cols, "ranking": _funding_col(True, f" * {weight_sub}", False)}
     select_cols = (
         f"{dim['key']} AS key, {dim['label']} AS label, "
@@ -769,6 +881,8 @@ def _build(
     )
     if "ranking" in cols:
         select_cols += f", {cols['ranking']} AS ranking"
+    if "covered_nominal" in cols:
+        select_cols += f", {cols['covered_nominal']} AS covered_nominal"
 
     clauses = _filters(
         participation=participation,
@@ -883,7 +997,7 @@ def _build(
         rows = session.execute(
             text(f"""
             SELECT {select_cols}{split_col}
-            {base} {dim["joins"]} {fx_join} {md_join}
+            {base} {dim["joins"]} {fx_join} {md_join} {ppp_join}
             {where}
             GROUP BY key{split_group}
             {having}
@@ -898,7 +1012,32 @@ def _build(
     # passe dédiée les compte exactement. Chiffres calculés depuis le
     # périmètre AFFICHÉ, jamais codés en dur (arbitrage A1).
     excluded = None
-    if scale:
+    motif_spec: tuple[str, dict[str, str], tuple[str, ...], str] | None = None
+    if ppp is not None:
+        # Trois motifs EXCLUSIFS et exhaustifs sous `excl`, dans l'ordre
+        # du plus large au plus précis. `no_date` est structurellement
+        # impossible : la vue est cadrée sur une année, une ligne sans
+        # date de début est déjà hors périmètre (§ 4.4).
+        ppp_excl = "pa.amount_eur IS NOT NULL AND ppp.ratio IS NULL"
+        motif_spec = (
+            ppp_excl,
+            {
+                "no_country": "pa.country_code IS NULL",
+                # Le territoire n'a le couple sur AUCUNE année.
+                "no_jurisdiction_series": (
+                    "pa.country_code IS NOT NULL AND NOT (pa.country_code = ANY(:ppp_covered))"
+                ),
+                # Le territoire a le couple ailleurs, pas cette année-ci.
+                # Les confondre avec le motif précédent produirait le
+                # libellé mensonger que la porte § 5 a écarté.
+                "no_reference_year": (
+                    "pa.country_code IS NOT NULL AND pa.country_code = ANY(:ppp_covered)"
+                ),
+            },
+            ("no_reference_year",),
+            "pa.amount_eur",
+        )
+    elif scale:
         eur_col = "pa.amount_eur" if participation else "p.funding_amount_eur"
         currency_col = "pa.currency" if participation else "p.funding_currency"
         params["fx_covered"] = list(COVERED)
@@ -945,6 +1084,10 @@ def _build(
                 ),
             }
             year_motifs = ("no_index_year", "no_population_year")
+        motif_spec = (excl, motifs, year_motifs, eur_col)
+
+    if motif_spec is not None:
+        excl, motifs, year_motifs, eur_col = motif_spec
         motif_cols = ", ".join(
             f"count(DISTINCT p.id) FILTER (WHERE {cond}) AS {name}_n, "
             f"sum({eur_col}) FILTER (WHERE {cond}) AS {name}_eur"
@@ -962,7 +1105,7 @@ def _build(
             SELECT count(DISTINCT p.id) FILTER (WHERE {excl}) AS projects,
                    sum({eur_col}) FILTER (WHERE {excl}) AS amount,
                    {motif_cols}
-            {base} {dim["joins"]} {fx_join} {md_join}
+            {base} {dim["joins"]} {fx_join} {md_join} {ppp_join}
             {where_excluded}
             """),
             params,
@@ -1050,6 +1193,7 @@ def _build(
                 "y": getattr(r, "y", None),
                 "funding": r.funding,
                 "ranking": getattr(r, "ranking", None),
+                "covered": getattr(r, "covered_nominal", None),
                 "projects": r.projects,
                 "organisations": r.organisations,
                 "coordination": r.coordination,
@@ -1162,6 +1306,10 @@ def _build(
         unit = "gdppct"
     elif scale == "capita":
         unit = "usdcap" if factor_set.display_currency == "USD" else "eurcap"
+    elif ppp is not None:
+        # Dollar international : ni une devise de marché, ni un
+        # pourcentage. Le front lit l'unité, il ne devine aucun symbole.
+        unit = "intl"
     out: dict[str, Any] = {
         "metric": metric,
         "by": by,
@@ -1189,7 +1337,38 @@ def _build(
     # Modes du Reference Engine : les clés `meta.reference` et `excluded`
     # N'EXISTENT qu'en mode transformé — une réponse nominale reste
     # identique octet pour octet à l'historique (invariant, § 5 étape 16).
-    if scale:
+    if ppp is not None:
+        # La règle du périmètre filtré (§ 15.3), en trois états. N est le
+        # nominal du périmètre AFFICHÉ, C sa part convertible ; tous deux
+        # se lisent sur `folded` — jamais sur `series`, tronquée au Top.
+        nominal_total = sum(float(row.get("ranking") or 0) for row in folded)
+        covered_total = sum(float(row.get("covered") or 0) for row in folded)
+        reference: dict[str, Any] = {
+            "mode": "ppp",
+            # Forcée : le PPP n'existe pas côté financeur (§ 5.2).
+            "perspective": "recipient",
+            "year": year_from,
+            "series": ppp.series,
+            "vintages": ppp.vintages,
+            "rates_source": "ecb",
+        }
+        if nominal_total <= 0:
+            # Vue VIDE : aucune valeur nominale. La référence n'est pas
+            # en cause — ni couverture, ni exclusions, et surtout pas un
+            # refus dont le message parlerait de territoires.
+            pass
+        elif covered_total <= 0:
+            # Vue NON DÉFINIE : de la valeur nominale, rien de
+            # convertible. Le marqueur est consommé par l'API, qui lève
+            # 422 et jette ce corps — il n'atteint donc jamais un client,
+            # et l'invariant « aucune couverture de 0 % » reste vrai.
+            reference["no_convertible_value"] = True
+        else:
+            reference["coverage"] = round(covered_total / nominal_total, 6)
+            if excluded is not None:
+                out["excluded"] = excluded
+        out["meta"]["reference"] = reference
+    elif scale:
         # Une intensité ou un par-habitant ne se SOMME pas à travers les
         # séries : pas de « part du tout » possible.
         out["total"] = None
