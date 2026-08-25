@@ -403,8 +403,19 @@ def _seed_macro(session: Session) -> None:
     FUTUREWATT reste hors calcul (motif no_gdp_year/no_population_year)
     et la bande d'indisponibilité se recette sur un vrai cas. Les taux
     USD 2021-2024 alimentent le numérateur du % PIB (2025 est déjà semé
-    par les indices de prix, à 1.09 — les tests real en dépendent)."""
+    par les indices de prix, à 1.09 — les tests real en dépendent).
+
+    Lot R4B (PURCHASING POWER) : le PIB en dollars internationaux, semé
+    à LA MÊME vintage que son homologue en dollars — le couple est une
+    unité d'écriture, et les semer à deux dates mettrait tout le e2e PPP
+    en refus (c'est l'invariant qui parlerait, pas un bug). Ratios ronds,
+    vérifiables à la main : US 1,00 (l'ancre), FR 1,30, DE 1,25, NL 1,20,
+    EU 1,30. L'Italie porte le couple sur 2022 SEULEMENT, ce qui donne le
+    motif `no_reference_year` sur la vue 2021 ; l'Espagne, jamais
+    couverte, y donne `no_jurisdiction_series` — les deux se recettent
+    côte à côte."""
     gdp = {"EU": 2.0e13, "US": 2.5e13, "FR": 3.0e12, "DE": 4.0e12, "NL": 1.0e12}
+    gdp_ppp = {"EU": 2.6e13, "US": 2.5e13, "FR": 3.9e12, "DE": 5.0e12, "NL": 1.2e12}
     pop = {"EU": 4.5e8, "US": 3.4e8, "FR": 6.8e7, "DE": 8.0e7, "NL": 1.8e7}
     for year in range(2021, 2026):
         for code, value in gdp.items():
@@ -419,6 +430,18 @@ def _seed_macro(session: Session) -> None:
                     vintage_date="2026-01-15",
                 )
             )
+        for code, value in gdp_ppp.items():
+            session.add(
+                MacroSeries(
+                    jurisdiction_code=code,
+                    concept="gdp_ppp_current_intl",
+                    year=year,
+                    value=value,
+                    series_source="wdi",
+                    series_code="NY.GDP.MKTP.PP.CD",
+                    vintage_date="2026-01-15",
+                )
+            )
         for code, value in pop.items():
             session.add(
                 MacroSeries(
@@ -428,6 +451,27 @@ def _seed_macro(session: Session) -> None:
                     value=value,
                     series_source="wdi",
                     series_code="SP.POP.TOTL",
+                    vintage_date="2026-01-15",
+                )
+            )
+    # L'Italie : le couple sur 2022 SEULEMENT. Ses participations de 2021
+    # (HYVALLEY) se comptent alors en `no_reference_year` — un territoire
+    # qui A la référence, ailleurs — quand l'Espagne, jamais couverte,
+    # tombe en `no_jurisdiction_series`. Les deux motifs se recettent
+    # côte à côte sur la même vue, ce qui est tout l'enjeu.
+    for year in (2022,):
+        for concept, series_code, value in (
+            ("gdp_current_usd", "NY.GDP.MKTP.CD", 2.0e12),
+            ("gdp_ppp_current_intl", "NY.GDP.MKTP.PP.CD", 3.0e12),
+        ):
+            session.add(
+                MacroSeries(
+                    jurisdiction_code="IT",
+                    concept=concept,
+                    year=year,
+                    value=value,
+                    series_source="wdi",
+                    series_code=series_code,
                     vintage_date="2026-01-15",
                 )
             )

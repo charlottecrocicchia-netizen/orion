@@ -5,13 +5,16 @@
  *  famille se ressembleraient et le message serait faux une fois sur
  *  deux. */
 export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly detail: string | null,
-    url: string,
-  ) {
+  // Champs déclarés puis assignés : `erasableSyntaxOnly` interdit les
+  // propriétés de paramètre, qui ne s'effacent pas à la compilation.
+  status: number;
+  detail: string | null;
+
+  constructor(status: number, detail: string | null, url: string) {
     super(`${url}: HTTP ${status}${detail ? ` (${detail})` : ""}`);
     this.name = "ApiError";
+    this.status = status;
+    this.detail = detail;
   }
 }
 

@@ -1165,12 +1165,19 @@ export function ExplorerPage() {
                 ‹ {drilledLabel}
               </button>
             ) : null}
-            {trendInvalid ? (
-              /* TREND sans axe temporel : refus explicite (GO R2 § 4) —
-               jamais une interprétation silencieuse différente. */
+            {trendInvalid || pppInvalid ? (
+              /* Refus PRÉDICTIBLES, décidés depuis l'état de la vue :
+               TREND sans axe temporel (GO R2 § 4), PPP sans année
+               d'attribution unique (R4 § 4.4). Ils passent AVANT le
+               squelette — une requête désactivée reste « pending », et
+               le refus ne s'afficherait jamais derrière lui. */
               <div className="py-24 text-center text-muted-foreground">
                 <p className="mx-auto max-w-[52ch]">
-                  {t("explorer.reference.trendUnavailable")}
+                  {t(
+                    pppInvalid
+                      ? "explorer.reference.pppRequiresSingleYear"
+                      : "explorer.reference.trendUnavailable",
+                  )}
                 </p>
                 <button
                   type="button"
@@ -1182,12 +1189,11 @@ export function ExplorerPage() {
               </div>
             ) : isPending ? (
               <Skeleton className="h-[380px] w-full" />
-            ) : pppInvalid ||
-              (isError &&
-                (state.value === "real" ||
-                  state.value === "gdp" ||
-                  state.value === "capita" ||
-                  state.value === "ppp")) ? (
+            ) : isError &&
+              (state.value === "real" ||
+                state.value === "gdp" ||
+                state.value === "capita" ||
+                state.value === "ppp") ? (
               /* Le refus explicite du mode (422) : jamais un repli
                silencieux — la sortie est un geste. En PPP le message
                suit le CODE du refus, jamais le mode : « l'année n'est
@@ -1197,7 +1203,7 @@ export function ExplorerPage() {
               <div className="py-24 text-center text-muted-foreground">
                 <p className="mx-auto max-w-[52ch]">
                   {state.value === "ppp"
-                    ? t(pppRefusalKey(pppInvalid, error), {
+                    ? t(pppRefusalKey(false, error), {
                         year: state.from ?? "",
                       })
                     : t(
