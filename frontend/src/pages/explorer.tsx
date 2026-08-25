@@ -31,7 +31,7 @@ import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import {
   pppAvailable,
-  pppViewEligible,
+  pppRefusalCause,
   readState,
   resolveView,
   toApiParams,
@@ -95,14 +95,18 @@ const YEAR_MAX = 2027;
  *  n'a de référence pour elle. Se tromper de phrase dirait quelque
  *  chose de faux — par exemple accuser la source de ne pas avoir publié
  *  2025 alors qu'elle l'a publiée pour deux cent trente pays. */
-function pppRefusalKey(predictive: boolean, error: unknown): string {
-  if (predictive) return "explorer.reference.pppRequiresSingleYear";
+function pppRefusalKey(error: unknown): string {
   const detail = error instanceof ApiError ? error.detail : null;
   if (detail === "ppp_year_unavailable")
     return "explorer.reference.pppYearUnavailable";
   if (detail === "ppp_reference_unavailable_for_view")
     return "explorer.reference.pppReferenceUnavailableForView";
-  return "explorer.reference.pppRequiresSingleYear";
+  if (detail === "ppp_requires_single_award_year")
+    return "explorer.reference.pppRequiresSingleYear";
+  // `ppp_unavailable` — la vue ne porte pas le mode. Sans clé propre,
+  // ce quatrième refus retombait sur « choisissez une année », qui est
+  // faux quand l'année est bonne.
+  return "explorer.reference.pppUnavailable";
 }
 
 function Segment({
@@ -341,7 +345,11 @@ export function ExplorerPage() {
   // n'émet aucune requête. Une année sans référence, elle, doit
   // atteindre l'API pour recevoir `ppp_year_unavailable` plutôt que
   // « choisissez une année », qui serait faux.
-  const pppInvalid = state.value === "ppp" && !pppViewEligible(state);
+  // La CAUSE du refus prédictif, pas seulement son existence : dire
+  // « choisissez une année » à qui vient de changer de dimension
+  // accuserait l'utilisateur d'une erreur qu'il n'a pas commise.
+  const pppCause = state.value === "ppp" ? pppRefusalCause(state) : null;
+  const pppInvalid = pppCause !== null;
 
   const {
     data: rawData,
@@ -1189,9 +1197,11 @@ export function ExplorerPage() {
               <div className="py-24 text-center text-muted-foreground">
                 <p className="mx-auto max-w-[52ch]">
                   {t(
-                    pppInvalid
+                    pppCause === "year"
                       ? "explorer.reference.pppRequiresSingleYear"
-                      : "explorer.reference.trendUnavailable",
+                      : pppCause === "view"
+                        ? "explorer.reference.pppUnavailable"
+                        : "explorer.reference.trendUnavailable",
                   )}
                 </p>
                 <button
@@ -1218,7 +1228,7 @@ export function ExplorerPage() {
               <div className="py-24 text-center text-muted-foreground">
                 <p className="mx-auto max-w-[52ch]">
                   {state.value === "ppp"
-                    ? t(pppRefusalKey(false, error), {
+                    ? t(pppRefusalKey(error), {
                         year: state.from ?? "",
                       })
                     : t(

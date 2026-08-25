@@ -277,6 +277,23 @@ export function pppViewEligible(state: ExplorerState): boolean {
  *  une année »). Une vue bien structurée dont la référence manque doit
  *  atteindre l'API, qui répondra `ppp_year_unavailable` — dire l'un pour
  *  l'autre serait dire quelque chose de faux. */
+/** Pourquoi la vue ne porte-t-elle pas le mode ?
+ *
+ *  `null` : elle le porte. `"year"` : la fenêtre ne résout pas une
+ *  année. `"view"` : l'année est bonne, c'est la dimension, la métrique
+ *  ou l'éclatement qui l'empêche.
+ *
+ *  La distinction n'est pas cosmétique : dire « choisissez une année »
+ *  à qui vient de changer de dimension accuse l'utilisateur d'une
+ *  erreur qu'il n'a pas commise, et un message faux est pire qu'un
+ *  refus générique. */
+export function pppRefusalCause(state: ExplorerState): "year" | "view" | null {
+  if (pppViewEligible(state)) return null;
+  const anneeUnique =
+    state.from != null && state.to != null && state.from === state.to;
+  return anneeUnique ? "view" : "year";
+}
+
 export function pppAvailable(
   state: ExplorerState,
   publishedYears: number[] | undefined,

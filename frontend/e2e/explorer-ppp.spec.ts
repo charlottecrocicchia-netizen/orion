@@ -267,3 +267,24 @@ test("verrou : l'échantillon des séries est identique nominal ↔ PPP", async 
   expect(nominal.size).toBeGreaterThan(1);
   expect(await seriesSet(`${base}&value=ppp`)).toEqual(nominal);
 });
+
+test("le refus nomme la bonne cause, jamais l'année à tort", async ({
+  page,
+}) => {
+  // Défaut trouvé à la contre-vérification de clôture : une vue dont
+  // l'année est bonne mais la dimension interdite recevait « choisissez
+  // une année » — une phrase qui accuse l'utilisateur d'une erreur
+  // qu'il n'a pas commise.
+  await page.goto("/explore?by=funder&time=2023..2023&value=ppp");
+  await expect(page.getByText(/not available for this view/)).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText(/Select a single year/)).toHaveCount(0);
+
+  // Et la vue dont l'année est vraiment en cause dit, elle, l'année.
+  await page.goto("/explore?by=country&time=2021..2024&value=ppp");
+  await expect(page.getByText(/Select a single year/)).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText(/not available for this view/)).toHaveCount(0);
+});

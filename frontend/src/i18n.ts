@@ -998,6 +998,8 @@ const resources = {
             "reference not yet published for {{years}} in this territory: {{count}} projects, {{amount}}",
           pppRequiresSingleYear:
             "This view compares purchasing power within one award year. Select a single year to use it.",
+          pppUnavailable:
+            "Purchasing power is not available for this view. It compares the funding received by countries, regions, organisations or organisation types — one award year at a time.",
           pppYearUnavailable:
             "Purchasing-power figures are not available for {{year}}: the reference data for that year is not published yet.",
           pppReferenceUnavailableForView:
@@ -2287,6 +2289,8 @@ const resources = {
             "référence {{years}} non encore publiée pour ce territoire : {{count}} projets, {{amount}}",
           pppRequiresSingleYear:
             "Cette vue compare le pouvoir d'achat au sein d'une seule année d'attribution. Choisissez une année pour l'utiliser.",
+          pppUnavailable:
+            "Le pouvoir d'achat n'est pas disponible pour cette vue. Il compare le financement reçu par pays, régions, organisations ou types d'organisation — une année d'attribution à la fois.",
           pppYearUnavailable:
             "Le pouvoir d'achat n'est pas disponible pour {{year}} : les données de référence de cette année ne sont pas encore publiées.",
           pppReferenceUnavailableForView:

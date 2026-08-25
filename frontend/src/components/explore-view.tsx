@@ -104,12 +104,13 @@ export function ExploreView({
         ? "explorer.reference.pppYearUnavailable"
         : detail === "ppp_reference_unavailable_for_view"
           ? "explorer.reference.pppReferenceUnavailableForView"
-          : detail === "ppp_requires_single_award_year" ||
-              detail === "ppp_unavailable"
+          : detail === "ppp_requires_single_award_year"
             ? "explorer.reference.pppRequiresSingleYear"
-            : state.value === "real"
-              ? "explorer.reference.unavailable"
-              : "explorer.reference.scaleUnavailable";
+            : detail === "ppp_unavailable"
+              ? "explorer.reference.pppUnavailable"
+              : state.value === "real"
+                ? "explorer.reference.unavailable"
+                : "explorer.reference.scaleUnavailable";
     return (
       <p className="py-24 text-center text-muted-foreground">
         {t(key, { year: state.from ?? "" })}

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   pppAvailable,
+  pppRefusalCause,
   pppViewEligible,
   readState,
   resolveView,
@@ -375,5 +376,38 @@ describe("explore-state · le pouvoir d'achat n'est offert que s'il existe", () 
     expect(pppViewEligible(vue("by=country&time=2026..2026"))).toBe(true);
     expect(pppViewEligible(vue("by=country&time=2022..2023"))).toBe(false);
     expect(pppViewEligible(vue("by=year&time=2026..2026"))).toBe(false);
+  });
+});
+
+/** Défaut trouvé à la contre-vérification de clôture R4 (2026-08-25) :
+ *  le refus prédictif disait toujours « choisissez une année », même
+ *  quand l'année était bonne et que c'était la dimension, la métrique
+ *  ou l'éclatement qui empêchait le mode. Un clic sur une autre
+ *  métrique depuis une vue PPP suffisait — la phrase accusait alors
+ *  l'utilisateur d'une erreur qu'il n'avait pas commise. */
+describe("explore-state · le refus nomme la bonne cause", () => {
+  const vue = (query: string) => readState(new URLSearchParams(query));
+
+  it("aucune cause quand la vue porte le mode", () => {
+    expect(pppRefusalCause(vue("by=country&time=2023..2023"))).toBeNull();
+  });
+
+  it("fenêtre pluriannuelle ou sans borne → c'est l'année", () => {
+    expect(pppRefusalCause(vue("by=country&time=2022..2023"))).toBe("year");
+    expect(pppRefusalCause(vue("by=country"))).toBe("year");
+  });
+
+  it("année bonne mais dimension interdite → c'est la VUE, pas l'année", () => {
+    expect(pppRefusalCause(vue("by=funder&time=2023..2023"))).toBe("view");
+    expect(pppRefusalCause(vue("by=programme&time=2023..2023"))).toBe("view");
+    expect(pppRefusalCause(vue("by=subdivision&time=2023..2023"))).toBe("view");
+  });
+
+  it("année bonne mais métrique non monétaire → c'est la VUE", () => {
+    expect(pppRefusalCause(vue("by=country&time=2023..2023&metric=projects"))).toBe("view");
+  });
+
+  it("année bonne mais série éclatée → c'est la VUE", () => {
+    expect(pppRefusalCause(vue("by=country&time=2023..2023&split=1"))).toBe("view");
   });
 });
