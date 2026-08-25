@@ -23,6 +23,11 @@ orion-scheduler = "orion.scheduler:main"
 dev = [
     "pytest>=8.3",
     "httpx>=0.27",
+    # `starlette.testclient` (1.3+) importe httpx2 s'il le trouve et
+    # déprécie bruyamment le repli sur httpx. La dépendance est de TEST
+    # seulement : le code de production continue d'appeler httpx (les
+    # chargeurs d'ingestion), rien n'y change.
+    "httpx2>=2.12",
     "ruff>=0.8",
 ]
 
