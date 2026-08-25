@@ -2034,6 +2034,46 @@ trois motifs, refus de vue, invariant de millésime et contrôle manuel —
 identiques au chiffre près. Performance PPP 1,29× (2023) et 1,37×
 (2025) le nominal, budget tenu.
 
+### 18.2 Défaut de recette : le sélecteur offrait une année sans référence
+
+La recette utilisateur a trouvé ce que les tests ne cherchaient pas. Sur
+`/explore?split=0&time=2026..2026`, le groupe PURCHASING POWER
+s'affichait — alors qu'aucune juridiction ne publie la référence de 2026
+et que le clic menait droit à un refus.
+
+*Cause* : `pppAvailable` ne jugeait que la **structure** de la vue —
+une année unique, une dimension autorisée — sans jamais demander si la
+référence existait pour cette année-là. C'était offrir « une liste
+théorique qui mènerait à un refus », exactement ce que R0 § D6 interdit.
+
+*Correction à la source* : la disponibilité vient désormais du
+**référentiel**, par un point d'entrée dédié `GET /explore/ppp-years`
+qui rend l'intersection exacte des conditions du refus ⑤ — le couple
+publié **et** le taux BCE de l'année. Le client ne peut donc plus
+proposer une année qui finirait en 422. Aucune borne n'est codée en
+dur : le jour où la Banque mondiale publiera 2026, le mode y apparaîtra
+sans qu'une ligne change.
+
+*Et une distinction qui décide du message.* Le prédicat s'est scindé en
+deux, parce que les confondre dirait quelque chose de faux :
+
+| | Juge | Sert à |
+|---|---|---|
+| `pppViewEligible(state)` | la **structure** de la vue | le refus **prédictif**, sans requête |
+| `pppAvailable(state, années)` | structure **et** référence | l'affichage du **groupe** dans le sélecteur |
+
+Une URL `value=ppp` forcée sur 2026 reste donc éligible, atteint l'API
+et reçoit `ppp_year_unavailable` — jamais « choisissez une année », qui
+accuserait l'utilisateur d'une erreur qu'il n'a pas commise. Tant que la
+liste n'est pas chargée, rien n'est offert : mieux vaut un contrôle qui
+apparaît tard qu'un contrôle qui mène à un refus.
+
+*Verrous* : sept tests d'état (2023 et 2025 offerts, 2026 et 2027 non,
+pluriannuel non, liste inconnue non, et l'année qui apparaîtra d'elle-même
+une fois publiée), deux tests d'API sur le point d'entrée, un e2e qui
+ouvre le sélecteur sur 2026 et vérifie que le mode en est absent
+**pendant que les autres modes y restent**.
+
 **Reste à la fondatrice** : la recette visuelle (thèmes sombre et clair,
 mobile, `reduced-motion`) et la passe Firefox, l'application locale
 étant fermée par lien magique.

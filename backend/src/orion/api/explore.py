@@ -168,6 +168,27 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
     return result
 
 
+@router.get("/explore/ppp-years")
+def ppp_years(db: Annotated[Session, Depends(get_db)]) -> dict[str, list[int]]:
+    """Les années d'attribution que le mode PPP peut RÉELLEMENT honorer.
+
+    « Le contrôle n'offre que ce que la vue peut honorer » (R0 § D6) :
+    sans cette liste, le sélecteur proposait le mode sur une année sans
+    référence — 2026 aujourd'hui — et l'utilisateur tombait sur un refus.
+    Les conditions sont exactement celles du contrôle ⑤ de l'agrégat :
+    le couple publié ET le taux BCE de l'année. Le client ne peut donc
+    jamais proposer une année qui finirait en 422.
+
+    La liste vient du référentiel, jamais d'une borne codée en dur : le
+    jour où la Banque mondiale publiera 2026, le mode y apparaîtra sans
+    qu'une ligne change."""
+    ppp = macro.ppp_ratio_set(db)
+    if ppp is None:
+        return {"years": []}
+    rates = macro.usd_rates(db)
+    return {"years": sorted(year for year in ppp.years if year in rates)}
+
+
 @router.get("/stats")
 def stats(db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
     return aggregates.global_stats(db)

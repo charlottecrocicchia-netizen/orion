@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   pppAvailable,
+  pppViewEligible,
   readState,
   resolveView,
   toApiParams,
@@ -278,33 +279,101 @@ describe("explore-state · pouvoir d'achat (value=ppp)", () => {
   });
 });
 
-describe("explore-state · disponibilité du pouvoir d'achat", () => {
+describe("explore-state · éligibilité de la vue au pouvoir d'achat", () => {
   const base = (query: string) => readState(new URLSearchParams(query));
 
   it("exige une année d'attribution unique", () => {
-    expect(pppAvailable(base("by=country&time=2023..2023"))).toBe(true);
-    expect(pppAvailable(base("by=country&time=2020..2023"))).toBe(false);
+    expect(pppViewEligible(base("by=country&time=2023..2023"))).toBe(true);
+    expect(pppViewEligible(base("by=country&time=2020..2023"))).toBe(false);
     // Sans borne : la fenêtre ne résout pas une année. Le test est
     // STRICT — un repli sur les bornes du corpus rendrait « sans borne »
     // indiscernable de « toute la fenêtre ».
-    expect(pppAvailable(base("by=country"))).toBe(false);
+    expect(pppViewEligible(base("by=country"))).toBe(false);
   });
 
   it("n'existe que sur les dimensions au grain participation", () => {
     for (const by of ["country", "region", "organisation", "orgtype"]) {
-      expect(pppAvailable(base(`by=${by}&time=2023..2023`))).toBe(true);
+      expect(pppViewEligible(base(`by=${by}&time=2023..2023`))).toBe(true);
     }
     for (const by of ["year", "funder", "programme", "subdivision", "theme"]) {
-      expect(pppAvailable(base(`by=${by}&time=2023..2023`))).toBe(false);
+      expect(pppViewEligible(base(`by=${by}&time=2023..2023`))).toBe(false);
     }
   });
 
   it("n'existe que pour la métrique monétaire, et jamais éclatée", () => {
     expect(
-      pppAvailable(base("by=country&time=2023..2023&metric=projects")),
+      pppViewEligible(base("by=country&time=2023..2023&metric=projects")),
     ).toBe(false);
-    expect(pppAvailable(base("by=country&time=2023..2023&split=1"))).toBe(
+    expect(pppViewEligible(base("by=country&time=2023..2023&split=1"))).toBe(
       false,
     );
+  });
+});
+
+/** Défaut de recette R4B (2026-08-25) : le sélecteur proposait le
+ *  pouvoir d'achat sur 2026, année dont AUCUNE juridiction ne publie la
+ *  référence. « Le contrôle n'offre que ce que la vue peut honorer »
+ *  (R0 § D6) : la disponibilité réelle entre dans le prédicat, et elle
+ *  vient du serveur — jamais d'une année codée en dur, sans quoi le
+ *  comportement deviendrait faux le jour où 2026 sera publiée. */
+describe("explore-state · le pouvoir d'achat n'est offert que s'il existe", () => {
+  const ANNEES_PUBLIEES = [2021, 2022, 2023, 2024, 2025];
+  const vue = (query: string) => readState(new URLSearchParams(query));
+
+  it("2023 : année publiée → le mode est offert", () => {
+    expect(
+      pppAvailable(vue("by=country&time=2023..2023"), ANNEES_PUBLIEES),
+    ).toBe(true);
+  });
+
+  it("2025 : offert malgré une couverture partielle", () => {
+    // Quelques territoires manquent à l'appel en 2025 ; l'ANNÉE, elle,
+    // est publiée. La couverture partielle se dit dans la note, elle ne
+    // retire pas le mode.
+    expect(
+      pppAvailable(vue("by=country&time=2025..2025"), ANNEES_PUBLIEES),
+    ).toBe(true);
+  });
+
+  it("2026 et 2027 : aucune référence → le mode n'est pas offert", () => {
+    expect(
+      pppAvailable(vue("by=country&time=2026..2026"), ANNEES_PUBLIEES),
+    ).toBe(false);
+    expect(
+      pppAvailable(vue("by=country&time=2027..2027"), ANNEES_PUBLIEES),
+    ).toBe(false);
+  });
+
+  it("plusieurs années : le mode n'est pas offert, même toutes publiées", () => {
+    expect(
+      pppAvailable(vue("by=country&time=2022..2023"), ANNEES_PUBLIEES),
+    ).toBe(false);
+  });
+
+  it("années inconnues du client : rien n'est offert tant qu'on ne sait pas", () => {
+    // Mieux vaut un contrôle qui apparaît tard qu'un contrôle qui mène
+    // à un refus.
+    expect(pppAvailable(vue("by=country&time=2023..2023"), undefined)).toBe(
+      false,
+    );
+  });
+
+  it("le jour où 2026 sera publiée, le mode apparaîtra sans toucher au code", () => {
+    expect(
+      pppAvailable(vue("by=country&time=2026..2026"), [
+        ...ANNEES_PUBLIEES,
+        2026,
+      ]),
+    ).toBe(true);
+  });
+
+  it("l'éligibilité de la VUE reste distincte de la disponibilité", () => {
+    // 2026 : la vue est bien structurée (une année, bonne dimension) —
+    // c'est la RÉFÉRENCE qui manque. La distinction décide du message :
+    // un refus prédictif dirait « choisissez une année », ce qui serait
+    // faux ; il faut laisser l'API répondre `ppp_year_unavailable`.
+    expect(pppViewEligible(vue("by=country&time=2026..2026"))).toBe(true);
+    expect(pppViewEligible(vue("by=country&time=2022..2023"))).toBe(false);
+    expect(pppViewEligible(vue("by=year&time=2026..2026"))).toBe(false);
   });
 });

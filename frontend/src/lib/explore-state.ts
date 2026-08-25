@@ -74,7 +74,9 @@ export function readState(params: URLSearchParams): ExplorerState {
   return {
     metric: params.get("metric") ?? "funding",
     by: params.get("by") ?? "country",
-    split: params.has("split") ? params.get("split") === "1" : !params.has("by"),
+    split: params.has("split")
+      ? params.get("split") === "1"
+      : !params.has("by"),
     compare: (params.get("compare") ?? "").split("~").filter(Boolean),
     from: time ? Number(time[1]) : null,
     to: time ? Number(time[2]) : null,
@@ -98,7 +100,9 @@ export function readState(params: URLSearchParams): ExplorerState {
     // que l'USD comme ré-expression. La devise est étrangère à TREND :
     // un scalaire commun s'annule dans les ratios — éliminée.
     cur:
-      (value === "real" || value === "capita") && params.get("cur") === "USD" ? "USD" : "",
+      (value === "real" || value === "capita") && params.get("cur") === "USD"
+        ? "USD"
+        : "",
     range: value === "growth" && params.get("range") === "full" ? "full" : "",
     limit: Number(params.get("limit") ?? "5"),
     view: params.get("view") ?? "auto",
@@ -112,12 +116,14 @@ export function toApiParams(state: ExplorerState): URLSearchParams {
     limit: String(state.limit),
   });
   if (state.by !== "year" && state.split) apiParams.set("split", "true");
-  if (state.compare.length > 0) apiParams.set("compare", state.compare.join("~"));
+  if (state.compare.length > 0)
+    apiParams.set("compare", state.compare.join("~"));
   if (state.from != null) apiParams.set("year_from", String(state.from));
   if (state.to != null) apiParams.set("year_to", String(state.to));
   if (state.q) apiParams.set("q", state.q);
   if (state.country) apiParams.set("country", state.country);
-  if (state.programme && state.by === "programme") apiParams.set("programme", state.programme);
+  if (state.programme && state.by === "programme")
+    apiParams.set("programme", state.programme);
   if (state.organisation) apiParams.set("organisation", state.organisation);
   if (state.sector) apiParams.set(LENS_PARAM, state.sector);
   if (state.subdivision) apiParams.set("subdivision", state.subdivision);
@@ -167,7 +173,9 @@ export function resolveView(state: ExplorerState): {
   const temporal = state.by === "year" || state.split;
   // The map view only speaks euros: other metrics keep donut/bars/table.
   const mappable =
-    !temporal && state.by === "country" && (state.metric === "funding" || state.metric === "avg");
+    !temporal &&
+    state.by === "country" &&
+    (state.metric === "funding" || state.metric === "avg");
   const summable = SUMMABLE.has(state.metric);
   // TREND (R2) : des trajectoires et leurs nombres, rien d'autre — pas
   // de donut (part d'un total qui n'existe plus), pas de bump ni de
@@ -176,14 +184,21 @@ export function resolveView(state: ExplorerState): {
   // DISPARAISSENT, jamais grisées (doctrine R0 § D4).
   if ((state.value === "index" || state.value === "growth") && temporal) {
     const view = state.view === "table" ? "table" : "lines";
-    return { temporal, mappable: false, availableViews: ["lines", "table"], view };
+    return {
+      temporal,
+      mappable: false,
+      availableViews: ["lines", "table"],
+      view,
+    };
   }
   // ECONOMIC SCALE (R3) : des intensités et des par-habitant — jamais
   // de donut (aucun total), jamais de carte de niveaux. Trajectoires en
   // temporel, barres classées sinon.
   if (state.value === "gdp" || state.value === "capita") {
     const availableViews = temporal ? ["lines", "table"] : ["bars", "table"];
-    const view = availableViews.includes(state.view) ? state.view : availableViews[0];
+    const view = availableViews.includes(state.view)
+      ? state.view
+      : availableViews[0];
     return { temporal, mappable: false, availableViews, view };
   }
   // Bump (ranks) and delta (before/after windows) need several series over
@@ -211,12 +226,13 @@ export function resolveView(state: ExplorerState): {
           ? ["donut", "bars", "table"]
           : ["bars", "donut", "table"]
         : ["bars", "table"];
-  const view = availableViews.includes(state.view) ? state.view : availableViews[0];
+  const view = availableViews.includes(state.view)
+    ? state.view
+    : availableViews[0];
   return { temporal, mappable, availableViews, view };
 }
 
-
-/** PURCHASING POWER (R4) : le mode existe-t-il pour cette vue ?
+/** PURCHASING POWER (R4) : la VUE est-elle structurée pour le mode ?
  *
  *  DEUX conditions, et la page, `ExploreView` et les tests lisent la
  *  même — c'est la raison d'être de ce module. ① Le périmètre résout
@@ -232,7 +248,7 @@ export function resolveView(state: ExplorerState): {
  *  chiffre faux. */
 export const PPP_DIMS = ["country", "region", "organisation", "orgtype"];
 
-export function pppAvailable(state: ExplorerState): boolean {
+export function pppViewEligible(state: ExplorerState): boolean {
   return (
     state.metric === "funding" &&
     !state.split &&
@@ -240,5 +256,34 @@ export function pppAvailable(state: ExplorerState): boolean {
     state.from != null &&
     state.to != null &&
     state.from === state.to
+  );
+}
+
+/** Le mode est-il OFFERT à l'utilisateur ?
+ *
+ *  La structure de la vue ne suffit pas : encore faut-il que la
+ *  référence existe pour l'année cadrée. « Le contrôle n'offre que ce
+ *  que la vue peut honorer » (R0 § D6) — proposer le pouvoir d'achat sur
+ *  2026, dont aucune juridiction ne publie la référence, menait droit à
+ *  un refus. Les années viennent du serveur (`/explore/ppp-years`),
+ *  jamais d'une borne codée en dur : le jour où 2026 sera publiée, le
+ *  mode y apparaîtra sans qu'une ligne change.
+ *
+ *  Tant que la liste n'est pas connue, rien n'est offert : mieux vaut un
+ *  contrôle qui apparaît tard qu'un contrôle qui mène à un refus.
+ *
+ *  La distinction avec `pppViewEligible` décide du MESSAGE de refus.
+ *  Une vue mal structurée se refuse côté client, sans requête (« choisissez
+ *  une année »). Une vue bien structurée dont la référence manque doit
+ *  atteindre l'API, qui répondra `ppp_year_unavailable` — dire l'un pour
+ *  l'autre serait dire quelque chose de faux. */
+export function pppAvailable(
+  state: ExplorerState,
+  publishedYears: number[] | undefined,
+): boolean {
+  return (
+    pppViewEligible(state) &&
+    publishedYears != null &&
+    publishedYears.includes(state.from!)
   );
 }

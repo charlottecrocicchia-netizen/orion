@@ -43,7 +43,7 @@ test("le groupe n'existe que sur une année unique", async ({ page }) => {
   );
   await page.keyboard.press("Escape");
 
-  // Une année unique : le groupe apparaît.
+  // Une année unique ET publiée : le groupe apparaît.
   await page.goto("/explore?by=country&time=2023..2023");
   await page.getByRole("button", { name: /View funding as/ }).click();
   await expect(
@@ -52,6 +52,32 @@ test("le groupe n'existe que sur une année unique", async ({ page }) => {
   await expect(
     page.getByText("Compare purchasing power across countries"),
   ).toBeVisible();
+});
+
+test("une année sans référence n'est pas proposée du tout", async ({
+  page,
+}) => {
+  // Défaut de recette (2026-08-25) : le sélecteur offrait le mode sur
+  // 2026, dont aucune juridiction ne publie la référence — le clic menait
+  // droit à un refus. Le contrôle n'offre que ce que la vue peut
+  // honorer, et la liste des années vient du serveur.
+  await page.goto("/explore?by=country&time=2026..2026&split=0");
+  await expect(
+    page.getByRole("button", { name: /View funding as/ }),
+  ).toBeVisible({
+    timeout: 15_000,
+  });
+  await page.getByRole("button", { name: /View funding as/ }).click();
+  await expect(page.getByText("Purchasing power", { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole("radio", { name: /PPP-adjusted/ })).toHaveCount(
+    0,
+  );
+  // Les autres modes ne bougent pas : c'est le pouvoir d'achat qui manque
+  // de référence, pas la vue qui serait cassée.
+  await expect(page.getByText("Value", { exact: true })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Real value/ })).toBeVisible();
 });
 
 test("la bascule écrit value=ppp nu et ne touche pas au filtre temporel", async ({

@@ -43,7 +43,13 @@ export interface Overview {
     funding_eur: number;
     countries: number;
   };
-  lenses: { slug: string; rank: number; version: number; core: number; enabling: number }[];
+  lenses: {
+    slug: string;
+    rank: number;
+    version: number;
+    core: number;
+    enabling: number;
+  }[];
   /** La série annuelle agrégée — la courbe du hero public, aucune
    *  maille sous l'année. */
   funding_by_year: { year: number; amount_eur: number }[];
@@ -85,7 +91,13 @@ export interface LensMeta {
   /** Le dernier passage réussi du chargeur de CETTE lentille. */
   last_run_at: string | null;
   /** Le compte des règles, posé par le chargeur — jamais écrit à la main. */
-  rules: { total: number; programme: number; theme: number; text: number; review: number };
+  rules: {
+    total: number;
+    programme: number;
+    theme: number;
+    text: number;
+    review: number;
+  };
   core: number;
   enabling: number;
   core_funding_eur: number;
@@ -301,7 +313,12 @@ export interface CompareEntry {
     funding_eur: number;
   }[];
   /** Géographie de l'entrée — présent pour les groupes seulement. */
-  countries?: { code: string; region: string | null; entities: number; funding_eur: number }[];
+  countries?: {
+    code: string;
+    region: string | null;
+    entities: number;
+    funding_eur: number;
+  }[];
 }
 
 export interface CompareResponse {
@@ -317,7 +334,12 @@ export interface CompareResponse {
 }
 
 export interface SuggestResponse {
-  groups: { id: number; name: string; country: string | null; entities: number }[];
+  groups: {
+    id: number;
+    name: string;
+    country: string | null;
+    entities: number;
+  }[];
   organisations: { id: number; name: string; country: string | null }[];
   projects: { id: number; acronym: string | null; title: string }[];
 }
@@ -347,9 +369,18 @@ export interface GroupHub {
   }[];
   partners: OrganisationPartner[];
   watchpost: {
-    top_themes: { key: string; label: string | null; amount_eur: number; projects: number }[];
+    top_themes: {
+      key: string;
+      label: string | null;
+      amount_eur: number;
+      projects: number;
+    }[];
     signals: {
-      accelerating_theme?: { key: string; label: string | null; growth_pct: number } | null;
+      accelerating_theme?: {
+        key: string;
+        label: string | null;
+        growth_pct: number;
+      } | null;
       new_partners?: { count: number; names: string[] } | null;
     };
     sources_count: number;
@@ -375,13 +406,19 @@ export interface GroupHub {
     attributed_eur: number;
     share_pct: number;
   }[];
-  countries: { code: string; region: string | null; entities: number; funding_eur: number }[];
+  countries: {
+    code: string;
+    region: string | null;
+    entities: number;
+    funding_eur: number;
+  }[];
 }
 
 export const api = {
   explore: (params: URLSearchParams) =>
     get<ExploreResponse>(`/api/explore/aggregate?${params}`),
-  suggest: (q: string) => get<SuggestResponse>(`/api/search/suggest?q=${encodeURIComponent(q)}`),
+  suggest: (q: string) =>
+    get<SuggestResponse>(`/api/search/suggest?q=${encodeURIComponent(q)}`),
   organisationPartners: (id: string) =>
     get<OrganisationPartner[]>(`/api/organisations/${id}/partners`),
   organisationPartnerCountries: (id: string) =>
@@ -400,10 +437,15 @@ export const api = {
   searchOrganisations: (params: URLSearchParams) =>
     get<OrganisationSearchResponse>(`/api/search/organisations?${params}`),
   project: (id: string) => get<ProjectDetail>(`/api/projects/${id}`),
-  organisation: (id: string) => get<OrganisationDetail>(`/api/organisations/${id}`),
+  organisation: (id: string) =>
+    get<OrganisationDetail>(`/api/organisations/${id}`),
   organisationProjects: (id: string, params: URLSearchParams) =>
     get<PortfolioResponse>(`/api/organisations/${id}/projects?${params}`),
   countries: () => get<CountryIndexEntry[]>("/api/countries"),
+  /** PURCHASING POWER (R4) : les années que le mode peut honorer. Le
+   *  sélecteur n'en propose aucune autre — offrir une année sans
+   *  référence mènerait l'utilisateur à un refus (R0 § D6). */
+  pppYears: () => get<{ years: number[] }>("/api/explore/ppp-years"),
   regions: () => get<RegionSummary[]>("/api/regions"),
   group: (id: string) => get<GroupHub>(`/api/groups/${id}`),
   country: (code: string) => get<CountryHub>(`/api/countries/${code}`),
@@ -411,7 +453,8 @@ export const api = {
   programme: (id: string) => get<ProgrammeHub>(`/api/programmes/${id}`),
   sources: () => get<SourcesResponse>("/api/sources"),
   health: () => get<Health>("/api/health"),
-  calls: (params: URLSearchParams) => get<CallsResponse>(`/api/calls?${params}`),
+  calls: (params: URLSearchParams) =>
+    get<CallsResponse>(`/api/calls?${params}`),
   call: (id: string) => get<CallDetail>(`/api/calls/${id}`),
   callProgrammes: () => get<CallProgrammesResponse>("/api/calls/programmes"),
   callHistoricalActors: (id: string) =>
@@ -471,7 +514,8 @@ export interface CallHistoricalActors {
     programmes: string[];
     contributions_eur: number | null;
   }[];
-  reason?: "no_comparable_history" | "below_threshold" | "family_too_transversal";
+  reason?:
+    "no_comparable_history" | "below_threshold" | "family_too_transversal";
   meta: {
     min_projects: number;
     unit: string;
@@ -539,7 +583,9 @@ export interface CallDetail extends CallRow {
   cross_cutting: string[] | null;
   description_html: string | null;
   conditions_html: string | null;
-  budget_overview: { budgetTopicActionMap?: Record<string, CallBudgetAction[]> } | null;
+  budget_overview: {
+    budgetTopicActionMap?: Record<string, CallBudgetAction[]>;
+  } | null;
   last_seen_at: string | null;
   meta: CallsMeta;
 }
@@ -604,11 +650,25 @@ export interface OrganisationDetail {
     first_year: number | null;
     last_year: number | null;
   };
-  funding_by_year: { year: number; amount_eur: number; coordinated_eur: number; projects: number }[];
+  funding_by_year: {
+    year: number;
+    amount_eur: number;
+    coordinated_eur: number;
+    projects: number;
+  }[];
   top_programmes: { code: string; label: string; amount_eur: number }[];
-  top_themes: { key: string; label: string; amount_eur: number; projects: number }[];
+  top_themes: {
+    key: string;
+    label: string;
+    amount_eur: number;
+    projects: number;
+  }[];
   signals: {
-    accelerating_theme: { key: string; label: string; growth_pct: number } | null;
+    accelerating_theme: {
+      key: string;
+      label: string;
+      growth_pct: number;
+    } | null;
     new_partners: { count: number; names: string[] } | null;
   };
   sources_count: number;
@@ -677,7 +737,12 @@ export interface CountryHub {
     coordinator_count: number;
   };
   funding_by_year: { year: number; amount_eur: number }[];
-  top_organisations: { id: number; name: string; projects_count: number; funding_eur: number }[];
+  top_organisations: {
+    id: number;
+    name: string;
+    projects_count: number;
+    funding_eur: number;
+  }[];
   top_projects: {
     id: number;
     acronym: string | null;
@@ -726,7 +791,11 @@ export interface ProgrammeHub {
 
 export interface SourcesResponse {
   totals: { projects: number; organisations: number; participations: number };
-  sources: { source: string; projects: number; last_success_at: string | null }[];
+  sources: {
+    source: string;
+    projects: number;
+    last_success_at: string | null;
+  }[];
 }
 
 export interface Health {

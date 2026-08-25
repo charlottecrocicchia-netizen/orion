@@ -31,6 +31,7 @@ import { parseIntent } from "@/lib/intent";
 import { STORIES } from "@/lib/stories";
 import {
   pppAvailable,
+  pppViewEligible,
   readState,
   resolveView,
   toApiParams,
@@ -330,13 +331,17 @@ export function ExplorerPage() {
       (state.by === "year" && !!state.country));
   const scalePerspective: "funder" | "recipient" =
     state.by === "funder" ? "funder" : "recipient";
-  // PURCHASING POWER (R4) : le prédicat vit dans `explore-state` — la
-  // page, le rejeu et les tests lisent la même règle.
-  const isPppAvailable = pppAvailable(state);
-  // Deux des trois refus PPP sont PRÉDICTIBLES : le mode est demandé
-  // alors que la vue ne le porte pas. Comme pour TREND, on ne lance
-  // aucune requête — on affiche le motif.
-  const pppInvalid = state.value === "ppp" && !isPppAvailable;
+  // PURCHASING POWER (R4) : les prédicats vivent dans `explore-state` —
+  // la page, le rejeu et les tests lisent la même règle.
+  //
+  // Deux questions distinctes, et les confondre donnerait un message
+  // faux. La VUE est-elle structurée pour le mode (une année, la bonne
+  // dimension) ? Et la RÉFÉRENCE existe-t-elle pour cette année-là ?
+  // Le refus PRÉDICTIF ne juge que la première — comme pour TREND, il
+  // n'émet aucune requête. Une année sans référence, elle, doit
+  // atteindre l'API pour recevoir `ppp_year_unavailable` plutôt que
+  // « choisissez une année », qui serait faux.
+  const pppInvalid = state.value === "ppp" && !pppViewEligible(state);
 
   const {
     data: rawData,
@@ -354,6 +359,16 @@ export function ExplorerPage() {
     queryKey: ["countries"],
     queryFn: api.countries,
   });
+  // Les années que le mode PPP peut honorer — référentiel, jamais une
+  // borne codée en dur. Une nouvelle publication de la source les fait
+  // apparaître d'elles-mêmes.
+  const { data: pppYears } = useQuery({
+    queryKey: ["ppp-years"],
+    queryFn: api.pppYears,
+  });
+  // Le SÉLECTEUR, lui, exige les DEUX conditions : il n'offre que ce que
+  // la vue peut honorer (R0 § D6).
+  const isPppAvailable = pppAvailable(state, pppYears?.years);
   const { data: programmes } = useQuery({
     queryKey: ["programmes"],
     queryFn: api.programmes,

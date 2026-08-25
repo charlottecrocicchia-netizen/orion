@@ -49,6 +49,10 @@ from orion.search import explore
 
 MARK = "ZZPPP"
 VINTAGE = date(2026, 2, 1)
+# Le corpus committé porte SON millésime : la contrainte d'unicité
+# (juridiction, concept, année, vintage) le ferait sinon entrer en
+# collision avec les fixtures à savepoint du même module.
+VINTAGE_HTTP = date(2026, 1, 5)
 USD_PER_EUR = "1.25"
 YEAR = 2023
 
@@ -446,6 +450,18 @@ def test_le_grain_est_toujours_la_participation(seeded):
         assert result["basis"] == "participants", by
 
 
+def test_les_annees_honorables_ne_sont_pas_codees_en_dur(seeded):
+    """Le jour où la source publiera une année de plus, elle apparaîtra
+    d'elle-même : la liste sort du référentiel, pas d'une borne."""
+    ppp = macro.ppp_ratio_set(seeded)
+    assert {2022, YEAR} <= ppp.years
+    assert 2026 not in ppp.years
+    _macro(seeded, 2026, PPP, USD)
+    seeded.flush()
+    macro._PPP_CACHE.clear()
+    assert 2026 in macro.ppp_ratio_set(seeded).years
+
+
 # ------------------------------------------------------------------- API
 
 
@@ -534,7 +550,7 @@ def corpus_http(test_database):
                     "  series_code, vintage_date)"
                     " VALUES ('FR', :c, :y, :v, 'wdi', :s, :d)"
                 ),
-                {"c": concept, "y": YEAR, "v": value, "s": code_series, "d": VINTAGE},
+                {"c": concept, "y": YEAR, "v": value, "s": code_series, "d": VINTAGE_HTTP},
             )
         funder_id = session.execute(
             text(
@@ -583,7 +599,9 @@ def corpus_http(test_database):
             session.execute(text(f"DELETE FROM {table} WHERE source = :s"), {"s": src})
         session.execute(text("DELETE FROM organisations WHERE name LIKE :n"), {"n": f"{src}%"})
         session.execute(text("DELETE FROM funders WHERE code = :s"), {"s": src})
-        session.execute(text("DELETE FROM macro_series WHERE vintage_date = :d"), {"d": VINTAGE})
+        session.execute(
+            text("DELETE FROM macro_series WHERE vintage_date = :d"), {"d": VINTAGE_HTTP}
+        )
         session.execute(
             text("DELETE FROM exchange_rates WHERE currency = 'USD' AND year = :y"), {"y": YEAR}
         )
@@ -630,8 +648,32 @@ def test_api_vue_servie_porte_le_contrat(client, corpus_http):
         "gdp_current_usd": "wdi:NY.GDP.MKTP.CD",
     }
     assert reference["vintages"] == {
-        "gdp_ppp_current_intl": VINTAGE.isoformat(),
-        "gdp_current_usd": VINTAGE.isoformat(),
+        "gdp_ppp_current_intl": VINTAGE_HTTP.isoformat(),
+        "gdp_current_usd": VINTAGE_HTTP.isoformat(),
     }
     assert "no_convertible_value" not in reference
     assert {s["key"]: s["value"] for s in payload["series"]}["FR"] == pytest.approx(162_500_000)
+
+
+def test_api_annees_honorables_sur_corpus(client, corpus_http):
+    """« Le contrôle n'offre que ce que la vue peut honorer » : la liste
+    est l'intersection exacte des conditions du refus ⑤ — le couple
+    publié ET le taux BCE. Une année absente de cette liste ne doit
+    jamais être proposée, sans quoi l'utilisateur tombe sur un refus."""
+    response = client.get("/api/explore/ppp-years")
+    assert response.status_code == 200
+    years = response.json()["years"]
+    assert YEAR in years
+    assert 2026 not in years
+    # Et le contrat tient dans les deux sens : l'année proposée est
+    # servie, celle qui manque est refusée.
+    servie = client.get(
+        f"/api/explore/aggregate?metric=funding&by=country&value=ppp"
+        f"&year_from={YEAR}&year_to={YEAR}"
+    )
+    assert servie.status_code == 200
+    refusee = client.get(
+        "/api/explore/aggregate?metric=funding&by=country&value=ppp&year_from=2026&year_to=2026"
+    )
+    assert refusee.status_code == 422
+    assert refusee.json()["detail"] == "ppp_year_unavailable"
