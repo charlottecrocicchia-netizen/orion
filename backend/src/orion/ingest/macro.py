@@ -244,30 +244,48 @@ def _vintages_disagree(session: Session, code: str) -> bool:
     return len(latest) == len(COUPLE) and len(set(latest.values())) > 1
 
 
-def _check_couple(fetched: dict[str, dict[str, dict[int, float]]]) -> None:
+def _check_couple(fetched: dict[str, dict[str, dict[int, float]]]) -> int:
     """Garde-fous BLOQUANTS du couple, en mémoire, avant toute écriture.
 
     Ils ne supposent aucune identité externe : ils portent sur le couple
     réellement consommé en production (doc § 17 étape 2, niveau 1). Un
     échec lève — le run est journalisé en échec et la vintage courante
-    reste en service."""
+    reste en service.
+
+    Rend le nombre de cellules hors bande, pour le journal : une valeur
+    extrême isolée est un fait de la source, elle se compte sans
+    bloquer."""
     numerator, denominator = COUPLE
     lo, hi = RATIO_BAND
     anchor_seen = False
+    outliers = 0
     for code, years in fetched[numerator].items():
         other = fetched[denominator].get(code, {})
-        for year, value in years.items():
+        ratios: list[Decimal] = []
+        for year, value in sorted(years.items()):
             if year not in other:
                 continue
             ratio = Decimal(str(value)) / Decimal(str(other[year]))
+            ratios.append(ratio)
             if not lo <= ratio <= hi:
-                raise ValueError(f"{code}/{year}: ratio PPP {ratio} hors bande [{lo} ; {hi}]")
+                outliers += 1
+            # L'ancre se vérifie CELLULE PAR CELLULE : le dollar
+            # international est défini sur les États-Unis, et un seul
+            # écart y trahirait un couple dépareillé.
             if code == ANCHOR:
                 anchor_seen = True
                 if ratio.quantize(ANCHOR_PRECISION) != Decimal(1):
                     raise ValueError(f"{ANCHOR}/{year}: ratio PPP {ratio} devrait valoir 1")
+        if ratios:
+            median = sorted(ratios)[len(ratios) // 2]
+            if not lo <= median <= hi:
+                raise ValueError(
+                    f"{code}: ratio PPP médian {median} hors bande [{lo} ; {hi}]"
+                    " — inversion de concepts ou changement d'unité chez la source"
+                )
     if not anchor_seen:
         raise ValueError(f"aucune année du couple pour {ANCHOR} — ancre du dollar international")
+    return outliers
 
 
 def _check_coverage(session: Session, concept: str, fresh: dict[str, dict[int, float]]) -> None:
@@ -302,7 +320,7 @@ def store(
     """La phase d'écriture, séparée du réseau pour être testable telle
     quelle. Les concepts hors couple gardent le comportement R3 ; le
     couple s'écrit par juridiction, les deux concepts ensemble."""
-    _check_couple(fetched)
+    stats.add("couple_ratio_outliers", _check_couple(fetched))
     for concept in INDICATORS:
         _check_coverage(session, concept, fetched[concept])
 

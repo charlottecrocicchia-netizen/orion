@@ -251,3 +251,31 @@ def test_valeur_non_positive_refusee(db_session):
     payload["population"] = {"FR": {2025: -1.0}}
     with pytest.raises(ValueError, match="valeur non positive"):
         ingest_macro.store(db_session, payload, J1, RunStats())
+
+
+def test_valeur_extreme_isolee_ne_bloque_pas_le_monde(db_session):
+    """Une erreur STRUCTURELLE déplace toute une série ; une valeur
+    extrême isolée est un fait de la source. Mesuré sur les données
+    réelles : UNE cellule hors bande sur 2 346 entre 1990 et 1999,
+    l'Azerbaïdjan de 1992 à 70,06 — bloquer le chargement mondial
+    dessus aurait été un faux positif permanent. Elle se compte."""
+    payload = fetched(
+        {"AZ": {1991: 5.0e10, 1992: 7.0e11, 1993: 6.0e10, 1994: 5.5e10}},
+        {"AZ": {1991: 1.0e10, 1992: 1.0e10, 1993: 1.0e10, 1994: 1.0e10}},
+    )
+    stats = RunStats()
+    ingest_macro.store(db_session, payload, J1, stats)
+    db_session.flush()
+
+    assert stats.counts["couple_ratio_outliers"] == 1
+    assert vintages(db_session, "AZ")["gdp_ppp_current_intl"] == J1
+
+
+def test_inversion_des_concepts_bloque(db_session):
+    """L'inversion rendrait CHAQUE ratio inverse : la médiane la voit."""
+    payload = fetched(
+        {"FR": {2023: 3.0e12, 2024: 3.1e12, 2025: 3.2e12}},
+        {"FR": {2023: 3.9e13, 2024: 4.0e13, 2025: 4.1e13}},
+    )
+    with pytest.raises(ValueError, match="médian"):
+        ingest_macro.store(db_session, payload, J1, RunStats())
