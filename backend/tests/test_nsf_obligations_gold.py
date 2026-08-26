@@ -21,11 +21,15 @@ from sqlalchemy import text
 from orion.core.db import SessionLocal
 from orion.ingest.nsfobligations import load as obligations_load
 
-ARTIFACT_DIR = Path(__file__).resolve().parents[2] / ".research-downloads" / "r5" / "nsf"
+# Le magasin durable (régime data/, promotion du runbook § 2) — le
+# dernier millésime, comme l'ingestion de production.
+_STORE = Path(__file__).resolve().parents[1] / "data" / "r5-nsf"
+_VINTAGES = sorted(p for p in _STORE.iterdir() if p.is_dir()) if _STORE.is_dir() else []
+ARTIFACT_DIR = _VINTAGES[-1] if _VINTAGES else _STORE
 
 pytestmark = pytest.mark.skipif(
     not (ARTIFACT_DIR / "award-details-fy2019.tsv").exists(),
-    reason="artefacts officiels non présents (poste sans acquisition R5B)",
+    reason="artefacts officiels non présents (poste sans magasin r5-nsf promu)",
 )
 
 # Valeurs OFFICIELLES constatées (série Trends du millésime 2026-08-26,

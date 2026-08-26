@@ -21,29 +21,52 @@ URL source, feuille, filtres, horodatage UTC, version du codebook,
 octets, SHA256, méthode. **Un artefact sans sidecar, ou dont le SHA
 diverge, est refusé à l'ingestion.** Aucun chiffre n'est jamais retapé.
 
-Destination de travail (consigne fondatrice du 2026-08-26) :
+**Deux espaces, deux rôles** (consigne fondatrice du 2026-08-26) :
 
 ```text
-<ORION_ROOT>/.research-downloads/r5/nsf/
+<ORION_ROOT>/.research-downloads/r5/nsf/     # acquisition — temporaire, git-ignoré
+<ORION_ROOT>/backend/data/r5-nsf/<vintage>/  # magasin DURABLE — la provenance
 ```
 
-git-ignoré ; la promotion vers un répertoire de provenance versionné
-est une décision explicite, jamais automatique.
+L'acquisition écrit dans le premier ; la **promotion** vers le second
+est le geste de validation (copie + vérification SHA256 de chaque
+artefact contre son sidecar + MANIFEST). Le magasin durable suit le
+régime `data/` d'Orion (sources brutes hors git) avec une différence
+capitale : **ces artefacts ne sont pas re-téléchargeables à
+l'identique** (la série officielle est restatée sans archives) — le
+dossier de millésime est la seule archive brute. La garantie hors du
+poste d'acquisition tient à deux choses : la base versionnée porte
+lignes + SHA256 + provenance (dumpée et sauvegardée comme le reste), et
+**le dossier `backend/data/r5-nsf/` doit être copié sur le VPS (rsync)
+au déploiement R5** — geste à inscrire au runbook de déploiement le
+jour du GO, comme le transfert du dump.
 
 ## 2. Acquisition
 
 ### Voie normale — script HTTP (stratégie A, ~1 h)
 
-Les scripts vivent dans `.research-downloads/r5/nsf/tools/`
+Les scripts sont VERSIONNÉS dans `backend/scripts/nsfacquire/`
 (`tableau_client.py`, `acquire.py`, `make_manifest.py`,
-`validate_final.py`). Python 3 système, zéro dépendance.
+`validate_final.py`) — Python 3 système, zéro dépendance. Ils écrivent
+dans `.research-downloads/r5/nsf/` (copier les scripts dans son
+sous-dossier `tools/` ou les lancer avec le répertoire de travail
+adapté), la campagne complète prend **~45-55 min** :
 
 ```bash
-cd <ORION_ROOT>/.research-downloads/r5/nsf/tools
+cd <ORION_ROOT>/.research-downloads/r5/nsf/tools   # y copier les scripts au besoin
 python3 acquire.py awards        # 15 FY, ~3,2 min/FY (génération serveur ~2,5-3 min)
 python3 acquire.py trends        # ~30 s
 python3 make_manifest.py
 python3 validate_final.py
+```
+
+Puis la **promotion** (le geste de validation) :
+
+```bash
+mkdir -p <ORION_ROOT>/backend/data/r5-nsf/<AAAA-MM-JJ>
+cp -p <ORION_ROOT>/.research-downloads/r5/nsf/{award-details-fy*.tsv*,trend-*.tsv*,MANIFEST.json} \
+      <ORION_ROOT>/backend/data/r5-nsf/<AAAA-MM-JJ>/
+# vérifier chaque SHA256 contre son sidecar avant d'ingérer
 ```
 
 Reprise automatique : un FY dont le fichier ET le meta existent est
@@ -100,8 +123,14 @@ distinct).
 
 ```bash
 cd backend && uv run orion-ingest nsf-obligations
-# répertoire d'artefacts non standard : ORION_NSF_OBLIGATIONS_DIR=…
+# défaut : le DERNIER millésime de backend/data/r5-nsf/ ;
+# répertoire non standard : ORION_NSF_OBLIGATIONS_DIR=…
 ```
+
+**Reconstruction d'une base R5 sans le poste d'acquisition** : il
+suffit du dossier de millésime `data/r5-nsf/<vintage>/` (copié du VPS
+ou d'une sauvegarde) et de cette commande — aucun accès au dashboard
+n'est nécessaire, aucun chiffre retapé.
 
 Le chargeur (`orion/ingest/nsfobligations/`) : vérifie sidecar + SHA256,
 parse en refus bruyant (dialecte strict ; une ligne rigoureusement

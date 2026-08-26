@@ -33,6 +33,7 @@ from pathlib import Path
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from orion.core.config import get_settings
 from orion.core.db import SessionLocal
 from orion.ingest.nsfobligations import parse
 from orion.ingest.runlog import RunStats, record_run
@@ -54,10 +55,27 @@ _TREND_NAME = re.compile(r"^trend-awards-obligated-amount.*\.tsv$")
 
 
 def artifact_dir() -> Path:
+    """Le magasin durable des artefacts : `data/r5-nsf/<millésime>/`.
+
+    Régime `data/` d'Orion (sources brutes hors git) — mais à la
+    différence des autres sources, les artefacts R5 ne sont PAS
+    re-téléchargeables à l'identique (série officielle restatée sans
+    archives) : le dossier de millésime est la seule archive brute, la
+    base versionnée en porte le contenu et la provenance. Le défaut est
+    le millésime le plus récent ; `.research-downloads/` reste l'espace
+    de travail de l'ACQUISITION, jamais une source d'ingestion par
+    défaut (la promotion est un geste explicite, runbook § 2)."""
     configured = os.environ.get("ORION_NSF_OBLIGATIONS_DIR")
     if configured:
         return Path(configured)
-    return Path("..") / ".research-downloads" / "r5" / "nsf"
+    store = Path(get_settings().data_dir) / "r5-nsf"
+    vintages = sorted(p for p in store.iterdir() if p.is_dir()) if store.is_dir() else []
+    if not vintages:
+        raise parse.ArtifactFormatError(
+            f"aucun millésime d'artefacts sous {store} — promouvoir l'acquisition "
+            "(runbook-nsf-obligations § 2) ou poser ORION_NSF_OBLIGATIONS_DIR"
+        )
+    return vintages[-1]
 
 
 def _sha256(raw: bytes) -> str:
