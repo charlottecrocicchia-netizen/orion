@@ -13,6 +13,7 @@ from orion.ingest.lenses import run as lenses_run
 from orion.ingest.macro import run as macro_run
 from orion.ingest.nih import load as nih_load
 from orion.ingest.nsf import load as nsf_load
+from orion.ingest.nsfobligations import load as nsf_obligations_load
 from orion.ingest.prices import run as prices_run
 from orion.ingest.rates import run as rates_run
 from orion.ingest.subdivisions import run as subdivisions_run
@@ -30,6 +31,11 @@ REGISTRY = {
     "macro": macro_run,
     "nih": nih_load.run,
     "nsf": nsf_load.run,
+    # Les obligations annuelles d'awards NSF (R5B) : ingestion des
+    # artefacts officiels téléchargés — geste manuel documenté au
+    # runbook, JAMAIS dans `all` (le dashboard est annuel et l'artefact
+    # s'acquiert à la main, contrat R5A § 20.1 C2).
+    "nsf-obligations": nsf_obligations_load.run,
     "dedup": dedup.merge.run,
     # The identity layer (vague 1, socle): GLEIF mirror, Wikidata parent
     # links, then bridges + groups built over the deduplicated corpus.

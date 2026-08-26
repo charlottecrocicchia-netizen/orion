@@ -21,6 +21,11 @@ from orion.models.groups import (
 )
 from orion.models.ingestion import IngestionRun
 from orion.models.lenses import Lens, LensChangelog, ProjectLensTag
+from orion.models.obligations import (
+    NsfAwardObligation,
+    NsfObligationArtifact,
+    NsfObligationTotal,
+)
 from orion.models.organisations import Organisation, OrganisationAlias, OrganisationIdentifier
 from orion.models.projects import Participation, Project, ProjectText
 from orion.models.reference import Country, ExchangeRate, Jurisdiction, MacroSeries, PriceIndex
@@ -49,6 +54,9 @@ __all__ = [
     "LoginRequest",
     "LoginToken",
     "Membership",
+    "NsfAwardObligation",
+    "NsfObligationArtifact",
+    "NsfObligationTotal",
     "Organisation",
     "OrganisationAlias",
     "OrganisationIdentifier",
