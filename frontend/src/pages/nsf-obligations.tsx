@@ -31,6 +31,11 @@ const FY_PATTERN = /^(\d{4})(?:\.\.(\d{4}))?$/;
 
 /** Chaque refus de l'API a SA phrase — jamais un message générique
  *  (doctrine des refus nommés, R0 § D13, motifs propres à la surface). */
+/** Le seuil de disponibilité gelé (R5A § 9.4.9), côté serveur dans
+ *  `COVERAGE_THRESHOLD` du chargeur — repris ici pour la seule copy du
+ *  refus, jamais pour décider quoi que ce soit. */
+const COVERAGE_THRESHOLD = 0.95;
+
 const ERROR_KEYS: Record<string, string> = {
   fy_required: "nsfObligations.errors.fyRequired",
   fy_invalid: "nsfObligations.errors.fyInvalid",
@@ -131,11 +136,23 @@ function MenuItem({
 
 /* ————— Le refus, en toutes lettres — jamais un écran vide ————— */
 
-function Refusal({ messageKey, fyLabel }: { messageKey: string; fyLabel?: string }) {
+function Refusal({
+  messageKey,
+  fyLabel,
+  coverage,
+  threshold,
+}: {
+  messageKey: string;
+  fyLabel?: string;
+  /** La couverture RÉELLE du FY refusé, telle que la sert `/meta` —
+   *  jamais un chiffre écrit en dur dans la copy. */
+  coverage?: string;
+  threshold?: string;
+}) {
   const { t } = useTranslation();
   return (
     <p className="max-w-[64ch] py-24 text-center text-muted-foreground">
-      {t(messageKey, { fy: fyLabel ?? "" })}
+      {t(messageKey, { fy: fyLabel ?? "", coverage: coverage ?? "", threshold: threshold ?? "" })}
     </p>
   );
 }
@@ -244,7 +261,21 @@ export function NsfObligationsPage() {
     // FY offert, aucun défaut n'est possible — la surface le dit.
     body = <Refusal messageKey="nsfObligations.errors.noAvailableFy" />;
   } else if (isError) {
-    body = <Refusal messageKey={refusalKey(error)} fyLabel={periodLabel} />;
+    // Le refus de couverture nomme le chiffre RÉEL du FY concerné :
+    // `/meta` le porte déjà (aucun appel de plus), le seuil vient de la
+    // constante partagée — rien n'est écrit en dur dans la copy.
+    const refusedYear =
+      fromFy != null && fromFy === toFy
+        ? meta?.years.find((year) => year.fy === fromFy)
+        : undefined;
+    body = (
+      <Refusal
+        messageKey={refusalKey(error)}
+        fyLabel={periodLabel}
+        coverage={refusedYear ? pct(refusedYear.coverage * 100) : undefined}
+        threshold={pct(COVERAGE_THRESHOLD * 100)}
+      />
+    );
   } else if (fyParam == null || isPending || !data) {
     body = (
       <div className="mt-10 space-y-3">

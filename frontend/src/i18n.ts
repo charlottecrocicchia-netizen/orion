@@ -1353,7 +1353,7 @@ const resources = {
           fyUnavailable:
             "{{fy}} is unavailable: the current official vintage does not cover it. Unavailable is not zero — no value is shown.",
           fyCoverageBelow:
-            "{{fy}} is unavailable for this metric: Orion's measured coverage of the official series is outside the frozen threshold for that year, so the year closes rather than adjusts.",
+            "{{fy}} is unavailable for this metric because Orion can link only about {{coverage}} of the NSF's official award obligations for that fiscal year to its corpus. This analysis is available only when coverage reaches at least {{threshold}}.",
           noVintage:
             "No official NSF obligations vintage is loaded — the metric is unavailable until one is.",
           noAvailableFy:
@@ -2766,7 +2766,7 @@ const resources = {
           fyUnavailable:
             "{{fy}} est indisponible : le millésime officiel courant ne le couvre pas. Indisponible n'est pas zéro — aucune valeur n'est affichée.",
           fyCoverageBelow:
-            "{{fy}} est indisponible pour cette métrique : la couverture mesurée de la série officielle sort du seuil gelé pour cet exercice — l'exercice se ferme, il ne s'ajuste pas.",
+            "{{fy}} n\u2019est pas disponible pour cette métrique, car Orion ne peut relier qu\u2019environ {{coverage}} des obligations NSF officielles de cet exercice à son corpus. Cette analyse n\u2019est disponible qu\u2019à partir de {{threshold}} de couverture.",
           noVintage:
             "Aucun millésime officiel d'obligations NSF n'est chargé — la métrique est indisponible tant qu'il n'y en a pas.",
           noAvailableFy:

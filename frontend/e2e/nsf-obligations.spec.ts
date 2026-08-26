@@ -139,6 +139,27 @@ test("FR : la métrique porte son nom français gelé", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("le FY fermé par couverture dit le chiffre RÉEL et le seuil, EN puis FR", async ({
+  page,
+}) => {
+  // Le seed ferme FY2019 (couverture 0 %) : la copy doit nommer cette
+  // couverture MESURÉE et le seuil de 95 % — jamais le jargon interne
+  // du contrat, jamais un chiffre écrit en dur.
+  await page.goto("/nsf-obligations?fy=2019");
+  const en = page.getByText(/FY 2019 is unavailable for this metric because Orion can link only about/);
+  await expect(en).toBeVisible({ timeout: 15_000 });
+  await expect(en).toContainText("0 %");
+  await expect(en).toContainText("at least 95 %");
+  await expect(page.getByText(/frozen threshold|closes rather than adjusts/)).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Passer en français" }).click();
+  const fr = page.getByText(/FY 2019 n’est pas disponible pour cette métrique, car Orion ne peut relier qu’environ/);
+  await expect(fr).toBeVisible();
+  await expect(fr).toContainText("0 %");
+  await expect(fr).toContainText("à partir de 95 %");
+  await expect(page.getByText(/seuil gelé|l’exercice se ferme/)).toHaveCount(0);
+});
+
 test("un FY forcé indisponible se dit INDISPONIBLE — jamais un zéro", async ({
   page,
 }) => {
