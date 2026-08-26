@@ -112,6 +112,50 @@ La `docs/roadmap.md` reste la source de vérité produit. En résumé au
 2026-08-21 : la suite de la vague 1 (point 3), puis phase 5 (les
 appels à projets) et l'horizon phase 6.
 
+## 7. Les suites de R5A (2026-08-26, contre-relu le même jour)
+
+L'étude des dénominateurs budgétaires, corrigée en contre-relecture,
+conclut **`GO R5B avec périmètre réduit`**
+(`docs/conception-r5-budget-denominators.md`, § 21) : une seule
+métrique survit — *Share of NSF award obligations*, en **métrique
+indépendante hors Reference Engine**, sa série Orion réconciliée à la
+série officielle NSF dans un seuil ±5 % gravé avant calcul. Le contrat
+R5B, **gelé** par l'amendement final du 2026-08-26 (§ 20.1 de
+l'étude — artefact officiel, périmètre démontré, axe `fy=`, Top par
+obligations), attend l'arbitrage fondatrice avant toute ligne de code. Le mode global, EC, NIH et GBARD restent NO-GO. S'y ajoutent
+trois gestes autonomes, inventoriés au § 20.3, à peser séparément —
+aucun n'est le chantier R5B :
+
+- **② Vérifier que la moisson d'appels capte bien l'enveloppe** —
+  *le seul qui soit urgent*. 308 des 447 sujets du portail qui
+  recoupent nos projets n'ont **aucun** bloc budget. Chaque appel qui
+  quitte le portail sans son enveloppe archivée referme définitivement
+  la seule route côté UE qui soit comptablement propre (la cohorte d'appel).
+  Vérification d'ingestion, pas source nouvelle.
+- **① Conserver le profil annuel NIH** au repli — `(fy, total_cost)`
+  dans `raw`, comme NSF le fait déjà. Supprime l'asymétrie entre les
+  deux sources américaines ; **les 961 Mo d'archives sont déjà en cache
+  local**, donc pas de re-téléchargement.
+- **③ Trancher les deux réserves NIH du 2026-08-03**
+  (`docs/data-sources.md`) : projets « parapluie » et projets sans
+  date. R5A les a chiffrées (les parapluies pèsent de 5,9 % à 18,8 %
+  des cohortes annuelles selon l'année ; 11,02 % de la valeur NIH n'a
+  aucune date). Décision fondatrice en attente depuis le lot NIH.
+
+Deux précisions de registre relevées au passage (contre-relecture du
+2026-08-26, vérifiées sur pièces) : les fiches data.europa.eu des trois
+datasets CORDIS ingérés déclarent « **European Commission reuse
+notice** » → décision 2011/833/UE, tandis que la mention légale CORDIS
+accorde le CC BY 4.0 au « editorial content » du site sans dire si les
+CSV en masse en relèvent — tension non tranchée par la source, droit
+commercial avec attribution garanti dans les deux régimes (§ 4.1 de
+l'étude). Côté américain, le domaine public **NSF est déclaré
+explicitement** (« Award data posted on the NSF website… is in the
+public domain and not subject to copyright », page *Award Search
+Overview*) ; c'est le **NIH seul** qui reste un constat d'absence —
+RePORTER ne porte aucune déclaration de licence propre (§ 5.5 et
+§ 6.4).
+
 ---
 
 ## Livré (ne plus y toucher, y référer)

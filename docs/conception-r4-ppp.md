@@ -105,6 +105,14 @@ pour bloquer les dénominateurs budgétaires). Un financement attribué
 **est** un flux. La question est donc réelle et mérite une réponse
 explicite, pas un contournement.
 
+> **Précision apportée par R5A (2026-08-26)** — la prémisse « cohortes
+> d'engagement » est exacte pour CORDIS et **inexacte pour NIH et NSF**,
+> qui sont des cumuls d'obligations déjà constatées
+> (`docs/conception-r5-budget-denominators.md` § 2.4, amendement R0
+> § D12). **La conclusion de ce paragraphe est inchangée** : qu'il
+> s'agisse d'un engagement ou d'une obligation, c'est un flux monétaire,
+> et la règle gravée ci-dessous tient sans modification.
+
 **Ce qui distingue les deux usages est la question posée, pas
 l'arithmétique.**
 

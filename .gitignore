@@ -16,6 +16,11 @@ frontend/dist/
 # Downloaded source data (rebuildable, never committed)
 data/
 
+# Research working downloads (R5A instruction, 2026-08-26) — temporary
+# workspace, never committed; promotion to a provenance directory is an
+# explicit decision, never automatic
+.research-downloads/
+
 # Tooling & OS — local settings stay out, shared skills are versioned
 .claude/*
 !.claude/skills/
