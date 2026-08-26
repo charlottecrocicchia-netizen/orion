@@ -52,6 +52,11 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
     ] = None,
     cur: Annotated[str, Query(description="real mode display currency (EUR or USD)")] = "EUR",
 ) -> dict[str, Any]:
+    # Contrat R5A § 19.4 : `fy=` est l'axe de la surface R5
+    # (/nsf-obligations) et N'EXISTE PAS ici — il est rejeté, jamais
+    # réinterprété comme `time=`. Symétrique du rejet de `time=` là-bas.
+    if "fy" in request.query_params:
+        raise HTTPException(status_code=400, detail="fy_not_supported_on_this_surface")
     # Le mode real (euros constants, moteur A sous la grammaire R0) se
     # REFUSE explicitement quand les indices ou le taux de la devise
     # d'affichage manquent pour l'année demandée — jamais un repli
