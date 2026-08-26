@@ -139,6 +139,50 @@ test("FR : la métrique porte son nom français gelé", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("couverture à 100 % : aucun \u00ab reste \u00bb mentionné, EN puis FR", async ({
+  page,
+}) => {
+  // FY2023 du seed est joignable à 100 % (1 500 000 / 1 500 000) :
+  // la méthodologie ne doit plus parler d'un reste qui n'existe pas.
+  await page.goto("/nsf-obligations?fy=2023");
+  await expect(
+    page.getByRole("heading", { name: "Share of NSF award obligations" }),
+  ).toBeVisible({ timeout: 15_000 });
+  const details = page.locator("details");
+  await details.getByText(/Methodology/).click();
+  await expect(
+    details.getByText(/Coverage: 100 % of the official total is joinable to Orion's corpus\.$/),
+  ).toBeVisible();
+  await expect(details.getByText(/remainder stays in the denominator/)).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Passer en français" }).click();
+  await expect(
+    details.getByText(/Couverture : 100 % du total officiel est joignable au corpus d'Orion\.$/),
+  ).toBeVisible();
+  await expect(details.getByText(/le reste demeure au dénominateur/)).toHaveCount(0);
+});
+
+test("couverture < 100 % : le reste non joignable reste nommé, EN puis FR", async ({
+  page,
+}) => {
+  // FY2022 du seed est joignable à 99 % (990 000 / 1 000 000) : la
+  // méthodologie doit encore dire où va la part manquante.
+  await page.goto("/nsf-obligations?fy=2022");
+  await expect(
+    page.getByRole("heading", { name: "Share of NSF award obligations" }),
+  ).toBeVisible({ timeout: 15_000 });
+  const details = page.locator("details");
+  await details.getByText(/Methodology/).click();
+  await expect(
+    details.getByText(/remainder stays in the denominator and is never redistributed\.$/),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Passer en français" }).click();
+  await expect(
+    details.getByText(/le reste demeure au dénominateur et n'est jamais redistribué\.$/),
+  ).toBeVisible();
+});
+
 test("le FY fermé par couverture dit le chiffre RÉEL et le seuil, EN puis FR", async ({
   page,
 }) => {

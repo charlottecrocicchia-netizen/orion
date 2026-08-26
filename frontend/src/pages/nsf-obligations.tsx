@@ -390,10 +390,15 @@ export function NsfObligationsPage() {
             <p>{t("nsfObligations.methodologyBody")}</p>
             <p>{t("nsfObligations.methodologyFiscalYear")}</p>
             <p>
-              {t("nsfObligations.methodologySource", {
-                vintage: data.vintage,
-                coverage: pct(data.coverage * 100),
-              })}
+              {t(
+                data.unjoinable_usd > 0
+                  ? "nsfObligations.methodologySource"
+                  : "nsfObligations.methodologySourceFull",
+                {
+                  vintage: data.vintage,
+                  coverage: pct(data.coverage * 100),
+                },
+              )}
             </p>
           </div>
         </details>

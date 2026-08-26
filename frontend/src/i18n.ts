@@ -1339,6 +1339,8 @@ const resources = {
           "U.S. federal fiscal year: Oct 1 – Sep 30, labeled by end year.",
         methodologySource:
           "Source: NSF by the Numbers (@Award Details Sheet), Orion reference snapshot {{vintage}}. Coverage: {{coverage}} of the official total is joinable to Orion's corpus; the remainder stays in the denominator and is never redistributed.",
+        methodologySourceFull:
+          "Source: NSF by the Numbers (@Award Details Sheet), Orion reference snapshot {{vintage}}. Coverage: {{coverage}} of the official total is joinable to Orion's corpus.",
         errors: {
           fyRequired:
             "Select a fiscal year: this metric only exists for a stated FY or FY range.",
@@ -2752,6 +2754,8 @@ const resources = {
           "Exercice fédéral américain : du 1ᵉʳ octobre au 30 septembre, nommé par son année de fin.",
         methodologySource:
           "Source : NSF by the Numbers (@Award Details Sheet), millésime de référence Orion {{vintage}}. Couverture : {{coverage}} du total officiel est joignable au corpus d'Orion ; le reste demeure au dénominateur et n'est jamais redistribué.",
+        methodologySourceFull:
+          "Source : NSF by the Numbers (@Award Details Sheet), millésime de référence Orion {{vintage}}. Couverture : {{coverage}} du total officiel est joignable au corpus d'Orion.",
         errors: {
           fyRequired:
             "Choisissez un exercice fédéral : cette métrique n'existe que pour un FY ou une plage de FY énoncés.",
