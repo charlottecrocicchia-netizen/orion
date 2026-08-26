@@ -152,6 +152,19 @@ test("un FY forcé indisponible se dit INDISPONIBLE — jamais un zéro", async 
   await expect(page.getByText("0 %", { exact: true })).toHaveCount(0);
 });
 
+test("lens= n'a pas cours ici : l'URL forcée est canonicalisée", async ({
+  page,
+}) => {
+  // La lentille n'a aucun effet sur la surface R5 : la doctrine D10
+  // (l'URL canonique fait foi) la retire — jamais l'apparence d'un
+  // effet. Le reste de l'état (fy=) survit intact.
+  await page.goto("/nsf-obligations?fy=2022&lens=test-lens");
+  await expect(page).toHaveURL(/\/nsf-obligations\?fy=2022$/, {
+    timeout: 15_000,
+  });
+  await expect(page.getByText("FY 2022").first()).toBeVisible();
+});
+
 test("non-régression : l'Explorateur répond toujours", async ({ page }) => {
   await page.goto("/explore");
   await expect(

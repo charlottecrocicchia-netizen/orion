@@ -169,6 +169,17 @@ export function NsfObligationsPage() {
   // aucune requête n'est émise.
   const timeForbidden = params.has("time");
 
+  // `lens=` n'a aucun effet sur cette surface : une URL forcée qui le
+  // porte est CANONICALISÉE (doctrine D10 — l'URL canonique fait foi),
+  // jamais laissée avec l'apparence d'un effet.
+  useEffect(() => {
+    if (params.has("lens")) {
+      const next = new URLSearchParams(params);
+      next.delete("lens");
+      setParams(next, { replace: true });
+    }
+  }, [params, setParams]);
+
   const rawFy = params.get("fy");
   const fyParam = rawFy ?? (defaultFy != null ? String(defaultFy) : null);
   const byParam = params.get("by") ?? "division";

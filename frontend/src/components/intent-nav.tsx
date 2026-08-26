@@ -222,10 +222,13 @@ export function IntentNav() {
                   "block rounded-lg px-3.5 py-2.5",
                   entry.foot && "mt-1.5 border-t border-border-soft pt-3",
                 );
+                // La surface R5 (/nsf-obligations) ignore la lentille :
+                // l'URL rejouable ne la transporte pas — lui donner
+                // l'apparence d'un effet serait un mensonge d'URL.
                 return entry.to ? (
                   <Link
                     key={entry.label}
-                    to={withLens(entry.to, carried)}
+                    to={entry.to === "/nsf-obligations" ? entry.to : withLens(entry.to, carried)}
                     className={cn(rowClass, "transition-colors hover:bg-surface")}
                   >
                     {body}
