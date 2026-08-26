@@ -148,6 +148,7 @@ function Footer() {
             <li><Link to={withLens("/explore/themes", carried)} className={link}>{t("footer.themesLink")}</Link></li>
             <li><Link to={withLens("/analyses", carried)} className={link}>{t("footer.analysesLink")}</Link></li>
             <li><Link to={withLens("/calls", carried)} className={link}>{t("footer.callsLink")}</Link></li>
+            <li><Link to={withLens("/nsf-obligations", carried)} className={link}>{t("footer.nsfObligationsLink")}</Link></li>
             <li><Link to={withLens("/workspace", carried)} className={link}>{t("footer.workspaceLink")}</Link></li>
             <li><Link to={withLens("/about-data", carried)} className={link}>{t("footer.data")}</Link></li>
           </ul>

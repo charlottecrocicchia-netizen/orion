@@ -35,6 +35,9 @@ const resources = {
           compareDesc: "up to four organisations side by side",
           themeTrends: "Theme trends",
           themeTrendsDesc: "the race of disciplines over time",
+          nsfObligations: "NSF award obligations",
+          nsfObligationsDesc:
+            "a selection's share of NSF's annual award obligations, by fiscal year",
           dossier: "The dossier",
           dossierDesc: "collect views, assemble, take away",
           sharedReports: "Shared reports",
@@ -1273,6 +1276,7 @@ const resources = {
         analysesLink: "Ready-made analyses",
         themesLink: "Themes",
         callsLink: "Calls",
+        nsfObligationsLink: "NSF award obligations",
         workspaceLink: "Workspace (P6 · 2027)",
         countries: "Countries",
         programmes: "Programmes",
@@ -1280,6 +1284,82 @@ const resources = {
         figProjects: "{{count, number}} projects",
         figOrgs: "{{count, number}} organisations",
         figFunding: "{{amount}} of public funding, mapped",
+      },
+      /** R5B — la surface dédiée « Share of NSF award obligations »
+       *  (contrat gelé R5A § 19/§ 20.1). Wording INTERDIT partout :
+       *  « % NSF budget », « % R&D budget », « annual funding »,
+       *  « budget NSF » comme nom de la grandeur — le nom dit ce que le
+       *  dénominateur EST. */
+      nsfObligations: {
+        eyebrow: "NSF · dedicated metric",
+        title: "Share of NSF award obligations",
+        lead: "What share of NSF's annual award obligations does this selection represent? Federal fiscal years, native USD, measured against NSF's official series.",
+        sentenceFrom: "From",
+        sentenceTo: "to",
+        fromLabel: "First fiscal year",
+        toLabel: "Last fiscal year",
+        dimensionLabel: "Dimension",
+        fy: "FY {{fy}}",
+        fyRange: "FY {{from}} – FY {{to}}",
+        dims: {
+          fy: "by fiscal year",
+          division: "by division",
+          state: "by recipient state",
+          country: "by recipient country",
+          organisation: "by organisation",
+        },
+        kpiDenominator: "official NSF award obligations",
+        kpiJoinable: "joinable to Orion's corpus",
+        kpiCoverage: "coverage of the official total",
+        coverageTitle: "Coverage.",
+        coverageLine:
+          "{{coverage}} of the official total is joinable to Orion's corpus; {{amount}} is not joinable — it stays in the denominator and is never redistributed.",
+        coverageLineFull:
+          "{{coverage}} of the official total is joinable to Orion's corpus for this period.",
+        tableKeys: {
+          division: "Directorate — division",
+          state: "Recipient state",
+          country: "Recipient country",
+          organisation: "Organisation",
+        },
+        tableAmount: "Obligations (USD)",
+        tableShare: "Share of official total",
+        perFyFy: "Fiscal year",
+        perFyOfficial: "Official total (USD)",
+        perFyJoinable: "Joinable (USD)",
+        perFyCoverage: "Coverage",
+        moreBuckets_one: "…and {{count}} more entry, beyond this Top.",
+        moreBuckets_other: "…and {{count}} more entries, beyond this Top.",
+        provenance:
+          "Source: NSF by the Numbers (@Award Details Sheet) · Orion reference snapshot {{vintage}}",
+        methodologyTitle: "Methodology",
+        methodologyBody:
+          "Award obligations are NSF funds obligated to awards during the selected fiscal year, including new awards and increments and supplements to prior-year awards. This is not the NSF budget and not project-start-year funding.",
+        methodologyFiscalYear:
+          "U.S. federal fiscal year: Oct 1 – Sep 30, labeled by end year.",
+        methodologySource:
+          "Source: NSF by the Numbers (@Award Details Sheet), Orion reference snapshot {{vintage}}. Coverage: {{coverage}} of the official total is joinable to Orion's corpus; the remainder stays in the denominator and is never redistributed.",
+        errors: {
+          fyRequired:
+            "Select a fiscal year: this metric only exists for a stated FY or FY range.",
+          fyInvalid:
+            "This fiscal-year value cannot be read — expected a FY such as 2023, or a range such as 2019..2024.",
+          dimensionNotSupported:
+            "This dimension does not exist on this surface — read by fiscal year, division, recipient state, recipient country or organisation.",
+          timeNotSupported:
+            "time= does not exist on this surface. Its only temporal axis is the federal fiscal year of obligation, written fy= — the two are never reinterpreted into one another.",
+          nsfOnly:
+            "This surface reads NSF only: the denominator is an NSF series, and no other funder shares it.",
+          fyUnavailable:
+            "{{fy}} is unavailable: the current official vintage does not cover it. Unavailable is not zero — no value is shown.",
+          fyCoverageBelow:
+            "{{fy}} is unavailable for this metric: Orion's measured coverage of the official series is outside the frozen threshold for that year, so the year closes rather than adjusts.",
+          noVintage:
+            "No official NSF obligations vintage is loaded — the metric is unavailable until one is.",
+          noAvailableFy:
+            "No fiscal year is currently available for this metric: every year of the loaded vintage is outside the frozen coverage threshold.",
+          generic: "This view could not be computed. Try again, or come back later.",
+        },
       },
       theme: { toggle: "Toggle theme" },
       lang: { switch: "Passer en français" },
@@ -1319,6 +1399,9 @@ const resources = {
           compareDesc: "jusqu'à quatre organisations côte à côte",
           themeTrends: "Tendances par thème",
           themeTrendsDesc: "la course des disciplines dans le temps",
+          nsfObligations: "Obligations d'awards NSF",
+          nsfObligationsDesc:
+            "la part d'une sélection dans les obligations annuelles d'awards NSF, par exercice fédéral",
           dossier: "Le dossier",
           dossierDesc: "collectionnez des vues, assemblez, emportez",
           sharedReports: "Rapports partagés",
@@ -2609,6 +2692,7 @@ const resources = {
         analysesLink: "Analyses prêtes",
         themesLink: "Thèmes",
         callsLink: "Appels",
+        nsfObligationsLink: "Obligations d'awards NSF",
         workspaceLink: "Espace de travail (P6 · 2027)",
         countries: "Pays",
         programmes: "Programmes",
@@ -2616,6 +2700,79 @@ const resources = {
         figProjects: "{{count, number}} projets",
         figOrgs: "{{count, number}} organisations",
         figFunding: "{{amount}} de financements publics cartographiés",
+      },
+      /** R5B — voir le bloc EN : wording gelé, jamais « budget NSF »
+       *  comme nom de la grandeur. */
+      nsfObligations: {
+        eyebrow: "NSF · métrique dédiée",
+        title: "Part des obligations annuelles d'awards NSF",
+        lead: "Quelle part des obligations annuelles de financement d'awards de la NSF cette sélection représente-t-elle ? Exercices fédéraux, USD natif, mesurée contre la série officielle de la NSF.",
+        sentenceFrom: "De",
+        sentenceTo: "à",
+        fromLabel: "Premier exercice fédéral",
+        toLabel: "Dernier exercice fédéral",
+        dimensionLabel: "Dimension",
+        fy: "FY {{fy}}",
+        fyRange: "FY {{from}} – FY {{to}}",
+        dims: {
+          fy: "par exercice fédéral",
+          division: "par division",
+          state: "par État bénéficiaire",
+          country: "par pays bénéficiaire",
+          organisation: "par organisation",
+        },
+        kpiDenominator: "obligations d'awards NSF officielles",
+        kpiJoinable: "joignable au corpus d'Orion",
+        kpiCoverage: "couverture du total officiel",
+        coverageTitle: "Couverture.",
+        coverageLine:
+          "{{coverage}} du total officiel est joignable au corpus d'Orion ; {{amount}} ne se joint pas — cette part demeure au dénominateur et n'est jamais redistribuée.",
+        coverageLineFull:
+          "{{coverage}} du total officiel est joignable au corpus d'Orion sur cette période.",
+        tableKeys: {
+          division: "Direction — division",
+          state: "État bénéficiaire",
+          country: "Pays bénéficiaire",
+          organisation: "Organisation",
+        },
+        tableAmount: "Obligations (USD)",
+        tableShare: "Part du total officiel",
+        perFyFy: "Exercice fédéral",
+        perFyOfficial: "Total officiel (USD)",
+        perFyJoinable: "Joignable (USD)",
+        perFyCoverage: "Couverture",
+        moreBuckets_one: "…et {{count}} autre entrée, au-delà de ce Top.",
+        moreBuckets_other: "…et {{count}} autres entrées, au-delà de ce Top.",
+        provenance:
+          "Source : NSF by the Numbers (@Award Details Sheet) · millésime de référence Orion {{vintage}}",
+        methodologyTitle: "Méthodologie",
+        methodologyBody:
+          "Les obligations d'awards sont les fonds que la NSF a engagés (obligated) sur des awards pendant l'exercice fédéral sélectionné, y compris les nouveaux awards et les compléments d'awards des exercices antérieurs. Ce n'est ni le budget de la NSF, ni un financement par année de début de projet.",
+        methodologyFiscalYear:
+          "Exercice fédéral américain : du 1ᵉʳ octobre au 30 septembre, nommé par son année de fin.",
+        methodologySource:
+          "Source : NSF by the Numbers (@Award Details Sheet), millésime de référence Orion {{vintage}}. Couverture : {{coverage}} du total officiel est joignable au corpus d'Orion ; le reste demeure au dénominateur et n'est jamais redistribué.",
+        errors: {
+          fyRequired:
+            "Choisissez un exercice fédéral : cette métrique n'existe que pour un FY ou une plage de FY énoncés.",
+          fyInvalid:
+            "Cette valeur d'exercice fédéral ne se lit pas — attendu : un FY comme 2023, ou une plage comme 2019..2024.",
+          dimensionNotSupported:
+            "Cette dimension n'existe pas sur cette surface — lisez par exercice fédéral, division, État bénéficiaire, pays bénéficiaire ou organisation.",
+          timeNotSupported:
+            "time= n'existe pas sur cette surface. Son seul axe temporel est l'exercice fédéral d'obligation, écrit fy= — les deux ne se réinterprètent jamais l'un en l'autre.",
+          nsfOnly:
+            "Cette surface ne lit que la NSF : le dénominateur est une série de la NSF, et aucun autre financeur ne la partage.",
+          fyUnavailable:
+            "{{fy}} est indisponible : le millésime officiel courant ne le couvre pas. Indisponible n'est pas zéro — aucune valeur n'est affichée.",
+          fyCoverageBelow:
+            "{{fy}} est indisponible pour cette métrique : la couverture mesurée de la série officielle sort du seuil gelé pour cet exercice — l'exercice se ferme, il ne s'ajuste pas.",
+          noVintage:
+            "Aucun millésime officiel d'obligations NSF n'est chargé — la métrique est indisponible tant qu'il n'y en a pas.",
+          noAvailableFy:
+            "Aucun exercice fédéral n'est actuellement disponible pour cette métrique : chaque exercice du millésime chargé sort du seuil de couverture gelé.",
+          generic: "Cette vue n'a pas pu être calculée. Réessayez, ou revenez plus tard.",
+        },
       },
       theme: { toggle: "Changer de thème" },
       lang: { switch: "Switch to English" },

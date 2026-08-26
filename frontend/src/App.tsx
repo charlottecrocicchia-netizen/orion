@@ -16,6 +16,7 @@ import { ExploreProgrammesPage } from "@/pages/explore-programmes";
 import { ExploreThemesPage } from "@/pages/explore-themes";
 import { HomePage } from "@/pages/home";
 import { NotFoundPage } from "@/pages/not-found";
+import { NsfObligationsPage } from "@/pages/nsf-obligations";
 import { OrganisationHubPage } from "@/pages/organisation-hub";
 import { GroupHubPage } from "@/pages/group-hub";
 import { ProgrammeHubPage } from "@/pages/programme-hub";
@@ -89,6 +90,9 @@ export function AppRoutes() {
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/workspace/dossiers/:id" element={<SavedDossierPage />} />
             <Route path="/explore" element={<ExplorerPage />} />
+            {/* R5B : surface dédiée, grammaire `fy=` propre — hors du
+                Reference Engine (§ 19.3/19.4). */}
+            <Route path="/nsf-obligations" element={<NsfObligationsPage />} />
             <Route path="/explore/countries" element={<ExploreCountriesPage />} />
             <Route path="/explore/regions/:slug" element={<RegionHubPage />} />
             <Route path="/explore/countries/:code" element={<CountryHubPage />} />

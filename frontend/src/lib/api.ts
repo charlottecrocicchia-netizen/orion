@@ -414,6 +414,54 @@ export interface GroupHub {
   }[];
 }
 
+/** R5B — la surface dédiée `Share of NSF award obligations`. Métrique
+ *  INDÉPENDANTE (R5A § 19.3) : rien ici ne passe par `value=` ni par le
+ *  Reference Engine. `/meta` liste les FY de la dernière vintage — le
+ *  sélecteur n'offre QUE les `available` (jamais un choix qui finirait
+ *  en 422, même doctrine que ppp-years). */
+export interface NsfObligationsMeta {
+  vintage: string | null;
+  years: {
+    fy: number;
+    official_total_usd: number;
+    coverage: number;
+    available: boolean;
+  }[];
+}
+
+export interface NsfObligationsPerFy {
+  fy: number;
+  official_total_usd: number;
+  joinable_usd: number;
+  unjoinable_usd: number;
+  coverage: number;
+}
+
+export interface NsfObligationsAggregate {
+  metric: string;
+  vintage: string;
+  fiscal_years: number[];
+  /** Le total OFFICIEL (« Award Obligation Amount ») — le dénominateur
+   *  ne boucle jamais à 100 % des parts visibles, et doit le dire. */
+  denominator_usd: number;
+  joinable_usd: number;
+  /** La part du dénominateur qu'Orion ne voit pas — affichée, jamais
+   *  masquée, jamais renormalisée (R5A § 20.1 C3). */
+  unjoinable_usd: number;
+  coverage: number;
+  per_fy: NsfObligationsPerFy[];
+  by?: string;
+  /** Déjà triés par obligations décroissantes : le Top de la surface se
+   *  classe par la grandeur R5 elle-même (R5A § 19.5). */
+  buckets?: {
+    key: string;
+    label: string | null;
+    amount_usd: number;
+    share_pct: number;
+  }[];
+  bucket_count?: number;
+}
+
 export const api = {
   explore: (params: URLSearchParams) =>
     get<ExploreResponse>(`/api/explore/aggregate?${params}`),
@@ -446,6 +494,11 @@ export const api = {
    *  sélecteur n'en propose aucune autre — offrir une année sans
    *  référence mènerait l'utilisateur à un refus (R0 § D6). */
   pppYears: () => get<{ years: number[] }>("/api/explore/ppp-years"),
+  /** R5B : l'axe de la surface s'écrit `fy=` — jamais `time=` (§ 19.4). */
+  nsfObligationsMeta: () =>
+    get<NsfObligationsMeta>("/api/nsf-obligations/meta"),
+  nsfObligationsAggregate: (params: URLSearchParams) =>
+    get<NsfObligationsAggregate>(`/api/nsf-obligations/aggregate?${params}`),
   regions: () => get<RegionSummary[]>("/api/regions"),
   group: (id: string) => get<GroupHub>(`/api/groups/${id}`),
   country: (code: string) => get<CountryHub>(`/api/countries/${code}`),

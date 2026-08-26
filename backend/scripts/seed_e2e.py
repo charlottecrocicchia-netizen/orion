@@ -606,6 +606,173 @@ def _seed_call_topics(session: Session) -> None:
     session.commit()
 
 
+def _seed_nsf_obligations(session: Session) -> None:
+    """Lot R5B : la surface `Share of NSF award obligations`, calculable à
+    la main. Une vintage (2026-08-26), deux FY DISPONIBLES (2022 :
+    couverture 0,99 ; 2023 : couverture 1,0) et un FY FERMÉ (2019 :
+    couverture 0 → indisponible, jamais un zéro). Les lignes joignables
+    portent l'award « e2e-nsf-ocean:mit » — le SEUL `source_uid` des
+    participations nsf de la graine qui tienne dans `award_id`
+    VARCHAR(20) (« e2e-nsf-ocean:technion » et « …:um_malta » font
+    22 caractères) : plutôt qu'inventer des participations, les montants
+    joignables sont ajustés pour rester exacts. Une ligne porte
+    l'instrument 'Contract Interagency Agreement' (§ 9.4.9 : inclus sur
+    preuve, jamais filtré)."""
+    from decimal import Decimal
+
+    from orion.models import NsfAwardObligation, NsfObligationArtifact, NsfObligationTotal
+
+    vintage = "2026-08-26"
+    joinable_award = "e2e-nsf-ocean:mit"
+
+    artifact = NsfObligationArtifact(
+        vintage_date=vintage,
+        filename="e2e-award-details-sheet.tsv",
+        sheet="@Award Details Sheet",
+        source_url="https://www.nsf.gov/about/about-nsf-by-the-numbers",
+        filters={"metric": "Award Obligation"},
+        acquired_at=datetime.now(UTC),
+        codebook_version="v1.0.7",
+        sha256="5eed" * 16,
+        bytes=4096,
+        parser_version="e2e",
+        validation={"rows": 6, "fiscal_years": [2019, 2022, 2023]},
+    )
+    session.add(artifact)
+    session.flush()
+
+    # (fy, award_id, award_fy, directorate, division, instrument, montant)
+    lines = [
+        # FY2019 — le FY fermé : rien ne se joint, coverage 0.
+        (2019, "1900001", 2019, "Geosciences", "Ocean Sciences", "Standard Grant", "1000000.00"),
+        # FY2022 — 990 000 joignables + 10 000 hors jointure.
+        (
+            2022,
+            joinable_award,
+            2022,
+            "Geosciences",
+            "Ocean Sciences",
+            "Standard Grant",
+            "600000.00",
+        ),
+        (
+            2022,
+            joinable_award,
+            2022,
+            "Geosciences",
+            "Polar Programs",
+            "Contract Interagency Agreement",
+            "390000.00",
+        ),
+        (2022, "2200001", 2022, "Geosciences", "Ocean Sciences", "Standard Grant", "10000.00"),
+        # FY2023 — tout se joint (coverage 1,0) : increments prior-year
+        # du même award, deux divisions.
+        (
+            2023,
+            joinable_award,
+            2022,
+            "Geosciences",
+            "Ocean Sciences",
+            "Standard Grant",
+            "900000.00",
+        ),
+        (
+            2023,
+            joinable_award,
+            2022,
+            "Geosciences",
+            "Polar Programs",
+            "Continuing Grant",
+            "600000.00",
+        ),
+    ]
+    for fy, award_id, award_fy, directorate, division, instrument, amount in lines:
+        joins = award_id == joinable_award
+        session.add(
+            NsfAwardObligation(
+                vintage_date=vintage,
+                artifact_id=artifact.id,
+                award_id=award_id,
+                fiscal_year=fy,
+                award_fiscal_year=award_fy,
+                funding_directorate=directorate,
+                funding_division=division,
+                award_instrument=instrument,
+                institution_id="E2EMIT01" if joins else "E2EXX01",
+                institution_name="MASSACHUSETTS INSTITUTE OF TECHNOLOGY" if joins else None,
+                institution_state_code="MA" if joins else "AK",
+                country_code="US",
+                amount=amount,
+            )
+        )
+
+    totals = [
+        # (fy, official, joinable, coverage, available, notes)
+        (
+            2019,
+            "1000000.00",
+            "0.00",
+            "0.0000",
+            False,
+            "e2e : FY fermé — couverture de jointure hors seuil",
+        ),
+        (2022, "1000000.00", "990000.00", "0.9900", True, None),
+        (2023, "1500000.00", "1500000.00", "1.0000", True, None),
+    ]
+    for fy, official, joinable, coverage, available, notes in totals:
+        unjoinable = str(Decimal(official) - Decimal(joinable))
+        session.add(
+            NsfObligationTotal(
+                vintage_date=vintage,
+                fiscal_year=fy,
+                official_total=official,
+                trend_total=official,
+                joinable_total=joinable,
+                unjoinable_total=unjoinable,
+                coverage=coverage,
+                available=available,
+                notes=notes,
+            )
+        )
+    session.flush()
+
+    # Cohérence VÉRIFIÉE, jamais présumée : official = Σ des lignes du
+    # snapshot ; joinable = Σ des montants dont award_id ∈ source_uid des
+    # participations nsf réellement semées (§ 20.1 C4-1).
+    snapshot = {
+        int(fy): Decimal(total)
+        for fy, total in session.execute(
+            text(
+                "SELECT fiscal_year, sum(amount) FROM nsf_award_obligations "
+                "WHERE vintage_date = :v GROUP BY fiscal_year"
+            ),
+            {"v": vintage},
+        ).all()
+    }
+    joined = {
+        int(fy): Decimal(total)
+        for fy, total in session.execute(
+            text(
+                "SELECT o.fiscal_year, sum(o.amount) FROM nsf_award_obligations o "
+                "JOIN participations pa "
+                "  ON pa.source = 'nsf' AND pa.source_uid = o.award_id "
+                "WHERE o.vintage_date = :v GROUP BY o.fiscal_year"
+            ),
+            {"v": vintage},
+        ).all()
+    }
+    for fy, official, joinable, _coverage, _available, _notes in totals:
+        assert snapshot[fy] == Decimal(official), (
+            f"graine R5B incohérente : Σ snapshot FY{fy} = {snapshot[fy]}, "
+            f"official_total = {official}"
+        )
+        assert joined.get(fy, Decimal(0)) == Decimal(joinable), (
+            f"graine R5B incohérente : Σ joignable FY{fy} = "
+            f"{joined.get(fy, Decimal(0))}, joinable_total = {joinable}"
+        )
+    session.commit()
+
+
 def main() -> None:
     engine = create_engine(get_settings().database_url)
     with Session(engine) as session:
@@ -764,6 +931,7 @@ def main() -> None:
         _seed_call_topics(session)
         _seed_price_indices(session)
         _seed_macro(session)
+        _seed_nsf_obligations(session)
         # La maille sous le pays : le référentiel complet, et le MIT posé
         # dans son État (les caches ne sont pas là en CI — la graine dit
         # la maille comme le backfill la dirait).

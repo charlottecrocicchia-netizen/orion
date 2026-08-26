@@ -29,6 +29,7 @@ const VIEW_KEYS: [RegExp, string][] = [
   [/^\/analyses/, "nav.menu.analyses"],
   [/^\/dossier/, "nav.menu.dossier"],
   [/^\/calls/, "nav.menu.calls"],
+  [/^\/nsf-obligations/, "nav.menu.nsfObligations"],
   [/^\/workspace/, "nav.menu.workspaceHome"],
   [/^\/about-data/, "nav.menu.aboutData"],
 ];

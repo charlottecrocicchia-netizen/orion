@@ -79,6 +79,12 @@ function useIntents(): { key: string; label: string; entries: Entry[] }[] {
           isNew: true,
         },
         { to: "/explore", label: t("nav.explore"), desc: t("nav.menu.explorerDesc") },
+        {
+          to: "/nsf-obligations",
+          label: t("nav.menu.nsfObligations"),
+          desc: t("nav.menu.nsfObligationsDesc"),
+          isNew: true,
+        },
         { to: "/compare", label: t("nav.menu.compare"), desc: t("nav.menu.compareDesc") },
         {
           to: "/explore?by=theme&split=1",
