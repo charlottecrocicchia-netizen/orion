@@ -552,6 +552,109 @@ la ligne est réparée à la source, les vraies valeurs entreront seules.
    retapée ; un futur export corrigé les fera revenir par l'ingestion
    normale.
 
-B0.1 est **validé localement**. La production porte encore les données
-antérieures ; l'alignement contrat/code/corpus de production passe par
-le rituel de déploiement complet, porte snapshot D7 bis comprise.
+B0.1 est **validé localement**, puis **déployé et validé en production
+le 2026-08-27** (révision `7cc86f1`, réconciliation au centime, entrée
+au Livré de `docs/a-faire/reste-a-faire.md`).
+
+## 14. B1 — le moteur de la chaîne (2026-08-27)
+
+Backend seul : `backend/src/orion/search/chain.py` (moteur) et
+`backend/src/orion/api/chain.py` (routeur `/api/chain/*`, privé par le
+middleware global). Aucune migration, aucun index nouveau, aucune UI.
+Golds : `backend/tests/test_chain_gold.py` (18 tests, répliques
+fidèles des cas B0 § 9 — mêmes identifiants sources, mêmes montants).
+
+### 14.1 Architecture
+
+Le moteur sert des **nœuds** adressés par identifiant stable — URL =
+vue reproductible, aucun état serveur :
+
+```text
+GET /api/chain/funder/{code}            ec | nih | nsf
+GET /api/chain/programme/{id}           ?page=&size=
+GET /api/chain/call/{id}                ?programme=&page=&size=   (EC seul)
+GET /api/chain/project/{id}
+GET /api/chain/organisation/{id}
+GET /api/chain/country/{code}
+```
+
+Toute la sémantique vit dans un **registre** en tête de module
+(`PROJECT_MEASURE`, `PARTICIPATION_MEASURE`, `ROLLUP_LABEL`,
+`NAVIGATION_DOWN`) : l'UI de B2 ne devine rien, elle lit. Chaque
+montant voyage dans une **enveloppe de mesure** : `key`, `label`,
+`accounting_nature`, `provenance` (source_fact / derived /
+orion_analysis), `currency`, `basis`, et sa **couverture**
+(`with_amount` / `unknown_amount` — l'absence est comptée, jamais
+fondue). Les roll-ups sont libellés « Σ observée dans le corpus
+Orion — jamais un budget » (règle de nommage R5A § 19.1). La
+contre-valeur EUR est une enveloppe séparée `amount_eur_observed`
+(dérivé, convention ④, exclusions comptées).
+
+### 14.2 Comportements par source (le contrat que B2 lira)
+
+- **CORDIS** : descente complète funder → programme (2 niveaux) →
+  call → projet → participations (parts réelles `ec_contribution`) →
+  organisation → pays. Le rattachement projet→programme expose sa
+  nature : `source_fact` si `raw.legalBasis` = code du programme,
+  sinon **`derived`** (récupération B0.1, ancêtre commun compris).
+  `total_cost = 0` → `status: not_available` +
+  `provenance_note: source_published_zero` (D7).
+- **NIH** : pas d'étage call (`not_available`, jamais synthétisé —
+  I5). L'étage enfant du projet s'appelle **`beneficiary`** : montant
+  `None` au grain participation (la copie du total ne devient pas une
+  part), réconciliation `not_applicable` avec sa raison. **Gravé au
+  contrat moteur : la participation NIH ingérée représente un
+  bénéficiaire, pas une ventilation financière comparable à CORDIS.**
+- **NSF** : pas d'étage call. Participations = awards constituants
+  (parts réelles) ; une fratrie repliée (`c-…`) porte
+  `provenance: derived` (le repli est une analyse Orion assumée). Le
+  nœud projet expose l'**axe annuel R5B** (`annual_obligations`) :
+  dernier millésime, pré-agrégé PAR AWARD, USD, avec
+  `comparability: incompatible` contre le cumul `awd_amount` — les
+  deux chiffres coexistent, jamais sommés (R3, gold BEACON :
+  48 035 209 vs 45 535 633, l'écart est FY2010 hors fenêtre).
+
+### 14.3 Réconciliation (D5) et navigation (I8)
+
+Chaque nœud projet publie `reconciliation` : `parent_amount`,
+`children_known_sum`, `unallocated` **signé**, `unknown_children`,
+`coverage`, et un statut qui dit ce que les données permettent :
+`exact` (VerSiLiB), `gap` (EURIZON : +4 349 728,70 non ventilés),
+`children_exceed_parent` (EUROfusion : −115 145 862,11),
+`no_parent_amount`, `not_applicable` (NIH, avec raison). Jamais
+« Σ participations = financement » sur parole.
+
+La navigation est publiée par nœud (`navigation.down/up`, statuts
+`allowed` / `restricted` / `not_available` + raison). Un appel
+transversal (103 réels) n'affiche sous un programme que SES projets
+(`scope: projects_of_this_programme_only`) ; son total global ne
+figure sous aucun programme. Les nœuds organisation et pays refusent
+le total unique inter-financeurs par contrat :
+`cross_funder_total: {available: false, reason}` — des blocs
+`by_funder`, chacun dans SA mesure et SA devise (gold ITACONIX : NSF
+1 065 989 USD sommable, part FP7 inconnue qui reste inconnue, aucun
+nombre unique).
+
+### 14.4 Performance (corpus dev complet, 699 798 projets)
+
+Mesuré à froid/chaud, 2026-08-27 : funder 150-440 ms ; programme
+(y compris CA, 46 111 projets NIH) ≤ 230 ms ; call/projet ≤ 15 ms ;
+organisation (Univ. of Washington, 9 259 participations) ≤ 100 ms ;
+pays ≤ 200 ms **sauf US : ~1,8-2 s** (640 k participations, aucun
+index sur `participations.country_code` — voir 14.5). Aucun N+1 : un
+nœud = 2 à 4 requêtes groupées ; le roll-up financeur est un unique
+GROUP BY replié feuille→racine (la variante par-racine coûtait 20 s
+sur les 77 instituts NIH — réécrite).
+
+### 14.5 Limitations, NO-GO reconduits, et un besoin d'optimisation
+
+- Les NO-GO B0 § 10 restent fermés : pas de « budget », pas d'axe
+  annuel CORDIS/NIH, pas de chiffre unique inter-financeurs.
+- Le topic CORDIS (plus fin que l'appel) reste non normalisé — hors
+  périmètre B1.
+- **Proposition D-B1 (non exécutée — décision d'arbitrage)** : un
+  index sur `participations(country_code)` ramènerait le nœud pays US
+  sous la seconde. Besoin **mesuré** (pas spéculatif), mais toute
+  migration attend l'accord explicite ; alternative sans migration :
+  appuyer le nœud pays sur une extension de la vue matérialisée
+  `country_stats` (par financeur) au moment de B2.
