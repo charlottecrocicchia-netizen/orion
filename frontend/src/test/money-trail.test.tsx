@@ -1,10 +1,16 @@
-/** B2.4 — le Focus Trace Workspace contre des réponses B1 fidèles aux
- *  golds : trace typographique reconstruite du fil enrichi (deep-link
- *  ≡ descente, UNE requête), focus unique par niveau, clic destination
- *  → nouveau focus sans région supplémentaire, clic ancêtre → retour
- *  au niveau, filtre local honnête, réconciliation progressive,
- *  inconnu ≠ 0, bénéficiaire NIH, double système NSF, transverse sans
- *  total unique, EN/FR. */
+/** B2.5 — le Morphing Trace Explorer contre des réponses B1 fidèles
+ *  aux golds : le chemin actif devient une rangée de régions dont la
+ *  largeur (flex-grow) ne code que la distance au focus — jamais le
+ *  montant ; descendre redistribue les régions, cliquer un ancêtre
+ *  rééquilibre l'écran autour de lui, la branche remplacée disparaît.
+ *  Deep-link ≡ descente (UNE requête, fil enrichi), filtre local
+ *  honnête, réconciliation progressive, inconnu ≠ 0, bénéficiaire
+ *  NIH, double système NSF, transverse sans morphing forcé, EN/FR.
+ *
+ *  Le mouvement lui-même est pur CSS (transition flex-grow +
+ *  region-in), tué globalement par prefers-reduced-motion — au niveau
+ *  JS il n'existe AUCUN chemin dépendant du motion : les tests
+ *  vérifient les états finaux et la présence des classes de morphing. */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -175,6 +181,68 @@ const FIXTURES: Record<string, unknown> = {
       comparability: "ok",
       parent: { level: "funder", label: "European Commission" },
     },
+    navigation: NAV_EC,
+    restrictions: [],
+  },
+  "/api/chain/programme/11": {
+    node: {
+      level: "programme",
+      id: 11,
+      code: "H2020-EU.3.3.",
+      label: "\u00c9nergie",
+      funder: "ec",
+      parent: EC_CRUMB,
+    },
+    aggregate: AGG(10e9, 800),
+    children: {
+      level: "call",
+      total: 2,
+      items: [
+        { level: "call", id: 20, code: "CALL-X", label: "CALL-X", projects: 3, amount: 30e6 },
+        { level: "call", id: 21, code: "CALL-Y", label: "CALL-Y", projects: 5, amount: 60e6 },
+      ],
+    },
+    ancestors: [
+      EC_CRUMB,
+      {
+        level: "programme",
+        id: 10,
+        code: "HORIZON",
+        label: "Horizon Europe",
+        amount: 62e9,
+        currency: "EUR",
+        share_of_parent: 0.352,
+        comparability: "ok",
+      },
+    ],
+    share_of_parent: {
+      ratio: 0.161,
+      comparability: "ok",
+      parent: { level: "programme", label: "Horizon Europe" },
+    },
+    navigation: NAV_EC,
+    restrictions: [],
+  },
+  // Appel transversal non cadr\u00e9 : liaison structurelle sans ratio.
+  "/api/chain/call/20": {
+    node: { level: "call", id: 20, code: "CALL-X", label: "CALL-X", funder: "ec" },
+    context: null,
+    programmes: [
+      { level: "programme", id: 11, code: "H2020-EU.3.3.", projects: 3 },
+      { level: "programme", id: 12, code: "HORIZON.1.2", projects: 2 },
+    ],
+    aggregate: AGG(50e6, 5),
+    children: {
+      level: "project",
+      total: 2,
+      items: [
+        { level: "project", id: 1, label: "BIO-QED", amount: 5335158.39 },
+        { level: "project", id: 5, label: "OTHER", amount: 2e6 },
+      ],
+      coverage: { with_amount: 2, unknown_amount: 0 },
+    },
+    ancestors: [EC_CRUMB],
+    share_of_parent: null,
     navigation: NAV_EC,
     restrictions: [],
   },
@@ -537,14 +605,16 @@ function mount(path: string) {
     </QueryClientProvider>,
   );
 }
-
-/** Les deux formes de la trace (panneau ≥ md + ligne compacte) — la
- *  première est le panneau typographique. */
-function tracePanel() {
-  return screen.getAllByRole("navigation", { name: "Trace" })[0];
+/** Les r\u00e9gions du chemin actif, dans l'ordre gauche \u2192 droite. */
+function regions(): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>("[data-region]"));
 }
 
-describe("money trail (B2.4)", () => {
+function grows(): number[] {
+  return regions().map((el) => Number(el.style.flexGrow));
+}
+
+describe("money trail (B2.5)", () => {
   beforeEach(() => {
     stubFetch();
     void i18n.changeLanguage("en");
@@ -554,95 +624,113 @@ describe("money trail (B2.4)", () => {
     vi.unstubAllGlobals();
   });
 
-  it("racine : trois portes typographiques, sans classement ni total", async () => {
+  it("racine : la surface de d\u00e9part, trois portes, sans classement ni total ni r\u00e9gion", async () => {
     mount("/money");
     expect(await screen.findByRole("heading", { name: "Where did this money go?" })).toBeTruthy();
     expect(screen.getByText("European Commission")).toBeTruthy();
     expect(screen.getByText("NIH (RePORTER)")).toBeTruthy();
     expect(screen.getByText("No single total.")).toBeTruthy();
     expect(screen.getByText("Choose a funder to start following the money.")).toBeTruthy();
-    // Aucun panneau de trace vide à la racine.
-    expect(screen.queryByRole("navigation", { name: "Trace" })).toBeNull();
+    expect(regions()).toHaveLength(0);
   });
 
-  it("focus : UN seul niveau développé, la question unique, lignes suivables", async () => {
-    mount("/money/funder/ec");
-    expect(await screen.findByRole("heading", { name: "European Commission", level: 1 })).toBeTruthy();
-    // Un seul h1 : une seule région de focus, pas d'empilement.
-    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getByText("Where does this money go next?")).toBeTruthy();
-    expect(screen.getAllByText(/Follow the funding to/).length).toBeGreaterThan(0);
-    // Top adaptatif (8 en environnement non contraint) sur 14.
-    expect(screen.getByText("Programme 0")).toBeTruthy();
-    expect(screen.queryByText("Programme 13")).toBeNull();
-    expect(screen.getByText(/8 main destinations out of 14/)).toBeTruthy();
-    expect(screen.getByText(/the top 8 account for/)).toBeTruthy();
-    const more = screen.getByRole("button", { name: "Show the 6 others" });
-    fireEvent.click(more);
-    expect(await screen.findByText("Programme 13")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Back to top 8" })).toBeTruthy();
-  });
-
-  it("clic destination : le focus change, aucune région ne s'ajoute", async () => {
+  it("profondeur 1 : le focus occupe tout l'espace utile", async () => {
     mount("/money/funder/ec");
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
-    const navsBefore = screen.getAllByRole("navigation", { name: "Trace" }).length;
+    expect(regions()).toHaveLength(1);
+    expect(grows()).toEqual([62]);
+    expect(regions()[0].dataset.distance).toBe("0");
+    // Les classes du morphing sont pos\u00e9es (transition flex-grow +
+    // entr\u00e9e region-in) \u2014 le mouvement est pur CSS, tu\u00e9 par le bloc
+    // global prefers-reduced-motion : \u00e9tat final instantan\u00e9.
+    expect(regions()[0].className).toContain("morph-region");
+    expect(regions()[0].className).toContain("region-in");
+  });
+
+  it("profondeur 2 : parent compact interactif + focus dominant", async () => {
+    mount("/money/programme/10");
+    await screen.findByRole("heading", { name: "Horizon Europe", level: 1 });
+    expect(grows()).toEqual([18, 62]);
+    const parent = regions()[0];
+    expect(parent.dataset.distance).toBe("1");
+    // La r\u00e9gion compact\u00e9e est une vraie surface interactive.
+    const link = parent.querySelector("a");
+    expect(link?.getAttribute("href")).toBe("/money/funder/ec");
+    expect(parent.textContent).toContain("European Commission");
+    expect(parent.textContent).toContain("\u20ac176B");
+    // La part du focus est libell\u00e9e dans le focus.
+    expect(
+      screen.getByText(/35\.2\s?% of the observed EU contributions of European Commission/),
+    ).toBeTruthy();
+    // LA question du niveau, juste avant les destinations.
+    expect(screen.getByText("Where does this money go next?")).toBeTruthy();
+  });
+
+  it("profondeur 5 : anc\u00eatres compress\u00e9s, parts valides seules, focus dominant", async () => {
+    mount("/money/project/1");
+    await screen.findByRole("heading", { name: "BIO-QED", level: 1 });
+    expect(grows()).toEqual([6, 6, 10, 18, 62]);
+    const all = regions();
+    // Le sliver profond garde son code stable et son nom complet en titre.
+    expect(all[1].textContent).toContain("HORIZON");
+    expect(all[1].querySelector("a")?.getAttribute("title")).toContain("Horizon Europe");
+    // Montants d'anc\u00eatres SANS navigation pr\u00e9alable ni cache.
+    expect(all[0].textContent).toContain("\u20ac176B");
+    expect(all[1].textContent).toContain("\u20ac62B");
+    // Parts valides seules : l'appel transversal (parent) n'affiche
+    // AUCUN ratio.
+    expect(all[1].textContent).toContain("35.2");
+    expect(all[2].textContent).toContain("16.1");
+    expect(all[3].dataset.region).toBe("call");
+    expect(all[3].textContent).not.toContain("%");
+    // Le focus porte sa part libell\u00e9e.
+    expect(
+      screen.getByText(/10\.7\s?% of the observed EU contributions of CALL-X/),
+    ).toBeTruthy();
+  });
+
+  it("clic destination : la r\u00e9partition se redistribue, l'\u00e9tape rejoint le contexte", async () => {
+    mount("/money/funder/ec");
+    await screen.findByRole("heading", { name: "European Commission", level: 1 });
+    expect(grows()).toEqual([62]);
     fireEvent.click(screen.getByText("Programme 0").closest("a")!);
-    // Le nouveau niveau prend le centre — un seul h1, autant de
-    // régions qu'avant, l'étape précédente rejoint la trace.
     expect(await screen.findByRole("heading", { name: "Programme 0", level: 1 })).toBeTruthy();
+    expect(grows()).toEqual([18, 62]);
+    expect(regions()[0].textContent).toContain("European Commission");
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getAllByRole("navigation", { name: "Trace" }).length).toBe(navsBefore);
-    const trace = tracePanel();
-    expect(trace.textContent).toContain("European Commission");
-    expect(trace.querySelector('[aria-current="true"]')?.textContent).toContain("Programme 0");
   });
 
-  it("trace : reconstruite du fil enrichi, sans faux nœud, parts valides seules", async () => {
+  it("clic anc\u00eatre : l'\u00e9cran se r\u00e9\u00e9quilibre autour du niveau recliqu\u00e9", async () => {
     mount("/money/project/1");
     await screen.findByRole("heading", { name: "BIO-QED", level: 1 });
-    const trace = tracePanel();
-    const text = trace.textContent ?? "";
-    // Pas de nœud « Money trail » : la trace commence au financeur.
-    expect(text).not.toContain("Money trail");
-    // Montants d'ancêtres SANS navigation préalable ni cache.
-    expect(text).toContain("€176B");
-    expect(text).toContain("€62B");
-    // Ancêtres cliquables, courant marqué.
-    const links = Array.from(trace.querySelectorAll("a")).map((a) => a.getAttribute("href"));
-    expect(links).toContain("/money/funder/ec");
-    expect(links).toContain("/money/programme/10");
-    expect(links).toContain("/money/call/20");
-    expect(trace.querySelector('[aria-current="true"]')?.textContent).toContain("BIO-QED");
-    // Parts sur les relations valides (HORIZON, Énergie, projet)…
-    expect(text).toContain("35.2");
-    expect(text).toContain("16.1");
-    expect(text).toContain("10.7");
-    // …et RIEN sur l'appel transversal : 4 relations, 3 chiffrées.
-    expect((text.match(/└/g) ?? []).length).toBe(4 + 1); // + la légende
-    expect((text.match(/└ \d|└ </g) ?? []).length).toBe(3);
-    expect(text).toContain("share of the level above");
-  });
-
-  it("ancêtre : cliquer Horizon Europe ramène le focus, les descendants quittent la trace", async () => {
-    mount("/money/project/1");
-    await screen.findByRole("heading", { name: "BIO-QED", level: 1 });
-    const horizon = Array.from(tracePanel().querySelectorAll("a")).find((a) =>
-      a.textContent?.includes("Horizon Europe"),
-    );
+    expect(regions()).toHaveLength(5);
+    const horizon = regions()
+      .map((r) => r.querySelector("a"))
+      .find((a) => a?.getAttribute("href") === "/money/programme/10");
     expect(horizon).toBeTruthy();
     fireEvent.click(horizon!);
     expect(await screen.findByRole("heading", { name: "Horizon Europe", level: 1 })).toBeTruthy();
-    // Les descendants (appel, projet) ont quitté la trace.
-    const text = tracePanel().textContent ?? "";
-    expect(text).not.toContain("CALL-X");
-    expect(text).not.toContain("BIO-QED");
+    // Redistribution inverse : EC comprim\u00e9e, Horizon dominant \u2014 les
+    // descendants (\u00c9nergie, appel, projet) ont quitt\u00e9 la branche.
+    expect(grows()).toEqual([18, 62]);
+    expect(document.body.textContent).not.toContain("CALL-X");
     expect(screen.queryByRole("heading", { name: "BIO-QED", level: 1 })).toBeNull();
-    // Et les destinations du niveau sont immédiatement là.
-    expect(screen.getByText("Énergie")).toBeTruthy();
+    // Et une NOUVELLE branche s'ouvre depuis ce niveau.
+    fireEvent.click(screen.getByText("\u00c9nergie").closest("a")!);
+    expect(await screen.findByRole("heading", { name: "\u00c9nergie", level: 1 })).toBeTruthy();
+    expect(grows()).toEqual([10, 18, 62]);
+    expect(regions()[1].textContent).toContain("Horizon Europe");
   });
 
-  it("filtre local : uniquement sur un ensemble entièrement servi, et honnête", async () => {
+  it("appel transversal : liaison structurelle, jamais un ratio invalide", async () => {
+    mount("/money/call/20");
+    await screen.findByRole("heading", { name: "CALL-X", level: 1 });
+    expect(screen.getByText(/Cross-cutting call \u2014 no per-programme ratio/)).toBeTruthy();
+    // Aucun share_of_parent servi \u2192 aucune ligne de part.
+    expect(screen.queryByText(/% of the observed EU contributions of/)).toBeNull();
+  });
+
+  it("filtre local : uniquement sur un ensemble enti\u00e8rement servi, et honn\u00eate", async () => {
     mount("/money/funder/nih");
     await screen.findByRole("heading", { name: "NIH (RePORTER)", level: 1 });
     const input = screen.getByRole("searchbox");
@@ -653,48 +741,46 @@ describe("money trail (B2.4)", () => {
     expect(screen.getByText("Nothing here matches.")).toBeTruthy();
   });
 
-  it("filtre local : jamais proposé pour une courte liste", async () => {
+  it("filtre local : jamais propos\u00e9 pour une courte liste", async () => {
     mount("/money/funder/ec");
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
     expect(screen.queryByRole("searchbox")).toBeNull();
   });
 
-  it("URL profonde CORDIS : gap dit, inconnu ≠ 0, D7 respecté", async () => {
+  it("URL profonde CORDIS : gap dit, inconnu \u2260 0, D7 respect\u00e9", async () => {
     mount("/money/project/1");
     expect(await screen.findByRole("heading", { name: "BIO-QED", level: 1 })).toBeTruthy();
     expect(screen.getAllByText("source fact").length).toBeGreaterThan(0);
     expect(screen.getByText(/do not cover the whole project total/)).toBeTruthy();
     expect(screen.getByText("Not broken down")).toBeTruthy();
     expect(screen.getByText(/43\.8\s?% of the amount is not broken down/)).toBeTruthy();
-    expect(screen.getByText(/10\.7\s?% of the observed EU contributions of CALL-X/)).toBeTruthy();
     const row = screen.getByText("Itaconix corporation").closest("div.border-b");
     expect(row?.textContent).toContain("unknown");
-    expect(row?.textContent).not.toContain("€0");
+    expect(row?.textContent).not.toContain("\u20ac0");
     expect(screen.getByText("not available")).toBeTruthy();
   });
 
-  it("dépassement de plafond : lecture comptable signée, jamais un 100 % empilé", async () => {
+  it("d\u00e9passement de plafond : lecture comptable sign\u00e9e, jamais un 100 % empil\u00e9", async () => {
     mount("/money/project/4");
     await screen.findByRole("heading", { name: "EUROfusion", level: 1 });
     expect(screen.getByText(/exceed the project ceiling/)).toBeTruthy();
     expect(screen.getByText("Project ceiling")).toBeTruthy();
     expect(screen.getByText("Gap")).toBeTruthy();
-    expect(screen.getByText("+€115.1M")).toBeTruthy();
+    expect(screen.getByText("+\u20ac115.1M")).toBeTruthy();
   });
 
-  it("NIH : bénéficiaire, jamais une ventilation ; pas d'étage appel", async () => {
+  it("NIH : b\u00e9n\u00e9ficiaire, jamais une ventilation ; aucune r\u00e9gion appel", async () => {
     mount("/money/project/2");
-    expect(await screen.findByRole("heading", { name: "Rabies therapeutics", level: 1 })).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { name: "Rabies therapeutics", level: 1 }),
+    ).toBeTruthy();
     expect(screen.getByText(/identifies the beneficiary/)).toBeTruthy();
     expect(screen.getByText(/beneficiary marker, not a financial breakdown/)).toBeTruthy();
-    const text = tracePanel().textContent ?? "";
-    expect(text).toContain("NIH (RePORTER)");
-    expect(text).toContain("NIAID");
-    expect(text).not.toContain("Call");
+    expect(regions().map((r) => r.dataset.region)).toEqual(["funder", "programme", "project"]);
     expect(screen.getByText(/skips it rather than inventing it/)).toBeTruthy();
   });
 
-  it("NSF : deux systèmes de mesure, réconciliation exacte compacte et calme", async () => {
+  it("NSF : deux syst\u00e8mes de mesure, r\u00e9conciliation exacte compacte et calme", async () => {
     mount("/money/project/3");
     expect(await screen.findByRole("heading", { name: "BEACON", level: 1 })).toBeTruthy();
     expect(screen.getByText(/never added, never interchanged/)).toBeTruthy();
@@ -704,13 +790,12 @@ describe("money trail (B2.4)", () => {
     expect(screen.getByText(/vintage 2026-08-26/)).toBeTruthy();
     expect(screen.getByText("Exact reconciliation")).toBeTruthy();
     expect(screen.getByText("No unallocated amount.")).toBeTruthy();
-    // Jamais « contribution » pour une obligation NSF, jamais le
-    // tableau détaillé pour un cas trivial.
     expect(screen.queryByText("Project contribution")).toBeNull();
     expect(screen.queryByText("Participants with unknown share")).toBeNull();
+    expect(regions().map((r) => r.dataset.region)).toEqual(["funder", "programme", "project"]);
   });
 
-  it("organisation : relations de financement, refus du total unique", async () => {
+  it("organisation : relations de financement, aucun morphing forc\u00e9, refus du total", async () => {
     mount("/money/organisation/101");
     const heading = await screen.findByRole("heading", { level: 1 });
     expect(heading.textContent).toContain("Itaconix corporation");
@@ -721,11 +806,10 @@ describe("money trail (B2.4)", () => {
       screen.getAllByText(/one combined figure would be an invented number/).length,
     ).toBeGreaterThan(0);
     expect(screen.getByText(/publishes no amount for this participation/)).toBeTruthy();
-    // Pas de trace descendante forcée sur une entité transverse.
-    expect(screen.queryByRole("navigation", { name: "Trace" })).toBeNull();
+    expect(regions()).toHaveLength(0);
   });
 
-  it("méthodologie : l'inspecteur s'ouvre à la demande, se referme, focus restitué", async () => {
+  it("m\u00e9thodologie : l'inspecteur s'ouvre \u00e0 la demande, se referme, focus restitu\u00e9", async () => {
     mount("/money/project/1");
     await screen.findByRole("heading", { name: "BIO-QED", level: 1 });
     fireEvent.click(screen.getByRole("button", { name: /Methodology & sources/ }));
@@ -736,24 +820,27 @@ describe("money trail (B2.4)", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("404 : refus nommé, jamais une page blanche", async () => {
+  it("404 : refus nomm\u00e9, jamais une page blanche", async () => {
     mount("/money/project/999");
     expect(await screen.findByText("This node does not exist.")).toBeTruthy();
     expect(screen.getByText("Back to the money trail")).toBeTruthy();
   });
 
-  it("niveau inconnu dans l'URL : impasse traitée", () => {
+  it("niveau inconnu dans l'URL : impasse trait\u00e9e", () => {
     mount("/money/galaxy/42");
     expect(screen.getByText("This node does not exist.")).toBeTruthy();
   });
 
-  it("FR : la même vue parle français", async () => {
+  it("FR : la m\u00eame vue parle fran\u00e7ais", async () => {
     await i18n.changeLanguage("fr");
     mount("/money/project/1");
     await screen.findByRole("heading", { name: "BIO-QED", level: 1 });
     expect(screen.getByText("Contribution maximale UE")).toBeTruthy();
-    expect(screen.getByText("Non ventilé")).toBeTruthy();
+    expect(screen.getByText("Non ventil\u00e9")).toBeTruthy();
     expect(screen.getByText(/pas une erreur/)).toBeTruthy();
-    expect(tracePanel().textContent).toContain("part du niveau au-dessus");
+    cleanup();
+    mount("/money/programme/10");
+    await screen.findByRole("heading", { name: "Horizon Europe", level: 1 });
+    expect(screen.getByText("O\u00f9 va ensuite cet argent ?")).toBeTruthy();
   });
 });

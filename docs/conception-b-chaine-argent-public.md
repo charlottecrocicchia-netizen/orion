@@ -1064,3 +1064,92 @@ transversal 1252, EURIZON (gap), EUROfusion (dépassement), BEACON,
 NIH 566018, ITACONIX 26640, deep-link à froid VerSiLiB 26403 (une
 requête, cinq niveaux), 1920×1080 / 1440×900 / 1280×800 / 768 / 420,
 EN/FR, clair/sombre.
+
+### 15.9 B2.5 — Morphing Trace Explorer (2026-08-28)
+
+Changement du modèle spatial après la recette fondatrice de B2.4 (les
+acquis fonctionnels et méthodologiques sont conservés ; la composition
+« sidebar fixe + fiche » est rejetée — trop statique, trop
+documentaire). L'intention : quand on avance dans la profondeur, la
+disposition SE TRANSFORME devant l'utilisateur — on zoome dans la
+chaîne, on n'ouvre pas une page.
+
+- **L'écran est le chemin actif.** Une succession de régions
+  financeur → … → focus. La largeur d'une région ne code que sa
+  DISTANCE au focus — jamais le montant (aucune lecture Sankey) :
+  poids `flex-grow` 62 (focus) / 18 (parent) / 10 (grand-parent) / 6
+  (ancêtres plus anciens), normalisés par le flex lui-même — à
+  profondeur 2 le parent fait ~22 % et le focus ~78 %, à profondeur 5
+  les ancêtres tiennent ~28 % cumulés (constaté en réel : 85 / 85 /
+  142 / 254 / 873 px à 1440). Gardes `min-width` (68 px sliver,
+  132 px parent) pour la lisibilité.
+- **Le morphing est une vraie transition de layout.** Chaque région
+  garde son élément DOM (UN SEUL map keyé par nœud — un bug de
+  réconciliation trouvé en recette : ancêtres en tableau + focus en
+  frère séparé formaient deux fratries entre lesquelles une clé ne
+  migre pas, l'ancien focus se REMONTAIT ; corrigé, prouvé au
+  `dataset.probe` : l'élément persiste). À la descente, l'ancien
+  focus se contracte (transition `flex-grow` 220 ms) pendant que la
+  nouvelle région pousse depuis zéro (`region-in`, délai 60 ms — le
+  mouvement raconte « cette destination devient mon espace de
+  travail ») ; à la remontée, le mouvement inverse rééquilibre
+  l'écran autour du niveau recliqué, les descendants quittent la
+  branche. `prefers-reduced-motion` : état final instantané (bloc
+  global). Aucune bibliothèque d'animation.
+- **Les régions compressées restent interactives** : niveau, nom
+  (complet → 2 lignes → code stable pour les slivers, nom complet
+  toujours en `title` + libellé lecteur d'écran), montant, part
+  valide (référent complet en info-bulle/sr). Cliquer un ancêtre le
+  refait focus — profondeur 5 → 2 → nouvelle branche → 4 vérifié sans
+  artefact ni nœud fantôme. Survol : couleur seule, pas d'accordéon.
+- **Couleur Orion fonctionnelle** — elle répond « où est mon
+  attention ? » : ancêtres en gris Orion (`bg-surface`, plus dense
+  loin du focus), parent plus clair, focus subtilement teinté
+  (`accent-soft`), accent bleu réservé au type (eyebrow), aux
+  sélections/survols et aux actions. Une seule famille + neutres,
+  clair et sombre.
+- **Hiérarchie du focus** (lecture en un balayage) : TYPE · CODE /
+  nom / chiffre / part du parent libellée / nature courte ·
+  provenance · ⓘ / LA question (« Où va ensuite cet argent ? »,
+  renforcée) / destinations en lignes éditoriales. Les phrases
+  longues de couverture rejoignent l'inspecteur (rangée
+  « Couverture »). Appel transversal : indication courte en focus
+  (« Appel transversal — ratio au programme non applicable » + liens
+  mono vers les vues cadrées), explication complète dans
+  l'inspecteur, jamais de ratio invalide dans les régions.
+- **Racine** : surface de départ pleine largeur, trois portes
+  typographiques plus composées (nom 21 px, montant 24 px, nature et
+  volumétrie, chevron qui glisse, hairline d'accent qui s'étend au
+  survol) — aucun classement, aucun total.
+- **Projet = focus terminal analytique** (fiche B2.4 conservée,
+  réconciliation progressive intacte) ; NSF/NIH : aucune région
+  réservée à un étage absent (profondeur 3 naturelle) ; ITACONIX :
+  focus transverse « Relations de financement », chaque financeur
+  ouvre sa branche, aucun morphing forcé.
+- **Route-outil conservée** : pas de footer, pas de défilement du
+  document au parcours nominal (vérifié 1920×1080, 1440×900,
+  1280×800), listes du focus en défilement interne, ancêtres fixes.
+  Mobile : chemin compact en haut + focus plein écran (une seule
+  région visible, mesuré), même modèle mental.
+- **Une requête par vue** (acquis B2.4) : le deep-link à froid
+  reconstruit focus + ancêtres + montants + parts + disposition selon
+  la profondeur — `/chain/project/26403` = 1 requête, 5 régions.
+  Aucun préchargement au survol (non nécessaire, documenté).
+
+Constat d'environnement reconduit : le pane de recette garde
+`visibilityState: hidden` — les animations CSS n'y avancent qu'aux
+frames forcées ; le mécanisme (transition `flex-grow` + `region-in`)
+est du CSS standard, prouvé par la persistance DOM et les états
+finaux. Tests : 165 frontend (18 sur la surface : poids par
+profondeur 1/2/5, redistribution au clic enfant, rééquilibrage au
+clic ancêtre + branche remplacée, transversal sans ratio, filtre
+honnête, NIH/NSF/transverse, FR/EN — le motion étant pur CSS tué par
+reduced-motion, les tests vérifient états finaux et classes),
+372 backend inchangés. Vérification réelle sur corpus complet :
+EC → H2020 → ERC → ERC-2014-CoG → MARS (fiche conforme au modèle),
+retour par sliver H2020, branche MSCA → appel, transversal 1252,
+EURIZON (gap), EUROfusion (dépassement), BEACON, NIH 566018,
+ITACONIX 26640, deep-link 26403, 1920/1440/1280/1024/768/420, EN/FR,
+clair/sombre. Suppressions (zéro code mort) : TracePanel et la
+coquille bi-régions B2.4, la clé `trace.convention` ; `focus-in` est
+réutilisé pour le contenu du focus.

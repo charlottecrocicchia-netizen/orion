@@ -1386,8 +1386,8 @@ const resources = {
         trace: {
           ofPrevious: "{{pct}} of {{parent}}",
           ofPreviousSr: "of {{parent}}",
-          convention: "└ % : share of the level above",
         },
+        transversalShort: "Cross-cutting call — no per-programme ratio.",
         search: {
           placeholder: "Search among {{n}} {{what}}…",
           noMatch: "Nothing here matches.",
@@ -1544,6 +1544,7 @@ const resources = {
           title: "Methodology & sources",
           close: "Close",
           measure: "Measure:",
+          coverage: "Coverage:",
           nature: "Nature:",
           attribution: "Attachment:",
           source: "Source:",
@@ -3015,8 +3016,8 @@ const resources = {
         trace: {
           ofPrevious: "{{pct}} de {{parent}}",
           ofPreviousSr: "de {{parent}}",
-          convention: "└ % : part du niveau au-dessus",
         },
+        transversalShort: "Appel transversal — ratio au programme non applicable.",
         search: {
           placeholder: "Rechercher parmi {{n}} {{what}}…",
           noMatch: "Rien ne correspond ici.",
@@ -3173,6 +3174,7 @@ const resources = {
           title: "Méthodologie & sources",
           close: "Fermer",
           measure: "Mesure :",
+          coverage: "Couverture :",
           nature: "Nature :",
           attribution: "Rattachement :",
           source: "Source :",

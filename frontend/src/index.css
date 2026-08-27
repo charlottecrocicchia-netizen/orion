@@ -247,8 +247,8 @@
   }
 }
 
-/* B2.4 : le déplacement d'attention du Focus Trace Workspace — le
-   nouveau focus glisse en place, bref et sobre ; tué par le bloc
+/* B2.4/B2.5 : le déplacement d'attention — le contenu du nouveau
+   focus glisse en place, bref et sobre ; tué par le bloc
    reduced-motion ci-dessous. */
 @utility focus-in {
   animation: focus-in 0.15s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
@@ -262,6 +262,31 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* B2.5 : le morphing du Focus+Context Explorer. Chaque région du
+   chemin actif garde son élément (clé par nœud) : quand le focus se
+   déplace, la répartition des largeurs — flex-grow, jamais le montant
+   — se REJOUE en une vraie transition de layout : l'ancien focus se
+   contracte vers le contexte pendant que la nouvelle région pousse
+   depuis zéro (region-in, à l'entrée seulement). La couleur
+   accompagne la prise de focus. Tués par le bloc reduced-motion :
+   état final instantané. */
+@utility morph-region {
+  transition:
+    flex-grow 0.22s cubic-bezier(0.2, 0.6, 0.2, 1),
+    background-color 0.22s ease;
+}
+
+@utility region-in {
+  animation: region-in 0.22s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
+}
+
+@keyframes region-in {
+  from {
+    flex-grow: 0.001;
+    opacity: 0.2;
   }
 }
 

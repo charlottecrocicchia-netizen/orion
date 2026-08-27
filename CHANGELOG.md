@@ -24,15 +24,19 @@ All notable changes to Orion are documented here. The format follows
   programme scope). The B1 engine gained two additive endpoints so
   the UI never guesses: per-node `ancestors` (enriched with amounts,
   share-of-parent and comparability) and `GET /chain/funders`. The
-  surface is a full-height Focus Trace Workspace (B2.4): a
-  typographic trace on the left remembers the path (indentation,
-  amounts, "└ %" relations, every ancestor clickable), the current
-  level owns the center (one question — where does this money go
-  next? — then editorial destination rows, an adaptive top, an honest
-  local filter only when the whole child set is served), and a
-  methodology inspector slides in on demand. No footer on this route,
-  no document scroll in the nominal desktop journey, and a deep link
-  rebuilds the entire trace from the engine in a single request.
+  surface is a full-height Morphing Trace Explorer (B2.5): the screen
+  IS the active path — one region per traversed level, whose widths
+  encode only distance to the focus (never money), so descending
+  visibly reshapes the layout (the old focus contracts into context
+  while the new level takes the space, a real flex-grow transition,
+  instant under reduced motion) and clicking a compressed ancestor
+  rebalances the screen around it. The focus level carries one
+  question — where does this money go next? — then editorial
+  destination rows (adaptive top, an honest local filter only when
+  the whole child set is served); a methodology inspector slides in
+  on demand. No footer on this route, no document scroll in the
+  nominal desktop journey, and a deep link rebuilds path, amounts,
+  valid shares and layout from the engine in a single request.
   Shared `Breadcrumb` and `Pager` primitives extracted; full EN/FR
   copy; 20 page tests.
 

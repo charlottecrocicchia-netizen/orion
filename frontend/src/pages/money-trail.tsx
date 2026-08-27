@@ -1,37 +1,33 @@
-/** B2.4 — « Où est passé cet argent ? » (docs/conception-b-chaine-argent-public.md § 15).
+/** B2.5 — « Où est passé cet argent ? » (docs/conception-b-chaine-argent-public.md § 15).
  *
- *  Focus Trace Workspace : une surface de travail plein écran sous la
- *  navbar (pas de footer éditorial ici, pas de défilement du document
- *  dans le cas nominal). Deux régions permanentes seulement :
+ *  Morphing Trace Explorer : l'écran est une succession de régions
+ *  correspondant au CHEMIN ACTIF (financeur → … → focus). La largeur
+ *  d'une région ne code que sa DISTANCE au focus — jamais le montant
+ *  (aucune lecture de type Sankey) : le focus tient la majorité de
+ *  l'espace, le parent reste lisible, les ancêtres plus anciens se
+ *  compressent en bandes contextuelles interactives.
  *
- *    à gauche, la TRACE — comment suis-je arrivé ici ? Un arbre
- *    typographique compact (indentation réelle, nom, montant, relation
- *    « └ % » au niveau au-dessus), chaque ancêtre cliquable, aucun
- *    faux nœud « Chaîne de l'argent », aucune boîte ;
+ *  Quand le focus se déplace, la disposition SE TRANSFORME devant
+ *  l'utilisateur : chaque région garde son élément (clé par nœud), la
+ *  répartition des `flex-grow` se rejoue en une vraie transition de
+ *  layout (~220 ms) — l'ancien focus se contracte vers le contexte
+ *  pendant que la nouvelle région pousse depuis zéro ; en remontant,
+ *  le mouvement inverse rééquilibre l'écran autour du niveau
+ *  recliqué. `prefers-reduced-motion` : état final instantané (bloc
+ *  global). La couleur répond « où se trouve mon attention ? » :
+ *  ancêtres en gris Orion, focus subtilement teinté, accent
+ *  fonctionnel seul (type, sélection, actions).
  *
- *    au centre, le FOCUS — où suis-je, et où cet argent peut-il aller
- *    ensuite ? Le niveau courant reçoit tout l'espace : chiffre, part
- *    du parent, nature courte, UNE question, puis les destinations en
- *    lignes éditoriales (hairlines, jamais des cartes).
- *
- *  L'inspecteur méthodologique glisse depuis la droite à la demande —
- *  troisième région, temporaire. Cliquer une destination déplace
- *  l'attention : l'étape rejoint la trace, le nouveau niveau prend le
- *  centre (micro-transition 150 ms, tuée par prefers-reduced-motion),
- *  l'URL change sans rechargement. Cliquer un ancêtre de la trace
- *  ramène le focus à ce niveau — les descendants quittent la trace.
- *
- *  Deep-link ≡ descente : le fil enrichi de la réponse courante
- *  (montants, parts, comparabilité — moteur B2.2) reconstruit la
- *  trace entière en UNE requête ; aucun contexte ne dépend de
- *  l'historique ni du cache.
- *
- *  Invariants inchangés (B0/B1) : le moteur fait foi ; l'i18n pose
- *  ses phrases sur les clés stables ; inconnu ≠ zéro ; un ratio
- *  n'existe que si le moteur le déclare valide (appel transversal :
- *  liaison sans pourcentage) ; NIH bénéficiaire, NSF double système
- *  de mesure, aucun total unique inter-financeurs. URL = vue
- *  reproductible (niveau, id, dépli, page, filtre local). */
+ *  Le contrat métier est inchangé (B0/B1, acquis B2.2→B2.4) : le
+ *  moteur fait foi ; le fil enrichi de la réponse courante
+ *  reconstruit tout le chemin en UNE requête (deep-link ≡ descente,
+ *  aucune dépendance au cache) ; le focus se rend d'après le niveau
+ *  des DONNÉES servies, jamais d'après l'URL ; inconnu ≠ zéro ; un
+ *  ratio n'existe que si le moteur le déclare valide (appel
+ *  transversal : liaison sans pourcentage) ; NIH bénéficiaire, NSF
+ *  double système de mesure, aucun total unique inter-financeurs ;
+ *  route-outil : pas de footer, pas de défilement du document au
+ *  parcours nominal desktop. URL = état du focus. */
 
 import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -160,15 +156,14 @@ function shareFamily(key: string | null | undefined): "cordis" | "nih" | "nsf" |
 
 /** Le nombre de destinations visibles sans dépli : adapté à la
  *  hauteur réellement disponible (7 à 10) quand le workspace est
- *  contraint en hauteur (≥ md) ; valeur fixe en flux naturel étroit. */
+ *  contraint en hauteur (≥ md) ; valeur fixe en flux naturel étroit
+ *  — mesurer un conteneur dimensionné par son contenu nourrirait le
+ *  compte qu'il mesure. */
 function useVisibleCount(listRef: RefObject<HTMLDivElement | null>): number {
   const [count, setCount] = useState(DEFAULT_VISIBLE);
   useEffect(() => {
     const el = listRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
-    // En flux naturel (< md), la hauteur de la liste est celle de son
-    // CONTENU : la mesurer nourrirait le compte qu'elle mesure. La
-    // valeur fixe s'applique, et la bascule de média remet d'équerre.
     const mql = window.matchMedia("(min-width: 768px)");
     const apply = (height: number) => {
       if (!mql.matches) {
@@ -307,11 +302,13 @@ function MethodologyPanel({
 }
 
 /* ------------------------------------------------------------------ */
-/* La trace — comment suis-je arrivé ici ?                             */
+/* Le chemin actif                                                     */
 
-interface TraceNode {
+interface PathNode {
   level: string;
+  id: number | string;
   label: string;
+  code?: string;
   to?: string;
   amount?: number | null;
   currency?: string | null;
@@ -319,11 +316,13 @@ interface TraceNode {
   active?: boolean;
 }
 
-function traceFromSpine(ancestors: ChainCrumb[], current: TraceNode): TraceNode[] {
+function pathFromSpine(ancestors: ChainCrumb[], current: PathNode): PathNode[] {
   return [
     ...ancestors.map((a) => ({
       level: a.level,
+      id: a.id,
       label: a.label ?? a.code ?? String(a.id),
+      code: a.code,
       to: crumbPath(a),
       amount: a.amount,
       currency: a.currency,
@@ -333,106 +332,96 @@ function traceFromSpine(ancestors: ChainCrumb[], current: TraceNode): TraceNode[
   ];
 }
 
-/** Le panneau de trace (≥ md) : essentiellement typographique —
- *  indentation réelle, nom, montant, relation au parent. Aucune boîte
- *  autour d'une étape ; le niveau courant porte un filet d'accent. */
-function TracePanel({ nodes }: { nodes: TraceNode[] }) {
+/** La largeur d'une région ne code que sa DISTANCE au focus — jamais
+ *  le montant. Poids relatifs (flex-grow, animé) : le focus domine,
+ *  le parent reste lisible, au-delà les bandes se compressent. */
+function regionWeight(distance: number): number {
+  if (distance === 0) return 62;
+  if (distance === 1) return 18;
+  if (distance === 2) return 10;
+  return 6;
+}
+
+/** Une région ancêtre compressée : une vraie surface interactive, pas
+ *  un breadcrumb — nom (court quand la place manque, complet pour
+ *  l'accessibilité), montant, part valide, niveau. Cliquer ramène le
+ *  focus à ce niveau. */
+function AncestorRegion({
+  node,
+  previousLabel,
+  distance,
+}: {
+  node: PathNode;
+  previousLabel?: string;
+  distance: number;
+}) {
   const { t, locale, money } = useMoneyCopy();
-  const hasShare = nodes.some((node) => node.share != null);
+  const sliver = distance >= 3;
+  const display = sliver ? (node.code ?? node.label) : node.label;
   return (
-    <nav
-      aria-label={t("money.rail.title")}
-      className="hidden w-[224px] shrink-0 overflow-y-auto border-r border-border-soft px-5 py-6 md:block lg:w-[248px]"
+    <Link
+      to={node.to ?? "/money"}
+      title={`${node.label}${node.amount != null ? ` — ${money(node.amount, node.currency)}` : ""}`}
+      className="group flex h-full min-w-0 flex-col overflow-hidden px-3 py-5 transition-colors hover:bg-accent-soft/40 lg:px-4"
     >
-      <p className="text-[11px] font-medium uppercase tracking-[.12em] text-muted-foreground">
-        {t("money.rail.title")}
-      </p>
-      <ol className="mt-4">
-        {nodes.map((node, index) => (
-          <li key={`${node.level}-${index}`} style={{ paddingLeft: index * 10 }}>
-            {index > 0 ? (
-              <p
-                className="tnum py-1 text-[11px] leading-none text-muted-foreground"
-                title={
-                  node.share != null
-                    ? t("money.trace.ofPrevious", {
-                        pct: pct(node.share * 100, locale),
-                        parent: nodes[index - 1]?.label ?? "",
-                      })
-                    : undefined
-                }
-              >
-                <span aria-hidden="true">└ </span>
-                {node.share != null ? (
-                  <>
-                    {pct(node.share * 100, locale)}
-                    <span className="sr-only">
-                      {" "}
-                      {t("money.trace.ofPreviousSr", { parent: nodes[index - 1]?.label ?? "" })}
-                    </span>
-                  </>
-                ) : null}
-              </p>
-            ) : null}
-            {node.to && !node.active ? (
-              <Link
-                to={node.to}
-                className="group flex items-baseline justify-between gap-2 py-0.5 text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span className="min-w-0 text-[12.5px] leading-snug line-clamp-2">
-                  {node.label}
-                </span>
-                {node.amount != null ? (
-                  <span className="tnum shrink-0 text-[11px]">
-                    {money(node.amount, node.currency)}
-                  </span>
-                ) : null}
-              </Link>
-            ) : (
-              <span
-                aria-current="true"
-                className="-ml-2 flex items-baseline justify-between gap-2 border-l-2 border-accent py-0.5 pl-1.5"
-              >
-                <span className="min-w-0 text-[12.5px] font-medium leading-snug text-foreground line-clamp-2">
-                  {node.label}
-                </span>
-                {node.amount != null ? (
-                  <span className="tnum shrink-0 text-[11px] text-muted-foreground">
-                    {money(node.amount, node.currency)}
-                  </span>
-                ) : null}
-              </span>
-            )}
-          </li>
-        ))}
-      </ol>
-      {hasShare ? (
-        <p className="mt-4 text-[10.5px] leading-snug text-muted-foreground">
-          {t("money.trace.convention")}
-        </p>
+      <span className="sr-only">{t("money.followTo", { name: node.label })} — </span>
+      {!sliver ? (
+        <span className="text-[9.5px] font-medium uppercase leading-tight tracking-[.09em] text-muted-foreground/80">
+          {LEVELS.has(node.level) ? t(`money.levels.${node.level}`) : node.level}
+        </span>
       ) : null}
-      <p className="mt-6">
-        <Link
-          to="/money"
-          className="text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+      <span
+        aria-hidden="true"
+        className={cn(
+          "mt-1 leading-snug text-muted-foreground transition-colors group-hover:text-accent",
+          distance === 1
+            ? "text-[13px] font-medium text-foreground/80 line-clamp-3"
+            : sliver
+              ? "text-[11px] line-clamp-2"
+              : "text-[12px] line-clamp-2",
+        )}
+      >
+        {display}
+      </span>
+      {node.amount != null ? (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "tnum mt-1 text-foreground/70",
+            distance === 1 ? "text-[12.5px] font-medium" : "text-[11px]",
+          )}
         >
-          ↩ {t("money.backToRoot")}
-        </Link>
-      </p>
-    </nav>
+          {money(node.amount, node.currency)}
+        </span>
+      ) : null}
+      {node.share != null ? (
+        <span
+          className="tnum mt-0.5 text-[10.5px] text-muted-foreground"
+          title={t("money.trace.ofPrevious", {
+            pct: pct(node.share * 100, locale),
+            parent: previousLabel ?? "",
+          })}
+        >
+          {pct(node.share * 100, locale)}
+          <span className="sr-only">
+            {" "}
+            {t("money.trace.ofPreviousSr", { parent: previousLabel ?? "" })}
+          </span>
+        </span>
+      ) : null}
+    </Link>
   );
 }
 
-/** La trace compacte (< md) : une ligne « EC › Horizon › EIT » —
- *  cliquer une étape remonte directement. */
-function TraceLine({ nodes }: { nodes: TraceNode[] }) {
+/** Le chemin compact (< md) : « ↩ EC › Horizon › EIT » — cliquer une
+ *  étape remonte. Le retour à la racine est un geste, pas un nœud. */
+function TraceLine({ nodes }: { nodes: PathNode[] }) {
   const { t } = useMoneyCopy();
   return (
     <nav
       aria-label={t("money.rail.title")}
       className="flex items-center gap-1.5 overflow-x-auto px-6 pt-4 text-[12.5px] md:hidden"
     >
-      {/* Le retour à la racine est un geste, pas un nœud de la trace. */}
       <Link
         to="/money"
         aria-label={t("money.backToRoot")}
@@ -471,14 +460,53 @@ function TraceLine({ nodes }: { nodes: TraceNode[] }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* La coquille du workspace : trace + focus, la fenêtre suffit         */
+/* La coquille morphing : le chemin actif EST la disposition           */
 
-function Workspace({ trace, children }: { trace?: TraceNode[]; children: ReactNode }) {
+function MorphWorkspace({ path, children }: { path: PathNode[]; children: ReactNode }) {
   return (
-    <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:flex-row md:overflow-hidden">
-      {trace ? <TracePanel nodes={trace} /> : null}
-      {trace ? <TraceLine nodes={trace} /> : null}
-      <section className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</section>
+    <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
+      <TraceLine nodes={path} />
+      <div className="flex min-h-0 flex-1">
+        {/* UN SEUL map keyé par nœud : quand le focus se déplace, le
+            MÊME élément change de rôle (l'ancien focus DEVIENT la
+            région parent) et sa compression est une vraie transition
+            de flex-grow — deux fratries séparées casseraient la
+            réconciliation par clé et remonteraient l'élément. */}
+        {path.map((node, index) => {
+          const distance = path.length - 1 - index;
+          const isFocus = distance === 0;
+          return (
+            <div
+              key={`${node.level}:${node.id}`}
+              data-region={node.level}
+              data-distance={distance}
+              style={{
+                flexGrow: regionWeight(distance),
+                animationDelay: isFocus ? "60ms" : undefined,
+              }}
+              className={cn(
+                "morph-region region-in min-w-0 basis-0",
+                isFocus
+                  ? "bg-accent-soft/25"
+                  : cn(
+                      "hidden border-r border-border-soft md:block",
+                      distance === 1 ? "min-w-[132px] bg-surface/35" : "min-w-[68px] bg-surface/70",
+                    ),
+              )}
+            >
+              {isFocus ? (
+                children
+              ) : (
+                <AncestorRegion
+                  node={node}
+                  previousLabel={index > 0 ? path[index - 1]?.label : undefined}
+                  distance={distance}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -515,7 +543,7 @@ function DestinationRow({
   return (
     <Link
       to={item.to}
-      className="group flex items-start justify-between gap-6 border-b border-border-soft py-3.5 transition-colors hover:bg-surface/50"
+      className="group flex items-start justify-between gap-6 border-b border-border-soft py-3.5 transition-colors hover:bg-accent-soft/40"
     >
       <span className="sr-only">{t("money.followTo", { name: item.name })} — </span>
       <span className="min-w-0">
@@ -633,7 +661,8 @@ function DestinationsSection({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <h2 className="text-[13px] font-medium uppercase tracking-[.08em]">
+        {/* LA question — la promesse de la surface, jamais secondaire. */}
+        <h2 className="text-[14px] font-semibold uppercase tracking-[.07em]">
           {t("money.nextQuestion")}
         </h2>
         {searchable ? (
@@ -649,7 +678,7 @@ function DestinationsSection({
               n: formatInt(children.total, locale),
               what: childrenLabel.toLocaleLowerCase(locale),
             })}
-            className="w-[240px] border-b border-border bg-transparent py-1 text-[13px] outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-accent"
+            className="w-[230px] border-b border-border bg-transparent py-1 text-[13px] outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-accent"
           />
         ) : null}
       </div>
@@ -1088,11 +1117,14 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
 function LoadingBlock() {
   return (
     <div className="flex md:h-[calc(100dvh-4rem)]">
-      <div className="hidden w-[224px] shrink-0 border-r border-border-soft px-5 py-6 md:block lg:w-[248px]">
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="mt-6 h-4 w-full" />
+      <div className="hidden w-[9%] shrink-0 border-r border-border-soft bg-surface/70 px-3 py-5 md:block">
+        <Skeleton className="h-3 w-10" />
+        <Skeleton className="mt-3 h-3 w-full" />
+      </div>
+      <div className="hidden w-[18%] shrink-0 border-r border-border-soft bg-surface/35 px-4 py-5 md:block">
+        <Skeleton className="h-3 w-14" />
         <Skeleton className="mt-3 h-4 w-5/6" />
-        <Skeleton className="mt-3 h-4 w-4/6" />
+        <Skeleton className="mt-2 h-3 w-2/3" />
       </div>
       <div className="flex-1 px-6 py-8 md:px-10">
         <Skeleton className="h-4 w-40" />
@@ -1145,8 +1177,15 @@ function callNotAvailableNote(t: (k: string) => string, down: ChainNavEntry[]): 
   );
 }
 
-/** La part du nœud dans son parent, libellée par famille de mesure. */
-function ShareLine({ share, measureKey }: { share?: ChainNodeShare | null; measureKey: string | null | undefined }) {
+/** La part du nœud dans son parent, libellée par famille de mesure —
+ *  juste sous le chiffre : c'est la deuxième lecture de l'écran. */
+function ShareLine({
+  share,
+  measureKey,
+}: {
+  share?: ChainNodeShare | null;
+  measureKey: string | null | undefined;
+}) {
   const { t, locale } = useMoneyCopy();
   const family = shareFamily(measureKey);
   if (share == null || share.ratio == null || !family) return null;
@@ -1161,7 +1200,7 @@ function ShareLine({ share, measureKey }: { share?: ChainNodeShare | null; measu
 }
 
 /* ------------------------------------------------------------------ */
-/* Racine — trois portes typographiques                                */
+/* Racine — la surface de départ, sans ancêtre                         */
 
 function FundersRoot() {
   const { t, locale, money, measureShort } = useMoneyCopy();
@@ -1171,33 +1210,33 @@ function FundersRoot() {
     return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
   const { funders, cross_funder_total } = query.data;
   return (
-    <Workspace>
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-10 md:px-12 md:py-14">
-        <div className="mx-auto w-full max-w-[680px]">
+    <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-10 md:px-16 md:py-14">
+        <div className="mx-auto w-full max-w-[860px]">
           <Eyebrow>{t("money.eyebrow")}</Eyebrow>
-          <h1 className="display-tight mt-1.5 text-[clamp(26px,3.2vw,36px)] font-semibold">
+          <h1 className="display-tight mt-2 text-[clamp(30px,4vw,44px)] font-semibold">
             {t("money.title")}
           </h1>
           <p className="mt-4 max-w-[58ch] text-[14.5px] leading-relaxed text-muted-foreground">
             {t("money.lead")}
           </p>
-          <p className="mt-8 text-[13px] font-medium uppercase tracking-[.08em]">
+          <p className="mt-10 text-[13px] font-semibold uppercase tracking-[.08em]">
             {t("money.rootGesture")}
           </p>
-          {/* Trois univers NON comparables : trois lignes, chacune dans
+          {/* Trois univers NON comparables : trois portes, chacune dans
               sa mesure et sa devise — aucun classement, aucun total. */}
-          <div className="mt-3">
+          <div className="mt-2">
             {funders.map((funder) => (
               <Link
                 key={funder.id}
                 to={`/money/funder/${funder.id}`}
-                className="group flex items-baseline justify-between gap-6 border-b border-border-soft py-4"
+                className="group relative flex items-center justify-between gap-8 border-b border-border-soft py-7"
               >
                 <span className="min-w-0">
-                  <span className="block text-[17px] font-medium leading-snug transition-colors group-hover:text-accent">
+                  <span className="block text-[21px] font-medium leading-snug transition-colors group-hover:text-accent">
                     {funder.label}
                   </span>
-                  <span className="mt-0.5 block text-[12px] text-muted-foreground">
+                  <span className="mt-1 block text-[12.5px] text-muted-foreground">
                     {measureShort(funder.aggregate.measure.key)}
                     {" · "}
                     <span className="tnum">
@@ -1208,29 +1247,34 @@ function FundersRoot() {
                     </span>
                   </span>
                 </span>
-                <span className="flex shrink-0 items-baseline gap-3">
-                  <span className="tnum text-[17px] font-semibold">
+                <span className="flex shrink-0 items-center gap-4">
+                  <span className="tnum text-[24px] font-semibold">
                     {money(funder.aggregate.amount, funder.aggregate.measure.currency)}
                   </span>
                   <span
                     aria-hidden="true"
-                    className="text-[14px] text-muted-foreground/50 transition-colors group-hover:text-accent"
+                    className="text-[16px] text-muted-foreground/50 transition-all group-hover:translate-x-0.5 group-hover:text-accent"
                   >
                     ›
                   </span>
                 </span>
+                {/* La hairline mobile du survol : l'accent dit l'action. */}
+                <span
+                  aria-hidden="true"
+                  className="absolute bottom-[-1px] left-0 h-px w-full origin-left scale-x-0 bg-accent transition-transform duration-300 group-hover:scale-x-100"
+                />
               </Link>
             ))}
           </div>
           {!cross_funder_total.available ? (
-            <p className="mt-6 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
+            <p className="mt-7 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
               <b className="font-medium text-foreground/80">{t("money.noTotalTitle")}</b>{" "}
               {t("money.noTotalBody")}
             </p>
           ) : null}
         </div>
       </div>
-    </Workspace>
+    </div>
   );
 }
 
@@ -1265,8 +1309,8 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
   // Pendant le vol d'une navigation, `placeholderData` sert encore le
   // nœud PRÉCÉDENT (l'Outlet reste monté sur les routes-outil) : tout
   // le rendu se type d'après le niveau des DONNÉES servies, jamais
-  // d'après l'URL — l'ancien focus reste cohérent jusqu'à l'arrivée
-  // du nouveau, qui prend le centre avec sa micro-transition.
+  // d'après l'URL — l'ancienne disposition reste cohérente jusqu'à
+  // l'arrivée du nouveau focus, qui déclenche le morphing.
   const shown = data.node.level as "funder" | "programme" | "call";
   const label =
     shown === "funder"
@@ -1274,9 +1318,11 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
       : shown === "call"
         ? (data as ChainCallNode).node.code
         : ((data as ChainProgrammeNode).node.label ?? (data as ChainProgrammeNode).node.code);
-  const trace = traceFromSpine(data.ancestors, {
+  const path = pathFromSpine(data.ancestors, {
     level: shown,
+    id: data.node.id,
     label,
+    code: "code" in data.node ? data.node.code : undefined,
     amount: data.aggregate?.amount,
     currency: data.aggregate?.measure.currency,
     share: data.share_of_parent?.comparability === "ok" ? data.share_of_parent.ratio : null,
@@ -1290,12 +1336,24 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
         ? (data as ChainProgrammeNode).node.funder
         : (data as ChainCallNode).node.funder;
   const coverage = data.aggregate?.coverage;
+  const coverageText =
+    data.aggregate && coverage
+      ? `${
+          coverage.unknown_amount > 0
+            ? t("money.coverageLine", {
+                count: coverage.unknown_amount,
+                projects: formatInt(data.aggregate.projects, locale),
+                unknown: formatInt(coverage.unknown_amount, locale),
+              })
+            : t("money.coverageFull", { projects: formatInt(data.aggregate.projects, locale) })
+        } ${t("money.sumObserved")}`
+      : "";
 
   return (
-    <Workspace trace={trace}>
+    <MorphWorkspace path={path}>
       <div
         key={`${shown}:${data.node.id}:${programmeContext ?? ""}`}
-        className="focus-in flex min-h-0 flex-1 flex-col px-6 pb-4 pt-6 md:px-10"
+        className="focus-in flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-9"
       >
         <header className="shrink-0">
           <Eyebrow>
@@ -1309,8 +1367,8 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           </Eyebrow>
           <h1
             className={cn(
-              "display-tight mt-1 text-[clamp(22px,2.4vw,30px)] font-semibold",
-              shown === "call" ? "font-mono text-[clamp(17px,1.8vw,22px)]" : undefined,
+              "display-tight mt-1 text-[clamp(21px,2.2vw,28px)] font-semibold",
+              shown === "call" ? "font-mono text-[clamp(16px,1.7vw,21px)]" : undefined,
             )}
           >
             {label}
@@ -1322,7 +1380,8 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
               money(data.aggregate.amount, data.aggregate.measure.currency)
             )}
           </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
+          <ShareLine share={data.share_of_parent} measureKey={data.aggregate?.measure.key} />
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
             <span>{measureShort(data.aggregate?.measure.key)}</span>
             <NatureMark provenance={data.aggregate?.measure.provenance} />
             <MethodologyPanel
@@ -1331,6 +1390,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
                   label: t("money.methodology.measure"),
                   value: measureLabel(data.aggregate?.measure.key),
                 },
+                { label: t("money.methodology.coverage"), value: coverageText },
                 ...(shown === "call"
                   ? [
                       {
@@ -1338,6 +1398,16 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
                         value: t("money.callReconstructed"),
                       },
                       { label: t("money.methodology.notBudget"), value: t("money.notEnvelope") },
+                      ...(transversal && call
+                        ? [
+                            {
+                              label: t("money.methodology.comparability"),
+                              value: t("money.callTransversal", {
+                                count: call.programmes.length,
+                              }),
+                            },
+                          ]
+                        : []),
                     ]
                   : [
                       {
@@ -1350,21 +1420,6 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
               ]}
             />
           </div>
-          <ShareLine share={data.share_of_parent} measureKey={data.aggregate?.measure.key} />
-          {data.aggregate && coverage ? (
-            <p className="mt-2 max-w-[68ch] text-[12px] leading-snug text-muted-foreground">
-              {coverage.unknown_amount > 0
-                ? t("money.coverageLine", {
-                    count: coverage.unknown_amount,
-                    projects: formatInt(data.aggregate.projects, locale),
-                    unknown: formatInt(coverage.unknown_amount, locale),
-                  })
-                : t("money.coverageFull", {
-                    projects: formatInt(data.aggregate.projects, locale),
-                  })}{" "}
-              {t("money.sumObserved")}
-            </p>
-          ) : null}
           {callNotAvailableNote(t, data.navigation.down)}
           {call?.context ? (
             <p className="mt-2 max-w-[62ch] text-[12px] leading-snug text-muted-foreground">
@@ -1376,8 +1431,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           ) : null}
           {transversal && call ? (
             <p className="mt-2 max-w-[68ch] text-[12px] leading-snug text-muted-foreground">
-              {t("money.callTransversal", { count: call.programmes.length })}{" "}
-              {t("money.callProgrammesServed")}{" "}
+              {t("money.transversalShort")} {t("money.callProgrammesServed")}{" "}
               {call.programmes.map((programme, index) => (
                 <span key={programme.id}>
                   {index > 0 ? " · " : ""}
@@ -1393,7 +1447,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
             </p>
           ) : null}
         </header>
-        <div className="mt-7 flex min-h-0 flex-1 flex-col">
+        <div className="mt-6 flex min-h-0 flex-1 flex-col">
           <DestinationsSection
             data={data}
             parentLabel={label}
@@ -1404,12 +1458,12 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           />
         </div>
       </div>
-    </Workspace>
+    </MorphWorkspace>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Focus projet : la fiche analytique compacte                         */
+/* Focus projet : le focus terminal analytique                         */
 
 function ProjectFocus({ id }: { id: string }) {
   const { t, locale, money, measureLabel, measureShort, natureLabel } = useMoneyCopy();
@@ -1421,8 +1475,9 @@ function ProjectFocus({ id }: { id: string }) {
   if (query.isError || !query.data)
     return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
   const data = query.data;
-  const trace = traceFromSpine(data.ancestors, {
+  const path = pathFromSpine(data.ancestors, {
     level: "project",
+    id: data.node.id,
     label: data.node.label,
     amount: data.measure.amount,
     currency: data.measure.currency,
@@ -1439,10 +1494,10 @@ function ProjectFocus({ id }: { id: string }) {
   const attribution = data.node.programme?.attribution;
 
   return (
-    <Workspace trace={trace}>
+    <MorphWorkspace path={path}>
       <div
         key={`project:${data.node.id}`}
-        className="focus-in min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-6 md:px-10"
+        className="focus-in h-full min-h-0 overflow-y-auto px-6 pb-10 pt-6 md:px-9"
       >
         <div className="max-w-[720px]">
           <Eyebrow>
@@ -1465,7 +1520,8 @@ function ProjectFocus({ id }: { id: string }) {
               money(data.measure.amount, data.measure.currency)
             )}
           </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
+          <ShareLine share={data.share_of_parent} measureKey={data.measure.key} />
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
             <span>{measureShort(data.measure.key)}</span>
             <NatureMark provenance={data.measure.provenance} />
             <MethodologyPanel
@@ -1496,7 +1552,6 @@ function ProjectFocus({ id }: { id: string }) {
               ]}
             />
           </div>
-          <ShareLine share={data.share_of_parent} measureKey={data.measure.key} />
           {callNotAvailableNote(t, data.navigation.down)}
           {data.total_cost ? (
             <p className="mt-3 text-[12.5px] text-muted-foreground">
@@ -1529,7 +1584,7 @@ function ProjectFocus({ id }: { id: string }) {
           />
         </div>
       </div>
-    </Workspace>
+    </MorphWorkspace>
   );
 }
 
@@ -1537,7 +1592,8 @@ function ProjectFocus({ id }: { id: string }) {
 
 /** Les relations de financement d'une entité transverse : une ligne
  *  par financeur, chacune dans sa mesure et sa devise — plusieurs
- *  chaînes convergent ici, aucun total unique. */
+ *  chaînes convergent ici, aucun morphing descendant forcé, aucun
+ *  total unique. Chaque financeur ouvre sa propre branche. */
 function FunderRelations({ blocks }: { blocks: ChainFunderBlock[] }) {
   const { t, locale, money, measureShort } = useMoneyCopy();
   return (
@@ -1547,17 +1603,15 @@ function FunderRelations({ blocks }: { blocks: ChainFunderBlock[] }) {
       </h2>
       <div className="mt-2 max-w-[620px]">
         {blocks.map((block) => (
-          <div
+          <Link
             key={block.funder}
-            className="flex items-baseline justify-between gap-6 border-b border-border-soft py-3.5"
+            to={`/money/funder/${block.funder}`}
+            className="group flex items-baseline justify-between gap-6 border-b border-border-soft py-3.5"
           >
             <span className="min-w-0">
-              <Link
-                to={`/money/funder/${block.funder}`}
-                className="text-[14.5px] font-medium leading-snug transition-colors hover:text-accent"
-              >
+              <span className="block text-[14.5px] font-medium leading-snug transition-colors group-hover:text-accent">
                 {t(`money.funderNames.${block.funder}`)}
-              </Link>
+              </span>
               <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
                 {block.amount == null ? t("money.unknownShare") : measureShort(block.measure.key)}
               </span>
@@ -1578,16 +1632,24 @@ function FunderRelations({ blocks }: { blocks: ChainFunderBlock[] }) {
                   : ""}
               </span>
             </span>
-            <span className="tnum shrink-0 text-[15px] font-semibold">
-              {block.amount == null ? (
-                <span className="text-muted-foreground" title={t("money.unknownShare")}>
-                  {t("money.unknown")}
-                </span>
-              ) : (
-                money(block.amount, block.measure.currency)
-              )}
+            <span className="flex shrink-0 items-baseline gap-3">
+              <span className="tnum text-[15px] font-semibold">
+                {block.amount == null ? (
+                  <span className="text-muted-foreground" title={t("money.unknownShare")}>
+                    {t("money.unknown")}
+                  </span>
+                ) : (
+                  money(block.amount, block.measure.currency)
+                )}
+              </span>
+              <span
+                aria-hidden="true"
+                className="text-[13px] text-muted-foreground/50 transition-colors group-hover:text-accent"
+              >
+                ›
+              </span>
             </span>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
@@ -1607,16 +1669,19 @@ function NoTotalNote() {
 function TransverseShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   return (
-    <Workspace>
+    <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-8 md:px-12">
         <p className="text-[12.5px]">
-          <Link to="/money" className="text-muted-foreground transition-colors hover:text-foreground">
+          <Link
+            to="/money"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
             ↩ {t("money.backToRoot")}
           </Link>
         </p>
         <div className="mt-6 max-w-[760px]">{children}</div>
       </div>
-    </Workspace>
+    </div>
   );
 }
 
