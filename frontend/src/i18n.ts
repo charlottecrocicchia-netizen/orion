@@ -1367,7 +1367,7 @@ const resources = {
       },
       money: {
         eyebrow: "Money trail",
-        rail: { title: "Trail" },
+        rail: { title: "Trace" },
         measureShort: {
           ec_max_contribution: "EU maximum contribution",
           ec_max_contribution_sum: "EU maximum contribution (observed sum)",
@@ -1383,22 +1383,22 @@ const resources = {
           nsf_obligation_fy: "Annual obligations (R5B window)",
           total_cost: "Total project cost",
         },
-        explore: "Explore",
         trace: {
           ofPrevious: "{{pct}} of {{parent}}",
           ofPreviousSr: "of {{parent}}",
-          convention: "› % : share of the previous step",
+          convention: "└ % : share of the level above",
         },
-        column: {
-          shareRef: "% : share of {{parent}}",
+        search: {
+          placeholder: "Search among {{n}} {{what}}…",
+          noMatch: "Nothing here matches.",
         },
+        orgRelations: "Funding relations",
         shareLine: {
           cordis: "{{pct}} of the observed EU contributions of {{parent}}",
           nih: "{{pct}} of the observed NIH annual obligations of {{parent}}",
           nsf: "{{pct}} of the observed NSF obligations of {{parent}}",
         },
-        nextQuestion: "Where do these {{amount}} go next?",
-        nextQuestionNoAmount: "Where does this money go next?",
+        nextQuestion: "Where does this money go next?",
         topOf: "{{top}} main destinations out of {{n}}",
         concentration: "the top {{top}} account for {{pct}} of the observed amount",
         followTo: "Follow the funding to {{name}}",
@@ -2996,7 +2996,7 @@ const resources = {
       },
       money: {
         eyebrow: "Chaîne de l'argent",
-        rail: { title: "Parcours" },
+        rail: { title: "Trace" },
         measureShort: {
           ec_max_contribution: "Contribution maximale UE",
           ec_max_contribution_sum: "Contribution maximale UE (somme observée)",
@@ -3012,22 +3012,22 @@ const resources = {
           nsf_obligation_fy: "Obligations annuelles (fenêtre R5B)",
           total_cost: "Coût total du projet",
         },
-        explore: "Explorer",
         trace: {
           ofPrevious: "{{pct}} de {{parent}}",
           ofPreviousSr: "de {{parent}}",
-          convention: "› % : part de l'étape précédente",
+          convention: "└ % : part du niveau au-dessus",
         },
-        column: {
-          shareRef: "% : part de {{parent}}",
+        search: {
+          placeholder: "Rechercher parmi {{n}} {{what}}…",
+          noMatch: "Rien ne correspond ici.",
         },
+        orgRelations: "Relations de financement",
         shareLine: {
           cordis: "{{pct}} des contributions UE observées de {{parent}}",
           nih: "{{pct}} des obligations annuelles NIH observées de {{parent}}",
           nsf: "{{pct}} des obligations NSF observées de {{parent}}",
         },
-        nextQuestion: "Où vont ensuite ces {{amount}} ?",
-        nextQuestionNoAmount: "Où va ensuite cet argent ?",
+        nextQuestion: "Où va ensuite cet argent ?",
         topOf: "{{top}} principales destinations sur {{n}}",
         concentration: "les {{top}} premières représentent {{pct}} du montant observé",
         followTo: "Suivre le financement vers {{name}}",

@@ -1,44 +1,49 @@
-/** B2.3 — « Où est passé cet argent ? » (docs/conception-b-chaine-argent-public.md § 15).
+/** B2.4 — « Où est passé cet argent ? » (docs/conception-b-chaine-argent-public.md § 15).
  *
- *  Navigateur de trace interactif : un explorateur hiérarchique en
- *  colonnes (Column View / Path Exploration). Chaque colonne est un
- *  niveau RÉEL de la chaîne ; cliquer une destination ouvre l'étage
- *  suivant sans perdre le contexte ; changer de branche à n'importe
- *  quel niveau ne remplace que les colonnes descendantes. La trace
- *  compacte au-dessus est la mémoire du chemin (« où suis-je ? ») ;
- *  les colonnes répondent « où puis-je aller ? ». Elle commence au
- *  financeur : « Chaîne de l'argent » est le nom de la fonctionnalité,
- *  pas un nœud de financement.
+ *  Focus Trace Workspace : une surface de travail plein écran sous la
+ *  navbar (pas de footer éditorial ici, pas de défilement du document
+ *  dans le cas nominal). Deux régions permanentes seulement :
  *
- *  Deep-link ≡ descente : la réponse du nœud courant porte le fil
- *  enrichi (montants, parts, comparabilité — moteur B1/B2.2) et les
- *  nœuds ancêtres, aux identifiants connus d'un coup, se chargent EN
- *  PARALLÈLE (profondeur bornée par la chaîne, jamais un N+1) pour
- *  reconstruire les colonnes. Si la sélection tombe hors de la page
- *  servie d'une liste ancêtre, elle est épinglée depuis le fil enrichi
- *  — jamais de chargement massif des fratries.
+ *    à gauche, la TRACE — comment suis-je arrivé ici ? Un arbre
+ *    typographique compact (indentation réelle, nom, montant, relation
+ *    « └ % » au niveau au-dessus), chaque ancêtre cliquable, aucun
+ *    faux nœud « Chaîne de l'argent », aucune boîte ;
+ *
+ *    au centre, le FOCUS — où suis-je, et où cet argent peut-il aller
+ *    ensuite ? Le niveau courant reçoit tout l'espace : chiffre, part
+ *    du parent, nature courte, UNE question, puis les destinations en
+ *    lignes éditoriales (hairlines, jamais des cartes).
+ *
+ *  L'inspecteur méthodologique glisse depuis la droite à la demande —
+ *  troisième région, temporaire. Cliquer une destination déplace
+ *  l'attention : l'étape rejoint la trace, le nouveau niveau prend le
+ *  centre (micro-transition 150 ms, tuée par prefers-reduced-motion),
+ *  l'URL change sans rechargement. Cliquer un ancêtre de la trace
+ *  ramène le focus à ce niveau — les descendants quittent la trace.
+ *
+ *  Deep-link ≡ descente : le fil enrichi de la réponse courante
+ *  (montants, parts, comparabilité — moteur B2.2) reconstruit la
+ *  trace entière en UNE requête ; aucun contexte ne dépend de
+ *  l'historique ni du cache.
  *
  *  Invariants inchangés (B0/B1) : le moteur fait foi ; l'i18n pose
  *  ses phrases sur les clés stables ; inconnu ≠ zéro ; un ratio
- *  n'existe que si le moteur le déclare valide (un appel transversal
- *  garde la liaison sans pourcentage) ; NIH bénéficiaire, NSF double
- *  système de mesure, aucun total unique inter-financeurs ; les
- *  connecteurs entre colonnes ne codent jamais les montants. URL =
- *  vue reproductible, sélection comprise. */
+ *  n'existe que si le moteur le déclare valide (appel transversal :
+ *  liaison sans pourcentage) ; NIH bénéficiaire, NSF double système
+ *  de mesure, aucun total unique inter-financeurs. URL = vue
+ *  reproductible (niveau, id, dépli, page, filtre local). */
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query";
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
 
-import { Breadcrumb, type BreadcrumbItem } from "@/components/breadcrumb";
 import { ExploreExits } from "@/components/explore-exits";
 import { Pager } from "@/components/pager";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ApiError,
   api,
-  type ChainAnnualObligations,
   type ChainCallNode,
   type ChainCrumb,
   type ChainFunderBlock,
@@ -55,23 +60,17 @@ import { countryFlag, formatCompactMoney, formatInt, formatOrgName } from "@/lib
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 50;
-const TOP_COUNT = 10;
+/** Hauteur approximative d'une ligne de destination (px) — sert au
+ *  nombre adaptatif de destinations visibles. */
+const ROW_PX = 76;
+const DEFAULT_VISIBLE = 8;
+/** Au-delà de ce nombre d'enfants ENTIÈREMENT servis, le focus
+ *  propose un filtre local ; jamais pour trois enfants. */
+const SEARCH_THRESHOLD = 15;
 
 const LEVELS = new Set(["funder", "programme", "call", "project", "organisation", "country"]);
 
 type AggregateNode = ChainFunderNode | ChainProgrammeNode | ChainCallNode;
-
-/** Un nœud de l'épine dorsale (fil enrichi ou nœud courant) : ce qu'il
- *  faut pour l'épingler dans la colonne de son parent. */
-interface SpineRef {
-  level: string;
-  id: number | string;
-  label?: string | null;
-  code?: string;
-  amount?: number | null;
-  /** false quand le moteur refuse le ratio (transversal, inconnu). */
-  shareValid?: boolean;
-}
 
 /* ------------------------------------------------------------------ */
 /* Vocabulaire : clés stables du moteur → copy i18n (jamais la prose  */
@@ -107,10 +106,16 @@ function useMoneyCopy() {
   return { t, locale, money, measureLabel, measureShort, natureLabel };
 }
 
-function usePagePatch(): [number, boolean, (patch: Record<string, string | null>) => void] {
+function usePagePatch(): [
+  number,
+  boolean,
+  string,
+  (patch: Record<string, string | null>) => void,
+] {
   const [params, setParams] = useSearchParams();
   const page = Math.max(1, Number(params.get("page") ?? "1") || 1);
   const expanded = params.get("expanded") === "1" || page > 1;
+  const q = params.get("q") ?? "";
   const patch = (changes: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
     for (const [key, value] of Object.entries(changes)) {
@@ -119,7 +124,7 @@ function usePagePatch(): [number, boolean, (patch: Record<string, string | null>
     }
     setParams(next, { preventScrollReset: true });
   };
-  return [page, expanded, patch];
+  return [page, expanded, q, patch];
 }
 
 function pct(share: number, locale: string): string {
@@ -145,6 +150,47 @@ function childTo(
   return crumbPath(item as Pick<ChainCrumb, "level" | "id">);
 }
 
+function shareFamily(key: string | null | undefined): "cordis" | "nih" | "nsf" | null {
+  if (!key) return null;
+  if (key.startsWith("ec_")) return "cordis";
+  if (key.startsWith("nih_")) return "nih";
+  if (key.startsWith("nsf_")) return "nsf";
+  return null;
+}
+
+/** Le nombre de destinations visibles sans dépli : adapté à la
+ *  hauteur réellement disponible (7 à 10) quand le workspace est
+ *  contraint en hauteur (≥ md) ; valeur fixe en flux naturel étroit. */
+function useVisibleCount(listRef: RefObject<HTMLDivElement | null>): number {
+  const [count, setCount] = useState(DEFAULT_VISIBLE);
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    // En flux naturel (< md), la hauteur de la liste est celle de son
+    // CONTENU : la mesurer nourrirait le compte qu'elle mesure. La
+    // valeur fixe s'applique, et la bascule de média remet d'équerre.
+    const mql = window.matchMedia("(min-width: 768px)");
+    const apply = (height: number) => {
+      if (!mql.matches) {
+        setCount(DEFAULT_VISIBLE);
+        return;
+      }
+      if (height > 0) setCount(Math.max(7, Math.min(10, Math.floor(height / ROW_PX))));
+    };
+    const observer = new ResizeObserver((entries) => {
+      apply(entries[0]?.contentRect.height ?? 0);
+    });
+    observer.observe(el);
+    const onChange = () => apply(el.clientHeight);
+    mql.addEventListener?.("change", onChange);
+    return () => {
+      observer.disconnect();
+      mql.removeEventListener?.("change", onChange);
+    };
+  }, [listRef]);
+  return count;
+}
+
 /* ------------------------------------------------------------------ */
 /* Nature — un signal discret, jamais caché                            */
 
@@ -162,8 +208,7 @@ function NatureMark({ provenance }: { provenance: ChainProvenance | null | undef
 }
 
 /* ------------------------------------------------------------------ */
-/* Méthodologie : panneau latéral ouvert à la demande — l'inspecteur   */
-/* renseigne sans jamais interrompre la navigation.                    */
+/* L'inspecteur méthodologique — le détail sans quitter le contexte    */
 
 function MethodologyPanel({
   rows,
@@ -262,7 +307,7 @@ function MethodologyPanel({
 }
 
 /* ------------------------------------------------------------------ */
-/* La trace compacte — la mémoire du chemin (« où suis-je ? »)         */
+/* La trace — comment suis-je arrivé ici ?                             */
 
 interface TraceNode {
   level: string;
@@ -288,20 +333,26 @@ function traceFromSpine(ancestors: ChainCrumb[], current: TraceNode): TraceNode[
   ];
 }
 
-function TraceStrip({ nodes }: { nodes: TraceNode[] }) {
+/** Le panneau de trace (≥ md) : essentiellement typographique —
+ *  indentation réelle, nom, montant, relation au parent. Aucune boîte
+ *  autour d'une étape ; le niveau courant porte un filet d'accent. */
+function TracePanel({ nodes }: { nodes: TraceNode[] }) {
   const { t, locale, money } = useMoneyCopy();
   const hasShare = nodes.some((node) => node.share != null);
   return (
     <nav
       aria-label={t("money.rail.title")}
-      className="mt-5 flex items-center gap-2.5 overflow-x-auto pb-1.5"
+      className="hidden w-[224px] shrink-0 overflow-y-auto border-r border-border-soft px-5 py-6 md:block lg:w-[248px]"
     >
-      {nodes.map((node, index) => (
-        <span key={`${node.level}-${index}`} className="flex shrink-0 items-center gap-2.5">
-          {index > 0 ? (
-            <span className="tnum text-[11.5px] text-muted-foreground">
-              <span
-                aria-hidden="true"
+      <p className="text-[11px] font-medium uppercase tracking-[.12em] text-muted-foreground">
+        {t("money.rail.title")}
+      </p>
+      <ol className="mt-4">
+        {nodes.map((node, index) => (
+          <li key={`${node.level}-${index}`} style={{ paddingLeft: index * 10 }}>
+            {index > 0 ? (
+              <p
+                className="tnum py-1 text-[11px] leading-none text-muted-foreground"
                 title={
                   node.share != null
                     ? t("money.trace.ofPrevious", {
@@ -311,61 +362,131 @@ function TraceStrip({ nodes }: { nodes: TraceNode[] }) {
                     : undefined
                 }
               >
-                ›{node.share != null ? ` ${pct(node.share * 100, locale)}` : ""}
-              </span>
-              {node.share != null ? (
-                <span className="sr-only">
-                  {" "}
-                  {pct(node.share * 100, locale)}{" "}
-                  {t("money.trace.ofPreviousSr", { parent: nodes[index - 1]?.label ?? "" })}
+                <span aria-hidden="true">└ </span>
+                {node.share != null ? (
+                  <>
+                    {pct(node.share * 100, locale)}
+                    <span className="sr-only">
+                      {" "}
+                      {t("money.trace.ofPreviousSr", { parent: nodes[index - 1]?.label ?? "" })}
+                    </span>
+                  </>
+                ) : null}
+              </p>
+            ) : null}
+            {node.to && !node.active ? (
+              <Link
+                to={node.to}
+                className="group flex items-baseline justify-between gap-2 py-0.5 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span className="min-w-0 text-[12.5px] leading-snug line-clamp-2">
+                  {node.label}
                 </span>
-              ) : null}
+                {node.amount != null ? (
+                  <span className="tnum shrink-0 text-[11px]">
+                    {money(node.amount, node.currency)}
+                  </span>
+                ) : null}
+              </Link>
+            ) : (
+              <span
+                aria-current="true"
+                className="-ml-2 flex items-baseline justify-between gap-2 border-l-2 border-accent py-0.5 pl-1.5"
+              >
+                <span className="min-w-0 text-[12.5px] font-medium leading-snug text-foreground line-clamp-2">
+                  {node.label}
+                </span>
+                {node.amount != null ? (
+                  <span className="tnum shrink-0 text-[11px] text-muted-foreground">
+                    {money(node.amount, node.currency)}
+                  </span>
+                ) : null}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+      {hasShare ? (
+        <p className="mt-4 text-[10.5px] leading-snug text-muted-foreground">
+          {t("money.trace.convention")}
+        </p>
+      ) : null}
+      <p className="mt-6">
+        <Link
+          to="/money"
+          className="text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          ↩ {t("money.backToRoot")}
+        </Link>
+      </p>
+    </nav>
+  );
+}
+
+/** La trace compacte (< md) : une ligne « EC › Horizon › EIT » —
+ *  cliquer une étape remonte directement. */
+function TraceLine({ nodes }: { nodes: TraceNode[] }) {
+  const { t } = useMoneyCopy();
+  return (
+    <nav
+      aria-label={t("money.rail.title")}
+      className="flex items-center gap-1.5 overflow-x-auto px-6 pt-4 text-[12.5px] md:hidden"
+    >
+      {/* Le retour à la racine est un geste, pas un nœud de la trace. */}
+      <Link
+        to="/money"
+        aria-label={t("money.backToRoot")}
+        className="shrink-0 text-muted-foreground hover:text-foreground"
+      >
+        <span aria-hidden="true">↩</span>
+      </Link>
+      {nodes.map((node, index) => (
+        <span key={`${node.level}-${index}`} className="flex shrink-0 items-center gap-1.5">
+          {index > 0 ? (
+            <span aria-hidden="true" className="text-muted-foreground/60">
+              ›
             </span>
           ) : null}
           {node.to && !node.active ? (
             <Link
               to={node.to}
-              className="group block rounded-lg border border-border-soft px-3 py-1.5 transition-colors hover:border-accent/50"
+              className="max-w-[16ch] truncate text-muted-foreground hover:text-foreground"
+              title={node.label}
             >
-              <span className="block max-w-[24ch] truncate text-[12.5px] leading-tight transition-colors group-hover:text-accent">
-                {node.label}
-              </span>
-              {node.amount != null ? (
-                <span className="tnum block text-[11.5px] leading-tight text-muted-foreground">
-                  {money(node.amount, node.currency)}
-                </span>
-              ) : null}
+              {node.label}
             </Link>
           ) : (
             <span
               aria-current="true"
-              className="block rounded-lg border border-accent/50 bg-accent-soft px-3 py-1.5"
+              className="max-w-[20ch] truncate font-medium"
+              title={node.label}
             >
-              <span className="block max-w-[24ch] truncate text-[12.5px] font-medium leading-tight">
-                {node.label}
-              </span>
-              {node.amount != null ? (
-                <span className="tnum block text-[11.5px] leading-tight text-muted-foreground">
-                  {money(node.amount, node.currency)}
-                </span>
-              ) : null}
+              {node.label}
             </span>
           )}
         </span>
       ))}
-      {hasShare ? (
-        <span className="shrink-0 text-[10.5px] text-muted-foreground">
-          {t("money.trace.convention")}
-        </span>
-      ) : null}
     </nav>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Le navigateur en colonnes — « où puis-je aller maintenant ? »       */
+/* La coquille du workspace : trace + focus, la fenêtre suffit         */
 
-interface ColumnItem {
+function Workspace({ trace, children }: { trace?: TraceNode[]; children: ReactNode }) {
+  return (
+    <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:flex-row md:overflow-hidden">
+      {trace ? <TracePanel nodes={trace} /> : null}
+      {trace ? <TraceLine nodes={trace} /> : null}
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</section>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Les destinations : des lignes éditoriales, pas des cartes           */
+
+interface DestinationItem {
   level: string;
   id: number | string;
   to: string;
@@ -373,546 +494,260 @@ interface ColumnItem {
   code?: string;
   count?: number | null;
   amount: number | null;
-  /** true quand un ratio contre le parent serait invalide (crumb
-   *  transversal épinglé) — jamais un pourcentage faux. */
-  noShare?: boolean;
 }
 
-interface ColumnSpec {
-  key: string;
-  /** Le référent des pourcentages : le parent de la colonne. */
-  parentLabel: string;
-  parentAmount: number | null;
-  currency: string | null | undefined;
-  childrenLevelLabel: string;
-  items: ColumnItem[];
-  total: number;
-  selectedKey?: string;
-  pending?: boolean;
-  /** La dernière colonne (niveau courant) : dépli et pages dans l'URL. */
-  urlDriven?: boolean;
-  coverage?: { with_amount: number; unknown_amount: number };
-  question?: string | null;
-  footNotes?: ReactNode;
-}
-
-function itemKey(level: string, id: number | string): string {
-  return `${level}:${id}`;
-}
-
-function ColumnRow({
+function DestinationRow({
   item,
   parentLabel,
   parentAmount,
   currency,
-  selected,
 }: {
-  item: ColumnItem;
+  item: DestinationItem;
   parentLabel: string;
   parentAmount: number | null;
   currency: string | null | undefined;
-  selected: boolean;
 }) {
   const { t, locale, money } = useMoneyCopy();
   const share =
-    !item.noShare && parentAmount != null && parentAmount > 0 && item.amount != null
+    parentAmount != null && parentAmount > 0 && item.amount != null
       ? (item.amount / parentAmount) * 100
       : null;
   return (
     <Link
       to={item.to}
-      aria-current={selected ? "true" : undefined}
-      className={cn(
-        "group block border-l-2 py-2 pl-3 pr-2 transition-colors",
-        selected
-          ? "border-accent bg-accent-soft/60"
-          : "border-transparent hover:border-border hover:bg-surface/60",
-      )}
+      className="group flex items-start justify-between gap-6 border-b border-border-soft py-3.5 transition-colors hover:bg-surface/50"
     >
       <span className="sr-only">{t("money.followTo", { name: item.name })} — </span>
-      <span className="flex items-start justify-between gap-2">
-        <span className="min-w-0">
-          <span
-            className={cn(
-              "block text-[13px] leading-snug transition-colors line-clamp-2",
-              selected ? "font-medium" : "group-hover:text-accent",
-            )}
-          >
-            {item.name}
-          </span>
+      <span className="min-w-0">
+        <span className="block text-[14px] font-medium leading-snug transition-colors group-hover:text-accent line-clamp-2">
+          {item.name}
+        </span>
+        <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
           {item.code && item.code !== item.name ? (
-            <span className="block truncate font-mono text-[10.5px] text-muted-foreground">
-              {item.code}
+            <span className="font-mono">{item.code}</span>
+          ) : null}
+          {item.code && item.code !== item.name && item.count != null ? " · " : null}
+          {item.count != null ? (
+            <span className="tnum">
+              {t("money.orgProjects", { count: item.count, n: formatInt(item.count, locale) })}
+            </span>
+          ) : null}
+        </span>
+      </span>
+      <span className="flex shrink-0 items-start gap-3 text-right">
+        <span>
+          <span className="tnum block text-[14px] font-medium leading-snug">
+            {item.amount == null ? (
+              <span className="text-muted-foreground" title={t("money.unknownAmount")}>
+                —
+              </span>
+            ) : (
+              money(item.amount, currency)
+            )}
+          </span>
+          {share != null ? (
+            <span
+              className="tnum mt-0.5 block text-[11.5px] text-muted-foreground"
+              title={t("money.shareOf", { pct: pct(share, locale), parent: parentLabel })}
+            >
+              {pct(share, locale)}
+              <span className="sr-only"> {t("money.ofParent", { parent: parentLabel })}</span>
             </span>
           ) : null}
         </span>
         <span
           aria-hidden="true"
-          className={cn(
-            "mt-0.5 shrink-0 text-[13px]",
-            selected ? "text-accent" : "text-muted-foreground/50 group-hover:text-accent",
-          )}
+          className="mt-0.5 text-[13px] text-muted-foreground/50 transition-colors group-hover:text-accent"
         >
           ›
         </span>
-      </span>
-      <span className="tnum mt-1 block text-[12px] leading-snug text-muted-foreground">
-        <span className="font-medium text-foreground/80">
-          {item.amount == null ? (
-            <span title={t("money.unknownAmount")}>—</span>
-          ) : (
-            money(item.amount, currency)
-          )}
-        </span>
-        {share != null ? (
-          <span title={t("money.shareOf", { pct: pct(share, locale), parent: parentLabel })}>
-            {" "}
-            · {pct(share, locale)}
-            <span className="sr-only"> {t("money.ofParent", { parent: parentLabel })}</span>
-          </span>
-        ) : null}
-        {item.count != null ? (
-          <span>
-            {" "}
-            · {t("money.orgProjects", { count: item.count, n: formatInt(item.count, locale) })}
-          </span>
-        ) : null}
       </span>
     </Link>
   );
 }
 
-function NavColumn({
-  column,
-  page,
-  expanded,
-  patch,
-  standalone,
-}: {
-  column: ColumnSpec;
-  page: number;
-  expanded: boolean;
-  patch: (changes: Record<string, string | null>) => void;
-  /** Rendu séquentiel (écrans étroits) : pleine largeur, sans bord. */
-  standalone?: boolean;
-}) {
-  const { t, locale } = useMoneyCopy();
-  const [localExpanded, setLocalExpanded] = useState(false);
-  const isExpanded = column.urlDriven ? expanded : localExpanded;
-  const collapsed = !isExpanded && column.items.length > TOP_COUNT;
-  const top = collapsed ? column.items.slice(0, TOP_COUNT) : column.items;
-  // La sélection du chemin reste TOUJOURS visible : si elle est classée
-  // au-delà du top replié, elle s'ajoute sous lui plutôt que de
-  // disparaître derrière le dépli.
-  const selectedItem = column.selectedKey
-    ? column.items.find((i) => itemKey(i.level, i.id) === column.selectedKey)
-    : undefined;
-  const visible =
-    collapsed && selectedItem && !top.includes(selectedItem) ? [...top, selectedItem] : top;
-  const hasMore = Boolean(column.urlDriven) && isExpanded && page * PAGE_SIZE < column.total;
-  // Concentration : dérivé d'affichage sur le top replié seul,
-  // uniquement quand toutes les valeurs comparées portent la même
-  // mesure et que le parent est connu.
-  const topSum = top.reduce((sum, row) => (row.amount != null ? sum + row.amount : sum), 0);
-  const concentration =
-    collapsed && column.parentAmount != null && column.parentAmount > 0 && topSum > 0
-      ? (topSum / column.parentAmount) * 100
-      : null;
-  const expand = () => (column.urlDriven ? patch({ expanded: "1" }) : setLocalExpanded(true));
-  const collapse = () =>
-    column.urlDriven ? patch({ expanded: null, page: null }) : setLocalExpanded(false);
-
-  return (
-    <section
-      aria-label={`${column.childrenLevelLabel} — ${column.parentLabel}`}
-      className={cn(
-        "news-in shrink-0",
-        standalone
-          ? "w-full"
-          : cn("border-r border-border-soft pr-4", column.urlDriven ? "w-[340px]" : "w-[300px]"),
-      )}
-    >
-      <header className="pb-2">
-        {column.question ? (
-          <p className="text-[13.5px] font-medium leading-snug">{column.question}</p>
-        ) : (
-          <p className="truncate text-[13.5px] font-medium leading-snug" title={column.parentLabel}>
-            {column.parentLabel}
-          </p>
-        )}
-        {!column.pending ? (
-          <p className="mt-0.5 text-[11px] uppercase tracking-[.07em] text-muted-foreground">
-            {collapsed
-              ? t("money.topOf", { top: TOP_COUNT, n: formatInt(column.total, locale) })
-              : `${column.childrenLevelLabel} · ${formatInt(column.total, locale)}`}
-          </p>
-        ) : null}
-        {concentration != null ? (
-          <p className="mt-0.5 text-[10.5px] text-muted-foreground">
-            {t("money.concentration", {
-              top: Math.min(TOP_COUNT, top.length),
-              pct: pct(concentration, locale),
-            })}
-          </p>
-        ) : null}
-        {column.parentAmount != null && column.items.length > 0 ? (
-          <p className="mt-0.5 text-[10.5px] text-muted-foreground">
-            {t("money.column.shareRef", { parent: column.parentLabel })}
-          </p>
-        ) : null}
-      </header>
-      {column.pending ? (
-        <div className="space-y-2 pt-1">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      ) : column.items.length === 0 ? (
-        <p className="py-8 text-center text-[13px] text-muted-foreground">
-          {t("money.emptyLevel")}
-        </p>
-      ) : (
-        <div className={standalone ? undefined : "max-h-[60vh] overflow-y-auto overscroll-contain"}>
-          {visible.map((item) => (
-            <ColumnRow
-              key={itemKey(item.level, item.id)}
-              item={item}
-              parentLabel={column.parentLabel}
-              parentAmount={column.parentAmount}
-              currency={column.currency}
-              selected={column.selectedKey === itemKey(item.level, item.id)}
-            />
-          ))}
-          {collapsed ? (
-            <button
-              type="button"
-              onClick={expand}
-              className="mt-2 w-full rounded-lg border px-3 py-1.5 text-[12.5px] transition-colors hover:border-accent hover:text-accent"
-            >
-              {t("money.showMore", {
-                count: column.total - TOP_COUNT,
-                n: formatInt(column.total - TOP_COUNT, locale),
-              })}
-            </button>
-          ) : null}
-          {isExpanded && column.total > TOP_COUNT && (!column.urlDriven || page === 1) ? (
-            <button
-              type="button"
-              onClick={collapse}
-              className="mt-2 w-full rounded-lg border px-3 py-1.5 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t("money.showLess", { n: TOP_COUNT })}
-            </button>
-          ) : null}
-          {column.urlDriven ? <Pager page={page} hasMore={hasMore} update={patch} /> : null}
-        </div>
-      )}
-      {column.coverage && column.coverage.unknown_amount > 0 ? (
-        <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-          {t("money.listUnknown", {
-            count: column.coverage.unknown_amount,
-            n: formatInt(column.coverage.unknown_amount, locale),
-          })}
-        </p>
-      ) : null}
-      {column.footNotes}
-    </section>
-  );
+function normalize(value: string): string {
+  return value
+    .toLocaleLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
-/** Construit la colonne d'un nœud agrégé : ses enfants, avec la
- *  sélection courante. Si la sélection tombe hors de la page servie,
- *  elle est épinglée depuis le fil enrichi — la trace reste complète
- *  sans jamais précharger toutes les fratries. */
-function columnFromNode(
-  t: (key: string, options?: Record<string, unknown>) => string,
-  moneyFmt: (v: number | null | undefined, c: string | null | undefined) => string,
-  crumb: SpineRef & { label: string },
-  node: AggregateNode | undefined,
-  selected: SpineRef | undefined,
-  options: { urlDriven?: boolean; question?: boolean; footNotes?: ReactNode } = {},
-): ColumnSpec {
-  const childLevel = node?.children.level ?? "programme";
-  const childrenLevelLabel = t(`money.children.${childLevel}`, {
-    count: node?.children.total ?? 0,
-  });
-  const parentAmount = node?.aggregate?.amount ?? null;
-  const currency = node?.aggregate?.measure.currency;
-  const items: ColumnItem[] = (node?.children.items ?? []).map((item) => ({
+/** La question unique du niveau, puis ses destinations. Top adaptatif
+ *  (7–10 selon la hauteur), « Voir les N autres », filtre local
+ *  uniquement quand l'ensemble des enfants est déjà entièrement servi
+ *  — un filtre qui ne verrait qu'une page mentirait. */
+function DestinationsSection({
+  data,
+  parentLabel,
+  page,
+  expanded,
+  q,
+  patch,
+}: {
+  data: AggregateNode;
+  parentLabel: string;
+  page: number;
+  expanded: boolean;
+  q: string;
+  patch: (changes: Record<string, string | null>) => void;
+}) {
+  const { t, locale } = useMoneyCopy();
+  const listRef = useRef<HTMLDivElement>(null);
+  const visibleCount = useVisibleCount(listRef);
+
+  const children = data.children;
+  const parentAmount = data.aggregate?.amount ?? null;
+  const currency = data.aggregate?.measure.currency;
+  const childrenLabel = t(`money.children.${children.level}`, { count: children.total });
+  const items: DestinationItem[] = children.items.map((item) => ({
     level: item.level,
     id: item.id,
-    to: childTo(item, crumb),
+    to: childTo(item, { level: data.node.level, id: data.node.id }),
     name: item.label ?? item.code ?? String(item.id),
     code: item.code,
     count: item.projects ?? null,
     amount: item.amount,
   }));
-  const selectedKey = selected ? itemKey(selected.level, selected.id) : undefined;
-  if (selected && selectedKey && node && !items.some((i) => itemKey(i.level, i.id) === selectedKey)) {
-    items.unshift({
-      level: selected.level,
-      id: selected.id,
-      to: childTo(selected, crumb),
-      name: selected.label ?? selected.code ?? String(selected.id),
-      code: selected.code,
-      count: null,
-      amount: selected.amount ?? null,
-      noShare: selected.shareValid === false,
-    });
-  }
-  return {
-    key: itemKey(crumb.level, crumb.id),
-    parentLabel: crumb.label,
-    parentAmount,
-    currency,
-    childrenLevelLabel,
-    items,
-    total: node?.children.total ?? 0,
-    selectedKey,
-    pending: node == null,
-    urlDriven: options.urlDriven,
-    coverage: options.urlDriven ? node?.children.coverage : undefined,
-    question:
-      options.question && node
-        ? parentAmount != null
-          ? t("money.nextQuestion", { amount: moneyFmt(parentAmount, currency) })
-          : t("money.nextQuestionNoAmount")
-        : null,
-    footNotes: options.footNotes,
-  };
-}
 
-function crumbToSpineRef(crumb: ChainCrumb): SpineRef {
-  return {
-    level: crumb.level,
-    id: crumb.id,
-    label: crumb.label,
-    code: crumb.code,
-    amount: crumb.amount,
-    shareValid: crumb.comparability === "ok",
-  };
-}
+  const fullyLoaded = items.length === children.total;
+  const searchable = fullyLoaded && children.total > SEARCH_THRESHOLD;
+  const query = searchable ? q.trim() : "";
+  const matched = query
+    ? items.filter((item) => normalize(`${item.name} ${item.code ?? ""}`).includes(normalize(query)))
+    : items;
 
-/* -------------------------------------------------- colonne racine */
+  const collapsed = !query && !expanded && items.length > visibleCount;
+  const top = collapsed ? items.slice(0, visibleCount) : matched;
+  const hasMore = !query && expanded && page * PAGE_SIZE < children.total;
+  // Concentration : dérivé d'affichage sur le top replié seul — même
+  // mesure, même réponse, parent connu.
+  const topSum = collapsed
+    ? top.reduce((sum, row) => (row.amount != null ? sum + row.amount : sum), 0)
+    : 0;
+  const concentration =
+    collapsed && parentAmount != null && parentAmount > 0 && topSum > 0
+      ? (topSum / parentAmount) * 100
+      : null;
 
-function FundersColumn({ selectedId }: { selectedId: string }) {
-  const { t, locale, money } = useMoneyCopy();
-  const query = useQuery({ queryKey: ["chain-funders"], queryFn: api.chainFunders });
-  const funders = query.data?.funders ?? [];
   return (
-    <section
-      aria-label={t("money.children.funder", { count: funders.length })}
-      className="news-in w-[280px] shrink-0 border-r border-border-soft pr-4"
-    >
-      <header className="pb-2">
-        <p className="text-[13.5px] font-medium leading-snug">{t("money.title")}</p>
-        <p className="mt-0.5 text-[11px] uppercase tracking-[.07em] text-muted-foreground">
-          {t("money.children.funder", { count: funders.length })} ·{" "}
-          {formatInt(funders.length, locale)}
-        </p>
-      </header>
-      {query.isPending ? (
-        <div className="space-y-2 pt-1">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      ) : (
-        // Trois univers NON comparables : chaque montant dans sa devise
-        // et sa mesure — aucun pourcentage, aucun classement.
-        funders.map((funder) => {
-          const selected = selectedId === String(funder.id);
-          return (
-            <Link
-              key={funder.id}
-              to={`/money/funder/${funder.id}`}
-              aria-current={selected ? "true" : undefined}
-              className={cn(
-                "group block border-l-2 py-2 pl-3 pr-2 transition-colors",
-                selected
-                  ? "border-accent bg-accent-soft/60"
-                  : "border-transparent hover:border-border hover:bg-surface/60",
-              )}
-            >
-              <span className="sr-only">{t("money.followTo", { name: funder.label })} — </span>
-              <span className="flex items-start justify-between gap-2">
-                <span
-                  className={cn(
-                    "min-w-0 text-[13px] leading-snug line-clamp-2",
-                    selected ? "font-medium" : "group-hover:text-accent",
-                  )}
-                >
-                  {funder.label}
-                </span>
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "mt-0.5 shrink-0 text-[13px]",
-                    selected ? "text-accent" : "text-muted-foreground/50 group-hover:text-accent",
-                  )}
-                >
-                  ›
-                </span>
-              </span>
-              <span className="tnum mt-1 block text-[12px] text-muted-foreground">
-                <span className="font-medium text-foreground/80">
-                  {money(funder.aggregate.amount, funder.aggregate.measure.currency)}
-                </span>{" "}
-                ·{" "}
-                {t("money.rootProjects", {
-                  count: funder.aggregate.projects,
-                  n: formatInt(funder.aggregate.projects, locale),
-                })}
-              </span>
-            </Link>
-          );
-        })
-      )}
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Requêtes de l'épine dorsale — parallèles, profondeur bornée         */
-
-function fetchAggregateNode(level: string, id: string): Promise<AggregateNode> {
-  if (level === "funder") return api.chainFunder(id);
-  if (level === "programme") {
-    return api.chainProgramme(id, new URLSearchParams({ page: "1", size: String(PAGE_SIZE) }));
-  }
-  return api.chainCall(id, new URLSearchParams({ page: "1", size: String(PAGE_SIZE) }));
-}
-
-function ancestorQueryKey(level: string, id: string): (string | number | null)[] {
-  // Les mêmes clés que les vues elles-mêmes : une descente par clics a
-  // déjà rempli le cache, un deep-link le remplit en parallèle.
-  if (level === "funder") return ["chain-funder", id];
-  if (level === "programme") return ["chain-programme", id, 1];
-  return ["chain-call", id, null, 1];
-}
-
-function useSpineNodes(ancestors: ChainCrumb[]) {
-  return useQueries({
-    queries: ancestors.map((a) => ({
-      queryKey: ancestorQueryKey(a.level, String(a.id)),
-      queryFn: () => fetchAggregateNode(a.level, String(a.id)),
-      staleTime: 60_000,
-    })),
-  });
-}
-
-/** Les colonnes du chemin : racine (financeurs) + une colonne par
- *  ancêtre, chacune avec l'étape suivante sélectionnée. */
-function spineColumns(
-  t: (key: string, options?: Record<string, unknown>) => string,
-  moneyFmt: (v: number | null | undefined, c: string | null | undefined) => string,
-  ancestors: ChainCrumb[],
-  spineNodes: { data?: AggregateNode }[],
-  currentRef: SpineRef & { label: string },
-  patch: (changes: Record<string, string | null>) => void,
-): ReactNode[] {
-  const funderCode = ancestors.length > 0 ? String(ancestors[0].id) : String(currentRef.id);
-  const columns: ReactNode[] = [<FundersColumn key="funders" selectedId={funderCode} />];
-  ancestors.forEach((crumb, index) => {
-    const selected =
-      index + 1 < ancestors.length ? crumbToSpineRef(ancestors[index + 1]) : currentRef;
-    columns.push(
-      <NavColumn
-        key={itemKey(crumb.level, crumb.id)}
-        column={columnFromNode(
-          t,
-          moneyFmt,
-          { ...crumbToSpineRef(crumb), label: crumb.label ?? crumb.code ?? String(crumb.id) },
-          spineNodes[index]?.data,
-          selected,
-        )}
-        page={1}
-        expanded={false}
-        patch={patch}
-      />,
-    );
-  });
-  return columns;
-}
-
-/* ------------------------------------------------------------------ */
-/* Le chiffre en titre + sa définition — jamais un montant nu          */
-
-function shareFamily(key: string | null | undefined): "cordis" | "nih" | "nsf" | null {
-  if (!key) return null;
-  if (key.startsWith("ec_")) return "cordis";
-  if (key.startsWith("nih_")) return "nih";
-  if (key.startsWith("nsf_")) return "nsf";
-  return null;
-}
-
-function MeasureHero({
-  amount,
-  measure,
-  projects,
-  coverage,
-  share,
-  methodology,
-  compact,
-}: {
-  amount: number | null;
-  measure: ChainMeasure;
-  projects?: number;
-  coverage?: { with_amount: number; unknown_amount: number };
-  share?: ChainNodeShare | null;
-  methodology?: ReactNode;
-  compact?: boolean;
-}) {
-  const { t, locale, money, measureLabel } = useMoneyCopy();
-  const family = shareFamily(measure.key);
-  return (
-    <div className={compact ? "mt-5" : "mt-8"}>
-      <div
-        className={cn(
-          "display-tight tnum font-semibold",
-          compact ? "text-[clamp(28px,3vw,38px)]" : "text-[clamp(34px,5vw,52px)]",
-        )}
-      >
-        {amount == null ? (
-          <span title={t("money.unknownAmount")}>—</span>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h2 className="text-[13px] font-medium uppercase tracking-[.08em]">
+          {t("money.nextQuestion")}
+        </h2>
+        {searchable ? (
+          <input
+            type="search"
+            value={q}
+            onChange={(event) => patch({ q: event.target.value || null, page: null })}
+            placeholder={t("money.search.placeholder", {
+              n: formatInt(children.total, locale),
+              what: childrenLabel.toLocaleLowerCase(locale),
+            })}
+            aria-label={t("money.search.placeholder", {
+              n: formatInt(children.total, locale),
+              what: childrenLabel.toLocaleLowerCase(locale),
+            })}
+            className="w-[240px] border-b border-border bg-transparent py-1 text-[13px] outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-accent"
+          />
+        ) : null}
+      </div>
+      <p className="mt-1 text-[12px] text-muted-foreground">
+        {query
+          ? `${childrenLabel} · ${formatInt(matched.length, locale)} / ${formatInt(children.total, locale)}`
+          : collapsed
+            ? t("money.topOf", { top: top.length, n: formatInt(children.total, locale) }) +
+              (concentration != null
+                ? ` — ${t("money.concentration", { top: top.length, pct: pct(concentration, locale) })}`
+                : "")
+            : `${childrenLabel} · ${formatInt(children.total, locale)}`}
+      </p>
+      <div ref={listRef} className="mt-3 min-h-0 flex-1 md:overflow-y-auto md:overscroll-contain">
+        {children.items.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            {t("money.emptyLevel")}
+          </p>
+        ) : matched.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            {t("money.search.noMatch")}
+          </p>
         ) : (
-          money(amount, measure.currency)
+          top.map((item) => (
+            <DestinationRow
+              key={`${item.level}:${item.id}`}
+              item={item}
+              parentLabel={parentLabel}
+              parentAmount={parentAmount}
+              currency={currency}
+            />
+          ))
         )}
+        {collapsed ? (
+          <button
+            type="button"
+            onClick={() => patch({ expanded: "1" })}
+            className="mt-3 text-[13px] text-accent underline-offset-2 hover:underline"
+          >
+            {t("money.showMore", {
+              count: children.total - top.length,
+              n: formatInt(children.total - top.length, locale),
+            })}
+          </button>
+        ) : null}
+        {!query && expanded && page === 1 && children.total > visibleCount ? (
+          <button
+            type="button"
+            onClick={() => patch({ expanded: null, page: null })}
+            className="mt-3 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t("money.showLess", { n: visibleCount })}
+          </button>
+        ) : null}
+        {!query ? <Pager page={page} hasMore={hasMore} update={patch} /> : null}
+        <div className="space-y-1 pb-4 pt-3">
+          {children.coverage && children.coverage.unknown_amount > 0 ? (
+            <p className="text-[11.5px] leading-snug text-muted-foreground">
+              {t("money.listUnknown", {
+                count: children.coverage.unknown_amount,
+                n: formatInt(children.coverage.unknown_amount, locale),
+              })}
+            </p>
+          ) : null}
+          {children.level === "call" ? (
+            <p className="text-[11.5px] leading-snug text-muted-foreground">
+              {t("money.callScopeNote")}
+            </p>
+          ) : null}
+          {children.directly_on_parent ? (
+            <p className="text-[11.5px] leading-snug text-muted-foreground">
+              {t("money.directlyOnParent", {
+                count: children.directly_on_parent,
+                n: formatInt(children.directly_on_parent, locale),
+              })}
+            </p>
+          ) : null}
+          {children.no_call_projects ? (
+            <p className="text-[11.5px] leading-snug text-muted-foreground">
+              {t("money.noCallProjects", {
+                count: children.no_call_projects,
+                n: formatInt(children.no_call_projects, locale),
+              })}
+            </p>
+          ) : null}
+        </div>
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
-        <span>{amount == null ? t("money.unknownAmount") : measureLabel(measure.key)}</span>
-        {amount != null ? <NatureMark provenance={measure.provenance} /> : null}
-        {methodology}
-      </div>
-      {share != null && share.ratio != null && family ? (
-        <p className="tnum mt-2 text-[14px] font-medium text-foreground/85">
-          {t(`money.shareLine.${family}`, {
-            pct: pct(share.ratio * 100, locale),
-            parent: share.parent.label ?? "",
-          })}
-        </p>
-      ) : null}
-      {projects != null && coverage != null ? (
-        <p className="mt-3 max-w-[70ch] text-[12.5px] leading-relaxed text-muted-foreground">
-          {coverage.unknown_amount > 0
-            ? t("money.coverageLine", {
-                count: coverage.unknown_amount,
-                projects: formatInt(projects, locale),
-                unknown: formatInt(coverage.unknown_amount, locale),
-              })
-            : t("money.coverageFull", { projects: formatInt(projects, locale) })}{" "}
-          {t("money.sumObserved")}
-        </p>
-      ) : null}
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Réconciliation — lecture comptable (allégée quand elle est triviale) */
+/* Réconciliation — lecture comptable progressive : une situation      */
+/* banale est calme, une anomalie mérite davantage d'explication.      */
 
 function ReconRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 text-sm">
+    <div className="flex items-baseline justify-between gap-6 text-sm">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className={cn("tnum", strong ? "font-semibold" : "font-medium")}>{value}</dd>
     </div>
@@ -931,7 +766,7 @@ function ReconciliationBlock({
   const { t, locale, money } = useMoneyCopy();
   if (reconciliation.status === "not_applicable") {
     return (
-      <p className="mt-6 max-w-[70ch] border-l-2 border-border pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="mt-8 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
         <b className="font-medium text-foreground/80">{t("money.reconciliation.title")}</b>{" "}
         {t("money.reconciliation.notApplicable")}
       </p>
@@ -942,21 +777,19 @@ function ReconciliationBlock({
   const knownSum = reconciliation.children_known_sum;
   const status = reconciliation.status;
 
-  // Une réconciliation exacte sans part inconnue est TRIVIALE : trois
-  // lignes suffisent — le tableau détaillé et son statut long sont
-  // réservés aux écarts, dépassements et parts inconnues.
+  // Le cas exact sans part inconnue est TRIVIAL : trois lignes calmes.
   // « Contribution du projet » ne se dit que d'une contribution
-  // (CORDIS) : les natures comptables ne s'interchangent jamais.
+  // (CORDIS) — les natures comptables ne s'interchangent jamais.
   if (
     status === "exact" &&
     (reconciliation.unknown_children == null || reconciliation.unknown_children === 0)
   ) {
     return (
-      <div className="mt-8 rounded-2xl border border-border-soft bg-surface/40 px-5 py-4">
-        <p className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+      <section className="mt-10 max-w-[430px]">
+        <h2 className="text-[11px] font-medium uppercase tracking-[.1em] text-muted-foreground">
           {t("money.reconciliation.exactTitle")}
-        </p>
-        <dl className="mt-3 space-y-1.5">
+        </h2>
+        <dl className="mt-2.5 space-y-1">
           <ReconRow
             label={
               shareFamily(measureKey) === "cordis"
@@ -971,10 +804,10 @@ function ReconciliationBlock({
             value={knownSum == null ? t("money.unknown") : money(knownSum, currency)}
           />
         </dl>
-        <p className="mt-3 text-[12.5px] text-muted-foreground">
+        <p className="mt-2 text-[12.5px] text-muted-foreground">
           {t("money.reconciliation.noUnallocated")}
         </p>
-      </div>
+      </section>
     );
   }
 
@@ -1028,17 +861,19 @@ function ReconciliationBlock({
       ? (reconciliation.unallocated / parent) * 100
       : null;
 
+  // Une anomalie méthodologique (gap, dépassement, total inconnu)
+  // porte le filet d'accent : elle mérite l'attention, pas une carte.
   return (
-    <div className="mt-8 rounded-2xl border border-border-soft bg-surface/40 px-5 py-4">
-      <p className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+    <section className="mt-10 max-w-[460px] border-l-2 border-accent/35 pl-4">
+      <h2 className="text-[11px] font-medium uppercase tracking-[.1em] text-muted-foreground">
         {t("money.reconciliation.title")}
-      </p>
-      <dl className="mt-3 space-y-1.5">
+      </h2>
+      <dl className="mt-2.5 space-y-1">
         {rows.map((row) => (
           <ReconRow key={row.label} label={row.label} value={row.value} strong={row.strong} />
         ))}
       </dl>
-      <p className="mt-3 max-w-[70ch] text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="mt-2.5 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
         {status === "exact"
           ? t("money.reconciliation.status.exact")
           : zeroGap
@@ -1051,75 +886,83 @@ function ReconciliationBlock({
                 )}`
               : t(`money.reconciliation.status.${status}`)}
       </p>
-    </div>
+    </section>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* NSF — deux systèmes de mesure, deux blocs, jamais fondus            */
+/* NSF — deux systèmes de mesure, jamais fondus                        */
+
+function NsfSystemMeta({
+  provenance,
+  period,
+  source,
+}: {
+  provenance: ChainProvenance | null | undefined;
+  period: string;
+  source: string;
+}) {
+  const { t } = useMoneyCopy();
+  return (
+    <dl className="mt-2 space-y-0.5 text-[12px] text-muted-foreground">
+      <div>
+        <dt className="sr-only">{t("money.methodology.nature")}</dt>
+        <dd>
+          <NatureMark provenance={provenance} />
+        </dd>
+      </div>
+      <div className="flex gap-1.5">
+        <dt className="font-medium text-foreground/60">{t("money.nsf.period")}</dt>
+        <dd>{period}</dd>
+      </div>
+      <div className="flex gap-1.5">
+        <dt className="font-medium text-foreground/60">{t("money.methodology.source")}</dt>
+        <dd>{source}</dd>
+      </div>
+    </dl>
+  );
+}
 
 function NsfMeasureSystems({
   cumulative,
   axis,
 }: {
   cumulative: { amount: number | null; measure: ChainMeasure };
-  axis: ChainAnnualObligations;
+  axis: NonNullable<ChainProjectNode["annual_obligations"]>;
 }) {
   const { t, money, measureShort } = useMoneyCopy();
   return (
-    <section className="mt-14">
-      <h2 className="mb-4 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+    <section className="mt-12">
+      <h2 className="text-[11px] font-medium uppercase tracking-[.1em] text-muted-foreground">
         {t("money.nsf.systemsTitle")}
       </h2>
-      <div className="grid gap-5 md:grid-cols-2">
-        <div className="rounded-2xl border border-border-soft px-5 py-4">
+      <div className="mt-4 grid gap-8 md:grid-cols-2 md:gap-0">
+        <div className="md:pr-8">
           <p className="text-[11px] font-medium uppercase tracking-[.08em] text-muted-foreground">
             {measureShort(cumulative.measure.key)}
           </p>
-          <p className="display-tight tnum mt-2 text-[26px] font-semibold">
+          <p className="display-tight tnum mt-1.5 text-[24px] font-semibold">
             {money(cumulative.amount, "USD")}
           </p>
-          <dl className="mt-3 space-y-0.5 text-[12px] text-muted-foreground">
-            <div>
-              <dt className="sr-only">{t("money.methodology.nature")}</dt>
-              <dd>
-                <NatureMark provenance={cumulative.measure.provenance} />
-              </dd>
-            </div>
-            <div className="flex gap-1.5">
-              <dt className="font-medium text-foreground/60">{t("money.nsf.period")}</dt>
-              <dd>{t("money.nsf.cumulativeNote")}</dd>
-            </div>
-            <div className="flex gap-1.5">
-              <dt className="font-medium text-foreground/60">{t("money.methodology.source")}</dt>
-              <dd>{t("money.nsf.cumulativeProvenance")}</dd>
-            </div>
-          </dl>
+          <NsfSystemMeta
+            provenance={cumulative.measure.provenance}
+            period={t("money.nsf.cumulativeNote")}
+            source={t("money.nsf.cumulativeProvenance")}
+          />
         </div>
-        <div className="rounded-2xl border border-border-soft px-5 py-4">
+        <div className="border-border-soft md:border-l md:pl-8">
           <p className="text-[11px] font-medium uppercase tracking-[.08em] text-muted-foreground">
             {measureShort(axis.measure.key)}
           </p>
-          <p className="display-tight tnum mt-2 text-[26px] font-semibold">
+          <p className="display-tight tnum mt-1.5 text-[24px] font-semibold">
             {money(axis.window_sum, "USD")}
           </p>
-          <dl className="mt-3 space-y-0.5 text-[12px] text-muted-foreground">
-            <div>
-              <dt className="sr-only">{t("money.methodology.nature")}</dt>
-              <dd>
-                <NatureMark provenance={axis.measure.provenance} />
-              </dd>
-            </div>
-            <div className="flex gap-1.5">
-              <dt className="font-medium text-foreground/60">{t("money.nsf.period")}</dt>
-              <dd>{t("money.nsf.windowNote")}</dd>
-            </div>
-            <div className="flex gap-1.5">
-              <dt className="font-medium text-foreground/60">{t("money.methodology.source")}</dt>
-              <dd>{t("money.nsf.vintage", { vintage: axis.vintage })}</dd>
-            </div>
-          </dl>
-          <table className="mt-4 w-full text-[13px]">
+          <NsfSystemMeta
+            provenance={axis.measure.provenance}
+            period={t("money.nsf.windowNote")}
+            source={t("money.nsf.vintage", { vintage: axis.vintage })}
+          />
+          <table className="mt-4 w-full max-w-[320px] text-[13px]">
             <thead>
               <tr className="border-b text-left text-[10.5px] font-semibold uppercase tracking-[.08em]">
                 <th scope="col" className="py-1.5 pr-3">
@@ -1141,7 +984,7 @@ function NsfMeasureSystems({
           </table>
         </div>
       </div>
-      <p className="mt-4 max-w-[70ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="mt-4 max-w-[62ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
         {t("money.nsf.notDecomposition")}
       </p>
     </section>
@@ -1158,95 +1001,104 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
   const parent = data.measure.amount;
 
   return (
-    <section className="mt-14">
-      <h2 className="mb-3 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+    <section className="mt-12">
+      <h2 className="text-[11px] font-medium uppercase tracking-[.1em] text-muted-foreground">
         {beneficiary
           ? t("money.children.beneficiary", { count: data.children.total })
           : t("money.children.participation", { count: data.children.total })}{" "}
         · {formatInt(data.children.total, locale)}
       </h2>
       {beneficiary ? (
-        <p className="mb-4 max-w-[70ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+        <p className="mt-3 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
           {t("money.nih.beneficiaryNote")}
         </p>
       ) : null}
-      {items.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">
-          {beneficiary ? t("money.nih.noBeneficiary") : t("money.emptyLevel")}
-        </p>
-      ) : (
-        items.map((item) => {
-          const share =
-            !beneficiary && parent != null && parent > 0 && item.amount != null
-              ? (item.amount / parent) * 100
-              : null;
-          return (
-            <div
-              key={item.source_uid}
-              className="flex items-baseline gap-3 border-b border-border-soft py-3"
-            >
-              <span className="min-w-0 truncate text-sm leading-snug">
-                <Link
-                  to={`/money/organisation/${item.organisation.id}`}
-                  className="transition-colors hover:text-accent"
-                >
-                  {formatOrgName(item.organisation.label)}
-                </Link>
-              </span>
-              <span className="shrink-0 text-[12px] text-muted-foreground">{item.role ?? ""}</span>
-              {item.country ? (
-                <Link
-                  to={`/money/country/${item.country}`}
-                  className="shrink-0 text-[12.5px] text-muted-foreground transition-colors hover:text-accent"
-                >
-                  <span aria-hidden="true">{countryFlag(item.country)}</span> {item.country}
-                </Link>
-              ) : null}
-              {!beneficiary ? (
-                <>
-                  <span className="tnum ml-auto w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium">
-                    {item.amount == null ? (
-                      <span className="text-muted-foreground" title={t("money.unknownAmount")}>
-                        {t("money.unknown")}
-                      </span>
-                    ) : (
-                      money(item.amount, data.measure.currency)
-                    )}
-                  </span>
-                  <span
-                    className="tnum hidden w-24 shrink-0 whitespace-nowrap text-right text-[12.5px] text-muted-foreground sm:inline"
-                    title={
-                      share == null
-                        ? undefined
-                        : t("money.ofProjectFull", { pct: pct(share, locale) })
-                    }
+      <div className="mt-2">
+        {items.length === 0 ? (
+          <p className="py-8 text-sm text-muted-foreground">
+            {beneficiary ? t("money.nih.noBeneficiary") : t("money.emptyLevel")}
+          </p>
+        ) : (
+          items.map((item) => {
+            const share =
+              !beneficiary && parent != null && parent > 0 && item.amount != null
+                ? (item.amount / parent) * 100
+                : null;
+            return (
+              <div
+                key={item.source_uid}
+                className="flex items-baseline gap-3 border-b border-border-soft py-3"
+              >
+                <span className="min-w-0 truncate text-sm leading-snug">
+                  <Link
+                    to={`/money/organisation/${item.organisation.id}`}
+                    className="transition-colors hover:text-accent"
                   >
-                    {share == null ? "" : t("money.ofProject", { pct: pct(share, locale) })}
-                  </span>
-                </>
-              ) : (
-                <span className="ml-auto" />
-              )}
-            </div>
-          );
-        })
-      )}
+                    {formatOrgName(item.organisation.label)}
+                  </Link>
+                </span>
+                <span className="shrink-0 text-[12px] text-muted-foreground">
+                  {item.role ?? ""}
+                </span>
+                {item.country ? (
+                  <Link
+                    to={`/money/country/${item.country}`}
+                    className="shrink-0 text-[12.5px] text-muted-foreground transition-colors hover:text-accent"
+                  >
+                    <span aria-hidden="true">{countryFlag(item.country)}</span> {item.country}
+                  </Link>
+                ) : null}
+                {!beneficiary ? (
+                  <>
+                    <span className="tnum ml-auto w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium">
+                      {item.amount == null ? (
+                        <span className="text-muted-foreground" title={t("money.unknownAmount")}>
+                          {t("money.unknown")}
+                        </span>
+                      ) : (
+                        money(item.amount, data.measure.currency)
+                      )}
+                    </span>
+                    <span
+                      className="tnum hidden w-24 shrink-0 whitespace-nowrap text-right text-[12.5px] text-muted-foreground sm:inline"
+                      title={
+                        share == null
+                          ? undefined
+                          : t("money.ofProjectFull", { pct: pct(share, locale) })
+                      }
+                    >
+                      {share == null ? "" : t("money.ofProject", { pct: pct(share, locale) })}
+                    </span>
+                  </>
+                ) : (
+                  <span className="ml-auto" />
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
     </section>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* États                                                               */
+/* États & petites briques                                             */
 
 function LoadingBlock() {
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-6 pt-10">
-      <Skeleton className="h-5 w-1/3" />
-      <Skeleton className="mt-6 h-12 w-2/3" />
-      <div className="mt-8 flex gap-6">
-        <Skeleton className="h-72 w-[280px]" />
-        <Skeleton className="hidden h-72 w-[300px] lg:block" />
-        <Skeleton className="hidden h-72 w-[340px] lg:block" />
+    <div className="flex md:h-[calc(100dvh-4rem)]">
+      <div className="hidden w-[224px] shrink-0 border-r border-border-soft px-5 py-6 md:block lg:w-[248px]">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="mt-6 h-4 w-full" />
+        <Skeleton className="mt-3 h-4 w-5/6" />
+        <Skeleton className="mt-3 h-4 w-4/6" />
+      </div>
+      <div className="flex-1 px-6 py-8 md:px-10">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="mt-4 h-10 w-1/2" />
+        <Skeleton className="mt-6 h-12 w-56" />
+        <Skeleton className="mt-10 h-64 w-full max-w-[720px]" />
       </div>
     </div>
   );
@@ -1283,24 +1135,33 @@ function Eyebrow({ children }: { children: ReactNode }) {
   return <p className="text-xs font-medium uppercase tracking-[.1em] text-accent">{children}</p>;
 }
 
-function Title({ children }: { children: ReactNode }) {
-  return (
-    <h1 className="display-tight mt-1.5 text-[clamp(24px,3vw,34px)] font-semibold">{children}</h1>
-  );
-}
-
 function callNotAvailableNote(t: (k: string) => string, down: ChainNavEntry[]): ReactNode {
   const call = down.find((entry) => entry.level === "call");
   if (call?.status !== "not_available") return null;
   return (
-    <p className="mt-2 max-w-[70ch] text-[12.5px] text-muted-foreground">
+    <p className="mt-2 max-w-[62ch] text-[12px] leading-snug text-muted-foreground">
       {t("money.callNotAvailable")}
     </p>
   );
 }
 
+/** La part du nœud dans son parent, libellée par famille de mesure. */
+function ShareLine({ share, measureKey }: { share?: ChainNodeShare | null; measureKey: string | null | undefined }) {
+  const { t, locale } = useMoneyCopy();
+  const family = shareFamily(measureKey);
+  if (share == null || share.ratio == null || !family) return null;
+  return (
+    <p className="tnum mt-1.5 text-[13.5px] font-medium text-foreground/85">
+      {t(`money.shareLine.${family}`, {
+        pct: pct(share.ratio * 100, locale),
+        parent: share.parent.label ?? "",
+      })}
+    </p>
+  );
+}
+
 /* ------------------------------------------------------------------ */
-/* Racine — trois portes d'entrée                                      */
+/* Racine — trois portes typographiques                                */
 
 function FundersRoot() {
   const { t, locale, money, measureShort } = useMoneyCopy();
@@ -1310,116 +1171,75 @@ function FundersRoot() {
     return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
   const { funders, cross_funder_total } = query.data;
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-6 pb-20 pt-14">
-      <Eyebrow>{t("money.eyebrow")}</Eyebrow>
-      <Title>{t("money.title")}</Title>
-      <p className="mt-4 max-w-[62ch] text-[15px] leading-relaxed text-muted-foreground">
-        {t("money.lead")}
-      </p>
-      <p className="mt-3 text-[14px] font-medium">{t("money.rootGesture")}</p>
-      {/* Trois univers NON comparables : trois blocs distincts, aucune
-          barre commune, aucun classement, aucun total. */}
-      <div className="mt-12 grid gap-5 md:grid-cols-3">
-        {funders.map((funder) => (
-          <Link
-            key={funder.id}
-            to={`/money/funder/${funder.id}`}
-            className="group flex flex-col rounded-2xl border p-7 transition-colors hover:border-accent/60"
-          >
-            <p className="text-[11px] font-medium uppercase tracking-[.09em] text-muted-foreground">
-              {funder.label}
-            </p>
-            <p className="display-tight tnum mt-5 text-[34px] font-semibold">
-              {money(funder.aggregate.amount, funder.aggregate.measure.currency)}
-            </p>
-            <p className="mt-1 text-[12.5px] leading-snug text-muted-foreground">
-              {measureShort(funder.aggregate.measure.key)}
-            </p>
-            <p className="tnum mt-4 text-[12.5px] text-muted-foreground">
-              {t("money.rootProjects", {
-                count: funder.aggregate.projects,
-                n: formatInt(funder.aggregate.projects, locale),
-              })}
-            </p>
-            <p className="mt-6 text-sm font-medium text-accent">
-              {t("money.explore")}{" "}
-              <span
-                aria-hidden="true"
-                className="inline-block transition-transform group-hover:translate-x-0.5"
+    <Workspace>
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-10 md:px-12 md:py-14">
+        <div className="mx-auto w-full max-w-[680px]">
+          <Eyebrow>{t("money.eyebrow")}</Eyebrow>
+          <h1 className="display-tight mt-1.5 text-[clamp(26px,3.2vw,36px)] font-semibold">
+            {t("money.title")}
+          </h1>
+          <p className="mt-4 max-w-[58ch] text-[14.5px] leading-relaxed text-muted-foreground">
+            {t("money.lead")}
+          </p>
+          <p className="mt-8 text-[13px] font-medium uppercase tracking-[.08em]">
+            {t("money.rootGesture")}
+          </p>
+          {/* Trois univers NON comparables : trois lignes, chacune dans
+              sa mesure et sa devise — aucun classement, aucun total. */}
+          <div className="mt-3">
+            {funders.map((funder) => (
+              <Link
+                key={funder.id}
+                to={`/money/funder/${funder.id}`}
+                className="group flex items-baseline justify-between gap-6 border-b border-border-soft py-4"
               >
-                →
-              </span>
+                <span className="min-w-0">
+                  <span className="block text-[17px] font-medium leading-snug transition-colors group-hover:text-accent">
+                    {funder.label}
+                  </span>
+                  <span className="mt-0.5 block text-[12px] text-muted-foreground">
+                    {measureShort(funder.aggregate.measure.key)}
+                    {" · "}
+                    <span className="tnum">
+                      {t("money.rootProjects", {
+                        count: funder.aggregate.projects,
+                        n: formatInt(funder.aggregate.projects, locale),
+                      })}
+                    </span>
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-baseline gap-3">
+                  <span className="tnum text-[17px] font-semibold">
+                    {money(funder.aggregate.amount, funder.aggregate.measure.currency)}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="text-[14px] text-muted-foreground/50 transition-colors group-hover:text-accent"
+                  >
+                    ›
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+          {!cross_funder_total.available ? (
+            <p className="mt-6 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
+              <b className="font-medium text-foreground/80">{t("money.noTotalTitle")}</b>{" "}
+              {t("money.noTotalBody")}
             </p>
-          </Link>
-        ))}
+          ) : null}
+        </div>
       </div>
-      {!cross_funder_total.available ? (
-        <p className="mt-8 max-w-[70ch] text-[12.5px] leading-relaxed text-muted-foreground">
-          <b className="font-medium text-foreground/80">{t("money.noTotalTitle")}</b>{" "}
-          {t("money.noTotalBody")}
-        </p>
-      ) : null}
-    </div>
+    </Workspace>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* La coquille du navigateur (desktop)                                 */
+/* Focus agrégé : financeur, programme, appel                          */
 
-function moneyCrumbItems(
-  t: (key: string) => string,
-  ancestors: ChainCrumb[],
-  current: string,
-): BreadcrumbItem[] {
-  return [
-    { label: t("money.eyebrow"), to: "/money" },
-    ...ancestors.map((a) => ({ label: a.label ?? a.code ?? String(a.id), to: crumbPath(a) })),
-    { label: current },
-  ];
-}
-
-function NavigatorShell({
-  crumbs,
-  trace,
-  columns,
-  detail,
-}: {
-  crumbs: BreadcrumbItem[];
-  trace: TraceNode[];
-  columns: ReactNode;
-  detail?: ReactNode;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const spineSignature = trace.map((node) => `${node.level}:${node.label}`).join("→");
-  useEffect(() => {
-    // La nouvelle colonne vient d'apparaître à droite : on l'amène en
-    // vue. Défilement local du conteneur, par assignation directe —
-    // le scrollTo({behavior:"smooth"}) programmatique est interrompu
-    // par les re-rendus des colonnes et laisse la vue au point de
-    // départ (constat en recette réelle) ; le fondu `news-in` porte
-    // déjà la transition, et il respecte prefers-reduced-motion.
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollLeft = el.scrollWidth;
-  }, [spineSignature]);
-  return (
-    <div className="mx-auto w-full max-w-[1400px] px-6 pb-20 pt-10">
-      <Breadcrumb items={crumbs} />
-      <TraceStrip nodes={trace} />
-      <div ref={scrollRef} className="mt-6 flex gap-5 overflow-x-auto overscroll-x-contain pb-2">
-        {columns}
-        {detail}
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Vues agrégées : financeur, programme, appel                         */
-
-function AggregateNavigator({ level, id }: { level: "funder" | "programme" | "call"; id: string }) {
-  const { t, locale, money } = useMoneyCopy();
-  const [page, expanded, patch] = usePagePatch();
+function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call"; id: string }) {
+  const { t, locale, money, measureLabel, measureShort } = useMoneyCopy();
+  const [page, expanded, q, patch] = usePagePatch();
   const [params] = useSearchParams();
   const programmeContext = level === "call" ? params.get("programme") : null;
   const query = useQuery<AggregateNode>({
@@ -1437,177 +1257,81 @@ function AggregateNavigator({ level, id }: { level: "funder" | "programme" | "ca
     },
     placeholderData: keepPreviousData,
   });
-  const ancestors = query.data?.ancestors ?? [];
-  const spineNodes = useSpineNodes(ancestors);
 
   if (query.isPending) return <LoadingBlock />;
   if (query.isError || !query.data)
     return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
   const data = query.data;
+  // Pendant le vol d'une navigation, `placeholderData` sert encore le
+  // nœud PRÉCÉDENT (l'Outlet reste monté sur les routes-outil) : tout
+  // le rendu se type d'après le niveau des DONNÉES servies, jamais
+  // d'après l'URL — l'ancien focus reste cohérent jusqu'à l'arrivée
+  // du nouveau, qui prend le centre avec sa micro-transition.
+  const shown = data.node.level as "funder" | "programme" | "call";
   const label =
-    level === "funder"
+    shown === "funder"
       ? (data as ChainFunderNode).node.label
-      : level === "call"
+      : shown === "call"
         ? (data as ChainCallNode).node.code
         : ((data as ChainProgrammeNode).node.label ?? (data as ChainProgrammeNode).node.code);
-  const currentRef: SpineRef & { label: string } = {
-    level,
-    id: data.node.id,
-    label,
-    code: "code" in data.node ? data.node.code : undefined,
-    amount: data.aggregate?.amount,
-    shareValid: data.share_of_parent?.comparability === "ok",
-  };
-  const trace = traceFromSpine(ancestors, {
-    level,
+  const trace = traceFromSpine(data.ancestors, {
+    level: shown,
     label,
     amount: data.aggregate?.amount,
     currency: data.aggregate?.measure.currency,
     share: data.share_of_parent?.comparability === "ok" ? data.share_of_parent.ratio : null,
   });
-  const call = level === "call" ? (data as ChainCallNode) : null;
+  const call = shown === "call" ? (data as ChainCallNode) : null;
   const transversal = Boolean(call && call.programmes.length > 1 && !call.context);
-
-  const lastColumnFootnotes = (
-    <>
-      {data.children.level === "call" ? (
-        <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-          {t("money.callScopeNote")}
-        </p>
-      ) : null}
-      {data.children.directly_on_parent ? (
-        <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-          {t("money.directlyOnParent", {
-            count: data.children.directly_on_parent,
-            n: formatInt(data.children.directly_on_parent, locale),
-          })}
-        </p>
-      ) : null}
-      {data.children.no_call_projects ? (
-        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
-          {t("money.noCallProjects", {
-            count: data.children.no_call_projects,
-            n: formatInt(data.children.no_call_projects, locale),
-          })}
-        </p>
-      ) : null}
-    </>
-  );
-  const lastColumn = columnFromNode(t, money, currentRef, data as AggregateNode, undefined, {
-    urlDriven: true,
-    question: true,
-    footNotes: lastColumnFootnotes,
-  });
-
-  const columns = spineColumns(t, money, ancestors, spineNodes, currentRef, patch);
-  columns.push(
-    <NavColumn
-      key={itemKey(level, data.node.id)}
-      column={lastColumn}
-      page={page}
-      expanded={expanded}
-      patch={patch}
-    />,
-  );
-
-  const summary = (
-    <AggregateSummaryPane
-      data={data as AggregateNode}
-      level={level}
-      label={label}
-      transversal={transversal}
-    />
-  );
-
-  return (
-    <>
-      {/* Écrans étroits : modèle séquentiel — trace compacte, niveau
-          courant, destinations ; le retour passe par la trace. */}
-      <div className="lg:hidden">
-        <div className="mx-auto w-full max-w-[720px] px-6 pb-20 pt-10">
-          <Breadcrumb items={moneyCrumbItems(t, ancestors, label)} />
-          <TraceStrip nodes={trace} />
-          <div className="mt-6">{summary}</div>
-          <div className="mt-8">
-            <NavColumn
-              column={lastColumn}
-              page={page}
-              expanded={expanded}
-              patch={patch}
-              standalone
-            />
-          </div>
-        </div>
-      </div>
-      {/* Desktop : le navigateur en colonnes. */}
-      <div className="hidden lg:block">
-        <NavigatorShell
-          crumbs={moneyCrumbItems(t, ancestors, label)}
-          trace={trace}
-          columns={columns}
-          detail={summary}
-        />
-      </div>
-    </>
-  );
-}
-
-/** Le résumé du niveau courant, à droite des colonnes : chiffre,
- *  nature, couverture, notes de contexte, méthodologie. */
-function AggregateSummaryPane({
-  data,
-  level,
-  label,
-  transversal,
-}: {
-  data: AggregateNode;
-  level: "funder" | "programme" | "call";
-  label: string;
-  transversal: boolean;
-}) {
-  const { t, locale, measureLabel } = useMoneyCopy();
-  const call = level === "call" ? (data as ChainCallNode) : null;
   const funderCode =
-    level === "funder"
+    shown === "funder"
       ? String(data.node.id)
-      : level === "programme"
+      : shown === "programme"
         ? (data as ChainProgrammeNode).node.funder
         : (data as ChainCallNode).node.funder;
+  const coverage = data.aggregate?.coverage;
+
   return (
-    <aside className="news-in w-[360px] shrink-0 lg:w-[380px]">
-      <Eyebrow>
-        {t(`money.levels.${level}`)}
-        {"code" in data.node && data.node.code !== label ? (
-          <>
-            {" "}
-            · <span className="font-mono normal-case">{data.node.code}</span>
-          </>
-        ) : null}
-      </Eyebrow>
-      <h1
-        className={cn(
-          "display-tight mt-1.5 text-[clamp(20px,2vw,26px)] font-semibold",
-          level === "call" ? "font-mono text-[clamp(16px,1.6vw,20px)]" : undefined,
-        )}
+    <Workspace trace={trace}>
+      <div
+        key={`${shown}:${data.node.id}:${programmeContext ?? ""}`}
+        className="focus-in flex min-h-0 flex-1 flex-col px-6 pb-4 pt-6 md:px-10"
       >
-        {label}
-      </h1>
-      {data.aggregate ? (
-        <MeasureHero
-          amount={data.aggregate.amount}
-          measure={data.aggregate.measure}
-          projects={data.aggregate.projects}
-          coverage={data.aggregate.coverage}
-          share={data.share_of_parent}
-          compact
-          methodology={
+        <header className="shrink-0">
+          <Eyebrow>
+            {t(`money.levels.${shown}`)}
+            {"code" in data.node && data.node.code !== label ? (
+              <>
+                {" "}
+                · <span className="font-mono normal-case">{data.node.code}</span>
+              </>
+            ) : null}
+          </Eyebrow>
+          <h1
+            className={cn(
+              "display-tight mt-1 text-[clamp(22px,2.4vw,30px)] font-semibold",
+              shown === "call" ? "font-mono text-[clamp(17px,1.8vw,22px)]" : undefined,
+            )}
+          >
+            {label}
+          </h1>
+          <p className="display-tight tnum mt-3 text-[clamp(26px,2.8vw,36px)] font-semibold">
+            {data.aggregate?.amount == null ? (
+              <span title={t("money.unknownAmount")}>—</span>
+            ) : (
+              money(data.aggregate.amount, data.aggregate.measure.currency)
+            )}
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
+            <span>{measureShort(data.aggregate?.measure.key)}</span>
+            <NatureMark provenance={data.aggregate?.measure.provenance} />
             <MethodologyPanel
               rows={[
                 {
                   label: t("money.methodology.measure"),
-                  value: measureLabel(data.aggregate.measure.key),
+                  value: measureLabel(data.aggregate?.measure.key),
                 },
-                ...(level === "call"
+                ...(shown === "call"
                   ? [
                       {
                         label: t("money.methodology.callLink"),
@@ -1625,45 +1349,85 @@ function AggregateSummaryPane({
                 { label: t("money.methodology.comparability"), value: t("money.noTotalBody") },
               ]}
             />
-          }
-        />
-      ) : null}
-      {callNotAvailableNote(t, data.navigation.down)}
-      {call?.context ? (
-        <p className="mt-3 max-w-[46ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
-          {t("money.callContextNote")}{" "}
-          <Link to={`/money/call/${call.node.id}`} className="text-accent hover:underline">
-            {t("money.callContextAll")}
-          </Link>
-        </p>
-      ) : null}
-      {transversal && call ? (
-        <>
-          <p className="mt-3 max-w-[46ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
-            {t("money.callTransversal", { count: call.programmes.length })}
-          </p>
-          <p className="mt-3 flex flex-wrap items-center gap-2 text-[12.5px] text-muted-foreground">
-            <span>{t("money.callProgrammesServed")}</span>
-            {call.programmes.map((programme) => (
-              <Link
-                key={programme.id}
-                to={`/money/call/${call.node.id}?programme=${programme.id}`}
-                className="rounded-full border px-2.5 py-0.5 font-mono text-[11px] transition-colors hover:text-accent"
-              >
-                {programme.code} · {formatInt(programme.projects, locale)}
+          </div>
+          <ShareLine share={data.share_of_parent} measureKey={data.aggregate?.measure.key} />
+          {data.aggregate && coverage ? (
+            <p className="mt-2 max-w-[68ch] text-[12px] leading-snug text-muted-foreground">
+              {coverage.unknown_amount > 0
+                ? t("money.coverageLine", {
+                    count: coverage.unknown_amount,
+                    projects: formatInt(data.aggregate.projects, locale),
+                    unknown: formatInt(coverage.unknown_amount, locale),
+                  })
+                : t("money.coverageFull", {
+                    projects: formatInt(data.aggregate.projects, locale),
+                  })}{" "}
+              {t("money.sumObserved")}
+            </p>
+          ) : null}
+          {callNotAvailableNote(t, data.navigation.down)}
+          {call?.context ? (
+            <p className="mt-2 max-w-[62ch] text-[12px] leading-snug text-muted-foreground">
+              {t("money.callContextNote")}{" "}
+              <Link to={`/money/call/${call.node.id}`} className="text-accent hover:underline">
+                {t("money.callContextAll")}
               </Link>
-            ))}
-          </p>
-        </>
-      ) : null}
-    </aside>
+            </p>
+          ) : null}
+          {transversal && call ? (
+            <p className="mt-2 max-w-[68ch] text-[12px] leading-snug text-muted-foreground">
+              {t("money.callTransversal", { count: call.programmes.length })}{" "}
+              {t("money.callProgrammesServed")}{" "}
+              {call.programmes.map((programme, index) => (
+                <span key={programme.id}>
+                  {index > 0 ? " · " : ""}
+                  <Link
+                    to={`/money/call/${call.node.id}?programme=${programme.id}`}
+                    className="font-mono text-[11px] transition-colors hover:text-accent"
+                  >
+                    {programme.code}
+                    <span className="tnum"> ({formatInt(programme.projects, locale)})</span>
+                  </Link>
+                </span>
+              ))}
+            </p>
+          ) : null}
+        </header>
+        <div className="mt-7 flex min-h-0 flex-1 flex-col">
+          <DestinationsSection
+            data={data}
+            parentLabel={label}
+            page={page}
+            expanded={expanded}
+            q={q}
+            patch={patch}
+          />
+        </div>
+      </div>
+    </Workspace>
   );
 }
 
-/* -------------------------------------------------- projet : fiche à droite */
+/* ------------------------------------------------------------------ */
+/* Focus projet : la fiche analytique compacte                         */
 
-function ProjectDetailPane({ data }: { data: ChainProjectNode }) {
-  const { t, locale, money, measureLabel, natureLabel } = useMoneyCopy();
+function ProjectFocus({ id }: { id: string }) {
+  const { t, locale, money, measureLabel, measureShort, natureLabel } = useMoneyCopy();
+  const query = useQuery({
+    queryKey: ["chain-project", id],
+    queryFn: () => api.chainProject(id),
+  });
+  if (query.isPending) return <LoadingBlock />;
+  if (query.isError || !query.data)
+    return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
+  const data = query.data;
+  const trace = traceFromSpine(data.ancestors, {
+    level: "project",
+    label: data.node.label,
+    amount: data.measure.amount,
+    currency: data.measure.currency,
+    share: data.share_of_parent?.comparability === "ok" ? data.share_of_parent.ratio : null,
+  });
   const dates =
     data.node.start_date || data.node.end_date
       ? [data.node.start_date, data.node.end_date]
@@ -1673,202 +1437,186 @@ function ProjectDetailPane({ data }: { data: ChainProjectNode }) {
           .join(" → ")
       : null;
   const attribution = data.node.programme?.attribution;
+
   return (
-    <aside className="news-in min-w-0">
-      <Eyebrow>
-        {t("money.levels.project")} ·{" "}
-        <span className="font-mono normal-case">{data.node.source_id}</span>
-      </Eyebrow>
-      <h1 className="display-tight mt-1.5 text-[clamp(22px,2.4vw,30px)] font-semibold">
-        {data.node.label}
-      </h1>
-      {data.node.title !== data.node.label ? (
-        <p className="mt-2 max-w-[70ch] text-[14px] leading-relaxed text-muted-foreground">
-          {data.node.title}
-        </p>
-      ) : null}
-      {dates ? <p className="tnum mt-2 text-[13px] text-muted-foreground">{dates}</p> : null}
-      {callNotAvailableNote(t, data.navigation.down)}
-      <MeasureHero
-        amount={data.measure.amount}
-        measure={data.measure}
-        share={data.share_of_parent}
-        compact
-        methodology={
-          <MethodologyPanel
-            rows={[
-              { label: t("money.methodology.measure"), value: measureLabel(data.measure.key) },
-              { label: t("money.methodology.nature"), value: natureLabel(data.measure.provenance) },
-              {
-                label: t("money.methodology.attribution"),
-                value: attribution?.provenance
-                  ? attribution.provenance === "derived"
-                    ? t("money.attributionDerived")
-                    : data.node.source.startsWith("cordis")
-                      ? t("money.attributionSource")
-                      : t("money.attributionDirect")
-                  : "",
-              },
-              { label: t("money.methodology.source"), value: data.node.source },
-              {
-                label: t("money.methodology.eurObserved"),
-                value:
-                  data.measure.currency === "USD" && data.amount_eur_observed.amount != null
-                    ? `${money(data.amount_eur_observed.amount, "EUR")} — ${t("money.eurObservedNote")}`
+    <Workspace trace={trace}>
+      <div
+        key={`project:${data.node.id}`}
+        className="focus-in min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-6 md:px-10"
+      >
+        <div className="max-w-[720px]">
+          <Eyebrow>
+            {t("money.levels.project")} ·{" "}
+            <span className="font-mono normal-case">{data.node.source_id}</span>
+          </Eyebrow>
+          <h1 className="display-tight mt-1 text-[clamp(21px,2.2vw,28px)] font-semibold">
+            {data.node.label}
+          </h1>
+          {data.node.title !== data.node.label ? (
+            <p className="mt-1.5 max-w-[68ch] text-[13.5px] leading-relaxed text-muted-foreground">
+              {data.node.title}
+            </p>
+          ) : null}
+          {dates ? <p className="tnum mt-1.5 text-[12.5px] text-muted-foreground">{dates}</p> : null}
+          <p className="display-tight tnum mt-4 text-[clamp(26px,2.8vw,36px)] font-semibold">
+            {data.measure.amount == null ? (
+              <span title={t("money.unknownAmount")}>—</span>
+            ) : (
+              money(data.measure.amount, data.measure.currency)
+            )}
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
+            <span>{measureShort(data.measure.key)}</span>
+            <NatureMark provenance={data.measure.provenance} />
+            <MethodologyPanel
+              rows={[
+                { label: t("money.methodology.measure"), value: measureLabel(data.measure.key) },
+                {
+                  label: t("money.methodology.nature"),
+                  value: natureLabel(data.measure.provenance),
+                },
+                {
+                  label: t("money.methodology.attribution"),
+                  value: attribution?.provenance
+                    ? attribution.provenance === "derived"
+                      ? t("money.attributionDerived")
+                      : data.node.source.startsWith("cordis")
+                        ? t("money.attributionSource")
+                        : t("money.attributionDirect")
                     : "",
-              },
-            ]}
-          />
-        }
-      />
-      {data.total_cost ? (
-        <p className="mt-3 text-[13px] text-muted-foreground">
-          {t("money.totalCost")}{" "}
-          {data.total_cost.status === "available" ? (
-            <span className="tnum font-medium text-foreground">
-              {money(data.total_cost.amount, "EUR")}
-            </span>
-          ) : data.total_cost.status === "not_available" ? (
-            <span title={t("money.totalCostZeroHint")}>{t("money.notAvailable")}</span>
-          ) : (
-            <span title={t("money.unknownAmount")}>{t("money.unknown")}</span>
-          )}
-        </p>
-      ) : null}
-      <ReconciliationBlock
-        reconciliation={data.reconciliation}
-        currency={data.measure.currency}
-        measureKey={data.measure.key}
-      />
-      <ParticipationsSection data={data} />
-      {data.annual_obligations ? (
-        <NsfMeasureSystems
-          cumulative={{ amount: data.measure.amount, measure: data.measure }}
-          axis={data.annual_obligations}
-        />
-      ) : null}
-      <ExploreExits exits={[{ label: t("money.projectSheet"), to: `/projects/${data.node.id}` }]} />
-    </aside>
-  );
-}
-
-function ProjectNavigator({ id }: { id: string }) {
-  const { t, money } = useMoneyCopy();
-  const [, , patch] = usePagePatch();
-  const query = useQuery({
-    queryKey: ["chain-project", id],
-    queryFn: () => api.chainProject(id),
-  });
-  const ancestors = query.data?.ancestors ?? [];
-  const spineNodes = useSpineNodes(ancestors);
-
-  if (query.isPending) return <LoadingBlock />;
-  if (query.isError || !query.data)
-    return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
-  const data = query.data;
-  const currentRef: SpineRef & { label: string } = {
-    level: "project",
-    id: data.node.id,
-    label: data.node.label,
-    amount: data.measure.amount,
-    shareValid: data.share_of_parent?.comparability === "ok",
-  };
-  const trace = traceFromSpine(ancestors, {
-    level: "project",
-    label: data.node.label,
-    amount: data.measure.amount,
-    currency: data.measure.currency,
-    share: data.share_of_parent?.comparability === "ok" ? data.share_of_parent.ratio : null,
-  });
-
-  // Une feuille n'efface pas le chemin : les colonnes du parcours
-  // restent visibles, le projet sélectionné dans la dernière, sa fiche
-  // ouverte à droite.
-  const columns = spineColumns(t, money, ancestors, spineNodes, currentRef, patch);
-  const detail = (
-    <div className="w-[520px] shrink-0 xl:w-[620px]">
-      <ProjectDetailPane data={data} />
-    </div>
-  );
-
-  return (
-    <>
-      <div className="lg:hidden">
-        <div className="mx-auto w-full max-w-[720px] px-6 pb-20 pt-10">
-          <Breadcrumb items={moneyCrumbItems(t, ancestors, data.node.label)} />
-          <TraceStrip nodes={trace} />
-          <div className="mt-6">
-            <ProjectDetailPane data={data} />
+                },
+                { label: t("money.methodology.source"), value: data.node.source },
+                {
+                  label: t("money.methodology.eurObserved"),
+                  value:
+                    data.measure.currency === "USD" && data.amount_eur_observed.amount != null
+                      ? `${money(data.amount_eur_observed.amount, "EUR")} — ${t("money.eurObservedNote")}`
+                      : "",
+                },
+              ]}
+            />
           </div>
+          <ShareLine share={data.share_of_parent} measureKey={data.measure.key} />
+          {callNotAvailableNote(t, data.navigation.down)}
+          {data.total_cost ? (
+            <p className="mt-3 text-[12.5px] text-muted-foreground">
+              {t("money.totalCost")}{" "}
+              {data.total_cost.status === "available" ? (
+                <span className="tnum font-medium text-foreground">
+                  {money(data.total_cost.amount, "EUR")}
+                </span>
+              ) : data.total_cost.status === "not_available" ? (
+                <span title={t("money.totalCostZeroHint")}>{t("money.notAvailable")}</span>
+              ) : (
+                <span title={t("money.unknownAmount")}>{t("money.unknown")}</span>
+              )}
+            </p>
+          ) : null}
+          <ReconciliationBlock
+            reconciliation={data.reconciliation}
+            currency={data.measure.currency}
+            measureKey={data.measure.key}
+          />
+          <ParticipationsSection data={data} />
+          {data.annual_obligations ? (
+            <NsfMeasureSystems
+              cumulative={{ amount: data.measure.amount, measure: data.measure }}
+              axis={data.annual_obligations}
+            />
+          ) : null}
+          <ExploreExits
+            exits={[{ label: t("money.projectSheet"), to: `/projects/${data.node.id}` }]}
+          />
         </div>
       </div>
-      <div className="hidden lg:block">
-        <NavigatorShell
-          crumbs={moneyCrumbItems(t, ancestors, data.node.label)}
-          trace={trace}
-          columns={columns}
-          detail={detail}
-        />
-      </div>
-    </>
+    </Workspace>
   );
 }
 
 /* ------------------------------------------- organisation / pays (transverse) */
 
-function ByFunderBlocks({ blocks }: { blocks: ChainFunderBlock[] }) {
+/** Les relations de financement d'une entité transverse : une ligne
+ *  par financeur, chacune dans sa mesure et sa devise — plusieurs
+ *  chaînes convergent ici, aucun total unique. */
+function FunderRelations({ blocks }: { blocks: ChainFunderBlock[] }) {
   const { t, locale, money, measureShort } = useMoneyCopy();
   return (
-    <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      {blocks.map((block) => (
-        <div key={block.funder} className="rounded-2xl border p-6">
-          <p className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-            <Link
-              to={`/money/funder/${block.funder}`}
-              className="transition-colors hover:text-accent"
-            >
-              {t(`money.funderNames.${block.funder}`)}
-            </Link>
-          </p>
-          <p className="display-tight tnum mt-3 text-[26px] font-semibold">
-            {block.amount == null ? (
-              <span title={t("money.unknownAmount")}>—</span>
-            ) : (
-              money(block.amount, block.measure.currency)
-            )}
-          </p>
-          <p className="mt-1 text-[12.5px] leading-snug text-muted-foreground">
-            {block.amount == null ? t("money.unknownShare") : measureShort(block.measure.key)}
-          </p>
-          <p className="tnum mt-3 text-[12.5px] text-muted-foreground">
-            {t("money.orgProjects", {
-              count: block.projects,
-              n: formatInt(block.projects, locale),
-            })}
-            {" · "}
-            {t("money.orgParticipations", {
-              count: block.participations,
-              n: formatInt(block.participations, locale),
-            })}
-            {block.coverage.unknown_amount > 0
-              ? ` · ${t("money.orgUnknownCount", {
-                  n: formatInt(block.coverage.unknown_amount, locale),
-                })}`
-              : ""}
-          </p>
-        </div>
-      ))}
-    </div>
+    <section className="mt-8">
+      <h2 className="text-[11px] font-medium uppercase tracking-[.1em] text-muted-foreground">
+        {t("money.orgRelations")}
+      </h2>
+      <div className="mt-2 max-w-[620px]">
+        {blocks.map((block) => (
+          <div
+            key={block.funder}
+            className="flex items-baseline justify-between gap-6 border-b border-border-soft py-3.5"
+          >
+            <span className="min-w-0">
+              <Link
+                to={`/money/funder/${block.funder}`}
+                className="text-[14.5px] font-medium leading-snug transition-colors hover:text-accent"
+              >
+                {t(`money.funderNames.${block.funder}`)}
+              </Link>
+              <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
+                {block.amount == null ? t("money.unknownShare") : measureShort(block.measure.key)}
+              </span>
+              <span className="tnum block text-[11.5px] text-muted-foreground">
+                {t("money.orgProjects", {
+                  count: block.projects,
+                  n: formatInt(block.projects, locale),
+                })}
+                {" · "}
+                {t("money.orgParticipations", {
+                  count: block.participations,
+                  n: formatInt(block.participations, locale),
+                })}
+                {block.coverage.unknown_amount > 0
+                  ? ` · ${t("money.orgUnknownCount", {
+                      n: formatInt(block.coverage.unknown_amount, locale),
+                    })}`
+                  : ""}
+              </span>
+            </span>
+            <span className="tnum shrink-0 text-[15px] font-semibold">
+              {block.amount == null ? (
+                <span className="text-muted-foreground" title={t("money.unknownShare")}>
+                  {t("money.unknown")}
+                </span>
+              ) : (
+                money(block.amount, block.measure.currency)
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
 function NoTotalNote() {
   const { t } = useTranslation();
   return (
-    <p className="mt-6 max-w-[70ch] border-l-2 border-border pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+    <p className="mt-6 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
       <b className="font-medium text-foreground/80">{t("money.noTotalTitle")}</b>{" "}
       {t("money.noTotalBody")}
     </p>
+  );
+}
+
+function TransverseShell({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
+  return (
+    <Workspace>
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-8 md:px-12">
+        <p className="text-[12.5px]">
+          <Link to="/money" className="text-muted-foreground transition-colors hover:text-foreground">
+            ↩ {t("money.backToRoot")}
+          </Link>
+        </p>
+        <div className="mt-6 max-w-[760px]">{children}</div>
+      </div>
+    </Workspace>
   );
 }
 
@@ -1884,38 +1632,33 @@ function OrganisationView({ id }: { id: string }) {
   const data = query.data;
   const label = formatOrgName(data.node.label);
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-6 pb-20 pt-10">
-      <Breadcrumb items={moneyCrumbItems(t, data.ancestors, label)} />
-      <div className="mt-8">
-        <Eyebrow>{t("money.levels.organisation")}</Eyebrow>
-        <Title>
-          {data.node.country ? (
-            <span aria-hidden="true" className="mr-2">
-              {countryFlag(data.node.country)}
-            </span>
-          ) : null}
-          {label}
-        </Title>
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-[13px] text-muted-foreground">
-          <span>{t("money.orgLead")}</span>
-          <MethodologyPanel
-            rows={[
-              { label: t("money.methodology.comparability"), value: t("money.noTotalBody") },
-              { label: t("money.methodology.dedup"), value: t("money.dedupNote") },
-            ]}
-          />
-        </div>
-        {data.by_funder.length === 0 ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
-        ) : (
-          <ByFunderBlocks blocks={data.by_funder} />
-        )}
-        {!data.cross_funder_total.available ? <NoTotalNote /> : null}
-        <ExploreExits
-          exits={[{ label: t("money.orgSheet"), to: `/organisations/${data.node.id}` }]}
+    <TransverseShell>
+      <Eyebrow>{t("money.levels.organisation")}</Eyebrow>
+      <h1 className="display-tight mt-1 text-[clamp(22px,2.4vw,30px)] font-semibold">
+        {data.node.country ? (
+          <span aria-hidden="true" className="mr-2">
+            {countryFlag(data.node.country)}
+          </span>
+        ) : null}
+        {label}
+      </h1>
+      <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[12.5px] text-muted-foreground">
+        <span>{t("money.orgLead")}</span>
+        <MethodologyPanel
+          rows={[
+            { label: t("money.methodology.comparability"), value: t("money.noTotalBody") },
+            { label: t("money.methodology.dedup"), value: t("money.dedupNote") },
+          ]}
         />
       </div>
-    </div>
+      {data.by_funder.length === 0 ? (
+        <p className="py-14 text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
+      ) : (
+        <FunderRelations blocks={data.by_funder} />
+      )}
+      {!data.cross_funder_total.available ? <NoTotalNote /> : null}
+      <ExploreExits exits={[{ label: t("money.orgSheet"), to: `/organisations/${data.node.id}` }]} />
+    </TransverseShell>
   );
 }
 
@@ -1934,39 +1677,34 @@ function CountryView({ code }: { code: string }) {
     return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
   const data = query.data;
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-6 pb-20 pt-10">
-      <Breadcrumb items={moneyCrumbItems(t, data.ancestors, countryName)} />
-      <div className="mt-8">
-        <Eyebrow>{t("money.levels.country")}</Eyebrow>
-        <Title>
-          <span aria-hidden="true" className="mr-2">
-            {countryFlag(data.node.id)}
-          </span>
-          {countryName}
-        </Title>
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-[13px] text-muted-foreground">
-          <span>{t("money.countryOrgs", { n: formatInt(data.organisations, locale) })}</span>
-          <MethodologyPanel
-            rows={[
-              { label: t("money.methodology.country"), value: t("money.countryDestination") },
-              { label: t("money.methodology.comparability"), value: t("money.noTotalBody") },
-            ]}
-          />
-        </div>
-        <p className="mt-3 max-w-[70ch] border-l-2 border-border pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
-          {t("money.countryDestination")}
-        </p>
-        {data.by_funder.length === 0 ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
-        ) : (
-          <ByFunderBlocks blocks={data.by_funder} />
-        )}
-        {!data.cross_funder_total.available ? <NoTotalNote /> : null}
-        <ExploreExits
-          exits={[{ label: t("money.countrySheet"), to: `/countries/${data.node.id}` }]}
+    <TransverseShell>
+      <Eyebrow>{t("money.levels.country")}</Eyebrow>
+      <h1 className="display-tight mt-1 text-[clamp(22px,2.4vw,30px)] font-semibold">
+        <span aria-hidden="true" className="mr-2">
+          {countryFlag(data.node.id)}
+        </span>
+        {countryName}
+      </h1>
+      <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[12.5px] text-muted-foreground">
+        <span>{t("money.countryOrgs", { n: formatInt(data.organisations, locale) })}</span>
+        <MethodologyPanel
+          rows={[
+            { label: t("money.methodology.country"), value: t("money.countryDestination") },
+            { label: t("money.methodology.comparability"), value: t("money.noTotalBody") },
+          ]}
         />
       </div>
-    </div>
+      <p className="mt-2 max-w-[68ch] text-[12px] leading-snug text-muted-foreground">
+        {t("money.countryDestination")}
+      </p>
+      {data.by_funder.length === 0 ? (
+        <p className="py-14 text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
+      ) : (
+        <FunderRelations blocks={data.by_funder} />
+      )}
+      {!data.cross_funder_total.available ? <NoTotalNote /> : null}
+      <ExploreExits exits={[{ label: t("money.countrySheet"), to: `/countries/${data.node.id}` }]} />
+    </TransverseShell>
   );
 }
 
@@ -2002,9 +1740,9 @@ export function MoneyTrailPage() {
     case "funder":
     case "programme":
     case "call":
-      return <AggregateNavigator level={level} id={id} />;
+      return <AggregateFocus level={level} id={id} />;
     case "project":
-      return <ProjectNavigator id={id} />;
+      return <ProjectFocus id={id} />;
     case "organisation":
       return <OrganisationView id={id} />;
     default:

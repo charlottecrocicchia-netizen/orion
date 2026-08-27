@@ -964,3 +964,103 @@ ERC-2014-CoG → projets, branche MSCA, appel transversal 1252
 systèmes + réconciliation exacte compacte), ITACONIX 26640 (refus
 intentionnel), deep-link à froid VerSiLiB 26403 (cinq niveaux),
 EN/FR, clair/sombre, 420 px.
+
+### 15.8 B2.4 — Focus Trace Workspace (2026-08-27)
+
+Changement de modèle de composition après la recette fondatrice de
+B2.3 : le moteur, les règles méthodologiques et les interactions
+(descente au clic, changement de branche) sont validés, mais le
+navigateur multi-colonnes est abandonné — trop générique, trop de
+zones de même poids, accumulation de panneaux. Le modèle cible est un
+Focus + Context Explorer (principes split view / focus+context / path
+exploration / peek inspector — le rendu, lui, est Orion : typographie,
+espace, hairlines, accent fonctionnel seul).
+
+- **Deux régions permanentes, jamais plus.** À gauche la TRACE
+  (224–248 px) : comment suis-je arrivé ici ? Au centre le FOCUS :
+  où suis-je, et où cet argent peut-il aller ensuite ? L'inspecteur
+  méthodologique est la troisième région, TEMPORAIRE (glisse depuis
+  la droite, Escape, restitution du focus).
+- **Surface de travail plein écran.** `/money` devient une
+  route-outil (`isWorkspaceRoute`, nouveau pattern Layout — aucun
+  n'existait) : navbar normale, PAS de footer éditorial, le workspace
+  tient dans `100dvh − 4rem`, les listes longues défilent dans leur
+  zone — aucun défilement du document au parcours nominal (vérifié à
+  1920×1080, 1440×900, 1280×800), aucun défilement horizontal de
+  page. L'`Outlet` reste monté d'une étape à l'autre : c'est
+  l'attention qui se déplace (micro-transition `focus-in`, 150 ms,
+  translate+opacity, tuée par prefers-reduced-motion), jamais « une
+  nouvelle page ».
+- **La trace est typographique** : indentation réelle, nom, montant,
+  relation « └ 19,7 % » au niveau au-dessus (convention affichée ;
+  info-bulle et texte lecteur d'écran portent le référent complet ;
+  aucun pourcentage quand le moteur refuse le ratio — appel
+  transversal). Aucune boîte, aucun pill, aucun faux nœud « Chaîne de
+  l'argent » ; le niveau courant porte un filet d'accent de 2 px, les
+  ancêtres restent cliquables (changement de branche : les
+  descendants quittent la trace, le niveau recliqué reprend le
+  centre). Sous md, la trace devient une ligne compacte
+  « ↩ EC › Horizon › EIT » — cliquer une étape remonte.
+- **Une requête par vue.** Sans colonnes ancêtres, le fil enrichi de
+  la réponse courante (B2.2) reconstruit la trace entière : le
+  deep-link passe de ≤ 4 requêtes (B2.3) à UNE. `keepPreviousData` +
+  Outlet stable imposent une règle nouvelle : le focus se rend
+  d'après le niveau des DONNÉES servies, jamais d'après l'URL —
+  pendant le vol d'une navigation, l'ancien focus reste cohérent
+  (constat réel : l'ancien typage par l'URL crashait sur
+  programme → appel).
+- **Le focus agrégé est scannable en une lecture** : nom, chiffre,
+  part du parent libellée, mesure courte + nature + ⓘ, couverture,
+  puis UNE question (« Où va ensuite cet argent ? ») et les
+  destinations en lignes éditoriales — nom (2 lignes possibles), code
+  mono · volumétrie, montant, part, chevron, hairline. Aucune carte,
+  aucune barre. Le nombre visible s'adapte à la hauteur réelle
+  (7–10, ResizeObserver sur l'espace contraint ; fixe en flux étroit
+  — mesurer un conteneur dimensionné par son contenu nourrirait le
+  compte qu'il mesure), puis « Voir les N autres » et pages.
+- **Filtre local honnête** : proposé uniquement quand l'ensemble des
+  enfants est ENTIÈREMENT servi et dépasse 15 (39 programmes H2020 :
+  oui ; 371 projets d'un appel paginé : non — un filtre qui ne
+  verrait qu'une page mentirait). Il filtre les destinations du
+  niveau courant, `q=` vit dans l'URL. Aucun backend nouveau.
+- **Projet = changement de mode** : fiche analytique compacte (plus
+  de question de destination quand le niveau suivant n'est pas une
+  décomposition comparable). Réconciliation PROGRESSIVE : le cas
+  exact sans part inconnue est calme (trois lignes, sans boîte —
+  « Contribution du projet » réservé à CORDIS, libellé neutre pour
+  une obligation NSF) ; gap et dépassement portent le filet d'accent
+  et leur tableau comptable. NSF : deux systèmes séparés par une
+  hairline, chacun avec nature/période/source. NIH : bénéficiaire,
+  aucune case appel. ITACONIX : « Relations de financement » en
+  lignes par financeur, chaque financeur suivable vers sa propre
+  trace, refus du total unique.
+- **Racine** : trois portes typographiques (nom, nature courte,
+  volumétrie, montant, chevron, hairlines) — plus de cards ; aucun
+  classement, aucun total, pas de panneau de trace vide.
+- **Audit « design IA »** : les surfaces encadrées passent de 13
+  occurrences `rounded-*` (cards réconciliation/NSF/racine, chips de
+  trace, portes) à 2 — deux BOUTONS d'action (fermer l'inspecteur,
+  réessayer), au langage boutons de l'app. Les bordures restantes
+  sont des hairlines structurelles et les filets d'accent d'état.
+  Régions permanentes : 2 (contre jusqu'à 6 en B2.3).
+
+Constats corrigés pendant la recette réelle : crash du typage par
+l'URL pendant le vol (ci-dessus) ; compte adaptatif qui se nourrissait
+de la hauteur de contenu en flux étroit (bascule de média écoutée,
+valeur fixe sous md). Artefact d'environnement documenté : le pane de
+recette garde `visibilityState: hidden` — animations CSS et
+ResizeObserver n'y avancent pas toujours (l'adaptatif a été observé
+vivant : 7 destinations à 900 px, 8 à 1080 px).
+
+Suppressions (zéro code mort) : NavColumn/ColumnSpec/FundersColumn/
+spineColumns/NavigatorShell/épinglage, `useSpineNodes` et les
+requêtes ancêtres, le Breadcrumb de la surface (la navbar et le titre
+de trace disent « où suis-je dans Orion »), les clés i18n du
+navigateur en colonnes ; la question redevient une seule clé sans
+montant. Tests : 163 frontend (17 sur la surface + 3 workspace/footer),
+372 backend inchangés. Vérification réelle sur corpus complet :
+EC → H2020 → ERC → ERC-2014-CoG → MARS, branche par la trace,
+transversal 1252, EURIZON (gap), EUROfusion (dépassement), BEACON,
+NIH 566018, ITACONIX 26640, deep-link à froid VerSiLiB 26403 (une
+requête, cinq niveaux), 1920×1080 / 1440×900 / 1280×800 / 768 / 420,
+EN/FR, clair/sombre.

@@ -247,6 +247,24 @@
   }
 }
 
+/* B2.4 : le déplacement d'attention du Focus Trace Workspace — le
+   nouveau focus glisse en place, bref et sobre ; tué par le bloc
+   reduced-motion ci-dessous. */
+@utility focus-in {
+  animation: focus-in 0.15s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
+}
+
+@keyframes focus-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Card hover: barely-there lift, the premium kind — wearing the product's
    single elevation shadow. */
 @utility lift {

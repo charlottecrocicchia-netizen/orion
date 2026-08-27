@@ -18,6 +18,7 @@ import { playWorldReveal } from "@/lib/world-reveal";
 import { worldTintVars } from "@/lib/world-tints";
 import { lensWords, useCarriedLens, withLens } from "@/lib/lens";
 import { formatCompactEur } from "@/lib/format";
+import { isWorkspaceRoute } from "@/lib/workspace";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 
 /** The geographic-scope selector. HIDDEN while a single zone exists
@@ -252,10 +253,18 @@ export function Layout() {
           </div>
         </nav>
       </header>
-      <main id="main" key={pathname} className="page-enter flex-1">
+      {/* B2.4 : une route-outil garde son Outlet monté d'une étape à
+          l'autre (le focus anime, pas la page) et ne rend pas le
+          footer éditorial — la surface est un outil, elle tient dans
+          la fenêtre. */}
+      <main
+        id="main"
+        key={isWorkspaceRoute(pathname) ? "workspace" : pathname}
+        className="page-enter flex-1"
+      >
         <Outlet />
       </main>
-      <Footer />
+      {isWorkspaceRoute(pathname) ? null : <Footer />}
       {me ? <CommandK open={paletteOpen} onOpenChange={setPaletteOpen} /> : null}
     </div>
   );

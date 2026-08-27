@@ -20,17 +20,21 @@ All notable changes to Orion are documented here. The format follows
   a beneficiary, never a financial breakdown; NSF projects show the
   R5B annual axis as a second, incompatible measure system;
   organisation and country pages refuse a single cross-funder total.
-  URLs are fully replayable (level, id, page, programme scope). The
-  B1 engine gained two additive endpoints so the UI never guesses:
-  per-node `ancestors` (enriched with amounts, share-of-parent and
-  comparability) and `GET /chain/funders`. The surface is an
-  interactive column navigator (B2.3): clicking a destination opens
-  the next level without losing the columns already traversed,
-  switching branches replaces only the descendant columns, a compact
-  financial trace above remembers the path, and a deep link rebuilds
-  the whole thing from the engine with bounded parallel requests —
-  never an N+1, never a client-side guess. Shared `Breadcrumb` and
-  `Pager` primitives extracted; full EN/FR copy; 17 page tests.
+  URLs are fully replayable (level, id, page, expanded, local filter,
+  programme scope). The B1 engine gained two additive endpoints so
+  the UI never guesses: per-node `ancestors` (enriched with amounts,
+  share-of-parent and comparability) and `GET /chain/funders`. The
+  surface is a full-height Focus Trace Workspace (B2.4): a
+  typographic trace on the left remembers the path (indentation,
+  amounts, "└ %" relations, every ancestor clickable), the current
+  level owns the center (one question — where does this money go
+  next? — then editorial destination rows, an adaptive top, an honest
+  local filter only when the whole child set is served), and a
+  methodology inspector slides in on demand. No footer on this route,
+  no document scroll in the nominal desktop journey, and a deep link
+  rebuilds the entire trace from the engine in a single request.
+  Shared `Breadcrumb` and `Pager` primitives extracted; full EN/FR
+  copy; 20 page tests.
 
 - **Public-money chain engine (B1,
   docs/conception-b-chaine-argent-public.md § 14).** New `/api/chain/*`
