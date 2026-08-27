@@ -6,6 +6,26 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Public-money chain engine (B1,
+  docs/conception-b-chaine-argent-public.md § 14).** New `/api/chain/*`
+  endpoints (private, like every data surface) serve the drill-down
+  Funder → Programme → [Call] → Project → Participation → Organisation
+  → Country as it is REALLY supported per source: absent levels are
+  skipped, never synthesized (NIH/NSF have no call level). Every
+  amount ships in a measure envelope — accounting nature, provenance
+  (source fact / deterministic derivation / Orion analysis), currency,
+  basis, coverage — so the future UI never guesses what a number
+  means. Every grain change publishes its reconciliation (parent
+  total, known children sum, signed unallocated, unknown count); the
+  NIH participation is exposed as a beneficiary, not a financial
+  breakdown; NSF projects expose the R5B annual-obligations axis as a
+  second, explicitly incompatible measure system; organisation and
+  country nodes refuse a single cross-funder total by contract. The
+  B0 manual golds are locked as 18 backend tests
+  (`backend/tests/test_chain_gold.py`).
+
 ### Fixed
 
 - **CORDIS ingestion no longer mints parasite programmes or trusts
