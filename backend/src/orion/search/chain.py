@@ -950,11 +950,19 @@ def project_node(db: Session, project_id: int) -> dict[str, Any]:
 # ------------------------------------------------------- organisation / pays
 
 
+# La source d'une participation désigne son financeur sans jointure :
+# les chargeurs écrivent participation.source = source du projet
+# (cordis-* → ec). Éviter la jointure projects fait tomber le nœud pays
+# US de 2,3 s à 1,6 s (plan B1.1 : le hash de la table projects entière
+# coûtait ~900 ms pour ne rapporter que funder/source).
+_FUNDER_BY_FAMILY = {"cordis": "ec", "nih": "nih", "nsf": "nsf"}
+
+
 def _by_funder_blocks(db: Session, where: str, key) -> list[dict[str, Any]]:
     rows = db.execute(
         text(
             f"""
-            SELECT f.code AS funder, p.source,
+            SELECT pt.source,
                    count(*) AS participations,
                    count(DISTINCT pt.project_id) AS projects,
                    count(pt.amount) AS with_amount,
@@ -962,10 +970,8 @@ def _by_funder_blocks(db: Session, where: str, key) -> list[dict[str, Any]]:
                    count(pt.amount_eur) AS with_eur,
                    sum(pt.amount_eur) AS amount_eur
             FROM participations pt
-            JOIN projects p ON p.id = pt.project_id
-            JOIN funders f ON f.id = p.funder_id
             WHERE {where}
-            GROUP BY f.code, p.source
+            GROUP BY pt.source
             """
         ),
         {"key": key},
@@ -975,10 +981,13 @@ def _by_funder_blocks(db: Session, where: str, key) -> list[dict[str, Any]]:
     merged: dict[str, dict[str, Any]] = {}
     for r in rows:
         family = _family(r.source)
+        funder = _FUNDER_BY_FAMILY.get(family)
+        if funder is None:
+            continue  # source hors chaîne (fixtures) — jamais un bloc inventé
         block = merged.setdefault(
-            r.funder,
+            funder,
             {
-                "funder": r.funder,
+                "funder": funder,
                 "family": family,
                 "participations": 0,
                 "projects": 0,
@@ -1086,7 +1095,11 @@ def country_node(db: Session, country_code: str) -> dict[str, Any]:
         raise NodeNotFound
     organisations = db.execute(
         text(
-            "SELECT count(DISTINCT organisation_id) FROM participations WHERE country_code = :key"
+            # Sous-requête DISTINCT : l'agrégat direct choisissait un
+            # parcours d'index complet (966 k buffers, 1,4 s sur US) ;
+            # cette forme hash-distinct tient en 235 ms sans index (B1.1).
+            "SELECT count(*) FROM (SELECT DISTINCT organisation_id "
+            "FROM participations WHERE country_code = :key) s"
         ),
         {"key": country_code},
     ).scalar_one()

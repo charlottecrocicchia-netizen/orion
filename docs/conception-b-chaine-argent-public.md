@@ -652,9 +652,23 @@ sur les 77 instituts NIH — réécrite).
   annuel CORDIS/NIH, pas de chiffre unique inter-financeurs.
 - Le topic CORDIS (plus fin que l'appel) reste non normalisé — hors
   périmètre B1.
-- **Proposition D-B1 (non exécutée — décision d'arbitrage)** : un
-  index sur `participations(country_code)` ramènerait le nœud pays US
-  sous la seconde. Besoin **mesuré** (pas spéculatif), mais toute
-  migration attend l'accord explicite ; alternative sans migration :
-  appuyer le nœud pays sur une extension de la vue matérialisée
-  `country_stats` (par financeur) au moment de B2.
+- **B1.1 — performance du nœud pays (2026-08-27, mesures sur corpus
+  complet).** Le plan US révélait deux coûts sans rapport avec un
+  index pays : le hash de TOUTE la table `projects` (~900 ms) pour ne
+  rapporter que funder/source, et un agrégat DISTINCT mal planifié
+  (966 k buffers). Deux réécritures SANS index les suppriment
+  (`participations.source` désigne le financeur sans jointure ;
+  sous-requête DISTINCT pour le compte d'organisations) : US passe de
+  ~2,0 s à **1,23 s**, organisation UW 63 → 18 ms, FR 145 → 89 ms.
+  Le reste du coût US est le tri du `count(DISTINCT project_id)` sur
+  626 k lignes (déborde work_mem 16 MB). **Proposition D-B1
+  (mesurée, non exécutée)** : index couvrant
+  `participations (country_code, source, project_id) INCLUDE (amount,
+  amount_eur, organisation_id)` — testé en transaction annulée :
+  scan d'index pré-trié, plus aucun tri ni débordement, US ≈
+  **420 ms** ; 58 MB (table 187 MB, index existants 206 MB), création
+  1,8 s, utilisé par les seuls prédicats pays, maintenance d'écriture
+  modérée à la ré-ingestion. La migration attend l'accord explicite ;
+  la vue matérialisée par financeur est écartée à ce stade (arbitrage
+  du 2026-08-27 : duplication et coût de rafraîchissement injustifiés
+  pour un seul point lent).
