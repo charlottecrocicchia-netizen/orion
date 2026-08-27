@@ -1,0 +1,5 @@
+projectID;projectAcronym;organisationID;vatNumber;name;shortName;SME;activityType;street;postCode;city;country;nutsCode;geolocation;organizationURL;contactForm;contentUpdateDate;rcn;order;role;ecContribution;netEcContribution;totalCost;endOfParticipation;active
+200000001;SANE;999000001;;ORG ALPHA TESTFIX;OA;false;HES;;;PARIS;FR;;;https://www.example.org/alpha;;2023-01-01 00:00:00;9001;1;coordinator;500000;;600000;false;true
+200000001;SANE;999000002;;ORG BRAVO TESTFIX;OB;false;PRC;;;LYON;FR;;;"http://broken.example/page""";2023-01-01 00:00:00;9002;4;participant;23893.85;;;false;true;
+200000002;TAILBRK;999000003;;ORG CHARLIE TESTFIX;OC;false;REC;;;WIEN;AT;;;https://www.example.org/charlie;;2023-01-01 00:00:00;abc;;100.5;777;;;false;true
+200000002;TAILBRK;999000004;;ORG DELTA TESTFIX;OD;false;PRC;;;GRAZ;AT;;;https://www.example.org/delta;;2023-01-01 00:00:00;9004;2;----;888;;;false;true

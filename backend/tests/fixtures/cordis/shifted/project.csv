@@ -1,0 +1,6 @@
+id;acronym;status;title;startDate;endDate;totalCost;ecMaxContribution;legalBasis;topics;ecSignatureDate;frameworkProgramme;masterCall;subCall;fundingScheme;nature;objective;contentUpdateDate;rcn;grantDoi
+200000001;SANE;SIGNED;"Sane project";2022-01-01;2025-12-31;1000000;900000;HORIZON.2.5;T-01;2021-12-15;HORIZON;HORIZON-CALL-1;HORIZON-CALL-1-01;RIA;;"Fine.";2023-01-01 00:00:00;9101;10.3030/200000001
+200000002;TAILBRK;SIGNED;"Tail-broken project";2022-02-01;2025-12-31;2000000;1500000;false;T-01;2021-12-15;HORIZON;HORIZON-CALL-1;HORIZON-CALL-1-01;RIA;;"Objective split upstream, tail landed rightwards.";not-a-date;abc;10.3030/200000002
+200000003;HEADBRK;CLOSED;"Head-broken project";" tail of the title lands in startDate""";2012-10-01;2014-09-30;250106;250106;T-99;;HORIZON;;RIA;;;"";2015-03-11 00:48:45;105305
+200000004;JUNKLB;SIGNED;"Junk basis without recovery";2022-03-01;;500000;400000;10.3030/200000004;T-02;;HORIZON;HORIZON-CALL-2;;RIA;;"x";2023-01-01 00:00:00;9104;10.3030/200000004
+200000005;MULTI;SIGNED;"Multi flagged parts";2022-04-01;;800000;700000;true;T-03;;HORIZON;HORIZON-CALL-2;;RIA;;"y";2023-01-01 00:00:00;9105;10.3030/200000005

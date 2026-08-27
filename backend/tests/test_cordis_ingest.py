@@ -13,6 +13,7 @@ from orion.ingest.reference import seed_reference
 from orion.ingest.runlog import RunStats
 from orion.models import (
     Call,
+    Funder,
     Organisation,
     OrganisationIdentifier,
     Participation,
@@ -28,6 +29,7 @@ FIXTURES = Path(__file__).parent / "fixtures" / "cordis"
 # dev database already holds real CORDIS data (everything rolls back anyway).
 HE = replace(FRAMEWORKS["cordis-horizon"], source="test-cordis-he")
 H2020 = replace(FRAMEWORKS["cordis-h2020"], source="test-cordis-h2020")
+SHIFTED = replace(FRAMEWORKS["cordis-horizon"], source="test-cordis-shifted")
 CEA_FAKE_PIC = "123456780001"
 
 
@@ -141,6 +143,113 @@ def test_amounts_programmes_and_calls_are_mapped(db_session):
     )
     fallback_call = db_session.get(Call, greensteel.call_id)
     assert fallback_call is not None and fallback_call.code == "HORIZON-CL4-2022"
+
+
+def _project(session: Session, source_id: str) -> Project:
+    project = session.scalar(
+        select(Project).where(Project.source == SHIFTED.source, Project.source_id == source_id)
+    )
+    assert project is not None
+    return project
+
+
+def test_parasite_legal_basis_is_recovered_from_legal_basis_csv(db_session):
+    """B0.1-A: a shifted row's junk legalBasis never becomes a programme."""
+    seed_reference(db_session, RunStats())
+    stats = _load(db_session, SHIFTED, "shifted")
+
+    assert stats.counts["projects"] == 5
+    assert stats.counts["legal_basis_recovered"] == 3
+    assert stats.counts["suspect_legal_basis"] == 1
+    # No programme row for any junk code, ever.
+    for junk in ("false", "true", "250106", "10.3030/200000004"):
+        assert _count(db_session, Programme, Programme.code == junk) == 0
+
+    # 'false' in project.csv, single flagged code in legalBasis.csv.
+    tailbrk = _project(db_session, "200000002")
+    programme = db_session.get(Programme, tailbrk.programme_id)
+    assert programme is not None and programme.code == "HORIZON.2.6"
+    # The break happened after the money columns: amounts survive.
+    assert tailbrk.funding_amount == Decimal("1500000")
+
+    # Several flagged codes sharing an ancestor: the finest certain attachment.
+    multi = _project(db_session, "200000005")
+    assert db_session.get(Programme, multi.programme_id).code == "HORIZON.3."
+
+    # Junk with no legalBasis.csv row: framework root, counted, never invented.
+    junklb = _project(db_session, "200000004")
+    assert db_session.get(Programme, junklb.programme_id).code == "HORIZON"
+
+
+def test_shifted_project_row_keeps_no_scalar_past_the_break(db_session):
+    """B0.1-A: dates, amounts and call of a shifted row are unknown, not wrong."""
+    seed_reference(db_session, RunStats())
+    stats = _load(db_session, SHIFTED, "shifted")
+
+    assert stats.counts["shifted_projects"] == 1
+    headbrk = _project(db_session, "200000003")
+    assert headbrk.start_date is None
+    assert headbrk.end_date is None
+    assert headbrk.total_cost is None
+    assert headbrk.funding_amount is None
+    assert headbrk.funding_amount_eur is None
+    assert headbrk.call_id is None
+    # The programme still comes from legalBasis.csv — the one honest source left.
+    assert db_session.get(Programme, headbrk.programme_id).code == "HORIZON.1.1"
+    # The shifted subCall value never became a call.
+    assert _count(db_session, Call, Call.code == "RIA") == 0
+
+
+def test_money_in_role_column_realigns_only_on_full_signature(db_session):
+    """B0.1-B: a monetary role is a shifted row; realign or discard, never keep."""
+    seed_reference(db_session, RunStats())
+    stats = _load(db_session, SHIFTED, "shifted")
+
+    assert stats.counts["participations"] == 4
+    assert stats.counts["participations_realigned"] == 1
+    assert stats.counts["suspect_role"] == 2
+
+    rows = {
+        p.order_index: p
+        for p in db_session.scalars(
+            select(Participation).where(Participation.source == SHIFTED.source)
+        )
+    }
+    realigned = rows[4]
+    assert realigned.role == "participant"
+    assert realigned.amount == Decimal("23893.85")
+    assert realigned.amount_eur == Decimal("23893.85")
+
+    # Decimal role without the full signature: everything trailing is unknown.
+    discarded = next(p for p in rows.values() if p.role is None and p.amount is None)
+    assert discarded is not None
+    # A letterless role is dropped; its amount column is intact and kept.
+    letterless = rows[2]
+    assert letterless.role is None
+    assert letterless.amount == Decimal("888")
+
+
+def test_prune_removes_unreferenced_programmes_and_calls(db_session):
+    """B0.1-A: parasites minted by older permissive runs die on the next run."""
+    seed_reference(db_session, RunStats())
+    _load(db_session, SHIFTED, "shifted")
+
+    funder_id = db_session.scalar(select(Funder.id).where(Funder.code == "ec"))
+    root_id = db_session.scalar(
+        select(Programme.id).where(Programme.funder_id == funder_id, Programme.code == "HORIZON")
+    )
+    db_session.add(Programme(funder_id=funder_id, code="false", parent_id=root_id))
+    db_session.add(Call(funder_id=funder_id, code="FP7"))
+    db_session.commit()
+
+    stats = _load(db_session, SHIFTED, "shifted")
+    assert stats.counts["programmes_pruned"] == 1
+    assert stats.counts["calls_pruned"] == 1
+    assert _count(db_session, Programme, Programme.code == "false") == 0
+    assert _count(db_session, Call, Call.code == "FP7") == 0
+    # Referenced rows survive the prune.
+    assert _count(db_session, Programme, Programme.code == "HORIZON.2.6") == 1
+    assert _count(db_session, Call, Call.code == "HORIZON-CALL-2") == 1
 
 
 def test_euroscivoc_topics_are_linked(db_session):

@@ -1,4 +1,5 @@
 import csv
+import re
 import zipfile
 from collections.abc import Iterator
 from datetime import date, datetime
@@ -8,6 +9,8 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from orion.ingest.reference import parse_decimal
+
+_HAS_LETTER = re.compile(r"[A-Za-z]")
 
 csv.field_size_limit(10_000_000)
 
@@ -65,6 +68,13 @@ def _clean_short(raw: str | None, limit: int) -> str | None:
     return value[:limit] if value else None
 
 
+def _corrupt(raw: str | None, parsed: object) -> bool:
+    """A non-empty source value the parser could not read: on CORDIS exports
+    this is the signature of a row split by an unescaped quote, not of a
+    blank — everything right of the break wears another column's value."""
+    return bool((raw or "").strip()) and parsed is None
+
+
 class ProjectRow(BaseModel):
     source_id: str
     acronym: str | None
@@ -79,24 +89,42 @@ class ProjectRow(BaseModel):
     sub_call: str | None
     objective: str | None
     content_updated_at: datetime | None
+    shifted: bool
     raw: dict[str, str]
 
     @classmethod
-    def from_csv(cls, row: dict[str, str]) -> "ProjectRow":
+    def from_csv(cls, row: dict[str, str], framework_code: str | None = None) -> "ProjectRow":
+        start_date = _parse_date(row.get("startDate"))
+        end_date = _parse_date(row.get("endDate"))
+        total_cost = parse_decimal(row.get("totalCost"))
+        ec_max = parse_decimal(row.get("ecMaxContribution"))
+        # Row-shift detection: frameworkProgramme carries the framework code on
+        # every sane row of every export; a date or an amount that reads as
+        # text means the break happened before the money columns. Past the
+        # break, no scalar field can be trusted (B0.1-A).
+        framework_raw = (row.get("frameworkProgramme") or "").strip()
+        shifted = (
+            (framework_code is not None and framework_raw != framework_code)
+            or _corrupt(row.get("startDate"), start_date)
+            or _corrupt(row.get("endDate"), end_date)
+            or _corrupt(row.get("totalCost"), total_cost)
+            or _corrupt(row.get("ecMaxContribution"), ec_max)
+        )
         return cls(
             source_id=(row.get("id") or "").strip(),
             acronym=_clean_short(row.get("acronym"), 100),
             status=_clean_short(row.get("status"), 30),
             title=(row.get("title") or "").strip(),
-            start_date=_parse_date(row.get("startDate")),
-            end_date=_parse_date(row.get("endDate")),
-            total_cost=parse_decimal(row.get("totalCost")),
-            ec_max_contribution=parse_decimal(row.get("ecMaxContribution")),
-            legal_basis=_clean(row.get("legalBasis")),
-            master_call=_clean(row.get("masterCall")),
-            sub_call=_clean(row.get("subCall")),
+            start_date=None if shifted else start_date,
+            end_date=None if shifted else end_date,
+            total_cost=None if shifted else total_cost,
+            ec_max_contribution=None if shifted else ec_max,
+            legal_basis=None if shifted else _clean(row.get("legalBasis")),
+            master_call=None if shifted else _clean(row.get("masterCall")),
+            sub_call=None if shifted else _clean(row.get("subCall")),
             objective=_clean(row.get("objective")),
-            content_updated_at=_parse_datetime(row.get("contentUpdateDate")),
+            content_updated_at=None if shifted else _parse_datetime(row.get("contentUpdateDate")),
+            shifted=shifted,
             raw=row,
         )
 
@@ -118,6 +146,8 @@ class OrgRow(BaseModel):
     order_index: int | None
     role: str | None
     ec_contribution: Decimal | None
+    realigned: bool
+    role_discarded: bool
 
     @classmethod
     def from_csv(cls, row: dict[str, str]) -> "OrgRow":
@@ -131,6 +161,25 @@ class OrgRow(BaseModel):
             except ArithmeticError:
                 lat = lon = None
         order_raw = (row.get("order") or "").strip()
+        role_raw = (row.get("role") or "").strip()
+        ec_raw = (row.get("ecContribution") or "").strip()
+        rcn_raw = (row.get("rcn") or "").strip()
+        # A money value in the role column means the row was split one column
+        # early by an unescaped quote in organizationURL. Realign only on the
+        # FULL signature — order holds the role word, rcn holds the rank;
+        # anything less and the trailing fields stay unknown, never guessed.
+        realigned = role_discarded = False
+        if role_raw and parse_decimal(role_raw) is not None:
+            if _HAS_LETTER.search(order_raw) and not order_raw.isdigit() and rcn_raw.isdigit():
+                ec_raw, role_raw, order_raw = role_raw, order_raw, rcn_raw
+                realigned = True
+            else:
+                role_raw, ec_raw = "", ""
+                role_discarded = True
+        elif role_raw and not _HAS_LETTER.search(role_raw):
+            # A role without a single letter is not a role.
+            role_raw = ""
+            role_discarded = True
         pic = _clean(row.get("organisationID"))
         return cls(
             project_source_id=(row.get("projectID") or "").strip(),
@@ -144,25 +193,67 @@ class OrgRow(BaseModel):
             lat=lat,
             lon=lon,
             order_index=int(order_raw) if order_raw.isdigit() else None,
-            role=_clean_short(row.get("role"), 30),
-            ec_contribution=parse_decimal(row.get("ecContribution")),
+            role=_clean_short(role_raw, 30),
+            ec_contribution=parse_decimal(ec_raw),
+            realigned=realigned,
+            role_discarded=role_discarded,
         )
 
     def is_valid(self) -> bool:
         return bool(self.project_source_id.isdigit() and self.name)
 
 
-def parse_legal_basis_titles(path: Path | None) -> dict[str, str]:
-    """Map legalBasis code -> human title, from legalBasis.csv when present."""
-    if path is None:
-        return {}
+class LegalBasisIndex(BaseModel):
+    """The official legalBasis.csv, read as three things at once: the universe
+    of valid programme codes (the ONLY admissible values — project.csv rows
+    corrupted by unescaped quotes put DOIs, booleans and keyword lists in the
+    legalBasis column, B0.1-A), the code -> title map, and the per-project
+    codes that recover the attachment when project.csv is unusable."""
+
+    titles: dict[str, str]
+    universe: set[str]
+    flagged: dict[str, list[str]]
+    all_codes: dict[str, list[str]]
+
+    def resolve(self, project_source_id: str) -> str | None:
+        """The project's programme when it can be told honestly, else None.
+
+        One uniqueProgrammePart code -> that code. Several -> their common
+        ancestor when it is one of them (the finest attachment that is
+        certain). No flag -> the single code if there is only one."""
+        candidates = sorted(set(self.flagged.get(project_source_id, [])))
+        if not candidates:
+            codes = set(self.all_codes.get(project_source_id, []))
+            return codes.pop() if len(codes) == 1 else None
+        if len(candidates) == 1:
+            return candidates[0]
+        root = min(candidates, key=len)
+        if all(code.startswith(root) for code in candidates):
+            return root
+        return None
+
+
+def parse_legal_basis(path: Path | None) -> LegalBasisIndex:
+    """Build the LegalBasisIndex from legalBasis.csv when present."""
     titles: dict[str, str] = {}
-    for row in iter_rows(path):
-        code = (row.get("legalBasis") or "").strip()
-        title = (row.get("title") or "").strip()
-        if code and title:
-            titles[code] = title
-    return titles
+    universe: set[str] = set()
+    flagged: dict[str, list[str]] = {}
+    all_codes: dict[str, list[str]] = {}
+    if path is not None:
+        for row in iter_rows(path):
+            code = (row.get("legalBasis") or "").strip()
+            if not code:
+                continue
+            universe.add(code)
+            title = (row.get("title") or "").strip()
+            if title:
+                titles[code] = title
+            project_id = (row.get("projectID") or "").strip()
+            if project_id:
+                all_codes.setdefault(project_id, []).append(code)
+                if (row.get("uniqueProgrammePart") or "").strip().lower() == "true":
+                    flagged.setdefault(project_id, []).append(code)
+    return LegalBasisIndex(titles=titles, universe=universe, flagged=flagged, all_codes=all_codes)
 
 
 def _find_column(fieldnames: list[str], needle: str) -> str | None:

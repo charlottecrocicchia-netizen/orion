@@ -2,19 +2,20 @@ import hashlib
 from pathlib import Path
 
 from pydantic import ValidationError
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, exists, func, select
+from sqlalchemy.orm import Session, aliased
 
 from orion.core.config import get_settings
 from orion.core.db import SessionLocal
 from orion.ingest.cordis.config import FRAMEWORKS, Framework
 from orion.ingest.cordis.parse import (
+    LegalBasisIndex,
     OrgRow,
     ProjectRow,
     extract_members,
     iter_euroscivoc,
     iter_rows,
-    parse_legal_basis_titles,
+    parse_legal_basis,
 )
 from orion.ingest.download import cached_download
 from orion.ingest.reference import normalize_country
@@ -22,6 +23,7 @@ from orion.ingest.runlog import RunStats, record_run
 from orion.ingest.upsert import upsert
 from orion.models import (
     Call,
+    CallTopic,
     Funder,
     Organisation,
     OrganisationAlias,
@@ -106,6 +108,31 @@ def _get_or_create_call(session: Session, cache: dict[str, int], funder_id: int,
     return existing.id
 
 
+def _resolve_legal_basis(
+    row: ProjectRow, fw: Framework, index: LegalBasisIndex, stats: RunStats
+) -> str | None:
+    """The programme code for a project row, or None for the framework root.
+
+    project.csv is only trusted against the official code universe of
+    legalBasis.csv: rows split by unescaped quotes put DOIs, booleans,
+    timestamps and keyword lists in the legalBasis column (B0.1-A). An
+    unusable value falls back to the per-project legalBasis.csv rows; when
+    those cannot tell either, the attachment stays at the framework root and
+    is counted — never invented."""
+    code = None if row.shifted else row.legal_basis
+    if code == fw.programme_code:
+        return None
+    if code and (code in index.universe if index.universe else _acceptable_code(code, 100)):
+        return code
+    resolved = index.resolve(row.source_id)
+    if resolved and resolved != fw.programme_code:
+        stats.add("legal_basis_recovered")
+        return resolved
+    if code or row.shifted:
+        stats.add("suspect_legal_basis")
+    return None
+
+
 def _load_projects(
     session: Session,
     fw: Framework,
@@ -113,7 +140,7 @@ def _load_projects(
     funder_id: int,
     stats: RunStats,
 ) -> dict[str, int]:
-    legal_titles = parse_legal_basis_titles(files.get("legalBasis.csv"))
+    legal_index = parse_legal_basis(files.get("legalBasis.csv"))
     programme_cache: dict[str, int] = {}
     call_cache: dict[str, int] = {}
     framework_programme_id = _get_or_create_programme(
@@ -124,28 +151,28 @@ def _load_projects(
     texts: list[tuple[str, str, str | None]] = []
     for raw_row in iter_rows(files["project.csv"]):
         try:
-            row = ProjectRow.from_csv(raw_row)
+            row = ProjectRow.from_csv(raw_row, fw.programme_code)
         except ValidationError:
             stats.add("invalid_projects")
             continue
         if not row.is_valid():
             stats.add("invalid_projects")
             continue
+        if row.shifted:
+            stats.add("shifted_projects")
         texts.append((row.source_id, row.title, row.objective))
 
+        programme_code = _resolve_legal_basis(row, fw, legal_index, stats)
         programme_id = framework_programme_id
-        if row.legal_basis and row.legal_basis != fw.programme_code:
-            if _acceptable_code(row.legal_basis, 100):
-                programme_id = _get_or_create_programme(
-                    session,
-                    programme_cache,
-                    funder_id,
-                    row.legal_basis,
-                    legal_titles.get(row.legal_basis),
-                    framework_programme_id,
-                )
-            else:
-                stats.add("suspect_legal_basis")
+        if programme_code:
+            programme_id = _get_or_create_programme(
+                session,
+                programme_cache,
+                funder_id,
+                programme_code,
+                legal_index.titles.get(programme_code),
+                framework_programme_id,
+            )
         call_code = row.sub_call or row.master_call
         if call_code and not _acceptable_code(call_code, 200):
             stats.add("suspect_call_code")
@@ -288,6 +315,11 @@ def _load_participations(
         ).all()
     }
 
+    # DB clock before the first write: everything this run touches gets a
+    # later last_seen_at, so what stays older is stale (uid changed by a
+    # realignment, or row gone from the export) and can be pruned.
+    run_start = session.scalar(select(func.now()))
+
     participations: list[dict] = []
     aliases: list[dict] = []
     seen_uids: set[str] = set()
@@ -305,6 +337,10 @@ def _load_participations(
         if project_id is None:
             stats.add("orphan_participations")
             continue
+        if row.realigned:
+            stats.add("participations_realigned")
+        if row.role_discarded:
+            stats.add("suspect_role")
 
         organisation_id = _resolve_organisation(
             session, row, pic_map, alias_map, stats, type_checked
@@ -365,6 +401,21 @@ def _load_participations(
     session.commit()
     _fail_on_abnormal_invalid_rate(fw, "participations", stats)
 
+    # Prune what this run did not see — only from a run that covered the
+    # corpus (a truncated file must never silently wipe the tail).
+    existing = session.scalar(
+        select(func.count()).select_from(Participation).where(Participation.source == fw.source)
+    )
+    if existing and stats.counts.get("participations", 0) >= 0.95 * existing:
+        result = session.execute(
+            delete(Participation).where(
+                Participation.source == fw.source, Participation.last_seen_at < run_start
+            )
+        )
+        if result.rowcount:
+            stats.add("participations_pruned", result.rowcount)
+    session.commit()
+
 
 def _load_topics(
     session: Session, files: dict[str, Path], project_map: dict[str, int], stats: RunStats
@@ -398,6 +449,35 @@ def _load_topics(
     session.commit()
 
 
+def _prune_orphans(session: Session, funder_id: int, stats: RunStats) -> None:
+    """Drop EC programmes and calls nothing references any more — the parasite
+    rows earlier permissive ingestions minted from shifted CSV rows (B0.1-A).
+    A referenced row, however odd its code, is never touched here."""
+    child = aliased(Programme)
+    for _ in range(5):  # a junk chain never exceeds a couple of levels
+        result = session.execute(
+            delete(Programme).where(
+                Programme.funder_id == funder_id,
+                Programme.parent_id.isnot(None),
+                ~exists(select(Project.id).where(Project.programme_id == Programme.id)),
+                ~exists(select(child.id).where(child.parent_id == Programme.id)),
+            )
+        )
+        if result.rowcount == 0:
+            break
+        stats.add("programmes_pruned", result.rowcount)
+    result = session.execute(
+        delete(Call).where(
+            Call.funder_id == funder_id,
+            ~exists(select(Project.id).where(Project.call_id == Call.id)),
+            ~exists(select(CallTopic.id).where(CallTopic.call_id == Call.id)),
+        )
+    )
+    if result.rowcount:
+        stats.add("calls_pruned", result.rowcount)
+    session.commit()
+
+
 def load_framework(
     session: Session, fw: Framework, files: dict[str, Path], stats: RunStats
 ) -> None:
@@ -406,6 +486,7 @@ def load_framework(
     project_map = _load_projects(session, fw, files, funder.id, stats)
     _load_participations(session, fw, files, project_map, stats)
     _load_topics(session, files, project_map, stats)
+    _prune_orphans(session, funder.id, stats)
 
 
 def run(framework_key: str, force: bool = False) -> dict[str, int]:

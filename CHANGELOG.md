@@ -6,6 +6,27 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **CORDIS ingestion no longer mints parasite programmes or trusts
+  shifted rows (B0.1, docs/conception-b-chaine-argent-public.md).**
+  CORDIS CSV exports contain rows split by unescaped quotes; the old
+  guard let the displaced values through, creating 96 parasite EC
+  programmes (`false`, `NA`, DOIs, bare ids) carrying 275 projects and
+  ~537 M€ of EU contribution, one FP7 project with a corrupted amount
+  and one phantom call, and one FP7 participation whose EU contribution
+  sat in the `role` column. The parser now (a) validates `legalBasis`
+  against the official code universe of `legalBasis.csv` and recovers
+  the attachment from that file's per-project rows (common-ancestor
+  rule when several parts are flagged), (b) detects shifted project
+  rows (frameworkProgramme mismatch, or a date/amount reading as text)
+  and stores NULL — never a displaced value — for everything past the
+  break, (c) realigns a participation row only on the full shift
+  signature and otherwise discards role and amount as unknown, and
+  (d) prunes programmes, calls and stale participations that no row
+  references any more. Non-regression fixtures cover all three
+  corruption classes.
+
 ### Added
 
 - **Calls (E1, phase 5 — first slice live).** Orion now ingests the
