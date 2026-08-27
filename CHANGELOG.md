@@ -24,7 +24,12 @@ All notable changes to Orion are documented here. The format follows
   second, explicitly incompatible measure system; organisation and
   country nodes refuse a single cross-funder total by contract. The
   B0 manual golds are locked as 18 backend tests
-  (`backend/tests/test_chain_gold.py`).
+  (`backend/tests/test_chain_gold.py`). Follow-up B1.1: the country
+  node drops a needless join against the whole projects table, and
+  migration `0035` adds the covering index
+  `ix_participations_country_source_project` (built CONCURRENTLY, no
+  write lock) — the US country node goes from ~2 s to ~0.3 s warm,
+  measured on the full corpus.
 
 ### Fixed
 

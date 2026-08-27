@@ -5,6 +5,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
@@ -83,6 +84,16 @@ class Participation(Base):
     __tablename__ = "participations"
     __table_args__ = (
         UniqueConstraint("source", "source_uid", name="uq_participations_source_uid"),
+        # L'index couvrant du nœud pays de la chaîne (B1.1, créé en 0035
+        # CONCURRENTLY) : égalité pays, groupement source, projets
+        # pré-triés, montants servis sans retour à la table.
+        Index(
+            "ix_participations_country_source_project",
+            "country_code",
+            "source",
+            "project_id",
+            postgresql_include=["amount", "amount_eur", "organisation_id"],
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

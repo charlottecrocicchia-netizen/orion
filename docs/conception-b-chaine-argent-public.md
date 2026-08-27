@@ -668,7 +668,19 @@ sur les 77 instituts NIH — réécrite).
   scan d'index pré-trié, plus aucun tri ni débordement, US ≈
   **420 ms** ; 58 MB (table 187 MB, index existants 206 MB), création
   1,8 s, utilisé par les seuls prédicats pays, maintenance d'écriture
-  modérée à la ré-ingestion. La migration attend l'accord explicite ;
-  la vue matérialisée par financeur est écartée à ce stade (arbitrage
-  du 2026-08-27 : duplication et coût de rafraîchissement injustifiés
-  pour un seul point lent).
+  modérée à la ré-ingestion. La vue matérialisée par financeur est
+  écartée (arbitrage du 2026-08-27 : duplication et coût de
+  rafraîchissement injustifiés pour un seul point lent).
+  **D-B1 tranché, index créé — migration `0035`**
+  (`ix_participations_country_source_project`, `CREATE INDEX
+  CONCURRENTLY` via le bloc autocommit d'Alembic : aucune écriture
+  bloquée pendant la construction, DROP préalable pour rester
+  rejouable après un échec concurrent ; downgrade symétrique, cycle
+  vérifié). Bilan final mesuré (corpus complet) : pays US **2,0 s →
+  1,23 s (réécritures seules) → 335 ms chaud / ~0,96 s froid (avec
+  index, Index Only Scan constaté au plan)** ; FR 46 ms ; taille
+  mesurée 58 MB ; ~140 k heap fetches résiduels tant que l'autovacuum
+  n'a pas rafraîchi la visibility map ; coût d'écriture attendu : un
+  b-tree de plus sur `participations`, sensible uniquement aux
+  ré-ingestions complètes (ordre de grandeur : secondes sur un
+  rechargement CORDIS).
