@@ -5,7 +5,7 @@
  *  reproductible, EN/FR. */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -53,6 +53,88 @@ const FIXTURES: Record<string, unknown> = {
       { level: "funder", id: "nih", label: "NIH (RePORTER)", aggregate: AGG(642e9, 380275) },
     ],
     cross_funder_total: { available: false, reason: "x" },
+  },
+  "/api/chain/funder/ec": {
+    node: { level: "funder", id: "ec", label: "European Commission", currency: "EUR" },
+    aggregate: AGG(176e9, 84452, 1),
+    children: {
+      level: "programme",
+      total: 14,
+      items: Array.from({ length: 14 }, (_, i) => ({
+        level: "programme",
+        id: 100 + i,
+        code: `PROG-${i}`,
+        label: `Programme ${i}`,
+        projects: 10 + i,
+        amount: (14 - i) * 1e9,
+      })),
+    },
+    ancestors: [],
+    navigation: NAV_EC,
+    restrictions: [],
+  },
+  "/api/chain/project/4": {
+    ancestors: [
+      { level: "funder", id: "ec", label: "European Commission" },
+      { level: "programme", id: 11, code: "H2020-EU.3.3.", label: "Énergie" },
+    ],
+    node: {
+      level: "project",
+      id: 4,
+      source: "cordis-horizon",
+      source_id: "101052200",
+      label: "EUROfusion",
+      title: "EUROfusion",
+      funder: "ec",
+      start_date: null,
+      end_date: null,
+      parent: { level: "programme", id: 11, code: "H2020-EU.3.3." },
+      programme: {
+        level: "programme",
+        id: 11,
+        code: "H2020-EU.3.3.",
+        attribution: { provenance: "source_fact", basis: "x" },
+      },
+    },
+    measure: { ...EUR_MEASURE, amount: 549442000 },
+    amount_eur_observed: { amount: 549442000, provenance: "derived", currency: "EUR" },
+    total_cost: null,
+    children: {
+      level: "participation",
+      total: 2,
+      measure: { key: "ec_contribution", provenance: "source_fact", currency: "EUR" },
+      items: [
+        {
+          level: "participation",
+          organisation: { level: "organisation", id: 400, label: "EFA" },
+          role: "participant",
+          country: "DE",
+          source_uid: "101052200:0:0",
+          semantics: "funding_share",
+          amount: 600000000,
+        },
+        {
+          level: "participation",
+          organisation: { level: "organisation", id: 401, label: "EFB" },
+          role: "participant",
+          country: "FR",
+          source_uid: "101052200:1:0",
+          semantics: "funding_share",
+          amount: 64587862.11,
+        },
+      ],
+    },
+    reconciliation: {
+      status: "children_exceed_parent",
+      reason: null,
+      parent_amount: 549442000,
+      children_known_sum: 664587862.11,
+      unallocated: -115145862.11,
+      unknown_children: 0,
+      coverage: { with_amount: 2, total: 2 },
+    },
+    navigation: NAV_EC,
+    restrictions: [],
   },
   "/api/chain/project/1": {
     ancestors: [
@@ -350,7 +432,7 @@ describe("money trail (B2)", () => {
     expect(screen.getByText(/do not cover the whole project total/)).toBeTruthy();
     expect(screen.getByText("Not broken down")).toBeTruthy();
     // La part ITACONIX est inconnue — jamais « €0 ».
-    const row = screen.getByText("Itaconix corporation").closest("tr");
+    const row = screen.getByText("Itaconix corporation").closest("div.border-b");
     expect(row?.textContent).toContain("unknown");
     expect(row?.textContent).not.toContain("€0");
     // total_cost = 0 source → non disponible (D7).
@@ -410,5 +492,71 @@ describe("money trail (B2)", () => {
     expect((await screen.findAllByText("Contribution maximale UE (convention de subvention)")).length).toBeGreaterThan(0);
     expect(screen.getByText("Non ventilé")).toBeTruthy();
     expect(screen.getByText(/pas une erreur/)).toBeTruthy();
+  });
+
+  it("rail : la chaîne est matérialisée, ancêtres cliquables, nœud actif", async () => {
+    mount("/money/project/1");
+    await screen.findByRole("heading", { name: "BIO-QED" });
+    const rails = screen.getAllByRole("navigation", { name: "Trail" });
+    expect(rails.length).toBeGreaterThan(0);
+    const rail = rails[0];
+    // Les ancêtres sont des liens vers leur vue.
+    const links = Array.from(rail.querySelectorAll("a")).map((a) => a.getAttribute("href"));
+    expect(links).toContain("/money/funder/ec");
+    expect(links).toContain("/money/programme/10");
+    expect(links).toContain("/money/call/20");
+    // Le nœud courant est marqué actif, pas un lien.
+    const active = rail.querySelector('[aria-current="true"]');
+    expect(active?.textContent).toContain("BIO-QED");
+  });
+
+  it("rail NIH : l'étage appel sauté ne casse pas le parcours", async () => {
+    mount("/money/project/2");
+    await screen.findByRole("heading", { name: "Rabies therapeutics" });
+    const rail = screen.getAllByRole("navigation", { name: "Trail" })[0];
+    const text = rail.textContent ?? "";
+    expect(text).toContain("NIH (RePORTER)");
+    expect(text).toContain("NIAID");
+    expect(text).not.toContain("Call");
+  });
+
+  it("racine : trois portes d'entrée, mesure courte, sans total commun", async () => {
+    mount("/money");
+    await screen.findByRole("heading", { name: "Where did this money go?" });
+    expect(screen.getAllByText("Explore").length).toBe(2);
+    expect(screen.getAllByText("EU maximum contribution (observed sum)").length).toBeGreaterThan(0);
+    expect(screen.getByText("No single total.")).toBeTruthy();
+  });
+
+  it("longue liste : top 12 par défaut, dépli dans l'URL", async () => {
+    mount("/money/funder/ec");
+    await screen.findByRole("heading", { name: "European Commission" });
+    // 12 visibles sur 14, bouton de dépli.
+    expect(screen.getByText("Programme 0")).toBeTruthy();
+    expect(screen.queryByText("Programme 13")).toBeNull();
+    const more = screen.getByRole("button", { name: "Show the 2 others" });
+    fireEvent.click(more);
+    expect(await screen.findByText("Programme 13")).toBeTruthy();
+    // Et l'état est dans l'URL (rejouable) : remonter au top 12.
+    expect(screen.getByRole("button", { name: "Back to top 12" })).toBeTruthy();
+  });
+
+  it("méthodologie : panneau à la demande, accessible, refermable", async () => {
+    mount("/money/project/1");
+    await screen.findByRole("heading", { name: "BIO-QED" });
+    fireEvent.click(screen.getAllByRole("button", { name: /Methodology & sources/ })[0]);
+    const dialog = await screen.findByRole("dialog", { name: "Methodology & sources" });
+    expect(dialog.textContent).toContain("cordis-fp7");
+    expect(dialog.textContent).toContain("common-ancestor rule");
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("dépassement de plafond : deux barres comparatives, jamais un 100 % empilé", async () => {
+    mount("/money/project/4");
+    await screen.findByRole("heading", { name: "EUROfusion" });
+    expect(screen.getAllByText(/exceed the project ceiling/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/grey bar: project ceiling/)).toBeTruthy();
+    expect(screen.getByText(/blue bar: sum of published shares/)).toBeTruthy();
   });
 });

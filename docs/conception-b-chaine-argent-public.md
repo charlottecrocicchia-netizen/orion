@@ -768,3 +768,53 @@ pluriels de couverture et de compteurs.
   des données sources, représentées honnêtement — pas des défauts.
 
 Dette B2 connue : 0.
+
+### 15.5 B2.1 — la chaîne comme repère principal (2026-08-27, refonte UX locale)
+
+Recomposition visuelle sans toucher au contrat : mêmes endpoints B1,
+mêmes règles, mêmes golds, mêmes URLs. Ce qui change :
+
+- **Rail de parcours** (desktop : vertical persistant à gauche, points
+  reliés, niveau actif en accent ; largeurs étroites : fil horizontal
+  compact en chips qui défile dans son conteneur). Il consomme les
+  `ancestors` du moteur et le nœud courant — aucune logique propre ;
+  les montants des ancêtres viennent du cache de requêtes quand
+  l'étage a été visité (« si disponible », aucun appel en cascade,
+  un chargement profond affiche les noms sans montants). Le breadcrumb
+  reste la navigation secondaire et accessible.
+- **Racine en trois portes d'entrée** (nom, montant, mesure courte,
+  volumétrie, « Explorer → ») — trois blocs distincts, aucune barre
+  commune, aucun classement, le refus du total en toutes lettres.
+- **Distributions** : dans une liste d'enfants comparables (même
+  mesure, même devise), une barre discrète (3 px, accent atténué,
+  échelle relative au maximum) fait lire la répartition avant les
+  chiffres. Jamais de barre quand les valeurs ne sont pas comparables
+  ou quand moins de deux montants sont connus.
+- **Longues listes éditorialisées** : Top 12 par défaut + « Voir les
+  N autres » (état `expanded=1` dans l'URL, rejouable) + pagination
+  serveur conservée ; le classement reste celui du moteur.
+- **Fiche projet différenciée** : réconciliation en carte visuelle —
+  `exact` : barre pleine ; `gap` : barre segmentée (la conservation
+  existe : ventilé + non-ventilé = total) ; `children_exceed_parent` :
+  DEUX barres comparatives avec légende (jamais un 100 % empilé — pas
+  de conservation suggérée) ; cas nuancé `gap` à résidu nul : phrase
+  dédiée (« les parts connues totalisent le total, mais N parts ne
+  sont pas publiées »). Participants en lignes avec part du total et
+  micro-barre d'échelle relative.
+- **NSF : deux blocs de mesure** côte à côte sous le titre « Deux
+  systèmes de mesure — jamais additionnés, jamais interchangés »
+  (cumul à date / fenêtre R5B avec table FY et millésime).
+- **Méthodologie contextuelle** : déclencheur ⓘ discret près du
+  chiffre, panneau latéral fait maison (rôle dialog, Escape,
+  clic-extérieur, focus restitué) — aucune dépendance ajoutée. La
+  nature comptable devient un micro-label pointillé avec info-bulle,
+  détail complet dans le panneau.
+- **Pas de Sankey** : les relations ne sont pas conservatrices (gaps,
+  dépassements, inconnues, NIH non ventilable, mesures NSF
+  incompatibles) — aucune visualisation de flux généralisée.
+
+Défauts trouvés et corrigés pendant la passe visuelle : imbrication
+HTML invalide (`<div>` de panneau dans des `<p>`, erreurs console
+React), phrase de gap trompeuse à résidu nul, six clés i18n devenues
+mortes purgées. Tests : 158 frontend (14 sur la surface, dont rail,
+portes, dépli à URL, panneau, légende de dépassement), 369 backend.
