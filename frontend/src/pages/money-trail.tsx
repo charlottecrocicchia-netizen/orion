@@ -540,11 +540,13 @@ function NavColumn({
             {column.parentLabel}
           </p>
         )}
-        <p className="mt-0.5 text-[11px] uppercase tracking-[.07em] text-muted-foreground">
-          {collapsed
-            ? t("money.topOf", { top: TOP_COUNT, n: formatInt(column.total, locale) })
-            : `${column.childrenLevelLabel} · ${formatInt(column.total, locale)}`}
-        </p>
+        {!column.pending ? (
+          <p className="mt-0.5 text-[11px] uppercase tracking-[.07em] text-muted-foreground">
+            {collapsed
+              ? t("money.topOf", { top: TOP_COUNT, n: formatInt(column.total, locale) })
+              : `${column.childrenLevelLabel} · ${formatInt(column.total, locale)}`}
+          </p>
+        ) : null}
         {concentration != null ? (
           <p className="mt-0.5 text-[10.5px] text-muted-foreground">
             {t("money.concentration", {
