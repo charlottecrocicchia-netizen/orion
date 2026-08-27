@@ -864,3 +864,103 @@ Passe UX locale au-dessus de B2.1 ; le contrat B0/B1 est inchangé.
 Tests : 161 frontend (17 sur la surface), 372 backend. Vérification
 réelle sur corpus complet (deep-link à froid ≡ descente par clics,
 EN/FR, clair/sombre). Clés i18n mortes purgées.
+
+### 15.7 B2.3 — Navigateur de trace interactif (2026-08-27)
+
+Passe d'interaction locale au-dessus de B2.2 ; le contrat B0/B1 et
+toute la logique de trace B2.2 sont inchangés. La surface devient un
+navigateur hiérarchique en colonnes (hybride Column View / Path
+Exploration / arbre de décomposition), où l'on construit sa trace en
+direct au lieu d'enchaîner des pages.
+
+- **Le geste fondateur.** Cliquer une destination ouvre la colonne
+  suivante à droite SANS perdre le contexte : les colonnes amont
+  restent visibles, chacune avec son étape sélectionnée (accent +
+  fond léger + chevron + `aria-current`, jamais la couleur seule).
+  Chaque clic est une navigation React Router : l'URL reste
+  `/money/:level/:id` (+ `programme=`, `expanded=`, `page=`), donc
+  toujours copiable/rejouable — aucun rechargement complet.
+- **Changement de branche à n'importe quel étage** : cliquer un autre
+  enfant d'une colonne amont ne remplace que les colonnes
+  descendantes ; l'amont ne bouge pas (vérifié en réel : ERC → MSCA
+  sous H2020).
+- **Les colonnes** : colonne racine (trois financeurs, montants NON
+  comparables — aucun pourcentage, aucun classement), puis une
+  colonne par ancêtre du fil enrichi, puis la colonne du niveau
+  courant qui pose la question (« Où vont ensuite ces 68,3 Md€ ? »).
+  Lignes très lisibles : nom sur 2 lignes max (`line-clamp`), code
+  mono secondaire, montant, « · 19,7 % · 7 850 projets », chevron ;
+  ligne entière cliquable avec le libellé accessible « Suivre le
+  financement vers … ». Les connecteurs entre colonnes ne codent
+  JAMAIS les montants (épaisseur constante — pas de Sankey).
+- **Référent des % jamais ambigu** : chaque colonne déclare son
+  référent en tête (« % : part de {parent} ») ; chaque valeur garde
+  son libellé complet en info-bulle + texte lecteur d'écran.
+- **La trace compacte** au-dessus des colonnes est la mémoire du
+  chemin (« où suis-je ? ») : blocs nom + montant reliés par
+  « › 19,7 % » (convention affichée : « › % : part de l'étape
+  précédente » ; aucun pourcentage sur une relation que le moteur
+  refuse — appel transversal). Elle commence au financeur : le nœud
+  « Chaîne de l'argent » de B2.1/B2.2 était le nom de la
+  fonctionnalité, pas un nœud de financement — supprimé de la trace,
+  conservé dans le breadcrumb (dont le rôle reste « où suis-je dans
+  Orion »).
+- **Deep-link ≡ descente, sans nouveau contrat backend.** La réponse
+  du nœud courant fournit la dernière colonne et le fil enrichi ; les
+  nœuds ancêtres (identifiants connus d'un coup) se chargent en
+  PARALLÈLE via `useQueries`, sous les mêmes clés de cache que les
+  vues elles-mêmes — une descente par clics a donc déjà tout en
+  cache, un deep-link fait ≤ 4 requêtes bornées par la profondeur de
+  la chaîne, jamais un N+1. Le préchargement de toutes les fratries
+  est explicitement refusé : si la sélection tombe hors de la
+  première page servie d'une liste ancêtre, elle est ÉPINGLÉE depuis
+  le fil enrichi (nom, montant, part si valide — `noShare` sinon) ;
+  si elle est classée au-delà du top replié, elle s'ajoute visible
+  sous le top. La sélection du chemin est donc toujours à l'écran.
+- **Grandes listes** : top 10 par colonne (« 10 principales
+  destinations sur 39 »), phrase de concentration calculée sur le top
+  seul, « Voir les N autres », défilement local de colonne ; dépli et
+  pages de la colonne courante dans l'URL, dépli des colonnes amont
+  en état local (il ne définit pas la vue).
+- **Feuilles → volet de détail** à droite des colonnes, sans les
+  effacer : la fiche projet (question de répartition, participants,
+  NSF deux systèmes, NIH bénéficiaire) vit à côté du chemin qui y
+  mène. Organisation et pays restent des pages transverses B2.2 (pas
+  de chaîne unique — plusieurs financeurs y convergent, le refus du
+  total unique est le contenu).
+- **Réconciliation exacte allégée** : à statut `exact` sans part
+  inconnue, trois lignes suffisent — « Réconciliation exacte /
+  Contribution du projet / Parts connues / Aucun montant non
+  ventilé. » « Contribution du projet » est réservé à CORDIS
+  (famille `ec_*`) : pour une obligation NSF le libellé neutre
+  « Total du projet » demeure — les natures comptables ne
+  s'interchangent jamais. Gap, dépassement et parts inconnues gardent
+  le tableau détaillé B2.2.
+- **Étroit = séquentiel** : trace compacte, résumé du niveau courant,
+  colonne des destinations pleine largeur ; le retour passe par la
+  trace. Aucune colonne artificielle, aucun débordement horizontal de
+  page (vérifié à 420 px).
+- **Transitions** : apparition de colonne en fondu `news-in`
+  (désactivé sous `prefers-reduced-motion`) ; l'auto-défilement vers
+  la nouvelle colonne se fait par assignation directe de
+  `scrollLeft` — constat de recette réelle : le
+  `scrollTo({behavior:"smooth"})` programmatique est interrompu par
+  les re-rendus des colonnes et laissait la vue au point de départ.
+- **Inspecteur méthodologique conservé** (ⓘ, panneau latéral,
+  Escape, restitution du focus) — il renseigne sans casser la
+  navigation.
+
+Constats corrigés pendant la recette réelle : auto-défilement
+(ci-dessus) et sélection masquée par le repli top 10 (division NSF
+classée 12ᵉ — désormais épinglée visible). Tests : 161 frontend
+(17 sur la surface : colonnes reconstruites à froid, sélection
+`aria-current` par étage, épinglage hors page, changement de branche,
+trace sans nœud fictif avec convention, réconciliation exacte
+compacte sans « contribution » NSF), 372 backend inchangés.
+Vérification réelle sur corpus complet : EC → H2020 → ERC →
+ERC-2014-CoG → projets, branche MSCA, appel transversal 1252
+(17 programmes servis, liaison sans pourcentage), NIH 566018
+(bénéficiaire, chaîne sans étage appel), BEACON 754712 (deux
+systèmes + réconciliation exacte compacte), ITACONIX 26640 (refus
+intentionnel), deep-link à froid VerSiLiB 26403 (cinq niveaux),
+EN/FR, clair/sombre, 420 px.

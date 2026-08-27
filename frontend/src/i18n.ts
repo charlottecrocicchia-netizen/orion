@@ -1387,6 +1387,10 @@ const resources = {
         trace: {
           ofPrevious: "{{pct}} of {{parent}}",
           ofPreviousSr: "of {{parent}}",
+          convention: "› % : share of the previous step",
+        },
+        column: {
+          shareRef: "% : share of {{parent}}",
         },
         shareLine: {
           cordis: "{{pct}} of the observed EU contributions of {{parent}}",
@@ -1465,6 +1469,8 @@ const resources = {
           participation_other: "Participants",
           beneficiary_one: "Beneficiary",
           beneficiary_other: "Beneficiaries",
+          funder_one: "Funder",
+          funder_other: "Funders",
         },
         callNotAvailable: "No call level for this funder: the source publishes none in the corpus — the chain skips it rather than inventing it.",
         callScopeNote: "Each call shown here counts only its projects under this programme — a cross-cutting call also serves other programmes.",
@@ -1506,6 +1512,9 @@ const resources = {
         },
         reconciliation: {
           title: "Reconciliation",
+          exactTitle: "Exact reconciliation",
+          exactParent: "Project contribution",
+          noUnallocated: "No unallocated amount.",
           parent: "Project total",
           childrenSum: "Known participant shares",
           unallocated: "Not broken down",
@@ -3007,6 +3016,10 @@ const resources = {
         trace: {
           ofPrevious: "{{pct}} de {{parent}}",
           ofPreviousSr: "de {{parent}}",
+          convention: "› % : part de l'étape précédente",
+        },
+        column: {
+          shareRef: "% : part de {{parent}}",
         },
         shareLine: {
           cordis: "{{pct}} des contributions UE observées de {{parent}}",
@@ -3085,6 +3098,8 @@ const resources = {
           participation_other: "Participants",
           beneficiary_one: "Bénéficiaire",
           beneficiary_other: "Bénéficiaires",
+          funder_one: "Financeur",
+          funder_other: "Financeurs",
         },
         callNotAvailable: "Pas d'étage appel pour ce financeur : la source n'en publie pas dans le corpus — la chaîne le saute plutôt que de l'inventer.",
         callScopeNote: "Chaque appel affiché ici ne compte que ses projets sous ce programme — un appel transversal sert aussi d'autres programmes.",
@@ -3126,6 +3141,9 @@ const resources = {
         },
         reconciliation: {
           title: "Réconciliation",
+          exactTitle: "Réconciliation exacte",
+          exactParent: "Contribution du projet",
+          noUnallocated: "Aucun montant non ventilé.",
           parent: "Total du projet",
           childrenSum: "Parts connues des participants",
           unallocated: "Non ventilé",

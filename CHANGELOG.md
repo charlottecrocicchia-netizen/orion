@@ -22,8 +22,15 @@ All notable changes to Orion are documented here. The format follows
   organisation and country pages refuse a single cross-funder total.
   URLs are fully replayable (level, id, page, programme scope). The
   B1 engine gained two additive endpoints so the UI never guesses:
-  per-node `ancestors` and `GET /chain/funders`. Shared `Breadcrumb`
-  and `Pager` primitives extracted; full EN/FR copy; 8 page tests.
+  per-node `ancestors` (enriched with amounts, share-of-parent and
+  comparability) and `GET /chain/funders`. The surface is an
+  interactive column navigator (B2.3): clicking a destination opens
+  the next level without losing the columns already traversed,
+  switching branches replaces only the descendant columns, a compact
+  financial trace above remembers the path, and a deep link rebuilds
+  the whole thing from the engine with bounded parallel requests —
+  never an N+1, never a client-side guess. Shared `Breadcrumb` and
+  `Pager` primitives extracted; full EN/FR copy; 17 page tests.
 
 - **Public-money chain engine (B1,
   docs/conception-b-chaine-argent-public.md § 14).** New `/api/chain/*`
