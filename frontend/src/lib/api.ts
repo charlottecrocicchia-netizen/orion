@@ -465,6 +465,20 @@ export interface NsfObligationsAggregate {
 export const api = {
   explore: (params: URLSearchParams) =>
     get<ExploreResponse>(`/api/explore/aggregate?${params}`),
+  /** B2 — la chaîne de l'argent public (moteur B1). Identifiants
+   *  stables : URL = vue reproductible. */
+  chainFunders: () => get<ChainFundersIndex>("/api/chain/funders"),
+  chainFunder: (code: string) =>
+    get<ChainFunderNode>(`/api/chain/funder/${encodeURIComponent(code)}`),
+  chainProgramme: (id: string, params: URLSearchParams) =>
+    get<ChainProgrammeNode>(`/api/chain/programme/${id}?${params}`),
+  chainCall: (id: string, params: URLSearchParams) =>
+    get<ChainCallNode>(`/api/chain/call/${id}?${params}`),
+  chainProject: (id: string) => get<ChainProjectNode>(`/api/chain/project/${id}`),
+  chainOrganisation: (id: string) =>
+    get<ChainOrganisationNode>(`/api/chain/organisation/${id}`),
+  chainCountry: (code: string) =>
+    get<ChainCountryNode>(`/api/chain/country/${encodeURIComponent(code)}`),
   suggest: (q: string) =>
     get<SuggestResponse>(`/api/search/suggest?q=${encodeURIComponent(q)}`),
   organisationPartners: (id: string) =>
@@ -855,4 +869,248 @@ export interface Health {
   status: string;
   version: string;
   checks: Record<string, string>;
+}
+
+/* ------------------------------------------------------------------ */
+/* B2 — la chaîne de l'argent public (moteur B1, /api/chain/*).       */
+/* Le moteur FAIT FOI : l'interface lit ses clés stables (measure.key,
+ * provenance, statuts) et pose ses propres libellés i18n dessus — les
+ * textes français du moteur (label, basis, reason) ne sont JAMAIS
+ * affichés tels quels (règle du 2026-08-22 : les phrases vivent en
+ * i18n, pas dans l'API). Aucune logique comptable n'est recalculée
+ * côté client. */
+
+export type ChainLevel =
+  | "funder"
+  | "programme"
+  | "call"
+  | "project"
+  | "participation"
+  | "beneficiary"
+  | "organisation"
+  | "country";
+
+export type ChainProvenance = "source_fact" | "derived" | "orion_analysis";
+
+export interface ChainMeasure {
+  key: string | null;
+  accounting_nature: string | null;
+  provenance: ChainProvenance | null;
+  currency: "EUR" | "USD" | null;
+  /** Prose du moteur (FR) — documentation API, jamais rendue. */
+  label?: string;
+  basis?: string;
+  period?: string;
+  semantics?: string;
+}
+
+export interface ChainCoverage {
+  with_amount: number;
+  unknown_amount: number;
+}
+
+export interface ChainEurObserved {
+  amount: number | null;
+  excluded_no_rate?: number;
+  provenance: ChainProvenance;
+  currency: "EUR";
+}
+
+export interface ChainAggregate {
+  measure: ChainMeasure;
+  amount: number | null;
+  projects: number;
+  coverage: ChainCoverage;
+  amount_eur_observed: ChainEurObserved;
+}
+
+export interface ChainCrumb {
+  level: ChainLevel;
+  id: number | string;
+  code?: string;
+  label?: string | null;
+}
+
+export interface ChainNavEntry {
+  level: ChainLevel;
+  status: "allowed" | "restricted" | "not_available";
+  reason: string | null;
+}
+
+export interface ChainNavigation {
+  down: ChainNavEntry[];
+  up: ChainNavEntry[];
+}
+
+export interface ChainChildItem {
+  level: ChainLevel;
+  id: number;
+  code?: string;
+  label?: string | null;
+  projects?: number;
+  amount: number | null;
+  coverage?: ChainCoverage;
+  measure_key?: string;
+  source?: string;
+  source_id?: string;
+  scope?: string;
+}
+
+export interface ChainChildren {
+  level: ChainLevel;
+  total: number;
+  items: ChainChildItem[];
+  coverage?: ChainCoverage;
+  directly_on_parent?: number;
+  no_call_projects?: number;
+  restriction?: string;
+}
+
+interface ChainNodeBase {
+  ancestors: ChainCrumb[];
+  navigation: ChainNavigation;
+  restrictions: string[];
+}
+
+export interface ChainFundersIndex {
+  funders: {
+    level: "funder";
+    id: string;
+    label: string;
+    aggregate: ChainAggregate;
+  }[];
+  cross_funder_total: { available: boolean; reason: string };
+}
+
+export interface ChainFunderNode extends ChainNodeBase {
+  node: {
+    level: "funder";
+    id: string;
+    label: string;
+    currency: string;
+  };
+  aggregate: ChainAggregate | null;
+  children: ChainChildren;
+}
+
+export interface ChainProgrammeNode extends ChainNodeBase {
+  node: {
+    level: "programme";
+    id: number;
+    code: string;
+    label: string | null;
+    funder: string;
+    parent: ChainCrumb;
+  };
+  aggregate: ChainAggregate;
+  children: ChainChildren;
+}
+
+export interface ChainCallNode extends ChainNodeBase {
+  node: { level: "call"; id: number; code: string; label: string; funder: string };
+  context: { programme_id: number; restriction: string } | null;
+  programmes: { level: "programme"; id: number; code: string; projects: number }[];
+  aggregate: ChainAggregate;
+  children: ChainChildren;
+}
+
+export interface ChainParticipationItem {
+  level: "participation" | "beneficiary";
+  organisation: { level: "organisation"; id: number; label: string };
+  role: string | null;
+  country: string | null;
+  source_uid: string;
+  semantics: "funding_share" | "beneficiary_marker" | "constituent_award";
+  amount?: number | null;
+  amount_eur_observed?: ChainEurObserved;
+  measure_key?: string;
+  amount_note?: string;
+}
+
+export interface ChainReconciliation {
+  status:
+    | "exact"
+    | "gap"
+    | "children_exceed_parent"
+    | "no_parent_amount"
+    | "no_children_amounts"
+    | "not_applicable";
+  reason: string | null;
+  parent_amount: number | null;
+  children_known_sum: number | null;
+  unallocated: number | null;
+  unknown_children: number | null;
+  coverage: { with_amount: number; total: number } | null;
+}
+
+export interface ChainAnnualObligations {
+  measure: ChainMeasure;
+  vintage: string;
+  fiscal_years: { fy: number; amount: number | null }[];
+  window_sum: number | null;
+  comparability: { with_cumulative_total: "incompatible"; reason: string };
+}
+
+export interface ChainProjectNode extends ChainNodeBase {
+  node: {
+    level: "project";
+    id: number;
+    source: string;
+    source_id: string;
+    label: string;
+    title: string;
+    funder: string;
+    start_date: string | null;
+    end_date: string | null;
+    parent: ChainCrumb | null;
+    programme:
+      | (ChainCrumb & {
+          attribution: { provenance: ChainProvenance | null; basis: string | null };
+        })
+      | null;
+  };
+  measure: ChainMeasure & { amount: number | null };
+  amount_eur_observed: ChainEurObserved;
+  total_cost: {
+    amount: number | null;
+    status: "available" | "unknown" | "not_available";
+    provenance_note?: string;
+    measure?: ChainMeasure;
+  } | null;
+  children: {
+    level: "participation" | "beneficiary";
+    total: number;
+    measure: ChainMeasure;
+    items: ChainParticipationItem[];
+  };
+  reconciliation: ChainReconciliation;
+  annual_obligations?: ChainAnnualObligations | null;
+}
+
+export interface ChainFunderBlock {
+  funder: string;
+  measure: ChainMeasure;
+  amount: number | null;
+  projects: number;
+  participations: number;
+  coverage: ChainCoverage;
+  amount_eur_observed: ChainEurObserved;
+}
+
+export interface ChainOrganisationNode extends ChainNodeBase {
+  node: {
+    level: "organisation";
+    id: number;
+    label: string;
+    country: string | null;
+  };
+  by_funder: ChainFunderBlock[];
+  cross_funder_total: { available: boolean; reason: string };
+}
+
+export interface ChainCountryNode extends ChainNodeBase {
+  node: { level: "country"; id: string; label: string };
+  organisations: number;
+  by_funder: ChainFunderBlock[];
+  cross_funder_total: { available: boolean; reason: string };
 }

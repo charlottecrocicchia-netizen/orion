@@ -8,6 +8,23 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **“Where did this money go?” — the money trail surface (B2,
+  docs/conception-b-chaine-argent-public.md § 15).** New `/money`
+  pages (private, lens-free) drill down the B1 chain — funder,
+  programme, call, project, organisations, countries — with the real
+  depth of each source: NIH and NSF skip the call level and say so.
+  Every figure ships with its measure label, its nature badge (source
+  fact / derived / Orion analysis) and its coverage; every
+  decomposition shows its reconciliation (gap and ceiling-exceeded
+  are explained, never hidden); the NIH participation is displayed as
+  a beneficiary, never a financial breakdown; NSF projects show the
+  R5B annual axis as a second, incompatible measure system;
+  organisation and country pages refuse a single cross-funder total.
+  URLs are fully replayable (level, id, page, programme scope). The
+  B1 engine gained two additive endpoints so the UI never guesses:
+  per-node `ancestors` and `GET /chain/funders`. Shared `Breadcrumb`
+  and `Pager` primitives extracted; full EN/FR copy; 8 page tests.
+
 - **Public-money chain engine (B1,
   docs/conception-b-chaine-argent-public.md § 14).** New `/api/chain/*`
   endpoints (private, like every data surface) serve the drill-down

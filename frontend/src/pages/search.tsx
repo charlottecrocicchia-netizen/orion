@@ -10,7 +10,7 @@ import { LensUnavailable } from "@/components/lens-unavailable";
 import { LENS_PARAM, useActiveLensState, useCarriedLens, withLens } from "@/lib/lens";
 import { Sparkline } from "@/components/sparkline";
 import { TrendDelta } from "@/components/trend-delta";
-import { Button } from "@/components/ui/button";
+import { Pager } from "@/components/pager";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import type { ProjectHit, ProjectSearchResponse } from "@/lib/api";
@@ -232,39 +232,6 @@ function Tabs({ q }: { q: string }) {
       <NavLink to={`/organisations${suffix}`} className={cls} end>
         {t("search.organisationsTab")}
       </NavLink>
-    </div>
-  );
-}
-
-function Pager({
-  page,
-  hasMore,
-  update,
-}: {
-  page: number;
-  hasMore: boolean;
-  update: (patch: Record<string, string | null>) => void;
-}) {
-  const { t } = useTranslation();
-  if (page === 1 && !hasMore) return null;
-  return (
-    <div className="mt-8 flex items-center justify-center gap-3">
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={page <= 1}
-        onClick={() => update({ page: page > 2 ? String(page - 1) : null })}
-      >
-        ← {t("search.previous")}
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={!hasMore}
-        onClick={() => update({ page: String(page + 1) })}
-      >
-        {t("search.next")} →
-      </Button>
     </div>
   );
 }

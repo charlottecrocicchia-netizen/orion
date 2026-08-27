@@ -21,6 +21,11 @@ def _not_found() -> HTTPException:
     return HTTPException(status_code=404, detail="node_not_found")
 
 
+@router.get("/chain/funders")
+def chain_funders(db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
+    return chain.funders_index(db)
+
+
 @router.get("/chain/funder/{code}")
 def chain_funder(code: str, db: Annotated[Session, Depends(get_db)]) -> dict[str, Any]:
     try:

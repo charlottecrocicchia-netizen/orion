@@ -17,6 +17,7 @@ import { ExploreThemesPage } from "@/pages/explore-themes";
 import { HomePage } from "@/pages/home";
 import { NotFoundPage } from "@/pages/not-found";
 import { NsfObligationsPage } from "@/pages/nsf-obligations";
+import { MoneyTrailPage } from "@/pages/money-trail";
 import { OrganisationHubPage } from "@/pages/organisation-hub";
 import { GroupHubPage } from "@/pages/group-hub";
 import { ProgrammeHubPage } from "@/pages/programme-hub";
@@ -93,6 +94,10 @@ export function AppRoutes() {
             {/* R5B : surface dédiée, grammaire `fy=` propre — hors du
                 Reference Engine (§ 19.3/19.4). */}
             <Route path="/nsf-obligations" element={<NsfObligationsPage />} />
+            {/* B2 : la chaîne de l'argent public (moteur B1) — hors
+                lentille, URL = vue reproductible. */}
+            <Route path="/money" element={<MoneyTrailPage />} />
+            <Route path="/money/:level/:id" element={<MoneyTrailPage />} />
             <Route path="/explore/countries" element={<ExploreCountriesPage />} />
             <Route path="/explore/regions/:slug" element={<RegionHubPage />} />
             <Route path="/explore/countries/:code" element={<CountryHubPage />} />

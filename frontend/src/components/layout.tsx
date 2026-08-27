@@ -150,6 +150,7 @@ function Footer() {
             <li><Link to={withLens("/calls", carried)} className={link}>{t("footer.callsLink")}</Link></li>
             {/* R5 ignore la lentille : lien direct, URL canonique. */}
             <li><Link to="/nsf-obligations" className={link}>{t("footer.nsfObligationsLink")}</Link></li>
+            <li><Link to="/money" className={link}>{t("footer.moneyTrailLink")}</Link></li>
             <li><Link to={withLens("/workspace", carried)} className={link}>{t("footer.workspaceLink")}</Link></li>
             <li><Link to={withLens("/about-data", carried)} className={link}>{t("footer.data")}</Link></li>
           </ul>

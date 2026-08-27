@@ -85,6 +85,12 @@ function useIntents(): { key: string; label: string; entries: Entry[] }[] {
           desc: t("nav.menu.nsfObligationsDesc"),
           isNew: true,
         },
+        {
+          to: "/money",
+          label: t("nav.menu.moneyTrail"),
+          desc: t("nav.menu.moneyTrailDesc"),
+          isNew: true,
+        },
         { to: "/compare", label: t("nav.menu.compare"), desc: t("nav.menu.compareDesc") },
         {
           to: "/explore?by=theme&split=1",
@@ -222,13 +228,18 @@ export function IntentNav() {
                   "block rounded-lg px-3.5 py-2.5",
                   entry.foot && "mt-1.5 border-t border-border-soft pt-3",
                 );
-                // La surface R5 (/nsf-obligations) ignore la lentille :
-                // l'URL rejouable ne la transporte pas — lui donner
-                // l'apparence d'un effet serait un mensonge d'URL.
+                // Les surfaces hors lentille (/nsf-obligations, /money)
+                // ignorent la lentille : l'URL rejouable ne la transporte
+                // pas — lui donner l'apparence d'un effet serait un
+                // mensonge d'URL.
                 return entry.to ? (
                   <Link
                     key={entry.label}
-                    to={entry.to === "/nsf-obligations" ? entry.to : withLens(entry.to, carried)}
+                    to={
+                      entry.to === "/nsf-obligations" || entry.to === "/money"
+                        ? entry.to
+                        : withLens(entry.to, carried)
+                    }
                     className={cn(rowClass, "transition-colors hover:bg-surface")}
                   >
                     {body}

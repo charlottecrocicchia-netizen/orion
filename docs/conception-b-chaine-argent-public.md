@@ -684,3 +684,87 @@ sur les 77 instituts NIH — réécrite).
   b-tree de plus sur `participations`, sensible uniquement aux
   ré-ingestions complètes (ordre de grandeur : secondes sur un
   rechargement CORDIS).
+
+## 15. B2 — l'interface « Où est passé cet argent ? » (2026-08-27)
+
+Première surface visuelle du lot B, construite dans Orion Dev sur le
+moteur B1 — `frontend/src/pages/money-trail.tsx`, routes `/money` et
+`/money/{level}/{id}`, hors lentille (même régime que R5B : `lens=`
+canonicalisé hors de l'URL). Entrée de navigation « Chaîne de
+l'argent » dans l'intention Analyse, lien de pied de page, titre de
+document. Tests : `frontend/src/test/money-trail.test.tsx` (8) +
+parité i18n ; le moteur a reçu deux extensions ADDITIVES pour que
+l'UI ne devine rien : `ancestors` par nœud (le fil d'Ariane est servi,
+jamais reconstruit par cascades d'appels) et `GET /chain/funders`
+(la racine vient du moteur, aucun code financeur câblé côté client) —
+verrouillées par 2 golds backend (22 au total).
+
+### 15.1 Doctrine d'affichage
+
+- **Le moteur fait foi, l'i18n fait les phrases** : l'UI lit les CLÉS
+  stables (measure.key, provenance, statuts de réconciliation,
+  statuts de navigation) et pose sa copy EN/FR dessus — la prose
+  française du moteur n'est jamais affichée (règle du 2026-08-22).
+- **Chaque montant est défini** : gros chiffre + libellé de mesure +
+  badge de nature (fait source / dérivé / analyse Orion, tooltip) ;
+  couverture toujours dite (« dont N sans montant connu — comptés,
+  jamais transformés en zéros »).
+- **Réconciliation** à chaque décomposition : total parent, parts
+  connues, non-ventilé (ou dépassement, signé), inconnus, et la
+  phrase du statut — un `gap` est présenté comme une propriété des
+  données, `children_exceed_parent` expliqué (EUROfusion).
+- **Étages absents dits, jamais inventés** : NIH/NSF affichent « pas
+  d'étage appel pour ce financeur » ; le fil d'Ariane saute l'étage.
+- **NIH = bénéficiaire** : table sans colonne montant, note explicite ;
+  la copie du total ne devient jamais une part.
+- **NSF = deux systèmes de mesure** : bloc « Obligations annuelles —
+  un second système (R5B) » avec fenêtre, millésime, somme de fenêtre,
+  et l'incompatibilité déclarée en tête.
+- **Organisation/pays : pas de total unique** — blocs par financeur,
+  chacun dans sa mesure et sa devise ; « Pas de total unique » en
+  toutes lettres ; pays = destination institutionnelle.
+- **URL = vue reproductible** : niveau, identifiant, `page=`,
+  `programme=` (contexte d'appel) vivent dans l'URL ; un appel
+  transversal montre ses programmes servis et sa vue cadrée.
+
+### 15.2 Réutilisation et primitives extraites
+
+Réutilisés : layout/nav/footer, Skeleton, Button, ExploreExits,
+formateurs (`formatCompactMoney` EUR/USD, `formatInt`,
+`formatOrgName`, `countryFlag`), motif `<details>` méthodologie R5B,
+squelette de hub, conventions de tables. Extraits en composants
+partagés (ils n'existaient pas) : `components/breadcrumb.tsx`
+(ol/li sémantique, `aria-current="page"`, classes des fils existants)
+et `components/pager.tsx` (le pagineur de la recherche, désormais
+importé par les deux surfaces). Aucun nouveau design system, aucune
+dépendance ajoutée.
+
+### 15.3 Vérification visuelle réelle (Orion Dev, corpus complet)
+
+Parcours vérifiés à l'écran : racine, financeurs (EC/NIH/NSF, listes
+courtes et longue — 77 instituts), programmes (racines et feuilles),
+appels (dont transversal 17 programmes + vue cadrée), pagination
+(URL `page=2`), VerSiLiB (exact), EURIZON (gap +4,3 M€), EUROfusion
+(dépassement −115,1 M€), BIO-QED (part inconnue ≠ 0), 654408
+(rattachement dérivé affiché), HERO (`total_cost=0` → non disponible),
+BEACON (axe annuel, 45,5 M$ ≠ 48 M$), NIH bénéficiaire et orphelin,
+ITACONIX (aucun total unique), pays FR/US/MA, 404/niveau inconnu,
+EN et FR intégral, clair et sombre, largeurs 1280/768/400. Deux
+défauts trouvés et corrigés pendant la passe : devise des lignes
+enfants héritée du parent (les instituts NIH s'affichaient en €),
+pluriels de couverture et de compteurs.
+
+### 15.4 Limitations intrinsèques (pas des dettes)
+
+- Le débordement horizontal du HEADER sous ~650 px est préexistant
+  (identique sur R5B) — la recette responsive globale reste un
+  chantier séparé ; B2 n'introduit aucun débordement (son contenu
+  tient à 400 px).
+- L'avertissement de build « chunk > 500 kB » est préexistant
+  (aucune route lazy dans l'app — constat d'audit) ; B2 ne le crée
+  pas.
+- Les mismatches CORDIS (gap/dépassement), les parts inconnues, les
+  montants absents et l'écart cumul/fenêtre NSF sont des propriétés
+  des données sources, représentées honnêtement — pas des défauts.
+
+Dette B2 connue : 0.

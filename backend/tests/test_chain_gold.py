@@ -620,6 +620,46 @@ def test_niveaux_absents_jamais_synthetises_en_navigation(db_session, gold):
         assert call_status["status"] == "not_available"
 
 
+def test_funders_index_et_refus_de_total(db_session, gold):
+    """La racine de la chaîne : les financeurs viennent du moteur (rien
+    de câblé côté UI) et le total inter-financeurs est refusé là aussi."""
+    index = chain.funders_index(db_session)
+    codes = {f["id"] for f in index["funders"]}
+    assert {"ec", "nih", "nsf"} <= codes
+    assert index["cross_funder_total"]["available"] is False
+    ec = next(f for f in index["funders"] if f["id"] == "ec")
+    assert ec["aggregate"]["measure"]["currency"] == "EUR"
+
+
+def test_ancestors_portent_le_fil_reel(db_session, gold):
+    """B2 lit le fil d'ancêtres du moteur — jamais reconstruit côté
+    client, jamais un étage absent (I5)."""
+    # CORDIS : financeur / cadre / programme / appel.
+    node = chain.project_node(db_session, gold["versilib"].id)
+    levels = [(a["level"], a.get("code", a["id"])) for a in node["ancestors"]]
+    assert levels == [
+        ("funder", "ec"),
+        ("programme", "HORIZON"),
+        ("programme", "HORIZON.3.1"),
+        ("call", "HORIZON-EIC-2021-PATHFINDEROPEN-01"),
+    ]
+    # NIH : financeur / institut — PAS d'étage appel.
+    node = chain.project_node(db_session, gold["rabies"].id)
+    assert [a["level"] for a in node["ancestors"]] == ["funder", "programme"]
+    # Programme : financeur (+ cadre pour une feuille EC).
+    node = chain.programme_node(db_session, gold["p31"].id)
+    assert [(a["level"], a.get("code", a["id"])) for a in node["ancestors"]] == [
+        ("funder", "ec"),
+        ("programme", "HORIZON"),
+    ]
+    # Appel en contexte programme : le fil porte le contexte.
+    node = chain.call_node(db_session, gold["call_adhoc"].id, programme_id=gold["pa"].id)
+    assert [a["level"] for a in node["ancestors"]] == ["funder", "programme", "programme"]
+    # Organisation et pays : pas de fil unique — jamais inventé.
+    assert chain.organisation_node(db_session, gold["itaconix"].id)["ancestors"] == []
+    assert chain.country_node(db_session, "FI")["ancestors"] == []
+
+
 def test_node_not_found(db_session):
     with pytest.raises(chain.NodeNotFound):
         chain.project_node(db_session, -1)

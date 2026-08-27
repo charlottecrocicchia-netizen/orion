@@ -43,10 +43,6 @@ class NodeNotFound(Exception):
     """Le nœud demandé n'existe pas."""
 
 
-class LevelNotAvailable(Exception):
-    """Étage absent pour cette source — jamais synthétisé (I5)."""
-
-
 def _family(source: str) -> str:
     return "cordis" if source.startswith("cordis") else source
 
@@ -248,6 +244,48 @@ def _page(page: int, size: int) -> tuple[int, int]:
 # ---------------------------------------------------------------- financeur
 
 
+def funders_index(db: Session) -> dict[str, Any]:
+    """La racine de la chaîne : les financeurs qui portent des projets,
+    chacun avec sa Σ observée — les codes ne sont jamais câblés côté UI."""
+    rows = db.execute(
+        text(
+            """
+            SELECT f.code, f.name, f.default_currency,
+                   count(*) AS projects, count(p.funding_amount) AS with_amount,
+                   sum(p.funding_amount) AS amount,
+                   count(p.funding_amount_eur) AS with_eur,
+                   sum(p.funding_amount_eur) AS amount_eur
+            FROM projects p JOIN funders f ON f.id = p.funder_id
+            GROUP BY f.code, f.name, f.default_currency
+            ORDER BY f.code
+            """
+        )
+    ).all()
+    items = []
+    for r in rows:
+        family = {"ec": "cordis", "nih": "nih", "nsf": "nsf"}.get(r.code)
+        if family is None:
+            continue
+        items.append(
+            {
+                "level": "funder",
+                "id": r.code,
+                "label": r.name,
+                "aggregate": _aggregate_block(
+                    family, r.amount, r.amount_eur, r.projects, r.with_amount, r.with_eur
+                ),
+            }
+        )
+    return {
+        "funders": items,
+        "cross_funder_total": CROSS_FUNDER_TOTAL_REFUSAL,
+    }
+
+
+def _funder_crumb(funder: Funder) -> dict[str, Any]:
+    return {"level": "funder", "id": funder.code, "label": funder.name}
+
+
 def funder_node(db: Session, code: str) -> dict[str, Any]:
     funder = db.query(Funder).filter(Funder.code == code).first()
     if funder is None:
@@ -337,6 +375,7 @@ def funder_node(db: Session, code: str) -> dict[str, Any]:
                 for r in roots
             ],
         },
+        "ancestors": [],
         "navigation": {"down": NAVIGATION_DOWN.get(funder.code, []), "up": []},
         "restrictions": [
             "les programmes des différents financeurs sont trois objets "
@@ -388,9 +427,18 @@ def programme_node(db: Session, programme_id: int, page: int = 1, size: int = 50
         )
 
     parent: dict[str, Any]
+    ancestors: list[dict[str, Any]] = [_funder_crumb(funder)]
     if programme.parent_id:
         parent_row = db.get(Programme, programme.parent_id)
         parent = {"level": "programme", "id": parent_row.id, "code": parent_row.code}
+        ancestors.append(
+            {
+                "level": "programme",
+                "id": parent_row.id,
+                "code": parent_row.code,
+                "label": parent_row.name,
+            }
+        )
     else:
         parent = {"level": "funder", "id": funder.code}
 
@@ -413,6 +461,7 @@ def programme_node(db: Session, programme_id: int, page: int = 1, size: int = 50
         },
         "aggregate": aggregate,
         "children": children,
+        "ancestors": ancestors,
         "navigation": {
             "down": NAVIGATION_DOWN[funder.code],
             "up": [{"level": parent["level"], "status": "allowed", "reason": None}],
@@ -573,6 +622,25 @@ def call_node(
     if call is None:
         raise NodeNotFound
     offset, limit = _page(page, size)
+    funder = db.get(Funder, call.funder_id)
+
+    ancestors: list[dict[str, Any]] = [_funder_crumb(funder)]
+    if programme_id is not None:
+        context_programme = db.get(Programme, programme_id)
+        if context_programme is not None:
+            if context_programme.parent_id:
+                root = db.get(Programme, context_programme.parent_id)
+                ancestors.append(
+                    {"level": "programme", "id": root.id, "code": root.code, "label": root.name}
+                )
+            ancestors.append(
+                {
+                    "level": "programme",
+                    "id": context_programme.id,
+                    "code": context_programme.code,
+                    "label": context_programme.name,
+                }
+            )
 
     programmes = db.execute(
         text(
@@ -647,6 +715,7 @@ def call_node(
             {"level": "programme", "id": r.id, "code": r.code, "projects": r.projects}
             for r in programmes
         ],
+        "ancestors": ancestors,
         "aggregate": aggregate,
         "children": {
             "level": "project",
@@ -806,6 +875,27 @@ def project_node(db: Session, project_id: int) -> dict[str, Any]:
     family = _family(project.source)
     programme = db.get(Programme, project.programme_id) if project.programme_id else None
     call = db.get(Call, project.call_id) if project.call_id else None
+    funder = db.get(Funder, project.funder_id)
+
+    # Le fil d'ancêtres RÉEL — les étages absents n'y figurent jamais
+    # (I5) : un projet NIH/NSF passe directement programme → projet.
+    ancestors: list[dict[str, Any]] = [_funder_crumb(funder)]
+    if programme is not None:
+        if programme.parent_id:
+            root = db.get(Programme, programme.parent_id)
+            ancestors.append(
+                {"level": "programme", "id": root.id, "code": root.code, "label": root.name}
+            )
+        ancestors.append(
+            {
+                "level": "programme",
+                "id": programme.id,
+                "code": programme.code,
+                "label": programme.name,
+            }
+        )
+    if call is not None:
+        ancestors.append({"level": "call", "id": call.id, "code": call.code, "label": call.code})
 
     participations = db.execute(
         text(
@@ -886,6 +976,7 @@ def project_node(db: Session, project_id: int) -> dict[str, Any]:
     reconciliation = _reconciliation(family, project.funding_amount, participations)
 
     result: dict[str, Any] = {
+        "ancestors": ancestors,
         "node": {
             "level": "project",
             "id": project.id,
@@ -1066,6 +1157,7 @@ def organisation_node(db: Session, organisation_id: int) -> dict[str, Any]:
                 "est une ANALYSE Orion (B0 § 5)",
             },
         },
+        "ancestors": [],
         "by_funder": _by_funder_blocks(db, "pt.organisation_id = :key", organisation_id),
         # I8/I3 : pas de champ total — le refus est le contrat, pas un oubli.
         "cross_funder_total": CROSS_FUNDER_TOTAL_REFUSAL,
@@ -1115,6 +1207,7 @@ def country_node(db: Session, country_code: str) -> dict[str, Any]:
                 "effort national (B0 § 4)",
             },
         },
+        "ancestors": [],
         "organisations": organisations,
         "by_funder": _by_funder_blocks(db, "pt.country_code = :key", country_code),
         "cross_funder_total": CROSS_FUNDER_TOTAL_REFUSAL,
