@@ -157,6 +157,19 @@ RePORTER ne porte aucune déclaration de licence propre (§ 5.5 et
 
 ---
 
+## 8. Dette technique — le smoke test de `deploy.sh` vise un port qui n'existe plus
+
+Constatée au déploiement B0.1 (2026-08-27) : l'étape finale de
+`infra/deploy.sh` interroge `http://localhost:8080/api/health`, mais le
+serveur écoute sur 80/443 (`HTTP_PORT=80` dans le `.env` de prod depuis
+la mise en ligne publique). Le script sort donc en erreur **après une
+bascule pourtant réussie** — au B0.1, la vérification s'est faite sur
+`https://lensorion.com/api/health` (200), conformément à l'arbitrage
+du jour : ne pas modifier le script pendant un déploiement pour
+contourner un smoke. Correctif d'une ligne à faire **à froid** (lire le
+port depuis `.env`, ou viser l'URL publique), avec le prochain passage
+sur `deploy.sh`.
+
 ## Registre des écarts de rituel
 
 > Les fautes de **procédure**, distinctes des bugs : un geste sauté, une
@@ -195,6 +208,26 @@ règle.
 ---
 
 ## Livré (ne plus y toucher, y référer)
+
+- **2026-08-27 — B0 + B0.1 : contrat « chaîne de l'argent public » et
+  assainissement CORDIS, en production** : contrat méthodologique B0
+  validé (arbitrages D1-D7 ; `docs/conception-b-chaine-argent-public.md`)
+  et chantier B0.1 déployé — révision `7cc86f1` (`GIT_REV =
+  7cc86f13a2a8`), **aucune migration** (schéma 0034 inchangé), rituel
+  complet respecté : dump logique pré-B0.1
+  (`orion-20260827-pre-b01.dump`, 1,4 G, lisibilité vérifiée) puis
+  **snapshot OVH pré-B0.1 pris et confirmé par Charlotte AVANT tout
+  geste** (D7 bis honorée). Ré-ingestion CORDIS depuis les **zips
+  contrôlés du 2026-07-31** (SHA256 vérifiés sur le VPS, 3/3, aucune
+  acquisition externe), scheduler arrêté pendant le geste puis relancé.
+  Résultat réconcilié **au centime** avec la recette locale :
+  programmes EC 176→**80** (zéro sans nom), 0 projet sur parasite,
+  appels 2 482→2 481, seuls écarts monétaires **−250 106,00 €** (FP7
+  300401, montant corrompu redevenu inconnu) et **+23 893,85 €**
+  (participation AIRBUS DS réalignée) ; invariants globaux inchangés
+  (699 798 / 110 116 / 1 102 270). Vues matérialisées rafraîchies,
+  santé 200. **B1 non ouvert.**
+  → `docs/conception-b-chaine-argent-public.md` § 13
 
 - **2026-08-26 — R5B `Share of NSF award obligations`, en production —
   CLOSED / PRODUCTION STABLE** : la seule métrique survivante de
