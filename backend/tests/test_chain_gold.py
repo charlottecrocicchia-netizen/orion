@@ -660,6 +660,57 @@ def test_ancestors_portent_le_fil_reel(db_session, gold):
     assert chain.country_node(db_session, "FI")["ancestors"] == []
 
 
+def test_trace_financiere_enrichie_sur_deep_link(db_session, gold):
+    """B2.2 : la trace porte montants et parts du parent SERVIS par le
+    moteur — un deep-link montre la même trace qu'une descente (aucune
+    dépendance au cache client), et un ratio n'existe que quand la
+    relation est un vrai sous-ensemble de la même mesure (I8)."""
+    node = chain.project_node(db_session, gold["versilib"].id)
+    funder_a, root_a, leaf_a, call_a = node["ancestors"]
+    # Montants servis à chaque étage.
+    ec_total = 587056199.73
+    assert funder_a["amount"] == pytest.approx(ec_total)
+    assert funder_a["currency"] == "EUR"
+    assert funder_a["share_of_parent"] is None  # tête de trace
+    assert root_a["amount"] == pytest.approx(ec_total)  # tout est sous HORIZON
+    assert root_a["share_of_parent"] == pytest.approx(1.0)
+    leaf_total = 2994244.99 + 24767360.43 + 517435.92
+    assert leaf_a["amount"] == pytest.approx(leaf_total)
+    assert leaf_a["share_of_parent"] == pytest.approx(leaf_total / ec_total)
+    # L'appel PATHFINDER ne sert qu'un programme : ratio valide.
+    assert call_a["amount"] == pytest.approx(2994244.99)
+    assert call_a["comparability"] == "ok"
+    assert call_a["share_of_parent"] == pytest.approx(2994244.99 / leaf_total)
+    # Le nœud courant : sa part du dernier ancêtre.
+    assert node["share_of_parent"]["ratio"] == pytest.approx(1.0)
+    assert node["share_of_parent"]["parent"]["level"] == "call"
+
+
+def test_trace_appel_transversal_sans_ratio_faux(db_session, gold):
+    """Un appel qui sert plusieurs programmes garde la liaison
+    structurelle mais AUCUN pourcentage vis-à-vis du programme."""
+    project = db_session.scalar(
+        select(Project).where(Project.source_id == "900001", Project.source == "cordis-h2020")
+    )
+    node = chain.project_node(db_session, project.id)
+    call_a = node["ancestors"][-1]
+    assert call_a["level"] == "call"
+    assert call_a["comparability"] == "transversal_call"
+    assert call_a["share_of_parent"] is None
+    # Mais le projet reste un sous-ensemble de l'appel : sa part existe.
+    assert node["share_of_parent"]["ratio"] == pytest.approx(1000000 / 3000000)
+
+
+def test_trace_nih_parts_sur_mesure_homogene(db_session, gold):
+    node = chain.project_node(db_session, gold["rabies"].id)
+    funder_a, institute_a = node["ancestors"]
+    nih_total = 441743.00 + 100000.00
+    assert funder_a["amount"] == pytest.approx(nih_total)
+    assert funder_a["currency"] == "USD"
+    assert institute_a["share_of_parent"] == pytest.approx(1.0)
+    assert node["share_of_parent"]["ratio"] == pytest.approx(441743.00 / nih_total)
+
+
 def test_node_not_found(db_session):
     with pytest.raises(chain.NodeNotFound):
         chain.project_node(db_session, -1)

@@ -138,11 +138,51 @@ const FIXTURES: Record<string, unknown> = {
   },
   "/api/chain/project/1": {
     ancestors: [
-      { level: "funder", id: "ec", label: "European Commission" },
-      { level: "programme", id: 10, code: "HORIZON", label: "Horizon Europe" },
-      { level: "programme", id: 11, code: "H2020-EU.3.3.", label: "Énergie" },
-      { level: "call", id: 20, code: "CALL-X", label: "CALL-X" },
+      {
+        level: "funder",
+        id: "ec",
+        label: "European Commission",
+        amount: 176e9,
+        currency: "EUR",
+        share_of_parent: null,
+        comparability: null,
+      },
+      {
+        level: "programme",
+        id: 10,
+        code: "HORIZON",
+        label: "Horizon Europe",
+        amount: 62e9,
+        currency: "EUR",
+        share_of_parent: 0.352,
+        comparability: "ok",
+      },
+      {
+        level: "programme",
+        id: 11,
+        code: "H2020-EU.3.3.",
+        label: "Énergie",
+        amount: 10e9,
+        currency: "EUR",
+        share_of_parent: 0.161,
+        comparability: "ok",
+      },
+      {
+        level: "call",
+        id: 20,
+        code: "CALL-X",
+        label: "CALL-X",
+        amount: 50e6,
+        currency: "EUR",
+        share_of_parent: null,
+        comparability: "transversal_call",
+      },
     ],
+    share_of_parent: {
+      ratio: 5335158.39 / 50e6,
+      comparability: "ok",
+      parent: { level: "call", label: "CALL-X" },
+    },
     node: {
       level: "project",
       id: 1,
@@ -456,7 +496,8 @@ describe("money trail (B2)", () => {
   it("NSF : l'axe annuel est un second système, déclaré incompatible", async () => {
     mount("/money/project/3");
     expect(await screen.findByRole("heading", { name: "BEACON" })).toBeTruthy();
-    expect(screen.getByText(/never added or interchanged/)).toBeTruthy();
+    expect(screen.getByText(/never added, never interchanged/)).toBeTruthy();
+    expect(screen.getByText(/not a decomposition of one another/)).toBeTruthy();
     expect(screen.getByText("$45.5M")).toBeTruthy();
     expect(screen.getAllByText("$48M").length).toBeGreaterThan(0);
     expect(screen.getByText(/vintage 2026-08-26/)).toBeTruthy();
@@ -556,7 +597,43 @@ describe("money trail (B2)", () => {
     mount("/money/project/4");
     await screen.findByRole("heading", { name: "EUROfusion" });
     expect(screen.getAllByText(/exceed the project ceiling/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/grey bar: project ceiling/)).toBeTruthy();
-    expect(screen.getByText(/blue bar: sum of published shares/)).toBeTruthy();
+    // Lecture comptable : Plafond / Somme des parts / Écart signé —
+    // aucune barre, aucune conservation suggérée.
+    expect(screen.getByText("Project ceiling")).toBeTruthy();
+    expect(screen.getByText("Gap")).toBeTruthy();
+    expect(screen.getByText("+€115.1M")).toBeTruthy();
+  });
+
+  it("trace : le deep-link porte montants et parts servis par le moteur", async () => {
+    mount("/money/project/1");
+    await screen.findByRole("heading", { name: "BIO-QED" });
+    const rail = screen.getAllByRole("navigation", { name: "Trail" })[0];
+    const text = rail.textContent ?? "";
+    // Montants d'ancêtres SANS navigation préalable ni cache.
+    expect(text).toContain("€176B");
+    expect(text).toContain("€62B");
+    // Part du parent sur les relations valides…
+    expect(text).toContain("35.2");
+    // …et RIEN sur l'appel transversal (liaison structurelle seule) :
+    // exactement deux relations chiffrées (HORIZON et Énergie).
+    expect((text.match(/↓/g) ?? []).length).toBe(2);
+  });
+
+  it("hero : la part du parent est libellée, la question est posée", async () => {
+    mount("/money/funder/ec");
+    await screen.findByRole("heading", { name: "European Commission" });
+    expect(screen.getByText(/Where do these .* go next\?/)).toBeTruthy();
+    expect(screen.getByText(/12 main destinations out of 14/)).toBeTruthy();
+    expect(screen.getByText(/the top 12 account for/)).toBeTruthy();
+    // Ligne de destination : label accessible « suivre le financement ».
+    expect(screen.getAllByText(/Follow the funding to/).length).toBeGreaterThan(0);
+  });
+
+  it("gap : le pourcentage non ventilé est dit en toutes lettres", async () => {
+    mount("/money/project/1");
+    await screen.findByRole("heading", { name: "BIO-QED" });
+    expect(screen.getByText(/43\.8\s?% of the amount is not broken down/)).toBeTruthy();
+    // Et la part du projet dans son appel, libellée dans le hero.
+    expect(screen.getByText(/10\.7\s?% of the observed EU contributions of CALL-X/)).toBeTruthy();
   });
 });

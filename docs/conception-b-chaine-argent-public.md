@@ -818,3 +818,49 @@ HTML invalide (`<div>` de panneau dans des `<p>`, erreurs console
 React), phrase de gap trompeuse à résidu nul, six clés i18n devenues
 mortes purgées. Tests : 158 frontend (14 sur la surface, dont rail,
 portes, dépli à URL, panneau, légende de dépassement), 369 backend.
+
+### 15.6 B2.2 — Trace Explorer : le chemin de l'argent, évident (2026-08-27)
+
+Passe UX locale au-dessus de B2.1 ; le contrat B0/B1 est inchangé.
+
+- **Le fil devient une TRACE FINANCIÈRE.** Le moteur enrichit
+  `ancestors` (montants, devise, `share_of_parent`, statut de
+  comparabilité) : un deep-link porte la même trace qu'une descente
+  par clics — plus aucune dépendance au cache client. Les totaux
+  financeurs viennent du cache estampillé du moteur (un balayage par
+  millésime d'ingestion) ; un ratio n'existe que si la relation est
+  un vrai sous-ensemble de la même mesure : un appel transversal
+  garde la liaison structurelle SANS pourcentage
+  (`comparability: "transversal_call"`) — 3 golds moteur en plus
+  (26 au total sur la chaîne).
+- **Les barres de distribution B2.1 sont supprimées** (elles
+  répétaient le pourcentage voisin), ainsi que les micro-barres des
+  participants et les barres de réconciliation. Aucune visualisation
+  générique ne les remplace.
+- **Le hero pose la question** : part du parent libellée par famille
+  (« 35,2 % des contributions UE observées de … »), puis « Où vont
+  ensuite ces 68,3 Md€ ? » au-dessus des destinations.
+- **Lignes de destination** : nom + code mono, volumétrie, montant,
+  « X % de {parent} » (référent en libellé/info-bulle + texte lecteur
+  d'écran), chevron ; ligne entière cliquable avec libellé accessible
+  « Suivre le financement vers … ». Top 12 décrit (« 12 principales
+  destinations sur 39 ») + phrase de concentration quand le calcul
+  est valide (« les 12 premières représentent 83,9 % du montant
+  observé ») ; état `expanded=1` dans l'URL.
+- **Réconciliation en lecture comptable** : lignes Total/Parts/Non
+  ventilé/Inconnus avec tirets pour les absences, phrase « 17,6 % du
+  montant n'est pas ventilé… » pour un gap ; dépassement en
+  Plafond/Somme/« Écart +115,1 M€ » — aucune barre, aucune
+  conservation suggérée.
+- **NSF** : deux blocs de mesure portant chacun nature, période et
+  provenance, sous « Deux systèmes de mesure — jamais additionnés,
+  jamais interchangés », avec « Ces deux valeurs ne constituent pas
+  une décomposition l'une de l'autre ».
+- **Une part réelle minuscule ne s'affiche jamais « 0 % »** : plancher
+  « < 0,1 % » (esprit I4 — un projet NIH à 0,0004 % de son institut).
+- Racine : « Choisissez un financeur pour commencer à suivre
+  l'argent. » Rail étroit : parts visibles dans les puces.
+
+Tests : 161 frontend (17 sur la surface), 372 backend. Vérification
+réelle sur corpus complet (deep-link à froid ≡ descente par clics,
+EN/FR, clair/sombre). Clés i18n mortes purgées.

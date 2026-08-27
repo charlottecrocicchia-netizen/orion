@@ -286,6 +286,136 @@ def _funder_crumb(funder: Funder) -> dict[str, Any]:
     return {"level": "funder", "id": funder.code, "label": funder.name}
 
 
+# ------------------------------------------------- trace financière (B2.2)
+# URL = vue reproductible vaut aussi pour la TRACE : chaque ancêtre
+# transporte son montant et sa part du parent quand le ratio est
+# méthodologiquement valide — un deep-link porte la même trace qu'une
+# descente par clics, sans cascade d'appels côté client.
+
+
+def _funder_totals(db: Session) -> dict[str, dict[str, Any]]:
+    """Σ observée par financeur — un seul balayage par millésime
+    d'ingestion (cache estampillé du moteur de recherche)."""
+    from orion.search.service import _cached
+
+    def build() -> dict[str, dict[str, Any]]:
+        rows = db.execute(
+            text(
+                """
+                SELECT f.code, f.default_currency,
+                       sum(p.funding_amount) AS amount, count(*) AS projects
+                FROM projects p JOIN funders f ON f.id = p.funder_id
+                GROUP BY f.code, f.default_currency
+                """
+            )
+        ).all()
+        return {
+            r.code: {"amount": r.amount, "currency": r.default_currency, "projects": r.projects}
+            for r in rows
+        }
+
+    return _cached(db, "chain:funder-totals", build)
+
+
+def _programme_subtree_amount(db: Session, programme_id: int) -> Any:
+    return db.execute(
+        text(
+            """
+            SELECT sum(p.funding_amount) FROM projects p
+            WHERE p.programme_id = :pid
+               OR p.programme_id IN (
+                    SELECT c.id FROM programmes c WHERE c.parent_id = :pid)
+            """
+        ),
+        {"pid": programme_id},
+    ).scalar()
+
+
+def _call_totals(db: Session, call_id: int) -> tuple[Any, int]:
+    row = db.execute(
+        text(
+            "SELECT sum(p.funding_amount) AS amount, "
+            "count(DISTINCT p.programme_id) AS programmes "
+            "FROM projects p WHERE p.call_id = :cid"
+        ),
+        {"cid": call_id},
+    ).one()
+    return row.amount, row.programmes
+
+
+def _ratio(child: Any, parent: Any) -> float | None:
+    if child is None or parent is None:
+        return None
+    parent_f = float(parent)
+    if parent_f <= 0:
+        return None
+    return float(child) / parent_f
+
+
+def _enrich_trail(db: Session, ancestors: list[dict[str, Any]]) -> None:
+    """Montant, devise et part du parent sur chaque ancêtre.
+
+    La part n'existe que si la relation est un vrai sous-ensemble de la
+    même mesure (I8) : programme ⊂ cadre ⊂ financeur toujours ; un
+    appel ⊂ programme SEULEMENT s'il ne sert que ce programme — un
+    appel transversal garde la liaison structurelle sans ratio
+    (`comparability: "transversal_call"`), jamais un pourcentage faux."""
+    previous_amount: Any = None
+    for index, crumb in enumerate(ancestors):
+        comparability = "ok"
+        if crumb["level"] == "funder":
+            totals = _funder_totals(db).get(str(crumb["id"]))
+            amount = totals["amount"] if totals else None
+            crumb["currency"] = totals["currency"] if totals else None
+        elif crumb["level"] == "programme":
+            amount = _programme_subtree_amount(db, int(crumb["id"]))
+            crumb["currency"] = ancestors[0].get("currency") if ancestors else None
+        elif crumb["level"] == "call":
+            amount, n_programmes = _call_totals(db, int(crumb["id"]))
+            crumb["currency"] = ancestors[0].get("currency") if ancestors else None
+            if index > 0 and ancestors[index - 1]["level"] == "programme" and n_programmes > 1:
+                comparability = "transversal_call"
+        else:
+            crumb["amount"] = None
+            crumb["share_of_parent"] = None
+            crumb["comparability"] = "not_applicable"
+            previous_amount = None
+            continue
+        crumb["amount"] = _num(amount)
+        if index == 0:
+            crumb["share_of_parent"] = None
+            crumb["comparability"] = None
+        elif comparability != "ok":
+            crumb["share_of_parent"] = None
+            crumb["comparability"] = comparability
+        else:
+            share = _ratio(amount, previous_amount)
+            crumb["share_of_parent"] = share
+            crumb["comparability"] = "ok" if share is not None else "unknown_amount"
+        previous_amount = amount
+
+
+def _node_share(
+    ancestors: list[dict[str, Any]], node_amount: Any, *, subset_of_parent: bool = True
+) -> dict[str, Any] | None:
+    """La part du nœud courant dans le dernier ancêtre du fil — le
+    « X % du parent » du niveau courant. `subset_of_parent` est faux
+    quand la relation n'est pas un sous-ensemble (appel transversal
+    affiché en global sous un programme, par exemple)."""
+    if not ancestors:
+        return None
+    parent = ancestors[-1]
+    parent_info = {"level": parent["level"], "label": parent.get("label") or parent.get("code")}
+    if not subset_of_parent:
+        return {"ratio": None, "comparability": "transversal_call", "parent": parent_info}
+    ratio = _ratio(node_amount, parent.get("amount"))
+    return {
+        "ratio": ratio,
+        "comparability": "ok" if ratio is not None else "unknown_amount",
+        "parent": parent_info,
+    }
+
+
 def funder_node(db: Session, code: str) -> dict[str, Any]:
     funder = db.query(Funder).filter(Funder.code == code).first()
     if funder is None:
@@ -441,8 +571,10 @@ def programme_node(db: Session, programme_id: int, page: int = 1, size: int = 50
         )
     else:
         parent = {"level": "funder", "id": funder.code}
+    _enrich_trail(db, ancestors)
 
     return {
+        "share_of_parent": _node_share(ancestors, agg.amount),
         "node": {
             "level": "programme",
             "id": programme.id,
@@ -641,6 +773,7 @@ def call_node(
                     "label": context_programme.name,
                 }
             )
+    _enrich_trail(db, ancestors)
 
     programmes = db.execute(
         text(
@@ -716,6 +849,7 @@ def call_node(
             for r in programmes
         ],
         "ancestors": ancestors,
+        "share_of_parent": _node_share(ancestors, agg.amount),
         "aggregate": aggregate,
         "children": {
             "level": "project",
@@ -896,6 +1030,7 @@ def project_node(db: Session, project_id: int) -> dict[str, Any]:
         )
     if call is not None:
         ancestors.append({"level": "call", "id": call.id, "code": call.code, "label": call.code})
+    _enrich_trail(db, ancestors)
 
     participations = db.execute(
         text(
@@ -977,6 +1112,7 @@ def project_node(db: Session, project_id: int) -> dict[str, Any]:
 
     result: dict[str, Any] = {
         "ancestors": ancestors,
+        "share_of_parent": _node_share(ancestors, project.funding_amount),
         "node": {
             "level": "project",
             "id": project.id,

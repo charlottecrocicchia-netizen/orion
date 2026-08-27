@@ -929,6 +929,18 @@ export interface ChainCrumb {
   id: number | string;
   code?: string;
   label?: string | null;
+  /** B2.2 — la trace financière servie par le moteur : un deep-link
+   *  porte la même trace qu'une descente par clics. */
+  amount?: number | null;
+  currency?: string | null;
+  share_of_parent?: number | null;
+  comparability?: "ok" | "unknown_amount" | "transversal_call" | "not_applicable" | null;
+}
+
+export interface ChainNodeShare {
+  ratio: number | null;
+  comparability: "ok" | "unknown_amount" | "transversal_call";
+  parent: { level: ChainLevel; label: string | null };
 }
 
 export interface ChainNavEntry {
@@ -970,6 +982,7 @@ interface ChainNodeBase {
   ancestors: ChainCrumb[];
   navigation: ChainNavigation;
   restrictions: string[];
+  share_of_parent?: ChainNodeShare | null;
 }
 
 export interface ChainFundersIndex {

@@ -19,7 +19,7 @@
  *  vit dans l'URL : copier, rafraîchir, rouvrir = même vue. */
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
 
@@ -98,6 +98,11 @@ function usePagePatch(): [number, boolean, (patch: Record<string, string | null>
 }
 
 function pct(share: number, locale: string): string {
+  // Une part réelle mais minuscule ne s'affiche JAMAIS « 0 % » — un
+  // zéro qui n'en est pas un (esprit I4) : elle devient « < 0,1 % ».
+  if (share > 0 && share < 0.05) {
+    return `< ${(0.1).toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
+  }
   return `${share.toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
 }
 
@@ -110,6 +115,7 @@ interface RailNode {
   to?: string;
   amount?: number | null;
   currency?: string | null;
+  share?: number | null;
   active?: boolean;
 }
 
@@ -117,39 +123,8 @@ function crumbPath(crumb: ChainCrumb): string {
   return `/money/${crumb.level}/${crumb.id}`;
 }
 
-/** Le montant d'un ancêtre, lu dans le cache de requêtes quand l'étage
- *  a déjà été visité — jamais un appel supplémentaire. */
-function useAncestorAmount() {
-  const queryClient = useQueryClient();
-  return (crumb: ChainCrumb): { amount?: number | null; currency?: string | null } => {
-    if (crumb.level === "funder") {
-      const node = queryClient.getQueryData<{
-        aggregate: { amount: number | null; measure: ChainMeasure } | null;
-      }>(["chain-funder", String(crumb.id)]);
-      if (node?.aggregate) {
-        return { amount: node.aggregate.amount, currency: node.aggregate.measure.currency };
-      }
-      const index = queryClient.getQueryData<{
-        funders: { id: string; aggregate: { amount: number | null; measure: ChainMeasure } }[];
-      }>(["chain-funders"]);
-      const entry = index?.funders.find((funder) => funder.id === crumb.id);
-      if (entry) {
-        return { amount: entry.aggregate.amount, currency: entry.aggregate.measure.currency };
-      }
-      return {};
-    }
-    if (crumb.level !== "programme" && crumb.level !== "call") return {};
-    const keyBase = crumb.level === "programme" ? "chain-programme" : "chain-call";
-    const matches = queryClient.getQueriesData<{
-      aggregate: { amount: number | null; measure: ChainMeasure };
-    }>({ queryKey: [keyBase, String(crumb.id)] });
-    const hit = matches.find(([, data]) => data?.aggregate)?.[1];
-    return hit ? { amount: hit.aggregate.amount, currency: hit.aggregate.measure.currency } : {};
-  };
-}
-
 function TrailRail({ nodes }: { nodes: RailNode[] }) {
-  const { t, money } = useMoneyCopy();
+  const { t, locale, money } = useMoneyCopy();
   const levelName = (level: string) => (LEVELS.has(level) ? t(`money.levels.${level}`) : level);
 
   return (
@@ -194,6 +169,22 @@ function TrailRail({ nodes }: { nodes: RailNode[] }) {
                       node.active ? "border-accent bg-accent" : "border-border bg-background",
                     )}
                   />
+                  {node.share != null ? (
+                    <p
+                      className="tnum mb-1 text-[11px] text-muted-foreground"
+                      title={t("money.trace.ofPrevious", {
+                        pct: pct(node.share * 100, locale),
+                        parent: nodes[index - 1]?.label ?? "",
+                      })}
+                    >
+                      <span aria-hidden="true">↓ </span>
+                      {pct(node.share * 100, locale)}
+                      <span className="sr-only">
+                        {" "}
+                        {t("money.trace.ofPreviousSr", { parent: nodes[index - 1]?.label ?? "" })}
+                      </span>
+                    </p>
+                  ) : null}
                   <p className="text-[10.5px] font-medium uppercase tracking-[.08em] text-muted-foreground">
                     {levelName(node.level)}
                   </p>
@@ -245,16 +236,33 @@ function TrailRail({ nodes }: { nodes: RailNode[] }) {
             {node.to && !node.active ? (
               <Link
                 to={node.to}
-                className="max-w-[22ch] truncate rounded-full border px-2.5 py-0.5 transition-colors hover:text-accent"
+                className="max-w-[26ch] truncate rounded-full border px-2.5 py-0.5 transition-colors hover:text-accent"
+                title={
+                  node.share != null
+                    ? t("money.trace.ofPrevious", {
+                        pct: pct(node.share * 100, locale),
+                        parent: nodes[index - 1]?.label ?? "",
+                      })
+                    : undefined
+                }
               >
                 {node.label}
+                {node.share != null ? (
+                  <span className="tnum text-muted-foreground"> · {pct(node.share * 100, locale)}</span>
+                ) : null}
               </Link>
             ) : (
               <span
                 aria-current="true"
-                className="max-w-[22ch] truncate rounded-full border border-accent/50 bg-accent-soft px-2.5 py-0.5 font-medium"
+                className="max-w-[26ch] truncate rounded-full border border-accent/50 bg-accent-soft px-2.5 py-0.5 font-medium"
               >
                 {node.label}
+                {node.share != null ? (
+                  <span className="tnum font-normal text-muted-foreground">
+                    {" "}
+                    · {pct(node.share * 100, locale)}
+                  </span>
+                ) : null}
               </span>
             )}
           </span>
@@ -299,17 +307,17 @@ function moneyCrumbItems(
   ];
 }
 
-function railFromAncestors(
-  ancestors: ChainCrumb[],
-  resolve: (crumb: ChainCrumb) => { amount?: number | null; currency?: string | null },
-  current: RailNode,
-): RailNode[] {
+function railFromAncestors(ancestors: ChainCrumb[], current: RailNode): RailNode[] {
+  // La trace vient ENTIÈREMENT du moteur (ancêtres enrichis) : un
+  // deep-link porte la même trace qu'une descente par clics.
   return [
     ...ancestors.map((a) => ({
       level: a.level,
       label: a.label ?? a.code ?? String(a.id),
       to: crumbPath(a),
-      ...resolve(a),
+      amount: a.amount,
+      currency: a.currency,
+      share: a.comparability === "ok" ? a.share_of_parent : null,
     })),
     { ...current, active: true },
   ];
@@ -433,20 +441,31 @@ function MethodologyPanel({
 /* ------------------------------------------------------------------ */
 /* Le chiffre en titre + sa définition — jamais un montant nu          */
 
+function shareFamily(key: string | null | undefined): "cordis" | "nih" | "nsf" | null {
+  if (!key) return null;
+  if (key.startsWith("ec_")) return "cordis";
+  if (key.startsWith("nih_")) return "nih";
+  if (key.startsWith("nsf_")) return "nsf";
+  return null;
+}
+
 function MeasureHero({
   amount,
   measure,
   projects,
   coverage,
+  share,
   methodology,
 }: {
   amount: number | null;
   measure: ChainMeasure;
   projects?: number;
   coverage?: { with_amount: number; unknown_amount: number };
+  share?: import("@/lib/api").ChainNodeShare | null;
   methodology?: ReactNode;
 }) {
   const { t, locale, money, measureLabel } = useMoneyCopy();
+  const family = shareFamily(measure.key);
   return (
     <div className="mt-8">
       <div className="display-tight tnum text-[clamp(34px,5vw,52px)] font-semibold">
@@ -461,6 +480,14 @@ function MeasureHero({
         {amount != null ? <NatureMark provenance={measure.provenance} /> : null}
         {methodology}
       </div>
+      {share != null && share.ratio != null && family ? (
+        <p className="tnum mt-2 text-[14px] text-muted-foreground">
+          {t(`money.shareLine.${family}`, {
+            pct: pct(share.ratio * 100, locale),
+            parent: share.parent.label ?? "",
+          })}
+        </p>
+      ) : null}
       {projects != null && coverage != null ? (
         <p className="mt-3 max-w-[70ch] text-[12.5px] leading-relaxed text-muted-foreground">
           {coverage.unknown_amount > 0
@@ -491,11 +518,12 @@ interface DistributionRow {
 }
 
 function DistributionList({
-  title,
+  parentAmount,
+  parentName,
+  parentCurrency,
+  childrenLabel,
   rows,
   total,
-  parentAmount,
-  currency,
   coverage,
   page,
   expanded,
@@ -503,11 +531,12 @@ function DistributionList({
   paginated,
   footNotes,
 }: {
-  title: string;
+  parentAmount: number | null;
+  parentName: string;
+  parentCurrency: string | null | undefined;
+  childrenLabel: string;
   rows: DistributionRow[];
   total: number;
-  parentAmount: number | null;
-  currency: string | null | undefined;
   coverage?: { with_amount: number; unknown_amount: number };
   page: number;
   expanded: boolean;
@@ -516,41 +545,56 @@ function DistributionList({
   footNotes?: ReactNode;
 }) {
   const { t, locale, money } = useMoneyCopy();
-  const known = rows.filter((row) => row.amount != null).map((row) => row.amount as number);
-  // Les barres n'existent qu'entre valeurs réellement comparables :
-  // même mesure, même devise, et au moins deux valeurs pour l'échelle.
-  const max = known.length >= 2 ? Math.max(...known) : null;
   const collapsed = !expanded && rows.length > TOP_COUNT;
   const visible = collapsed ? rows.slice(0, TOP_COUNT) : rows;
   const hasMore = paginated && expanded && page * PAGE_SIZE < total;
+  // Concentration : dérivé d'affichage, uniquement quand toutes les
+  // valeurs comparées portent la même mesure et que le parent est connu.
+  const topSum = visible.reduce(
+    (sum, row) => (row.amount != null ? sum + row.amount : sum),
+    0,
+  );
+  const concentration =
+    collapsed && parentAmount != null && parentAmount > 0 && topSum > 0
+      ? (topSum / parentAmount) * 100
+      : null;
 
   return (
     <section className="mt-14">
-      <div className="mb-3 flex items-baseline justify-between gap-4">
-        <h2 className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
-          {title} · {formatInt(total, locale)}
-        </h2>
-        {collapsed ? (
-          <span className="text-[11.5px] uppercase tracking-[.06em] text-muted-foreground">
-            {t("money.topLabel", { n: TOP_COUNT })}
-          </span>
-        ) : null}
-      </div>
-      {rows.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
-      ) : (
-        visible.map((row) => {
-          const share =
-            parentAmount != null && parentAmount > 0 && row.amount != null
-              ? (row.amount / parentAmount) * 100
-              : null;
-          return (
-            <Link
-              key={row.key}
-              to={row.to}
-              className="group block border-b border-border-soft py-3 transition-colors hover:bg-surface/50"
-            >
-              <div className="flex items-baseline gap-3">
+      <h2 className="text-[15px] font-medium">
+        {parentAmount != null
+          ? t("money.nextQuestion", { amount: money(parentAmount, parentCurrency) })
+          : t("money.nextQuestionNoAmount")}
+      </h2>
+      <p className="mt-1 text-[12.5px] text-muted-foreground">
+        {collapsed
+          ? t("money.topOf", { top: TOP_COUNT, n: formatInt(total, locale), count: total })
+          : `${childrenLabel} · ${formatInt(total, locale)}`}
+        {concentration != null
+          ? ` — ${t("money.concentration", {
+              top: Math.min(TOP_COUNT, visible.length),
+              pct: pct(concentration, locale),
+            })}`
+          : ""}
+      </p>
+      <div className="mt-4">
+        {rows.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            {t("money.emptyLevel")}
+          </p>
+        ) : (
+          visible.map((row) => {
+            const share =
+              parentAmount != null && parentAmount > 0 && row.amount != null
+                ? (row.amount / parentAmount) * 100
+                : null;
+            return (
+              <Link
+                key={row.key}
+                to={row.to}
+                className="group flex items-baseline gap-3 border-b border-border-soft py-3 transition-colors hover:bg-surface/50"
+              >
+                <span className="sr-only">{t("money.followTo", { name: row.name })} — </span>
                 {row.flag ? (
                   <span aria-hidden="true" className="leading-none">
                     {row.flag}
@@ -577,11 +621,21 @@ function DistributionList({
                       —
                     </span>
                   ) : (
-                    money(row.amount, currency)
+                    money(row.amount, parentCurrency)
                   )}
                 </span>
-                <span className="tnum hidden w-14 shrink-0 whitespace-nowrap text-right text-[12.5px] text-muted-foreground sm:inline">
+                <span
+                  className="tnum hidden w-16 shrink-0 whitespace-nowrap text-right text-[12.5px] text-muted-foreground sm:inline"
+                  title={
+                    share == null
+                      ? undefined
+                      : t("money.shareOf", { pct: pct(share, locale), parent: parentName })
+                  }
+                >
                   {share == null ? "" : pct(share, locale)}
+                  {share != null ? (
+                    <span className="sr-only"> {t("money.ofParent", { parent: parentName })}</span>
+                  ) : null}
                 </span>
                 <span
                   aria-hidden="true"
@@ -589,19 +643,11 @@ function DistributionList({
                 >
                   ›
                 </span>
-              </div>
-              {max != null && row.amount != null ? (
-                <div aria-hidden="true" className="mt-2 h-[3px] w-full rounded-full bg-surface">
-                  <div
-                    className="h-full rounded-full bg-accent/60"
-                    style={{ width: `${Math.max((row.amount / max) * 100, 0.75)}%` }}
-                  />
-                </div>
-              ) : null}
-            </Link>
-          );
-        })
-      )}
+              </Link>
+            );
+          })
+        )}
+      </div>
       {collapsed ? (
         <button
           type="button"
@@ -683,102 +729,78 @@ function ReconciliationBlock({
   const parent = reconciliation.parent_amount;
   const knownSum = reconciliation.children_known_sum;
   const status = reconciliation.status;
-
-  let bars: ReactNode = null;
-  if (status === "exact" && parent != null) {
-    bars = <div aria-hidden="true" className="mt-3 h-[6px] w-full rounded-full bg-accent/70" />;
-  } else if (status === "gap" && parent != null && knownSum != null && parent > 0) {
-    // Ici la conservation EXISTE : ventilé + non-ventilé = total parent.
-    const knownWidth = Math.min((knownSum / parent) * 100, 100);
-    bars = (
-      <div
-        aria-hidden="true"
-        className="mt-3 flex h-[6px] w-full overflow-hidden rounded-full bg-border/60"
-      >
-        <div className="h-full bg-accent/70" style={{ width: `${knownWidth}%` }} />
-      </div>
-    );
-  } else if (status === "children_exceed_parent" && parent != null && knownSum != null) {
-    // JAMAIS une barre empilée à 100 % : deux barres comparatives —
-    // l'interface ne suggère pas une conservation qui n'existe pas.
-    const max = Math.max(parent, knownSum);
-    bars = (
-      <div aria-hidden="true" className="mt-3 space-y-1.5">
-        <div
-          className="h-[6px] rounded-full bg-border/80"
-          style={{ width: `${(parent / max) * 100}%` }}
-        />
-        <div
-          className="h-[6px] rounded-full bg-accent/70"
-          style={{ width: `${(knownSum / max) * 100}%` }}
-        />
-      </div>
-    );
-  }
-
-  const rows: ReactNode[] = [
-    <ReconRow
-      key="parent"
-      label={t("money.reconciliation.parent")}
-      value={parent == null ? t("money.unknown") : money(parent, currency)}
-      strong
-    />,
-    <ReconRow
-      key="known"
-      label={t("money.reconciliation.childrenSum")}
-      value={knownSum == null ? t("money.unknown") : money(knownSum, currency)}
-    />,
-  ];
   const zeroGap =
     status === "gap" &&
     reconciliation.unallocated != null &&
     Math.abs(reconciliation.unallocated) < 0.01;
-  if (reconciliation.unallocated != null && status === "gap" && !zeroGap) {
-    rows.push(
-      <ReconRow
-        key="unallocated"
-        label={t("money.reconciliation.unallocated")}
-        value={money(reconciliation.unallocated, currency)}
-      />,
-    );
+  const exceed = status === "children_exceed_parent";
+  const dash = "—";
+
+  const rows: { label: string; value: string; strong?: boolean }[] = [
+    {
+      label: exceed ? t("money.reconciliation.ceiling") : t("money.reconciliation.parent"),
+      value: parent == null ? t("money.unknown") : money(parent, currency),
+      strong: true,
+    },
+    {
+      label: t("money.reconciliation.childrenSum"),
+      value: knownSum == null ? t("money.unknown") : money(knownSum, currency),
+    },
+  ];
+  if (exceed) {
+    rows.push({
+      label: t("money.reconciliation.excess"),
+      value:
+        reconciliation.unallocated == null
+          ? dash
+          : `+${money(Math.abs(reconciliation.unallocated), currency)}`,
+    });
+  } else {
+    rows.push({
+      label: t("money.reconciliation.unallocated"),
+      value:
+        status === "gap" && !zeroGap && reconciliation.unallocated != null
+          ? money(reconciliation.unallocated, currency)
+          : dash,
+    });
   }
-  if (reconciliation.unallocated != null && status === "children_exceed_parent") {
-    rows.push(
-      <ReconRow
-        key="excess"
-        label={t("money.reconciliation.excess")}
-        value={money(Math.abs(reconciliation.unallocated), currency)}
-      />,
-    );
-  }
-  if (reconciliation.unknown_children != null && reconciliation.unknown_children > 0) {
-    rows.push(
-      <ReconRow
-        key="unknown"
-        label={t("money.reconciliation.unknownChildren")}
-        value={formatInt(reconciliation.unknown_children, locale)}
-      />,
-    );
-  }
+  rows.push({
+    label: t("money.reconciliation.unknownChildren"),
+    value:
+      reconciliation.unknown_children != null && reconciliation.unknown_children > 0
+        ? formatInt(reconciliation.unknown_children, locale)
+        : dash,
+  });
+
+  // Le « 43,5 % non ventilé » : arithmétique d'affichage sur la même
+  // réponse — jamais un ratio entre mesures incompatibles.
+  const gapShare =
+    status === "gap" && !zeroGap && parent != null && parent > 0 && reconciliation.unallocated != null
+      ? (reconciliation.unallocated / parent) * 100
+      : null;
 
   return (
     <div className="mt-8 rounded-2xl border border-border-soft bg-surface/40 px-5 py-4">
       <p className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
         {t("money.reconciliation.title")}
       </p>
-      <dl className="mt-3 space-y-1.5">{rows}</dl>
-      {bars}
-      {status === "children_exceed_parent" ? (
-        <p aria-hidden="true" className="mt-1.5 text-[11px] text-muted-foreground">
-          {t("money.reconciliation.ceilingLegend")} · {t("money.reconciliation.sharesLegend")}
-        </p>
-      ) : null}
+      <dl className="mt-3 space-y-1.5">
+        {rows.map((row) => (
+          <ReconRow key={row.label} label={row.label} value={row.value} strong={row.strong} />
+        ))}
+      </dl>
       <p className="mt-3 max-w-[70ch] text-[12.5px] leading-relaxed text-muted-foreground">
-        {zeroGap
-          ? t("money.reconciliation.status.gap_zero", {
-              count: reconciliation.unknown_children ?? 0,
-            })
-          : t(`money.reconciliation.status.${status}`)}
+        {status === "exact"
+          ? t("money.reconciliation.status.exact")
+          : zeroGap
+            ? t("money.reconciliation.status.gap_zero", {
+                count: reconciliation.unknown_children ?? 0,
+              })
+            : gapShare != null
+              ? `${t("money.reconciliation.gapShare", { pct: pct(gapShare, locale) })} ${t(
+                  "money.reconciliation.status.gap",
+                )}`
+              : t(`money.reconciliation.status.${status}`)}
       </p>
     </div>
   );
@@ -797,12 +819,9 @@ function NsfMeasureSystems({
   const { t, money, measureShort } = useMoneyCopy();
   return (
     <section className="mt-14">
-      <h2 className="mb-2 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
+      <h2 className="mb-4 text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
         {t("money.nsf.systemsTitle")}
       </h2>
-      <p className="mb-5 max-w-[70ch] text-[12.5px] leading-relaxed text-muted-foreground">
-        {t("money.nsf.incompatibility")}
-      </p>
       <div className="grid gap-5 md:grid-cols-2">
         <div className="rounded-2xl border border-border-soft px-5 py-4">
           <p className="text-[11px] font-medium uppercase tracking-[.08em] text-muted-foreground">
@@ -811,10 +830,22 @@ function NsfMeasureSystems({
           <p className="display-tight tnum mt-2 text-[26px] font-semibold">
             {money(cumulative.amount, "USD")}
           </p>
-          <p className="mt-1 flex items-center gap-2 text-[12px] text-muted-foreground">
-            {t("money.nsf.cumulativeNote")}
-            <NatureMark provenance={cumulative.measure.provenance} />
-          </p>
+          <dl className="mt-3 space-y-0.5 text-[12px] text-muted-foreground">
+            <div>
+              <dt className="sr-only">{t("money.methodology.nature")}</dt>
+              <dd>
+                <NatureMark provenance={cumulative.measure.provenance} />
+              </dd>
+            </div>
+            <div className="flex gap-1.5">
+              <dt className="font-medium text-foreground/60">{t("money.nsf.period")}</dt>
+              <dd>{t("money.nsf.cumulativeNote")}</dd>
+            </div>
+            <div className="flex gap-1.5">
+              <dt className="font-medium text-foreground/60">{t("money.methodology.source")}</dt>
+              <dd>{t("money.nsf.cumulativeProvenance")}</dd>
+            </div>
+          </dl>
         </div>
         <div className="rounded-2xl border border-border-soft px-5 py-4">
           <p className="text-[11px] font-medium uppercase tracking-[.08em] text-muted-foreground">
@@ -823,10 +854,22 @@ function NsfMeasureSystems({
           <p className="display-tight tnum mt-2 text-[26px] font-semibold">
             {money(axis.window_sum, "USD")}
           </p>
-          <p className="mt-1 flex items-center gap-2 text-[12px] text-muted-foreground">
-            {t("money.nsf.windowNote")}
-            <NatureMark provenance={axis.measure.provenance} />
-          </p>
+          <dl className="mt-3 space-y-0.5 text-[12px] text-muted-foreground">
+            <div>
+              <dt className="sr-only">{t("money.methodology.nature")}</dt>
+              <dd>
+                <NatureMark provenance={axis.measure.provenance} />
+              </dd>
+            </div>
+            <div className="flex gap-1.5">
+              <dt className="font-medium text-foreground/60">{t("money.nsf.period")}</dt>
+              <dd>{t("money.nsf.windowNote")}</dd>
+            </div>
+            <div className="flex gap-1.5">
+              <dt className="font-medium text-foreground/60">{t("money.methodology.source")}</dt>
+              <dd>{t("money.nsf.vintage", { vintage: axis.vintage })}</dd>
+            </div>
+          </dl>
           <table className="mt-4 w-full text-[13px]">
             <thead>
               <tr className="border-b text-left text-[10.5px] font-semibold uppercase tracking-[.08em]">
@@ -847,11 +890,11 @@ function NsfMeasureSystems({
               ))}
             </tbody>
           </table>
-          <p className="mt-3 font-mono text-[10.5px] text-muted-foreground">
-            {t("money.nsf.vintage", { vintage: axis.vintage })}
-          </p>
         </div>
       </div>
+      <p className="mt-4 max-w-[70ch] border-l-2 border-accent/35 pl-3 text-[12.5px] leading-relaxed text-muted-foreground">
+        {t("money.nsf.notDecomposition")}
+      </p>
     </section>
   );
 }
@@ -863,10 +906,6 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
   const { t, locale, money } = useMoneyCopy();
   const beneficiary = data.children.level === "beneficiary";
   const items = data.children.items;
-  const amounts = items
-    .filter((item) => item.amount != null)
-    .map((item) => item.amount as number);
-  const max = !beneficiary && amounts.length >= 2 ? Math.max(...amounts) : null;
   const parent = data.measure.amount;
 
   return (
@@ -893,54 +932,52 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
               ? (item.amount / parent) * 100
               : null;
           return (
-            <div key={item.source_uid} className="border-b border-border-soft py-3">
-              <div className="flex items-baseline gap-3">
-                <span className="min-w-0 truncate text-sm leading-snug">
-                  <Link
-                    to={`/money/organisation/${item.organisation.id}`}
-                    className="transition-colors hover:text-accent"
-                  >
-                    {formatOrgName(item.organisation.label)}
-                  </Link>
-                </span>
-                <span className="shrink-0 text-[12px] text-muted-foreground">
-                  {item.role ?? ""}
-                </span>
-                {item.country ? (
-                  <Link
-                    to={`/money/country/${item.country}`}
-                    className="shrink-0 text-[12.5px] text-muted-foreground transition-colors hover:text-accent"
-                  >
-                    <span aria-hidden="true">{countryFlag(item.country)}</span> {item.country}
-                  </Link>
-                ) : null}
-                {!beneficiary ? (
-                  <>
-                    <span className="tnum ml-auto w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium">
-                      {item.amount == null ? (
-                        <span className="text-muted-foreground" title={t("money.unknownAmount")}>
-                          {t("money.unknown")}
-                        </span>
-                      ) : (
-                        money(item.amount, data.measure.currency)
-                      )}
-                    </span>
-                    <span className="tnum hidden w-14 shrink-0 whitespace-nowrap text-right text-[12.5px] text-muted-foreground sm:inline">
-                      {share == null ? "" : pct(share, locale)}
-                    </span>
-                  </>
-                ) : (
-                  <span className="ml-auto" />
-                )}
-              </div>
-              {max != null && item.amount != null ? (
-                <div aria-hidden="true" className="mt-2 h-[3px] w-full rounded-full bg-surface">
-                  <div
-                    className="h-full rounded-full bg-accent/60"
-                    style={{ width: `${Math.max((item.amount / max) * 100, 0.75)}%` }}
-                  />
-                </div>
+            <div
+              key={item.source_uid}
+              className="flex items-baseline gap-3 border-b border-border-soft py-3"
+            >
+              <span className="min-w-0 truncate text-sm leading-snug">
+                <Link
+                  to={`/money/organisation/${item.organisation.id}`}
+                  className="transition-colors hover:text-accent"
+                >
+                  {formatOrgName(item.organisation.label)}
+                </Link>
+              </span>
+              <span className="shrink-0 text-[12px] text-muted-foreground">
+                {item.role ?? ""}
+              </span>
+              {item.country ? (
+                <Link
+                  to={`/money/country/${item.country}`}
+                  className="shrink-0 text-[12.5px] text-muted-foreground transition-colors hover:text-accent"
+                >
+                  <span aria-hidden="true">{countryFlag(item.country)}</span> {item.country}
+                </Link>
               ) : null}
+              {!beneficiary ? (
+                <>
+                  <span className="tnum ml-auto w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium">
+                    {item.amount == null ? (
+                      <span className="text-muted-foreground" title={t("money.unknownAmount")}>
+                        {t("money.unknown")}
+                      </span>
+                    ) : (
+                      money(item.amount, data.measure.currency)
+                    )}
+                  </span>
+                  <span
+                    className="tnum hidden w-24 shrink-0 whitespace-nowrap text-right text-[12.5px] text-muted-foreground sm:inline"
+                    title={
+                      share == null ? undefined : t("money.ofProjectFull", { pct: pct(share, locale) })
+                    }
+                  >
+                    {share == null ? "" : t("money.ofProject", { pct: pct(share, locale) })}
+                  </span>
+                </>
+              ) : (
+                <span className="ml-auto" />
+              )}
             </div>
           );
         })
@@ -1034,6 +1071,7 @@ function FundersRoot() {
       <p className="mt-4 max-w-[62ch] text-[15px] leading-relaxed text-muted-foreground">
         {t("money.lead")}
       </p>
+      <p className="mt-3 text-[14px] font-medium">{t("money.rootGesture")}</p>
       {/* Trois univers NON comparables : trois blocs distincts, aucune
           barre commune, aucun classement, aucun total. */}
       <div className="mt-12 grid gap-5 md:grid-cols-3">
@@ -1086,7 +1124,6 @@ function FundersRoot() {
 function FunderView({ code }: { code: string }) {
   const { t, measureLabel } = useMoneyCopy();
   const [page, expanded, patch] = usePagePatch();
-  const resolve = useAncestorAmount();
   const query = useQuery({
     queryKey: ["chain-funder", code],
     queryFn: () => api.chainFunder(code),
@@ -1095,7 +1132,7 @@ function FunderView({ code }: { code: string }) {
   if (query.isError || !query.data)
     return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
   const data = query.data;
-  const rail = railFromAncestors(data.ancestors, resolve, {
+  const rail = railFromAncestors(data.ancestors, {
     level: "funder",
     label: data.node.label,
     amount: data.aggregate?.amount,
@@ -1131,11 +1168,12 @@ function FunderView({ code }: { code: string }) {
       ) : null}
       {callNotAvailableNote(t, data.navigation.down)}
       <DistributionList
-        title={t("money.children.programme", { count: data.children.total })}
+        parentAmount={data.aggregate?.amount ?? null}
+        parentName={data.node.label}
+        parentCurrency={data.aggregate?.measure.currency}
+        childrenLabel={t("money.children.programme", { count: data.children.total })}
         rows={childrenToRows(data.children, (item) => `/money/programme/${item.id}`)}
         total={data.children.total}
-        parentAmount={data.aggregate?.amount ?? null}
-        currency={data.aggregate?.measure.currency}
         page={page}
         expanded={expanded}
         patch={patch}
@@ -1148,7 +1186,6 @@ function FunderView({ code }: { code: string }) {
 function ProgrammeView({ id }: { id: string }) {
   const { t, locale, measureLabel } = useMoneyCopy();
   const [page, expanded, patch] = usePagePatch();
-  const resolve = useAncestorAmount();
   const query = useQuery({
     queryKey: ["chain-programme", id, page],
     queryFn: () =>
@@ -1167,7 +1204,7 @@ function ProgrammeView({ id }: { id: string }) {
       : childLevel === "call"
         ? t("money.children.call", { count: data.children.total })
         : t("money.children.project", { count: data.children.total });
-  const rail = railFromAncestors(data.ancestors, resolve, {
+  const rail = railFromAncestors(data.ancestors, {
     level: "programme",
     label,
     amount: data.aggregate.amount,
@@ -1185,6 +1222,7 @@ function ProgrammeView({ id }: { id: string }) {
         measure={data.aggregate.measure}
         projects={data.aggregate.projects}
         coverage={data.aggregate.coverage}
+        share={data.share_of_parent}
         methodology={
           <MethodologyPanel
             rows={[
@@ -1206,7 +1244,10 @@ function ProgrammeView({ id }: { id: string }) {
       />
       {callNotAvailableNote(t, data.navigation.down)}
       <DistributionList
-        title={title}
+        parentAmount={data.aggregate.amount}
+        parentName={label}
+        parentCurrency={data.aggregate.measure.currency}
+        childrenLabel={title}
         rows={childrenToRows(data.children, (item) =>
           childLevel === "programme"
             ? `/money/programme/${item.id}`
@@ -1215,8 +1256,6 @@ function ProgrammeView({ id }: { id: string }) {
               : `/money/project/${item.id}`,
         )}
         total={data.children.total}
-        parentAmount={data.aggregate.amount}
-        currency={data.aggregate.measure.currency}
         coverage={data.children.coverage}
         page={page}
         expanded={expanded}
@@ -1255,7 +1294,6 @@ function ProgrammeView({ id }: { id: string }) {
 function CallView({ id }: { id: string }) {
   const { t, locale, measureLabel } = useMoneyCopy();
   const [page, expanded, patch] = usePagePatch();
-  const resolve = useAncestorAmount();
   const [params] = useSearchParams();
   const programmeContext = params.get("programme");
   const query = useQuery({
@@ -1272,7 +1310,7 @@ function CallView({ id }: { id: string }) {
     return <ErrorBlock error={query.error} retry={() => void query.refetch()} />;
   const data = query.data;
   const transversal = data.programmes.length > 1;
-  const rail = railFromAncestors(data.ancestors, resolve, {
+  const rail = railFromAncestors(data.ancestors, {
     level: "call",
     label: data.node.code,
     amount: data.aggregate.amount,
@@ -1315,6 +1353,7 @@ function CallView({ id }: { id: string }) {
         measure={data.aggregate.measure}
         projects={data.aggregate.projects}
         coverage={data.aggregate.coverage}
+        share={data.share_of_parent}
         methodology={
           <MethodologyPanel
             rows={[
@@ -1329,11 +1368,12 @@ function CallView({ id }: { id: string }) {
         }
       />
       <DistributionList
-        title={t("money.children.project", { count: data.children.total })}
+        parentAmount={data.aggregate.amount}
+        parentName={data.node.code}
+        parentCurrency={data.aggregate.measure.currency}
+        childrenLabel={t("money.children.project", { count: data.children.total })}
         rows={childrenToRows(data.children, (item) => `/money/project/${item.id}`)}
         total={data.children.total}
-        parentAmount={data.aggregate.amount}
-        currency={data.aggregate.measure.currency}
         coverage={data.children.coverage}
         page={page}
         expanded={expanded}
@@ -1346,7 +1386,6 @@ function CallView({ id }: { id: string }) {
 
 function ProjectView({ id }: { id: string }) {
   const { t, locale, money, measureLabel, natureLabel } = useMoneyCopy();
-  const resolve = useAncestorAmount();
   const query = useQuery({
     queryKey: ["chain-project", id],
     queryFn: () => api.chainProject(id),
@@ -1364,7 +1403,7 @@ function ProjectView({ id }: { id: string }) {
           .join(" → ")
       : null;
   const attribution = data.node.programme?.attribution;
-  const rail = railFromAncestors(data.ancestors, resolve, {
+  const rail = railFromAncestors(data.ancestors, {
     level: "project",
     label: data.node.label,
     amount: data.measure.amount,
@@ -1387,6 +1426,7 @@ function ProjectView({ id }: { id: string }) {
       <MeasureHero
         amount={data.measure.amount}
         measure={data.measure}
+        share={data.share_of_parent}
         methodology={
           <MethodologyPanel
             rows={[
