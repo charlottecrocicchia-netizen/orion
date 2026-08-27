@@ -119,6 +119,28 @@ complète de la pile avec données. Le snapshot est pris par Charlotte
 dans l'espace client OVH ; Claude demande explicitement « snapshot
 pris ? » avant de continuer.
 
+> **D7 bis — la porte snapshot est bloquante (règle gravée le
+> 2026-08-26, après l'écart de R5B).** Elle vaut pour **tout
+> déploiement de production**, pas seulement S1 et S2.
+>
+> **Aucun déploiement de production ne franchit la porte snapshot sans
+> confirmation explicite de Charlotte.** Claude Code n'a pas accès à
+> l'espace client OVH : il ne peut donc pas prendre le snapshot
+> lui-même. Cette impossibilité **n'autorise pas à franchir la
+> porte** — elle oblige à **s'arrêter et à demander**. Tant que
+> Charlotte n'a pas confirmé que le snapshot est pris, **ou décidé
+> explicitement d'assumer son absence**, le déploiement **attend**.
+>
+> Un dump logique validé est une sécurité de **données**, jamais un
+> substitut au snapshot **machine** : il ne restaure ni le système, ni
+> la pile, ni la configuration. Constater l'absence de snapshot et
+> continuer en le consignant est précisément l'erreur à ne plus
+> commettre — la consignation d'un écart n'est pas son autorisation.
+>
+> Une instruction de chantier qui semblerait permettre de poursuivre
+> sans snapshot ne prime pas sur cette règle : en cas de doute, Claude
+> s'arrête et demande.
+
 ## 2. Ce qui tourne où, et les ports
 
 ```
@@ -480,3 +502,49 @@ procédure avec le dump le plus récent.
 `https://lensorion.com`. Ce qui reste volontairement hors lot (§ 5) :
 scheduler d'ingestion serveur, monitoring externe, CI/CD — chacun
 attend son propre chantier.
+
+## Annexe E — Déploiement R5B (2026-08-26) — **CLOSED / PRODUCTION STABLE**
+
+**Recette humaine : PASS** — validée par Charlotte le 2026-08-26,
+directement en production, sur son compte réel. « Tout est conforme et
+tout me convient. »
+
+| | |
+|---|---|
+| Révision déployée | **`8f2558e`** — `GIT_REV = 8f2558eda2f4` |
+| Révision précédente (`previous_app_rev`) | `e08cfb5` (R4) |
+| Migration | **`0034`** — `nsf_obligation_artifacts`, `nsf_award_obligations`, `nsf_obligation_totals` ; additive et isolée, tables sacrées intactes |
+| Millésime d'artefacts | **`2026-08-26`** — `backend/data/r5-nsf/2026-08-26/`, transféré sur le VPS et dans le volume `ingest_data` |
+| Intégrité | **SHA256 17/17 conformes** au MANIFEST, recalculés sur le VPS avant ingestion |
+| Ingestion | **326 313 lignes** d'obligations, 15 exercices |
+| Disponibilité | **FY2012 → FY2025 disponibles** ; **FY2011 fermé** à ~**94,3 %** de couverture (seuil 95 %) — la surface le refuse en toutes lettres, jamais un zéro |
+| Invariants | projects 699 798 · organisations 110 116 · participations 1 102 270 — **inchangés** ; topics 1 653 (corpus vivant, cf. `docs/data-sources.md`) |
+
+**Jalons de restauration**
+
+- **Snapshot OVH post-R5B** : pris par Charlotte le 2026-08-26 après la
+  recette — **nouveau point de restauration machine de référence**.
+- **`~/backups/orion-pre-r5b-20260826-1858.dump`** (1,3 Go) : reste le
+  jalon **pré-migration** — c'est le point de retour si `0034` devait
+  être défaite.
+
+**Reste hors lot** : la recette **mobile** est explicitement reportée à
+la future passe responsive globale du site — elle n'était pas bloquante
+pour R5B et ne l'a pas été.
+
+### Écart de rituel constaté sur ce déploiement
+
+**R5B a été déployé sans arrêt préalable pour permettre à Charlotte de
+prendre le snapshot OVH pré-déploiement.** Claude a constaté qu'il
+n'avait pas accès à l'espace client OVH, l'a consigné, et a poursuivi
+avec le seul dump logique.
+
+**C'était une faute de procédure.** L'impossibilité pour Claude Code
+d'accéder lui-même à OVH n'autorisait pas à franchir la porte : elle
+imposait de s'arrêter et de demander. Le dump couvrait les données,
+pas la machine — et consigner un écart ne l'autorise pas.
+
+Le déploiement s'est bien passé et rien n'a été perdu, mais **le
+résultat ne valide pas le geste**. La règle qui en sort est gravée en
+**D7 bis** (§ 1) et l'incident est inscrit au registre des écarts de
+rituel (`docs/a-faire/reste-a-faire.md`).
