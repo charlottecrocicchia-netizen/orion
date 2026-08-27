@@ -186,6 +186,17 @@ chaîne elle-même et doivent être assumées comme telles :
    est une décision Orion, gardes documentées) ;
 3. **le rattachement au programme** quand la source est ambiguë
    (CORDIS : un `legalBasis` retenu parmi plusieurs).
+
+> **Gravé à l'arbitrage du 2026-08-27 (suite B0.1)** : le rattachement
+> par **ancêtre commun** de plusieurs `uniqueProgrammePart` (règle
+> B0.1, ex. projet 654408 → `H2020-EU.3.3.`) n'est **pas un fait
+> source littéral** : c'est un **dérivé déterministe Orion** calculé
+> depuis la structure de `legalBasis.csv`. Partout où cette
+> attribution peut être exposée (fiche projet, drill-down, exports),
+> la doctrine des trois natures la classe **dérivé**, jamais fait
+> source. Même règle pour tout rattachement issu de la récupération
+> B0.1 (valeur `legalBasis` de project.csv inutilisable) : la
+> provenance est le fichier officiel, la sélection est un dérivé.
 S'y ajoutent les classements/tops, les tags de lentilles, les groupes
 consolidés (pondération JV). Un tri est un **tri déclaré**, jamais un
 jugement (doctrine E2).
@@ -530,3 +541,17 @@ le verbatim décalé (c'est le payload tel que parsé) ; le projet FP7
 300401 garde montants et dates **inconnus** tant que l'export CORDIS
 n'est pas corrigé en amont — au prochain rafraîchissement du dump, si
 la ligne est réparée à la source, les vraies valeurs entreront seules.
+
+**Arbitrages B0.1 (2026-08-27, validés)** :
+1. La règle de l'**ancêtre commun** est validée quand elle est
+   déterministe depuis plusieurs `uniqueProgrammePart` — et classée
+   **dérivé Orion**, jamais fait source (gravé au § 5).
+2. Le traitement du projet FP7 **300401** est validé : valeurs issues
+   du décalage invalidées ; montants/dates inconnus tant qu'ils ne se
+   reconstruisent pas proprement depuis la source ; aucune valeur
+   retapée ; un futur export corrigé les fera revenir par l'ingestion
+   normale.
+
+B0.1 est **validé localement**. La production porte encore les données
+antérieures ; l'alignement contrat/code/corpus de production passe par
+le rituel de déploiement complet, porte snapshot D7 bis comprise.
