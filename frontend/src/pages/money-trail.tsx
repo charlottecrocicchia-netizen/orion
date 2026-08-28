@@ -23,7 +23,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Link, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 
 import { ExploreExits } from "@/components/explore-exits";
 import { Pager } from "@/components/pager";
@@ -43,7 +43,6 @@ import {
   type ChainProvenance,
   type ChainReconciliation,
 } from "@/lib/api";
-import { useMeasure } from "@/hooks/use-measure";
 import { childTo, crumbPath } from "@/lib/chain-routes";
 import { displayLabel } from "@/lib/display-label";
 import { countryFlag, formatCompactMoney, formatInt, formatOrgName } from "@/lib/format";
@@ -340,9 +339,14 @@ function TrailBreadcrumb({ path }: { path: PathNode[] }) {
 
 function TrailWorkspace({ path, children }: { path: PathNode[]; children: ReactNode }) {
   return (
-    <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
-      <TrailBreadcrumb path={path} />
-      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+    <div className="relative flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
+      {/* L'âme de fond habite TOUTE la page de la chambre, pas un
+          panneau : teinte radiale + courant descendant (B2.11 ⓪). */}
+      <ChamberBackdrop />
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <TrailBreadcrumb path={path} />
+        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+      </div>
     </div>
   );
 }
@@ -438,46 +442,65 @@ function normalize(value: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* B2.8/B2.9 — les colonnes proportionnelles : la hauteur dit le      */
-/* montant, l'ENCRE de la page dessine les barres                      */
+/* B2.11 — la chambre de l'argent, vision « Orbite » : le focus est   */
+/* un astre rangé sur le côté, ses destinations se déploient en arc   */
+/* proportionnel (l'angle dit le montant), la page entière porte le   */
+/* fond — le courant de l'argent qui descend.                          */
 
-/** Hauteur utile maximale d'une barre (px). L'échelle linéaire
- *  commune s'ancre sur le plus haut élément COMPARABLE du niveau
- *  (enfant ou non-ventilé) — jamais sur le godet (§ B2.9 ③). */
-const BAR_MAX_H = 220;
-/** Hauteur plancher de visibilité : une part écrasée par le ratio
- *  d'échelle reste visible ET marquée (« ≈ » + part réelle au title)
- *  — jamais une proportion silencieusement fausse. */
-const BAR_FLOOR = 3;
-/** Largeur MINIMALE d'un emplacement (px) — les emplacements
- *  s'étirent ensuite pour occuper la largeur de la grille de lecture
- *  (gouttières régulières, ligne de base continue). */
-const SLOT_W = 72;
-/** Nombre d'emplacements quand la largeur n'est pas encore mesurée
- *  (premier rendu, environnements sans ResizeObserver). */
-const DEFAULT_SLOTS = 12;
-/** Largeur d'une barre (px) — élancée, dessinée à l'encre. */
-const BAR_W = 40;
-/** Largeur réduite du godet « + N autres » : une porte, pas une
- *  destination. */
-const OTHERS_W = 22;
-/** Plafond de hauteur du godet : un agrégat n'est jamais le champion
- *  de la scène — au-delà, il se plafonne et se marque « ≈ ». */
-const OTHERS_CAP = 128;
-/** Réserve verticale du montant au-dessus de chaque barre (px). */
-const AMOUNT_ZONE = 24;
-/** B2.10 ② — les trois directions de scène proposées à la recette
- *  (un mot à changer, captures des trois versées) :
- *  - "room"  : la salle des mesures — le panneau adopte les tokens de
- *    la Lens Room (sol profond forcé, même en thème clair), barres
- *    émissives à lueur froide, survol qui s'illumine à l'accent ;
- *  - "glass" : le panneau verre — translucidité, bord lumineux,
- *    barres en verre accent à arête supérieure lumineuse ;
- *  - "grid"  : l'encre du hero sur grille technique — papier
- *    millimétré hairline, barres dans le dégradé du chiffre trésor.
- *  Les invariants d'honnêteté (montants dominants, plancher marqué,
- *  godet-porte plafonné, non-ventilé hachuré) tiennent dans les trois. */
-const SCENE: "room" | "glass" | "grid" = "room";
+/** L'atmosphère de la chambre : une teinte radiale douce et un
+ *  courant de particules qui descend lentement — l'argent circule.
+ *  Positions et cadences DÉTERMINISTES (table fixe, jamais de
+ *  hasard) ; reduced-motion : le courant s'efface, la teinte reste. */
+const CHAMBER_DOTS: { x: number; t: number; d: number; a: number }[] = [
+  { x: 6, t: 44, d: 0, a: 0.3 },
+  { x: 14, t: 56, d: -18, a: 0.22 },
+  { x: 23, t: 38, d: -7, a: 0.34 },
+  { x: 31, t: 62, d: -31, a: 0.2 },
+  { x: 42, t: 47, d: -12, a: 0.28 },
+  { x: 55, t: 53, d: -26, a: 0.24 },
+  { x: 63, t: 41, d: -3, a: 0.32 },
+  { x: 71, t: 58, d: -22, a: 0.2 },
+  { x: 80, t: 45, d: -15, a: 0.3 },
+  { x: 88, t: 64, d: -37, a: 0.22 },
+  { x: 94, t: 50, d: -9, a: 0.26 },
+];
+
+function ChamberBackdrop() {
+  return (
+    <div aria-hidden="true" className="chamber-bg">
+      {CHAMBER_DOTS.map((dot) => (
+        <span
+          key={dot.x}
+          className="chamber-dot"
+          style={
+            {
+              left: `${dot.x}%`,
+              "--fall-time": `${dot.t}s`,
+              "--fall-delay": `${dot.d}s`,
+              "--dot-a": dot.a,
+            } as React.CSSProperties
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Nombre de rangées/segments montrés au repos — au-delà, le godet
+ *  « + N autres » ouvre la liste complète. */
+const SHOWN_SLOTS = 11;
+/** Plancher de visibilité d'un segment (degrés) : une part réelle
+ *  mais minuscule reste visible ET marquée « ≈ », sa part réelle au
+ *  title — jamais une proportion silencieusement fausse. */
+const FLOOR_DEG = 2;
+/** La rosace : dimensions du dessin (px SVG). */
+const ORBIT = { size: 340, c: 170, rOut: 158, rIn: 118 };
+/** Les couleurs des destinations : la palette catégorielle VALIDÉE
+ *  d'Orion (--series-*, CVD + contraste au script), dans l'ordre du
+ *  classement. Le godet porte le neutre « autres » du produit
+ *  (--donut-others) : un agrégat n'est pas une destination ; le
+ *  non-ventilé reste hachuré. */
+const SERIES_VARS = [1, 2, 3, 4, 5, 6].map((i) => `var(--series-${i})`);
 
 interface BarSpec {
   key: string;
@@ -485,7 +508,7 @@ interface BarSpec {
   name: string;
   /** Montant connu ; null = « + N autres » dont la somme cachée n'est
    *  pas connaissable honnêtement (page partielle hors invariant
-   *  d'agrégation) — la colonne reste au plancher, sans chiffre. */
+   *  d'agrégation) — le segment reste au plancher, sans chiffre. */
   amount: number | null;
   /** Part du total du parent (%), seulement quand le parent est connu. */
   share: number | null;
@@ -493,174 +516,265 @@ interface BarSpec {
   onClick?: () => void;
 }
 
-interface PlacedBar extends BarSpec {
-  height: number;
+interface ArcSeg extends BarSpec {
+  start: number;
+  sweep: number;
   crushed: boolean;
+  color: string | null;
 }
 
-function barGeometry(bars: BarSpec[]): PlacedBar[] {
-  // ③ le godet n'ancre JAMAIS l'échelle : un agrégat de N enfants
-  // n'est pas une barre comparable. Il se dessine sur l'échelle des
-  // éléments comparables puis se plafonne (marqué « ≈ », part réelle
-  // au title) — il se lit comme une porte, pas comme le champion.
-  const maxAmount = Math.max(
-    ...bars.filter((bar) => bar.kind !== "others").map((bar) => bar.amount ?? 0),
-    1,
+/** L'angle dit le montant. Assiette : le total du parent quand il est
+ *  connu (les segments laissent alors une lacune de piste si une part
+ *  n'est servie nulle part) ; sinon la somme des montants connus — les
+ *  proportions ENTRE destinations restent vraies, aucune part du
+ *  parent n'est inventée. Un dépassement (Σ enfants > plafond) étend
+ *  l'assiette à la somme : l'anneau se remplit, le texte comptable
+ *  signé dit le dépassement. */
+function arcGeometry(bars: BarSpec[], parentAmount: number | null): ArcSeg[] {
+  const knownSum = bars.reduce((sum, bar) => sum + (bar.amount ?? 0), 0);
+  const basis =
+    parentAmount != null && parentAmount > 0 ? Math.max(parentAmount, knownSum) : knownSum;
+  const raw = bars.map((bar) =>
+    bar.amount != null && basis > 0 ? (bar.amount / basis) * 360 : FLOOR_DEG,
   );
-  return bars.map((bar) => {
-    if (bar.amount == null) return { ...bar, height: BAR_FLOOR, crushed: false };
-    const raw = (bar.amount / maxAmount) * BAR_MAX_H;
-    if (bar.kind === "others") {
-      return {
-        ...bar,
-        height: Math.max(BAR_FLOOR, Math.min(Math.round(raw), OTHERS_CAP)),
-        crushed: raw > OTHERS_CAP,
-      };
-    }
-    return { ...bar, height: Math.max(BAR_FLOOR, Math.round(raw)), crushed: raw < BAR_FLOOR };
+  const floored = raw.map((deg, i) => deg < FLOOR_DEG && bars[i].amount != null);
+  const noAngle = bars.map((bar) => bar.amount == null);
+  const reserved = raw.reduce(
+    (sum, _deg, i) => sum + (floored[i] || noAngle[i] ? FLOOR_DEG : 0),
+    0,
+  );
+  const restRaw = raw.reduce((sum, deg, i) => (floored[i] || noAngle[i] ? sum : sum + deg), 0);
+  const scale = restRaw > 0 ? Math.min(1, (360 - reserved) / restRaw) : 1;
+  let childRank = 0;
+  let cursor = 0;
+  return bars.map((bar, i) => {
+    const sweep = floored[i] || noAngle[i] ? FLOOR_DEG : raw[i] * scale;
+    const seg: ArcSeg = {
+      ...bar,
+      start: cursor,
+      sweep,
+      crushed: floored[i],
+      color:
+        bar.kind === "child"
+          ? SERIES_VARS[childRank % SERIES_VARS.length]
+          : bar.kind === "others"
+            ? "var(--donut-others)"
+            : null,
+    };
+    if (bar.kind === "child") childRank += 1;
+    cursor += sweep;
+    return seg;
   });
 }
 
-/** La rampe de colonnes (B2.9) : des barres à l'encre de la page —
- *  sœurs du gros chiffre du hero, pas d'un chart importé. Le montant
- *  règne AU-DESSUS de chaque barre en chiffre typographique fort ; le
- *  nom descend sous la ligne de base en petit label technique, la
- *  part encore dessous, plus discrète. Le bleu Orion n'apparaît qu'à
- *  l'interaction (survol, focus). Une ligne de base hairline court
- *  sous les barres sur toute la largeur de la grille ; les
- *  emplacements s'étirent pour l'occuper. Un enfant est un lien
- *  (descendre) ; le godet « + N autres » — contour sans remplissage,
- *  étroit, plafonné — est un bouton (ouvrir la liste complète) ; le
- *  « non ventilé » reste un segment hachuré, atténué, jamais caché.
- *  Sur écran étroit la rampe défile horizontalement. */
-function BarStrip({
-  bars,
+function polar(r: number, deg: number): string {
+  const rad = ((deg - 90) * Math.PI) / 180;
+  return `${(ORBIT.c + r * Math.cos(rad)).toFixed(2)} ${(ORBIT.c + r * Math.sin(rad)).toFixed(2)}`;
+}
+
+function segPath(start: number, sweep: number): string {
+  const end = start + Math.min(sweep, 359.9);
+  const large = end - start > 180 ? 1 : 0;
+  return [
+    `M ${polar(ORBIT.rOut, start)}`,
+    `A ${ORBIT.rOut} ${ORBIT.rOut} 0 ${large} 1 ${polar(ORBIT.rOut, end)}`,
+    `L ${polar(ORBIT.rIn, end)}`,
+    `A ${ORBIT.rIn} ${ORBIT.rIn} 0 ${large} 0 ${polar(ORBIT.rIn, start)}`,
+    "Z",
+  ].join(" ");
+}
+
+/** La rosace de l'orbite : un SEUL anneau proportionnel du niveau
+ *  courant (jamais la hiérarchie empilée en angles — c'est le
+ *  sunburst multi-anneaux qu'on ne construit pas). Le total du
+ *  parent habite le centre. L'anneau est décoratif-interactif ; la
+ *  légende à côté est LA surface accessible (liens, bouton godet). */
+function OrbitArc({
+  segs,
+  centerAmount,
+  centerNote,
+  currency,
+}: {
+  segs: ArcSeg[];
+  centerAmount: number | null;
+  centerNote: string;
+  currency: string | null | undefined;
+}) {
+  const { t, locale, money } = useMoneyCopy();
+  const navigate = useNavigate();
+  return (
+    <div
+      aria-hidden="true"
+      className="orbit-in relative shrink-0"
+      style={{ width: ORBIT.size, height: ORBIT.size }}
+    >
+      <svg viewBox={`0 0 ${ORBIT.size} ${ORBIT.size}`} className="h-full w-full">
+        <defs>
+          <pattern
+            id="orbit-hatch"
+            width="7"
+            height="7"
+            patternTransform="rotate(-45)"
+            patternUnits="userSpaceOnUse"
+          >
+            <rect width="7" height="7" fill="transparent" />
+            <rect width="3" height="7" fill="var(--muted-foreground)" opacity="0.3" />
+          </pattern>
+        </defs>
+        {/* La piste : ce que l'anneau n'attribue pas reste une lacune
+            visible sur ce fond — jamais comblée en silence. */}
+        <circle
+          cx={ORBIT.c}
+          cy={ORBIT.c}
+          r={(ORBIT.rOut + ORBIT.rIn) / 2}
+          fill="none"
+          stroke="var(--border-soft)"
+          strokeWidth={ORBIT.rOut - ORBIT.rIn}
+        />
+        {segs.map((seg) => {
+          const amountText = seg.amount == null ? "—" : money(seg.amount, currency);
+          const shareText = seg.share == null ? "" : ` · ${pct(seg.share, locale)}`;
+          const floorNote =
+            seg.crushed && seg.share != null
+              ? ` ${t("money.columns.floored", { pct: pct(seg.share, locale) })}`
+              : "";
+          return (
+            <path
+              key={seg.key}
+              d={segPath(seg.start, seg.sweep)}
+              data-seg={seg.kind}
+              data-deg={Math.round(seg.sweep)}
+              data-crushed={seg.crushed || undefined}
+              className="orbit-seg"
+              fill={seg.color ?? "url(#orbit-hatch)"}
+              stroke="var(--background)"
+              strokeWidth="1.4"
+              onClick={
+                seg.to
+                  ? () => void navigate(seg.to as string)
+                  : seg.onClick
+              }
+            >
+              <title>{`${seg.name}${seg.kind === "others" ? "" : ` — ${amountText}`}${shareText}${floorNote}`}</title>
+            </path>
+          );
+        })}
+      </svg>
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span className="tnum text-[22px] font-semibold leading-none">
+          {centerAmount == null ? "—" : money(centerAmount, currency)}
+        </span>
+        <span className="mt-1 max-w-[120px] text-[10.5px] leading-snug text-muted-foreground">
+          {centerNote}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** La légende de l'orbite — LA surface accessible et précise : une
+ *  rangée par destination (pastille couleur, nom, montant fort,
+ *  part), le godet en bouton vers la liste complète, le non-ventilé
+ *  en rangée hachurée jamais cachée. */
+function OrbitLegend({
+  segs,
   currency,
   ariaLabel,
 }: {
-  bars: BarSpec[];
+  segs: ArcSeg[];
   currency: string | null | undefined;
   ariaLabel: string;
 }) {
   const { t, locale, money } = useMoneyCopy();
-  const placed = barGeometry(bars);
   return (
-    // La scène : le graphique vit dans un panneau à surface propre —
-    // le vocabulaire vient de l'inventaire DA (§ 15.15 ⓪), jamais
-    // d'un chart par défaut.
-    <div className={cn("rounded-2xl border p-4 md:px-7 md:pb-3 md:pt-6", `scene-${SCENE}`)}>
-      <ul
-        aria-label={ariaLabel}
-        className="flex w-full list-none overflow-x-auto overscroll-x-contain pb-1"
-      >
-      {placed.map((bar) => {
-        const amountText = bar.amount == null ? "—" : money(bar.amount, currency);
-        const shareText = bar.share == null ? "" : pct(bar.share, locale);
-        const crushNote =
-          bar.crushed && bar.share != null
-            ? ` ${t(bar.kind === "others" ? "money.columns.capped" : "money.columns.floored", {
-                pct: pct(bar.share, locale),
-              })}`
+    <ul aria-label={ariaLabel} className="w-full min-w-0 flex-1 list-none">
+      {segs.map((seg) => {
+        const amountText = seg.amount == null ? "—" : money(seg.amount, currency);
+        const shareText = seg.share == null ? "" : pct(seg.share, locale);
+        const floorNote =
+          seg.crushed && seg.share != null
+            ? ` ${t("money.columns.floored", { pct: pct(seg.share, locale) })}`
             : "";
-        // Le godet porte déjà son montant dans son nom — pas de doublon.
         const title =
-          bar.kind === "others"
-            ? `${bar.name}${shareText ? ` · ${shareText}` : ""}${crushNote}`
-            : `${bar.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${crushNote}`;
-        const column = (
+          seg.kind === "others"
+            ? `${seg.name}${shareText ? ` · ${shareText}` : ""}${floorNote}`
+            : `${seg.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${floorNote}`;
+        const chip = (
+          <span
+            aria-hidden="true"
+            className={cn(
+              "h-2.5 w-2.5 shrink-0 rounded-[3px]",
+              seg.color == null && "recon-hatch",
+            )}
+            style={seg.color ? { background: seg.color } : undefined}
+          />
+        );
+        const row = (
           <>
+            {chip}
             <span
-              className="flex flex-col items-start justify-end border-b border-border"
-              style={{ height: BAR_MAX_H + AMOUNT_ZONE }}
+              className={cn(
+                "min-w-0 flex-1 truncate text-left text-[13px] leading-snug",
+                seg.kind === "child"
+                  ? "transition-colors group-hover:text-accent"
+                  : "text-muted-foreground",
+              )}
             >
-              {bar.amount != null ? (
-                <span
-                  className={cn(
-                    "tnum mb-1.5 block leading-none",
-                    bar.kind === "child"
-                      ? "text-[12.5px] font-semibold text-foreground transition-colors group-hover:text-accent"
-                      : "text-[11.5px] font-medium text-muted-foreground",
-                  )}
-                >
-                  {amountText}
-                </span>
-              ) : null}
-              {bar.crushed ? (
-                <span
-                  aria-hidden="true"
-                  className="mb-0.5 block text-[10px] leading-none text-muted-foreground"
-                >
-                  ≈
-                </span>
-              ) : null}
-              <span
-                data-bar={bar.kind}
-                data-crushed={bar.crushed || undefined}
-                className={cn(
-                  "block",
-                  bar.kind === "child" && `bar-${SCENE}`,
-                  bar.kind === "others" &&
-                    "border border-muted-foreground/50 bg-transparent transition-colors group-hover:border-accent",
-                  bar.kind === "unallocated" && "recon-hatch",
-                )}
-                style={{ height: bar.height, width: bar.kind === "others" ? OTHERS_W : BAR_W }}
-              />
+              {seg.name}
             </span>
-            <span className="mt-1.5 block pr-3 text-left leading-tight">
-              <span
-                className={cn(
-                  "line-clamp-2 font-mono text-[9.5px] leading-[1.4]",
-                  bar.kind === "child"
-                    ? "text-muted-foreground transition-colors group-hover:text-accent"
-                    : "text-muted-foreground/80",
-                )}
-              >
-                {bar.name}
+            {seg.crushed ? (
+              <span aria-hidden="true" className="text-[11px] text-muted-foreground">
+                ≈
               </span>
-              {shareText ? (
-                <span className="tnum mt-0.5 block text-[9.5px] text-muted-foreground/70">
-                  {shareText}
-                </span>
-              ) : null}
+            ) : null}
+            {seg.kind !== "others" ? (
+              <span className="tnum shrink-0 text-[13.5px] font-semibold">{amountText}</span>
+            ) : null}
+            <span className="tnum w-14 shrink-0 text-right text-[11.5px] text-muted-foreground">
+              {shareText}
             </span>
           </>
         );
         return (
-          <li key={bar.key} className="min-w-[64px] flex-1">
-            {bar.kind === "child" && bar.to ? (
-              <Link to={bar.to} title={title} aria-label={title} className="group block">
-                {column}
+          <li key={seg.key} data-row={seg.kind}>
+            {seg.kind === "child" && seg.to ? (
+              <Link
+                to={seg.to}
+                title={title}
+                aria-label={title}
+                className="group flex items-center gap-3 border-b border-border-soft py-2.5"
+              >
+                {row}
               </Link>
-            ) : bar.kind === "others" ? (
+            ) : seg.kind === "others" ? (
               <button
                 type="button"
-                onClick={bar.onClick}
+                onClick={seg.onClick}
                 title={`${title} — ${t("money.columns.othersTitle")}`}
                 aria-label={`${title} — ${t("money.columns.othersTitle")}`}
-                className="group block w-full cursor-pointer text-left"
+                className="group flex w-full cursor-pointer items-center gap-3 border-b border-border-soft py-2.5"
               >
-                {column}
+                {row}
               </button>
             ) : (
-              <span title={title} className="group block">
+              <span title={title} className="flex items-center gap-3 border-b border-border-soft py-2.5">
                 <span className="sr-only">{title}</span>
-                {column}
+                {row}
               </span>
             )}
           </li>
         );
       })}
-      </ul>
-    </div>
+    </ul>
   );
 }
 
-/** La question unique du niveau, puis ses destinations : les colonnes
- *  proportionnelles au repos (hauteur = montant, échelle commune,
- *  godet « + N autres » et segment « non ventilé » quand ils
- *  existent) ; la liste complète — recherche locale, pagination — au
- *  clic sur le godet ou sur « + N autres ». Le filtre local n'existe
- *  que si l'ensemble des enfants est entièrement servi. */
+/** La question unique du niveau, puis ses destinations : l'orbite au
+ *  repos (rosace proportionnelle + légende — godet « + N autres » et
+ *  segment « non ventilé » quand ils existent) ; la liste complète —
+ *  recherche locale, pagination — au clic sur le godet. Le filtre
+ *  local n'existe que si l'ensemble des enfants est entièrement
+ *  servi. */
 function DestinationsSection({
   data,
   parentLabel,
@@ -677,7 +791,6 @@ function DestinationsSection({
   patch: (changes: Record<string, string | null>) => void;
 }) {
   const { t, locale, money } = useMoneyCopy();
-  const { ref: stripRef, width: stripWidth } = useMeasure<HTMLDivElement>();
 
   const children = data.children;
   const parentAmount = data.aggregate?.amount ?? null;
@@ -701,7 +814,7 @@ function DestinationsSection({
     : items;
   const hasMore = !query && expanded && page * PAGE_SIZE < children.total;
 
-  // ----- géométrie des colonnes (état de repos) ---------------------
+  // ----- géométrie de l'orbite (état de repos) ----------------------
   const candidates = [...items]
     .filter((item) => item.amount != null)
     .sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0));
@@ -712,11 +825,7 @@ function DestinationsSection({
   const residual =
     fullyLoaded && parentAmount != null ? parentAmount - knownSumServed : null;
   const showResidual = residual != null && residual > 1;
-  const slotCount =
-    stripWidth > 0
-      ? Math.max(6, Math.min(16, Math.floor(stripWidth / SLOT_W)))
-      : DEFAULT_SLOTS;
-  const capacity = slotCount - (showResidual ? 1 : 0);
+  const capacity = SHOWN_SLOTS - (showResidual ? 1 : 0);
   const shown =
     candidates.length + (children.total - candidates.length > 0 ? 1 : 0) <= capacity
       ? candidates
@@ -745,7 +854,7 @@ function DestinationsSection({
   // (« SOCIETAL CHALLENGES » × 4 dans H2020), ces colonnes reprennent
   // leur code stable du moteur — distinct par construction. Le nom
   // complet reste au title et au libellé accessible.
-  const cutNames = shown.map((item) => displayLabel({ label: item.name, code: item.code }, 144, 10.5));
+  const cutNames = shown.map((item) => displayLabel({ label: item.name, code: item.code }, 250, 13));
   const nameCounts = new Map<string, number>();
   for (const name of cutNames) nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1);
   const bars: BarSpec[] = [
@@ -754,7 +863,7 @@ function DestinationsSection({
       kind: "child" as const,
       name:
         (nameCounts.get(cutNames[index]) ?? 0) > 1 && item.code
-          ? displayLabel({ label: item.code, code: item.code }, 144, 10.5)
+          ? displayLabel({ label: item.code, code: item.code }, 250, 13)
           : cutNames[index],
       amount: item.amount,
       share: shareOf(item.amount),
@@ -796,6 +905,7 @@ function DestinationsSection({
   ];
 
   const listMode = expanded || Boolean(query) || bars.length === 0;
+  const segs = listMode ? [] : arcGeometry(bars, parentAmount);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -827,16 +937,21 @@ function DestinationsSection({
           ? `${childrenLabel} · ${formatInt(matched.length, locale)} / ${formatInt(children.total, locale)}`
           : `${childrenLabel} · ${formatInt(children.total, locale)}`}
       </p>
-      <div
-        ref={stripRef}
-        className="mt-3 min-h-0 flex-1 md:overflow-y-auto md:overscroll-contain"
-      >
+      <div className="mt-3 min-h-0 flex-1 md:overflow-y-auto md:overscroll-contain">
         {children.items.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {t("money.emptyLevel")}
           </p>
         ) : !listMode ? (
-          <BarStrip bars={bars} currency={currency} ariaLabel={childrenLabel} />
+          <div className="flex flex-col items-center gap-7 pt-2 xl:flex-row xl:items-start xl:gap-12">
+            <OrbitArc
+              segs={segs}
+              centerAmount={parentAmount}
+              centerNote={childrenLabel}
+              currency={currency}
+            />
+            <OrbitLegend segs={segs} currency={currency} ariaLabel={childrenLabel} />
+          </div>
         ) : matched.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {t("money.search.noMatch")}
@@ -1166,13 +1281,13 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
   const items = data.children.items;
   const parent = data.measure.amount;
 
-  // Colonnes proportionnelles des participants (B2.8) : tous les
-  // participants sont servis (jamais de pagination ici) — chacun a sa
-  // colonne, la rampe défile. Le « non ventilé » vient du moteur
-  // (reconciliation.unallocated) ; un dépassement (exceed) n'a PAS de
-  // segment résiduel : les parts dépassent le plafond, le texte de
-  // réconciliation l'explique. NIH bénéficiaire : aucune barre — le
-  // moteur ne ventile pas.
+  // L'orbite des participants (B2.11) : tous les participants sont
+  // servis (jamais de pagination ici) — chacun son segment coloré, la
+  // pastille de rang relie l'anneau à sa rangée. Le « non ventilé »
+  // vient du moteur (reconciliation.unallocated) ; un dépassement
+  // (exceed) n'a PAS de segment résiduel : l'assiette s'étend à la
+  // somme, le texte comptable signé dit le dépassement. NIH
+  // bénéficiaire : aucun anneau — le moteur ne ventile pas.
   const shareOf = (amount: number | null) =>
     amount != null && parent != null && parent > 0 ? (amount / parent) * 100 : null;
   const participantBars: BarSpec[] = beneficiary
@@ -1184,7 +1299,7 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
           .map((item) => ({
             key: item.source_uid,
             kind: "child" as const,
-            name: displayLabel({ label: formatOrgName(item.organisation.label) }, 144, 10.5),
+            name: displayLabel({ label: formatOrgName(item.organisation.label) }, 250, 13),
             amount: item.amount ?? null,
             share: shareOf(item.amount ?? null),
             to: `/money/organisation/${item.organisation.id}`,
@@ -1203,6 +1318,9 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
             ]
           : []),
       ];
+  const participantSegs = participantBars.length > 0 ? arcGeometry(participantBars, parent) : [];
+  // La pastille de rang relie chaque rangée à son segment.
+  const segColor = new Map(participantSegs.map((seg) => [seg.key, seg.color]));
 
   return (
     <section className="mt-12">
@@ -1217,12 +1335,13 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
           {t("money.nih.beneficiaryNote")}
         </p>
       ) : null}
-      {participantBars.length > 0 ? (
-        <div className="mt-4">
-          <BarStrip
-            bars={participantBars}
+      {participantSegs.length > 0 ? (
+        <div className="mt-5 flex justify-center md:justify-start">
+          <OrbitArc
+            segs={participantSegs}
+            centerAmount={parent}
+            centerNote={t("money.children.participation", { count: data.children.total })}
             currency={data.measure.currency}
-            ariaLabel={t("money.children.participation", { count: data.children.total })}
           />
         </div>
       ) : null}
@@ -1242,6 +1361,13 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
                 key={item.source_uid}
                 className="flex items-baseline gap-3 border-b border-border-soft py-3"
               >
+                {segColor.get(item.source_uid) ? (
+                  <span
+                    aria-hidden="true"
+                    className="h-2.5 w-2.5 shrink-0 rounded-[3px]"
+                    style={{ background: segColor.get(item.source_uid) as string }}
+                  />
+                ) : null}
                 <span className="min-w-0 truncate text-sm leading-snug">
                   <Link
                     to={`/money/organisation/${item.organisation.id}`}
@@ -1539,9 +1665,11 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
     <TrailWorkspace path={path}>
       <div
         key={`${shown}:${data.node.id}:${programmeContext ?? ""}`}
-        className="focus-in flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10"
+        className="focus-in flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10 xl:flex-row xl:gap-14"
       >
-        <header className="w-full max-w-[980px] shrink-0">
+        {/* L'astre : le nœud où l'on est entré se range sur le côté —
+            son nom, son grand chiffre en encre du hero, sa méthode. */}
+        <header className="w-full max-w-[980px] shrink-0 xl:w-[360px]">
           <Eyebrow>
             {t(`money.levels.${shown}`)}
             {"code" in data.node && data.node.code !== label ? (
@@ -1559,11 +1687,13 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           >
             {label}
           </h1>
-          <p className="display-tight tnum mt-3 text-[clamp(26px,2.8vw,36px)] font-semibold">
+          <p className="display-tight tnum mt-3 text-[clamp(28px,3vw,40px)] font-semibold">
             {data.aggregate?.amount == null ? (
               <span title={t("money.unknownAmount")}>—</span>
             ) : (
-              money(data.aggregate.amount, data.aggregate.measure.currency)
+              <span className="hero-gradient">
+                {money(data.aggregate.amount, data.aggregate.measure.currency)}
+              </span>
             )}
           </p>
           <ShareLine share={data.share_of_parent} measureKey={data.aggregate?.measure.key} />
@@ -1633,7 +1763,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
             </p>
           ) : null}
         </header>
-        <div className="mt-2 flex w-full max-w-[980px] min-h-0 flex-1 flex-col">
+        <div className="mt-2 flex w-full max-w-[980px] min-h-0 flex-1 flex-col xl:mt-0 xl:max-w-none xl:overflow-y-auto xl:overscroll-contain">
           <DestinationsSection
             data={data}
             parentLabel={label}
@@ -1702,11 +1832,13 @@ function ProjectFocus({ id }: { id: string }) {
             </p>
           ) : null}
           {dates ? <p className="tnum mt-1.5 text-[12.5px] text-muted-foreground">{dates}</p> : null}
-          <p className="display-tight tnum mt-4 text-[clamp(26px,2.8vw,36px)] font-semibold">
+          <p className="display-tight tnum mt-4 text-[clamp(28px,3vw,40px)] font-semibold">
             {data.measure.amount == null ? (
               <span title={t("money.unknownAmount")}>—</span>
             ) : (
-              money(data.measure.amount, data.measure.currency)
+              <span className="hero-gradient">
+                {money(data.measure.amount, data.measure.currency)}
+              </span>
             )}
           </p>
           <ShareLine share={data.share_of_parent} measureKey={data.measure.key} />
