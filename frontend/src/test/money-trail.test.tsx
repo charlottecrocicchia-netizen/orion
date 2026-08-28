@@ -14,7 +14,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { MemoryRouter, Route, Routes, useNavigate } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import "../i18n";
@@ -178,6 +178,26 @@ const FIXTURES: Record<string, unknown> = {
     ancestors: [EC_CRUMB],
     share_of_parent: {
       ratio: 14 / 176,
+      comparability: "ok",
+      parent: { level: "funder", label: "European Commission" },
+    },
+    navigation: NAV_EC,
+    restrictions: [],
+  },
+  "/api/chain/programme/101": {
+    node: {
+      level: "programme",
+      id: 101,
+      code: "PROG-1",
+      label: "Programme 1",
+      funder: "ec",
+      parent: EC_CRUMB,
+    },
+    aggregate: AGG(13e9, 11),
+    children: { level: "project", total: 0, items: [] },
+    ancestors: [EC_CRUMB],
+    share_of_parent: {
+      ratio: 13 / 176,
       comparability: "ok",
       parent: { level: "funder", label: "European Commission" },
     },
@@ -591,12 +611,29 @@ function stubFetch() {
   );
 }
 
+/** Les gestes navigateur (Back/Forward) dans le harnais — l'addendum
+ *  B2.7 §K exige une recomposition cohérente, pas un remplacement. */
+function HistoryProbe() {
+  const navigate = useNavigate();
+  return (
+    <>
+      <button type="button" onClick={() => navigate(-1)}>
+        test-back
+      </button>
+      <button type="button" onClick={() => navigate(1)}>
+        test-forward
+      </button>
+    </>
+  );
+}
+
 function mount(path: string) {
   return render(
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
       <MemoryRouter initialEntries={[path]}>
+        <HistoryProbe />
         <Routes>
           <Route path="/money" element={<MoneyTrailPage />} />
           <Route path="/money/:level/:id" element={<MoneyTrailPage />} />
@@ -867,5 +904,68 @@ describe("money trail (B2.5)", () => {
     mount("/money/programme/10");
     await screen.findByRole("heading", { name: "Horizon Europe", level: 1 });
     expect(screen.getByText("Où va ensuite cet argent ?")).toBeTruthy();
+  });
+
+  it("réponse réseau obsolète : clic A → clic B → réponse A après B → B reste le focus", async () => {
+    // §E de l'addendum B2.7 — invariant permanent, quelle que soit la
+    // composition : une réponse en retard n'écrase jamais une
+    // sélection plus récente, et le panneau n'est jamais vidé pendant
+    // le chargement.
+    let releaseA: (() => void) | null = null;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input).split("?")[0];
+        const fixture = FIXTURES[url];
+        const ok = { ok: true, status: 200, json: async () => fixture } as Response;
+        if (url.endsWith("/programme/100")) {
+          return new Promise<Response>((resolve) => {
+            releaseA = () => resolve(ok);
+          });
+        }
+        if (!fixture) {
+          return { ok: false, status: 404, json: async () => ({}) } as Response;
+        }
+        return ok;
+      }),
+    );
+    mount("/money/funder/ec");
+    await screen.findByRole("heading", { name: "European Commission", level: 1 });
+    // Clic A : les données chargent — l'état visuel courant est
+    // conservé, le panneau analytique n'est pas vidé.
+    fireEvent.click(screen.getByText("Programme 0").closest("a")!);
+    expect(screen.getByRole("heading", { name: "European Commission", level: 1 })).toBeTruthy();
+    // Clic B : il répond immédiatement et prend le focus.
+    fireEvent.click(screen.getByText("Programme 1").closest("a")!);
+    expect(await screen.findByRole("heading", { name: "Programme 1", level: 1 })).toBeTruthy();
+    // La réponse de A arrive APRÈS : elle ne doit rien écraser.
+    releaseA!();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.getByRole("heading", { name: "Programme 1", level: 1 })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Programme 0", level: 1 })).toBeNull();
+  });
+
+  it("navigation Back/Forward : la pile se recompose sans fantôme", async () => {
+    mount("/money/funder/ec");
+    await screen.findByRole("heading", { name: "European Commission", level: 1 });
+    fireEvent.click(screen.getByText("Programme 0").closest("a")!);
+    await screen.findByRole("heading", { name: "Programme 0", level: 1 });
+    expect(geometry()).toEqual([
+      { grow: 0, basis: "56px" },
+      { grow: 1, basis: "0px" },
+    ]);
+    // Back : le financeur reprend le focus, la bande disparaît.
+    fireEvent.click(screen.getByRole("button", { name: "test-back" }));
+    expect(await screen.findByRole("heading", { name: "European Commission", level: 1 })).toBeTruthy();
+    expect(geometry()).toEqual([{ grow: 1, basis: "0px" }]);
+    expect(screen.queryByRole("heading", { name: "Programme 0", level: 1 })).toBeNull();
+    // Forward : la pile se recompose à l'identique.
+    fireEvent.click(screen.getByRole("button", { name: "test-forward" }));
+    expect(await screen.findByRole("heading", { name: "Programme 0", level: 1 })).toBeTruthy();
+    expect(geometry()).toEqual([
+      { grow: 0, basis: "56px" },
+      { grow: 1, basis: "0px" },
+    ]);
+    expect(regions()[0].textContent).toContain("European Commission");
   });
 });

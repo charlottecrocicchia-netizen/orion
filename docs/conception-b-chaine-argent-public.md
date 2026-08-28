@@ -1227,3 +1227,43 @@ audit des clés mortes : 0. Tests : 165 frontend (18 surface : bases
 par profondeur 1/2/5, zoom sémantique parent vs ancien, bande
 transversale sans ratio, descente/remontée/branche, filtre honnête,
 NIH/NSF/transverse, FR/EN), 372 backend inchangés.
+
+### 15.11 B2.7 — Constellation Trace : contrat technique reçu (2026-08-28)
+
+L'addendum technique du moteur de transition est reçu et exécuté pour
+sa part indépendante de la direction artistique ; le BRIEF PRINCIPAL
+de la Constellation Trace (géométrie des nœuds, liens, place du
+panneau analytique, comportement des previews) n'est pas encore posé
+— rien du rendu n'est construit avant lui.
+
+Livré :
+
+- **`frontend/src/lib/constellation-engine.ts`** — le moteur de
+  transition déterministe, PUR (aucune animation, durée, coordonnée
+  ni montant) : phases explicites `idle / loading_target / exiting /
+  repositioning / entering` ; les trois concepts jamais mélangés
+  (`committedPath` = l'URL, `pendingTarget` = la cible en chargement,
+  `previewBranches` = couche à part qui ne touche jamais le chemin) ;
+  diff par plus long préfixe commun (persist / exit / enter / pivot =
+  dernier persistant) ; transaction à identifiant — seule la plus
+  récente peut committer, une réponse obsolète est ignorée et ne
+  touche rien ; le commit rend la structure vraie immédiatement,
+  l'animation n'est qu'un récit (`advance()` est appelé par le rendu
+  à chaque fin d'étape — aucun setTimeout dans le moteur) ; une
+  interruption atterrit structurellement (jamais d'`entering`
+  permanent, jamais de fantôme) ; `settle()` = état final instantané
+  (reduced-motion). 15 tests unitaires, dont l'exemple LCP canonique
+  de l'addendum et le déterminisme de bout en bout.
+- **Deux invariants permanents posés dès maintenant sur la surface
+  courante** (valables pour toute composition) : « clic A → clic B →
+  réponse A après B → B reste le focus » (l'état visuel courant est
+  conservé pendant le chargement, le panneau n'est jamais vidé, la
+  réponse en retard n'écrase rien — React Query par clé fait foi) ;
+  Back/Forward navigateur recomposent la pile sans fantôme
+  (géométrie vérifiée avant/après).
+
+En attente du brief principal : machine visuelle (SVG, Bézier
+`pathLength=1`, couches active/preview/labels, FLIP, timings T0…T+260,
+synchronisation du panneau analytique) — le moteur est prêt à la
+porter. Tests : 182 frontend (20 surface + 15 moteur), 372 backend
+inchangés.
