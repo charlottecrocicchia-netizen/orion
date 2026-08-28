@@ -24,15 +24,21 @@ All notable changes to Orion are documented here. The format follows
   programme scope). The B1 engine gained two additive endpoints so
   the UI never guesses: per-node `ancestors` (enriched with amounts,
   share-of-parent and comparability) and `GET /chain/funders`. The
-  surface is a full-height Depth Stack explorer (B2.6): the screen IS
-  the active path — ancestors fold upward into full-width context
-  bands whose heights encode only distance to the focus (never
-  money), with real semantic zoom (the parent keeps name, amount and
-  its share; older ancestors say name and amount, nothing more), so
-  descending visibly folds the level you leave above the new one (a
-  real flex transition on the same DOM element, instant under reduced
-  motion) and clicking a band redeploys that level. The focus level
-  owns almost the full width even at depth 5 and carries one
+  surface is a Constellation Trace (B2.7): the travelled path becomes
+  a light constellation of nodes and hairline links above the
+  analytic focus — deterministic layout (geometry encodes the
+  journey, never the money), real semantic zoom (focus detailed,
+  parent name+amount+share, older ancestors a stable short name and
+  amount), and a deterministic transition engine: persisting nodes
+  glide as the same DOM elements, the abandoned branch resorbs toward
+  the common-prefix pivot, the new one grows from it (instant under
+  reduced motion; stale responses can never overwrite a newer
+  selection). Clicking an ancestor node reveals its main branches as
+  a temporary preview layer — back-to-level plus top alternatives —
+  without ever touching the committed path until a link is chosen.
+  Transverse organisations are the one multi-arm case (several
+  provenances converge; links mean provenance, not flow). The focus
+  level carries one
   question — where does this money go next? — then editorial
   destination rows (adaptive top, an honest local filter only when
   the whole child set is served); a methodology inspector slides in

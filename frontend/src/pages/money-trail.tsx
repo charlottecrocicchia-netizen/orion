@@ -1,24 +1,14 @@
-/** B2.5 — « Où est passé cet argent ? » (docs/conception-b-chaine-argent-public.md § 15).
+/** B2.7 — « Où est passé cet argent ? » (docs/conception-b-chaine-argent-public.md § 15).
  *
- *  Morphing Trace Explorer : l'écran est une succession de régions
- *  correspondant au CHEMIN ACTIF (financeur → … → focus). La largeur
- *  d'une région ne code que sa DISTANCE au focus — jamais le montant
- *  (aucune lecture de type Sankey) : le focus tient la majorité de
- *  l'espace, le parent reste lisible, les ancêtres plus anciens se
- *  compressent en bandes contextuelles interactives.
+ *  Constellation Trace : le chemin parcouru devient une constellation
+ *  de navigation (src/components/constellation-trace.tsx) — nœuds,
+ *  liens, labels, branche active, bifurcations temporaires — portée
+ *  par le moteur de transition déterministe b5d4831. La géométrie
+ *  représente le parcours, JAMAIS la quantité financière. Sous elle,
+ *  UN focus analytique : la constellation explique le chemin, le
+ *  panneau explique le nœud.
  *
- *  Quand le focus se déplace, la disposition SE TRANSFORME devant
- *  l'utilisateur : chaque région garde son élément (clé par nœud), la
- *  répartition des `flex-grow` se rejoue en une vraie transition de
- *  layout (~220 ms) — l'ancien focus se contracte vers le contexte
- *  pendant que la nouvelle région pousse depuis zéro ; en remontant,
- *  le mouvement inverse rééquilibre l'écran autour du niveau
- *  recliqué. `prefers-reduced-motion` : état final instantané (bloc
- *  global). La couleur répond « où se trouve mon attention ? » :
- *  ancêtres en gris Orion, focus subtilement teinté, accent
- *  fonctionnel seul (type, sélection, actions).
- *
- *  Le contrat métier est inchangé (B0/B1, acquis B2.2→B2.4) : le
+ *  Le contrat métier est inchangé (B0/B1, acquis B2.2→B2.6) : le
  *  moteur fait foi ; le fil enrichi de la réponse courante
  *  reconstruit tout le chemin en UNE requête (deep-link ≡ descente,
  *  aucune dépendance au cache) ; le focus se rend d'après le niveau
@@ -34,6 +24,11 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
 
+import {
+  ConstellationTrace,
+  TransverseConstellation,
+  type ConstellationPathNode,
+} from "@/components/constellation-trace";
 import { ExploreExits } from "@/components/explore-exits";
 import { Pager } from "@/components/pager";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +47,9 @@ import {
   type ChainProvenance,
   type ChainReconciliation,
 } from "@/lib/api";
+import { childTo, crumbPath } from "@/lib/chain-routes";
 import { countryFlag, formatCompactMoney, formatInt, formatOrgName } from "@/lib/format";
+import { pct } from "@/lib/format-share";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 50;
@@ -121,29 +118,6 @@ function usePagePatch(): [
     setParams(next, { preventScrollReset: true });
   };
   return [page, expanded, q, patch];
-}
-
-function pct(share: number, locale: string): string {
-  // Une part réelle mais minuscule ne s'affiche JAMAIS « 0 % » — un
-  // zéro qui n'en est pas un (esprit I4) : elle devient « < 0,1 % ».
-  if (share > 0 && share < 0.05) {
-    return `< ${(0.1).toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
-  }
-  return `${share.toLocaleString(locale, { maximumFractionDigits: 1 })} %`;
-}
-
-function crumbPath(crumb: Pick<ChainCrumb, "level" | "id">): string {
-  return `/money/${crumb.level}/${crumb.id}`;
-}
-
-function childTo(
-  item: { level: string; id: number | string },
-  parent?: { level: string; id: number | string },
-): string {
-  if (item.level === "call" && parent?.level === "programme") {
-    return `/money/call/${item.id}?programme=${parent.id}`;
-  }
-  return crumbPath(item as Pick<ChainCrumb, "level" | "id">);
 }
 
 function shareFamily(key: string | null | undefined): "cordis" | "nih" | "nsf" | null {
@@ -304,19 +278,7 @@ function MethodologyPanel({
 /* ------------------------------------------------------------------ */
 /* Le chemin actif                                                     */
 
-interface PathNode {
-  level: string;
-  id: number | string;
-  label: string;
-  code?: string;
-  to?: string;
-  amount?: number | null;
-  currency?: string | null;
-  share?: number | null;
-  /** Liaison structurelle sans ratio valide (appel transversal). */
-  transversal?: boolean;
-  active?: boolean;
-}
+type PathNode = ConstellationPathNode;
 
 function pathFromSpine(ancestors: ChainCrumb[], current: PathNode): PathNode[] {
   return [
@@ -335,97 +297,15 @@ function pathFromSpine(ancestors: ChainCrumb[], current: PathNode): PathNode[] {
   ];
 }
 
-/** La hauteur d'une bande ne code que sa DISTANCE au focus — jamais
- *  le montant : le parent reste détaillé, au-delà les bandes se
- *  condensent. Le focus prend tout l'espace restant (flex-grow). */
-function bandBasis(distance: number): number {
-  if (distance === 1) return 56;
-  if (distance === 2) return 40;
-  return 32;
-}
-
-/** L'indentation dit la profondeur — légère, plafonnée, jamais
- *  décorative. */
-function bandIndent(index: number): number {
-  return 24 + Math.min(index * 14, 56);
-}
-
-/** Une bande ancêtre : le niveau quitté, replié vers le haut — toute
- *  la largeur, une vraie action (cliquer y ramène le focus). Zoom
- *  sémantique : le parent immédiat garde nom + montant + sa part ;
- *  un ancêtre plus ancien ne dit plus que nom + montant. */
-function Band({
-  node,
-  previousLabel,
-  distance,
-  index,
-}: {
-  node: PathNode;
-  previousLabel?: string;
-  distance: number;
-  index: number;
-}) {
-  const { t, locale, money } = useMoneyCopy();
-  const parent = distance === 1;
-  const amount = node.amount != null ? money(node.amount, node.currency) : "";
-  return (
-    <Link
-      to={node.to ?? "/money"}
-      aria-label={t("money.stack.backTo", { name: node.label, amount })}
-      className="group flex h-full min-w-0 flex-col justify-center pr-6 transition-colors hover:bg-accent-soft/40 md:pr-10"
-      style={{ paddingLeft: bandIndent(index) }}
-    >
-      <span className="flex w-full max-w-[980px] items-baseline justify-between gap-6">
-        <span
-          aria-hidden="true"
-          className={cn(
-            "min-w-0 truncate leading-tight text-foreground/80 transition-colors group-hover:text-accent",
-            parent ? "text-[13.5px] font-medium" : distance === 2 ? "text-[12.5px]" : "text-[12px]",
-          )}
-          title={node.label}
-        >
-          {node.label}
-        </span>
-        {node.amount != null ? (
-          <span
-            aria-hidden="true"
-            className={cn(
-              "tnum shrink-0 text-muted-foreground",
-              parent ? "text-[12.5px] font-medium text-foreground/70" : "text-[11.5px]",
-            )}
-          >
-            {amount}
-          </span>
-        ) : null}
-      </span>
-      {parent ? (
-        node.transversal ? (
-          <span className="mt-0.5 text-[10.5px] text-muted-foreground">
-            <span aria-hidden="true">└ </span>
-            {t("money.stack.transversal")}
-          </span>
-        ) : node.share != null ? (
-          <span className="tnum mt-0.5 text-[10.5px] text-accent">
-            <span aria-hidden="true">└ </span>
-            {t("money.trace.ofPrevious", {
-              pct: pct(node.share * 100, locale),
-              parent: previousLabel ?? "",
-            })}
-          </span>
-        ) : null
-      ) : null}
-    </Link>
-  );
-}
-
-/** Le chemin compact (< md) : « ↩ EC › Horizon › EIT » — cliquer une
- *  étape remonte. Le retour à la racine est un geste, pas un nœud. */
+/** Le chemin compact (< md) : la grammaire de la constellation en une
+ *  ligne directionnelle — « ↩ ● EC ── ● H2020 ── ● ERC » ; cliquer
+ *  une étape remonte, le retour à la racine est un geste. */
 function TraceLine({ nodes }: { nodes: PathNode[] }) {
   const { t } = useMoneyCopy();
   return (
     <nav
       aria-label={t("money.rail.title")}
-      className="flex items-center gap-1.5 overflow-x-auto px-6 pt-4 text-[12.5px] md:hidden"
+      className="flex items-center gap-2 overflow-x-auto px-6 pt-4 text-[12.5px] md:hidden"
     >
       <Link
         to="/money"
@@ -435,27 +315,30 @@ function TraceLine({ nodes }: { nodes: PathNode[] }) {
         <span aria-hidden="true">↩</span>
       </Link>
       {nodes.map((node, index) => (
-        <span key={`${node.level}-${index}`} className="flex shrink-0 items-center gap-1.5">
+        <span key={`${node.level}-${index}`} className="flex shrink-0 items-center gap-2">
           {index > 0 ? (
-            <span aria-hidden="true" className="text-muted-foreground/60">
-              ›
-            </span>
+            <span aria-hidden="true" className="h-px w-4 bg-border" />
           ) : null}
           {node.to && !node.active ? (
             <Link
               to={node.to}
-              className="max-w-[16ch] truncate text-muted-foreground hover:text-foreground"
+              className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
               title={node.label}
             >
-              {node.label}
+              <span
+                aria-hidden="true"
+                className="h-[5px] w-[5px] rounded-full bg-muted-foreground/60 transition-colors group-hover:bg-accent"
+              />
+              <span className="max-w-[15ch] truncate">{node.label}</span>
             </Link>
           ) : (
             <span
               aria-current="true"
-              className="max-w-[20ch] truncate font-medium"
+              className="flex items-center gap-1.5 font-medium"
               title={node.label}
             >
-              {node.label}
+              <span aria-hidden="true" className="h-[6px] w-[6px] rounded-full bg-accent" />
+              <span className="max-w-[18ch] truncate">{node.label}</span>
             </span>
           )}
         </span>
@@ -465,61 +348,16 @@ function TraceLine({ nodes }: { nodes: PathNode[] }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* La coquille morphing : le chemin actif EST la disposition           */
+/* La coquille : constellation au-dessus, UN focus analytique dessous  */
 
-function DepthStack({ path, children }: { path: PathNode[]; children: ReactNode }) {
+function ConstellationWorkspace({ path, children }: { path: PathNode[]; children: ReactNode }) {
   return (
     <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
       <TraceLine nodes={path} />
-      <div className="flex min-h-0 flex-1 flex-col">
-        {/* UN SEUL map keyé par nœud (visual momentum) : quand le
-            focus se déplace, le MÊME élément change de représentation
-            — le niveau quitté se replie vers le haut en bande
-            contextuelle (transition flex-grow + flex-basis), le
-            nouveau focus se déploie sous lui. Deux fratries séparées
-            casseraient la réconciliation par clé et remonteraient
-            l'élément (leçon B2.5). */}
-        {path.map((node, index) => {
-          const distance = path.length - 1 - index;
-          const isFocus = distance === 0;
-          return (
-            <div
-              key={`${node.level}:${node.id}`}
-              data-region={node.level}
-              data-distance={distance}
-              style={{
-                flexGrow: isFocus ? 1 : 0,
-                flexBasis: isFocus ? 0 : bandBasis(distance),
-                animationDelay: isFocus ? "60ms" : undefined,
-              }}
-              className={cn(
-                "morph-region region-in min-h-0 shrink-0 overflow-hidden",
-                isFocus
-                  ? "shrink"
-                  : cn(
-                      "hidden md:block",
-                      // L'accent fin marque le parent immédiat — la
-                      // frontière contexte / focus.
-                      distance === 1
-                        ? "border-b-2 border-accent/50 bg-accent-soft/30"
-                        : "border-b border-border-soft",
-                    ),
-              )}
-            >
-              {isFocus ? (
-                children
-              ) : (
-                <Band
-                  node={node}
-                  previousLabel={index > 0 ? path[index - 1]?.label : undefined}
-                  distance={distance}
-                  index={index}
-                />
-              )}
-            </div>
-          );
-        })}
+      <div className="md:px-10">
+        <ConstellationTrace path={path} />
       </div>
+      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
     </div>
   );
 }
@@ -560,7 +398,7 @@ function DestinationRow({
     >
       <span className="sr-only">{t("money.followTo", { name: item.name })} — </span>
       <span className="min-w-0">
-        <span className="block text-[14px] font-medium leading-snug transition-colors group-hover:text-accent line-clamp-2">
+        <span className="line-clamp-2 text-[14px] font-medium leading-snug transition-colors group-hover:text-accent">
           {item.name}
         </span>
         <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
@@ -1364,7 +1202,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
       : "";
 
   return (
-    <DepthStack path={path}>
+    <ConstellationWorkspace path={path}>
       <div
         key={`${shown}:${data.node.id}:${programmeContext ?? ""}`}
         className="focus-in flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10"
@@ -1472,7 +1310,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           />
         </div>
       </div>
-    </DepthStack>
+    </ConstellationWorkspace>
   );
 }
 
@@ -1508,7 +1346,7 @@ function ProjectFocus({ id }: { id: string }) {
   const attribution = data.node.programme?.attribution;
 
   return (
-    <DepthStack path={path}>
+    <ConstellationWorkspace path={path}>
       <div
         key={`project:${data.node.id}`}
         className="focus-in h-full min-h-0 overflow-y-auto px-6 pb-10 pt-6 md:px-10"
@@ -1598,7 +1436,7 @@ function ProjectFocus({ id }: { id: string }) {
           />
         </div>
       </div>
-    </DepthStack>
+    </ConstellationWorkspace>
   );
 }
 
@@ -1700,7 +1538,7 @@ function TransverseShell({ children }: { children: ReactNode }) {
 }
 
 function OrganisationView({ id }: { id: string }) {
-  const { t } = useMoneyCopy();
+  const { t, locale } = useMoneyCopy();
   const query = useQuery({
     queryKey: ["chain-organisation", id],
     queryFn: () => api.chainOrganisation(id),
@@ -1730,6 +1568,26 @@ function OrganisationView({ id }: { id: string }) {
           ]}
         />
       </div>
+      {data.by_funder.length > 0 ? (
+        <div className="mt-6">
+          <TransverseConstellation
+            centerLabel={label}
+            branches={data.by_funder.map((block) => ({
+              key: block.funder,
+              label: t(`money.funderNames.${block.funder}`),
+              amountText:
+                block.amount == null
+                  ? t("money.unknown")
+                  : formatCompactMoney(
+                      block.amount,
+                      locale,
+                      block.measure.currency === "USD" ? "usd" : "eur",
+                    ),
+              to: `/money/funder/${block.funder}`,
+            }))}
+          />
+        </div>
+      ) : null}
       {data.by_funder.length === 0 ? (
         <p className="py-14 text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
       ) : (
@@ -1776,6 +1634,26 @@ function CountryView({ code }: { code: string }) {
       <p className="mt-2 max-w-[68ch] text-[12px] leading-snug text-muted-foreground">
         {t("money.countryDestination")}
       </p>
+      {data.by_funder.length > 0 ? (
+        <div className="mt-6">
+          <TransverseConstellation
+            centerLabel={countryName}
+            branches={data.by_funder.map((block) => ({
+              key: block.funder,
+              label: t(`money.funderNames.${block.funder}`),
+              amountText:
+                block.amount == null
+                  ? t("money.unknown")
+                  : formatCompactMoney(
+                      block.amount,
+                      locale,
+                      block.measure.currency === "USD" ? "usd" : "eur",
+                    ),
+              to: `/money/funder/${block.funder}`,
+            }))}
+          />
+        </div>
+      ) : null}
       {data.by_funder.length === 0 ? (
         <p className="py-14 text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
       ) : (

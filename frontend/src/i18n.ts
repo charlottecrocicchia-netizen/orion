@@ -1392,6 +1392,10 @@ const resources = {
           backTo: "Back to {{name}} — {{amount}}",
           transversal: "Cross-cutting call",
         },
+        constellation: {
+          branches: "Show the main branches of {{name}}",
+          step: "step {{i}} of {{n}}",
+        },
         search: {
           placeholder: "Search among {{n}} {{what}}…",
           noMatch: "Nothing here matches.",
@@ -3025,6 +3029,10 @@ const resources = {
         stack: {
           backTo: "Revenir à {{name}} — {{amount}}",
           transversal: "Appel transversal",
+        },
+        constellation: {
+          branches: "Voir les principales branches de {{name}}",
+          step: "étape {{i}} sur {{n}}",
         },
         search: {
           placeholder: "Rechercher parmi {{n}} {{what}}…",

@@ -8,7 +8,9 @@ export function useMeasure<T extends HTMLElement>() {
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    // jsdom n'a pas ResizeObserver (et certains harnais retirent son
+    // stub) : sans observateur, la largeur reste à sa valeur initiale.
+    if (!element || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver((entries) => {
       setWidth(entries[0].contentRect.width);
     });

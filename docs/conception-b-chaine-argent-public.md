@@ -1267,3 +1267,89 @@ En attente du brief principal : machine visuelle (SVG, Bézier
 synchronisation du panneau analytique) — le moteur est prêt à la
 porter. Tests : 182 frontend (20 surface + 15 moteur), 372 backend
 inchangés.
+
+### 15.12 B2.7 — Constellation Trace (2026-08-28)
+
+Le brief principal de direction artistique est exécuté sur le socle
+technique § 15.11 (moteur b5d4831, conservé tel quel). Le chemin
+parcouru devient une constellation de navigation : nœuds, liens,
+labels, branche active, bifurcations temporaires — la géométrie
+représente le PARCOURS, jamais la quantité financière.
+
+- **Organisation** : navbar / bande constellation (136 px) / focus
+  analytique. Route-outil conservée (pas de footer, pas de défilement
+  du document au nominal desktop, listes du focus en défilement
+  interne). La constellation explique le chemin ; le panneau explique
+  le nœud.
+- **Layout déterministe** (`constellation-layout.ts`, pur) : tronc
+  quasi horizontal, micro-ondulation alternée des points (±5 px),
+  segments qui s'élargissent vers le focus (poids 1 / 1,45 / 1,9 …),
+  labels ALTERNÉS dessus/dessous — un trait ne traverse jamais un
+  label (constat de recette à profondeur 5 avec la première pente
+  cumulée, corrigé) —, largeur de label bornée par l'espace jusqu'au
+  voisin. Même chemin + même largeur → mêmes coordonnées ; le layout
+  ne connaît ni montant, ni animation, ni physique.
+- **Répartition des techniques** (§ 16 du brief, arbitrée) : le SVG
+  ne porte que les LIENS (Bézier très légères, `pathLength="1"`,
+  couches active / sortante / preview, `aria-hidden`, épaisseur
+  unique) ; nœuds et labels sont du HTML positionné — typographie
+  Orion, noms longs, semantic zoom, primitives clavier standard. Un
+  nœud = un wrapper transformé : point et label bougent d'un seul
+  mouvement.
+- **Zoom sémantique** : focus = nom (2 lignes max), montant, part en
+  accent, aria complet ; parent = nom, montant, part discrète ;
+  ancêtre ancien = nom court INTELLIGIBLE (le code stable du moteur
+  quand le nom dépasse ~26 caractères — H2020, HORIZON.3.1) +
+  montant. Le nom complet reste en `title` et dans le libellé
+  d'accessibilité (« Voir les principales branches de {nom} — montant
+  — part — étape i sur n »).
+- **Transitions** : le moteur b5d4831 orchestre. Persist = le même
+  élément DOM glisse (transition de transform ; les liens suivent par
+  interpolation CSS de `d`) ; exit = couche sortante aux anciennes
+  positions, points qui s'atténuent en se rapprochant du pivot
+  (--exit-dx/--exit-dy), liens en dash-out ; enter = naissance depuis
+  le pivot (dash-in + fondu, 80–100 ms de décalage). La fin des
+  sorties fait avancer le moteur ; un UNIQUE filet de sécurité
+  (500 ms) force l'atterrissage si un événement d'animation se perd —
+  jamais d'`entering` permanent, jamais de fantôme (vérifié après
+  chaque navigation : 0 résidu). Reduced-motion : état final
+  instantané.
+- **Bifurcations** : cliquer un nœud ancêtre RÉVÈLE (bouton,
+  `aria-expanded`) « ↩ revenir à ce niveau » + ses 3 principales
+  alternatives (l'enfant committé exclu), chargées à la demande par
+  les MÊMES clés de cache que les vues — cercles évidés, liens gris,
+  couche à part qui ne déplace pas les nœuds actifs et ne touche
+  JAMAIS le chemin committé ; seule la sélection d'un lien navigue ;
+  Escape referme ; une intention plus récente annule la précédente
+  (jeton). Un survol ne modifie rien.
+- **Couleur** : branche active en bleu Orion atténué (accent/45),
+  nœud focus accent (9 px) et sa part en accent, ancêtres neutres
+  (6–7 px), previews gris ; survol → accent. Aucun glow, aucun fond
+  étoilé, fond Orion normal dans les deux thèmes.
+- **Cas doctrinaux** (vérifiés en réel) : NSF → division → BEACON et
+  NIH → institut → projet sans aucun nœud Call fictif ; appel
+  transversal : part vs financeur seulement si le moteur la sert,
+  « Appel transversal » en indication secondaire, jamais de ratio
+  inventé ; ITACONIX : LA seule constellation multi-bras — les
+  financeurs convergent vers l'organisation (liens neutres = «
+  plusieurs provenances », pas des flux), le panneau explique le
+  refus du total unique ; racine sans constellation.
+- **Mobile** : chemin directionnel compact (points + tirets) + focus
+  pleine largeur (constellation cachée, mesuré à 420, aucun
+  débordement).
+- **Défaut hérité corrigé au passage** : `block` + `line-clamp-2`
+  neutralisait le clamp (display) depuis B2.4 — les noms très longs
+  s'étalaient ; corrigé dans les lignes de destination et le nœud
+  focus.
+
+Suppressions (un seul système visuel) : Depth Stack complet (bandes,
+`bandBasis`/`bandIndent`, CSS `morph-region`/`region-in`) ; `pct`,
+`crumbPath`/`childTo` extraits en libs partagées ; garde
+d'environnement dans `useMeasure`. Une requête par vue (deep-link
+26403 : 1 requête, 5 nœuds). Tests : 182 frontend (20 surface — dont
+bifurcations : révélation sans commit, ↩, changement de branche,
+Escape ; profondeurs 1/3/5 aux positions croissantes ; transversal
+sans ratio ; multi-provenance ; Back/Forward ; réponse obsolète — +
+15 moteur + 3 workspace), 372 backend. Vérifié en réel : profondeurs
+2/3/5 STATIQUES d'abord (porte § 49), bifurcation MARS → H2020 → ICT,
+deep-link à froid, Back/Forward, 1440/420, EN/FR, clair/sombre.

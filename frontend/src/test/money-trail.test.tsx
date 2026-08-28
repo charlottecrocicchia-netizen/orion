@@ -1,16 +1,18 @@
-/** B2.5 — le Morphing Trace Explorer contre des réponses B1 fidèles
- *  aux golds : le chemin actif devient une rangée de régions dont la
- *  largeur (flex-grow) ne code que la distance au focus — jamais le
- *  montant ; descendre redistribue les régions, cliquer un ancêtre
- *  rééquilibre l'écran autour de lui, la branche remplacée disparaît.
- *  Deep-link ≡ descente (UNE requête, fil enrichi), filtre local
- *  honnête, réconciliation progressive, inconnu ≠ 0, bénéficiaire
- *  NIH, double système NSF, transverse sans morphing forcé, EN/FR.
+/** B2.7 — la Constellation Trace contre des réponses B1 fidèles aux
+ *  golds : le chemin committé devient une constellation (nœuds HTML
+ *  stables + liens SVG), au zoom sémantique réel (focus détaillé,
+ *  parent nom+montant+part, ancêtre ancien nom+montant seuls) ; un
+ *  clic sur un nœud ancêtre RÉVÈLE ses bifurcations (previews hors du
+ *  chemin committé) — « ↩ » remonte, une alternative change de
+ *  branche via le moteur b5d4831. Deep-link ≡ descente (UNE requête),
+ *  réponses obsolètes ignorées, Back/Forward recomposés, inconnu ≠ 0,
+ *  transversal sans ratio, NIH/NSF sans faux niveau, transverse
+ *  multi-provenance, EN/FR.
  *
- *  Le mouvement lui-même est pur CSS (transition flex-grow +
- *  region-in), tué globalement par prefers-reduced-motion — au niveau
- *  JS il n'existe AUCUN chemin dépendant du motion : les tests
- *  vérifient les états finaux et la présence des classes de morphing. */
+ *  Le mouvement est pur CSS (transitions transform/d + dash des
+ *  liens), tué par prefers-reduced-motion — le harnais le simule
+ *  actif : les tests vérifient les états finaux et l'absence de toute
+ *  couche sortante résiduelle. */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -642,19 +644,20 @@ function mount(path: string) {
     </QueryClientProvider>,
   );
 }
-/** Les régions du chemin actif, dans l'ordre gauche → droite. */
-function regions(): HTMLElement[] {
-  return Array.from(document.querySelectorAll<HTMLElement>("[data-region]"));
+/** Les nœuds du chemin committé, dans l'ordre racine → focus. */
+function cnodes(): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>("[data-cnode]"));
 }
 
-function geometry(): { grow: number; basis: string }[] {
-  return regions().map((el) => ({
-    grow: Number(el.style.flexGrow),
-    basis: el.style.flexBasis,
-  }));
+function activeLinks(): Element[] {
+  return Array.from(document.querySelectorAll('[data-clink="active"]'));
 }
 
-describe("money trail (B2.5)", () => {
+function previews(): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>("[data-cpreview]"));
+}
+
+describe("money trail (B2.7)", () => {
   beforeEach(() => {
     stubFetch();
     void i18n.changeLanguage("en");
@@ -671,36 +674,36 @@ describe("money trail (B2.5)", () => {
     expect(screen.getByText("NIH (RePORTER)")).toBeTruthy();
     expect(screen.getByText("No single total.")).toBeTruthy();
     expect(screen.getByText("Choose a funder to start following the money.")).toBeTruthy();
-    expect(regions()).toHaveLength(0);
+    // Aucune constellation tant qu'aucun financeur n'est choisi.
+    expect(cnodes()).toHaveLength(0);
   });
 
-  it("profondeur 1 : le focus occupe tout l'espace utile", async () => {
+  it("profondeur 1 : un seul nœud focus, aucun lien", async () => {
     mount("/money/funder/ec");
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
-    expect(regions()).toHaveLength(1);
-    expect(geometry()).toEqual([{ grow: 1, basis: "0px" }]);
-    expect(regions()[0].dataset.distance).toBe("0");
-    // Les classes du morphing sont posées (transition flex-grow +
-    // entrée region-in) — le mouvement est pur CSS, tué par le bloc
-    // global prefers-reduced-motion : état final instantané.
-    expect(regions()[0].className).toContain("morph-region");
-    expect(regions()[0].className).toContain("region-in");
+    expect(cnodes()).toHaveLength(1);
+    expect(activeLinks()).toHaveLength(0);
+    const focus = cnodes()[0];
+    expect(focus.dataset.distance).toBe("0");
+    expect(focus.querySelector('[aria-current="true"]')).toBeTruthy();
+    // Le mouvement est pur CSS (transition de transform sur le nœud
+    // stable), tué par prefers-reduced-motion : état final instantané.
+    expect(focus.className).toContain("const-node");
   });
 
   it("profondeur 2 : parent compact interactif + focus dominant", async () => {
     mount("/money/programme/10");
     await screen.findByRole("heading", { name: "Horizon Europe", level: 1 });
-    expect(geometry()).toEqual([
-      { grow: 0, basis: "56px" },
-      { grow: 1, basis: "0px" },
-    ]);
-    const parent = regions()[0];
+    expect(cnodes()).toHaveLength(2);
+    expect(activeLinks()).toHaveLength(1);
+    const parent = cnodes()[0];
     expect(parent.dataset.distance).toBe("1");
-    // La bande est une vraie surface interactive, avec son libellé de
-    // retour complet.
-    const link = parent.querySelector("a");
-    expect(link?.getAttribute("href")).toBe("/money/funder/ec");
-    expect(link?.getAttribute("aria-label")).toContain("European Commission");
+    // Le nœud ancêtre est un vrai bouton de bifurcation, au libellé
+    // complet (nom, montant, position dans la trace).
+    const button = parent.querySelector("button");
+    expect(button?.getAttribute("aria-expanded")).toBe("false");
+    expect(button?.getAttribute("aria-label")).toContain("European Commission");
+    expect(button?.getAttribute("aria-label")).toContain("step 1 of 2");
     expect(parent.textContent).toContain("European Commission");
     expect(parent.textContent).toContain("€176B");
     // La part du focus est libellée dans le focus.
@@ -714,24 +717,21 @@ describe("money trail (B2.5)", () => {
   it("profondeur 5 : ancêtres compressés, parts valides seules, focus dominant", async () => {
     mount("/money/project/1");
     await screen.findByRole("heading", { name: "BIO-QED", level: 1 });
-    expect(geometry()).toEqual([
-      { grow: 0, basis: "32px" },
-      { grow: 0, basis: "32px" },
-      { grow: 0, basis: "40px" },
-      { grow: 0, basis: "56px" },
-      { grow: 1, basis: "0px" },
-    ]);
-    const all = regions();
+    expect(cnodes()).toHaveLength(5);
+    expect(activeLinks()).toHaveLength(4);
+    const all = cnodes();
+    // Positions déterministes, strictement croissantes vers le focus.
+    const xs = all.map((el) => Number(/translate\((\d+(?:\.\d+)?)px/.exec(el.style.transform)?.[1]));
+    for (let i = 1; i < xs.length; i += 1) expect(xs[i]).toBeGreaterThan(xs[i - 1]);
     // Zoom sémantique : un ancêtre ancien dit nom + montant, RIEN de
-    // plus — sa part (pourtant servie) n'apparaît pas ; le nom reste
-    // pleine largeur, lisible.
+    // plus — sa part (pourtant servie) n'apparaît pas.
     expect(all[1].textContent).toContain("Horizon Europe");
     expect(all[1].textContent).toContain("€62B");
     expect(all[1].textContent).not.toContain("35.2");
     expect(all[0].textContent).toContain("€176B");
     // Le parent immédiat est un appel transversal : liaison
     // structurelle affichée, JAMAIS un ratio inventé.
-    expect(all[3].dataset.region).toBe("call");
+    expect(all[3].dataset.cnode).toBe("call");
     expect(all[3].dataset.distance).toBe("1");
     expect(all[3].textContent).toContain("Cross-cutting call");
     expect(all[3].textContent).not.toContain("%");
@@ -744,44 +744,54 @@ describe("money trail (B2.5)", () => {
   it("clic destination : la répartition se redistribue, l'étape rejoint le contexte", async () => {
     mount("/money/funder/ec");
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
-    expect(geometry()).toEqual([{ grow: 1, basis: "0px" }]);
+    expect(cnodes()).toHaveLength(1);
     fireEvent.click(screen.getByText("Programme 0").closest("a")!);
     expect(await screen.findByRole("heading", { name: "Programme 0", level: 1 })).toBeTruthy();
-    expect(geometry()).toEqual([
-      { grow: 0, basis: "56px" },
-      { grow: 1, basis: "0px" },
-    ]);
-    expect(regions()[0].textContent).toContain("European Commission");
+    expect(cnodes()).toHaveLength(2);
+    expect(activeLinks()).toHaveLength(1);
+    expect(cnodes()[0].textContent).toContain("European Commission");
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    // Reduced-motion (actif dans le harnais) : aucune couche sortante
+    // résiduelle, jamais de nœud fantôme.
+    expect(document.querySelector("[data-cexit]")).toBeNull();
   });
 
-  it("clic ancêtre : l'écran se rééquilibre autour du niveau recliqué", async () => {
+  it("bifurcations : un clic ancêtre révèle, ↩ remonte, une alternative change de branche", async () => {
     mount("/money/project/1");
     await screen.findByRole("heading", { name: "BIO-QED", level: 1 });
-    expect(regions()).toHaveLength(5);
-    const horizon = regions()
-      .map((r) => r.querySelector("a"))
-      .find((a) => a?.getAttribute("href") === "/money/programme/10");
-    expect(horizon).toBeTruthy();
-    fireEvent.click(horizon!);
+    expect(cnodes()).toHaveLength(5);
+    // Révélation : le clic sur HORIZON ouvre ses bifurcations — le
+    // chemin committé ne bouge PAS.
+    const horizonButton = cnodes()[1].querySelector("button");
+    expect(horizonButton).toBeTruthy();
+    fireEvent.click(horizonButton!);
+    await screen.findByTitle(/Back to Horizon Europe/);
+    // self « ↩ » + les alternatives (l'enfant committé Énergie est exclu).
+    expect(previews().length).toBeGreaterThan(1);
+    expect(previews()[0].dataset.cpreview).toBe("self");
+    const previewText = previews().map((el) => el.textContent).join(" ");
+    expect(previewText).toContain("Actions Marie Curie");
+    expect(previewText).not.toContain("Énergie");
+    // Preview ≠ commit : focus et chemin inchangés.
+    expect(screen.getByRole("heading", { name: "BIO-QED", level: 1 })).toBeTruthy();
+    expect(cnodes()).toHaveLength(5);
+    // Escape referme la révélation.
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(previews()).toHaveLength(0);
+    // « ↩ » remonte au niveau : l'écran se recompose autour de lui.
+    fireEvent.click(cnodes()[1].querySelector("button")!);
+    const self = await screen.findByTitle(/Back to Horizon Europe/);
+    fireEvent.click(self);
     expect(await screen.findByRole("heading", { name: "Horizon Europe", level: 1 })).toBeTruthy();
-    // Redistribution inverse : la bande recliquée se redéploie en
-    // focus, EC reste repliée — les descendants ont quitté la pile.
-    expect(geometry()).toEqual([
-      { grow: 0, basis: "56px" },
-      { grow: 1, basis: "0px" },
-    ]);
+    expect(cnodes()).toHaveLength(2);
     expect(document.body.textContent).not.toContain("CALL-X");
     expect(screen.queryByRole("heading", { name: "BIO-QED", level: 1 })).toBeNull();
     // Et une NOUVELLE branche s'ouvre depuis ce niveau.
     fireEvent.click(screen.getByText("Énergie").closest("a")!);
     expect(await screen.findByRole("heading", { name: "Énergie", level: 1 })).toBeTruthy();
-    expect(geometry()).toEqual([
-      { grow: 0, basis: "40px" },
-      { grow: 0, basis: "56px" },
-      { grow: 1, basis: "0px" },
-    ]);
-    expect(regions()[1].textContent).toContain("Horizon Europe");
+    expect(cnodes()).toHaveLength(3);
+    expect(cnodes()[1].textContent).toContain("Horizon Europe");
+    expect(document.querySelector("[data-cexit]")).toBeNull();
   });
 
   it("appel transversal : liaison structurelle, jamais un ratio invalide", async () => {
@@ -838,7 +848,7 @@ describe("money trail (B2.5)", () => {
     ).toBeTruthy();
     expect(screen.getByText(/identifies the beneficiary/)).toBeTruthy();
     expect(screen.getByText(/beneficiary marker, not a financial breakdown/)).toBeTruthy();
-    expect(regions().map((r) => r.dataset.region)).toEqual(["funder", "programme", "project"]);
+    expect(cnodes().map((r) => r.dataset.cnode)).toEqual(["funder", "programme", "project"]);
     expect(screen.getByText(/skips it rather than inventing it/)).toBeTruthy();
   });
 
@@ -854,7 +864,7 @@ describe("money trail (B2.5)", () => {
     expect(screen.getByText("No unallocated amount.")).toBeTruthy();
     expect(screen.queryByText("Project contribution")).toBeNull();
     expect(screen.queryByText("Participants with unknown share")).toBeNull();
-    expect(regions().map((r) => r.dataset.region)).toEqual(["funder", "programme", "project"]);
+    expect(cnodes().map((r) => r.dataset.cnode)).toEqual(["funder", "programme", "project"]);
   });
 
   it("organisation : relations de financement, aucun morphing forcé, refus du total", async () => {
@@ -862,13 +872,22 @@ describe("money trail (B2.5)", () => {
     const heading = await screen.findByRole("heading", { level: 1 });
     expect(heading.textContent).toContain("Itaconix corporation");
     expect(screen.getByText("Funding relations")).toBeTruthy();
-    expect(screen.getByText("$1.1M")).toBeTruthy();
+    expect(screen.getAllByText("$1.1M").length).toBeGreaterThan(0);
     expect(screen.getByText("No single total.")).toBeTruthy();
     expect(
       screen.getAllByText(/one combined figure would be an invented number/).length,
     ).toBeGreaterThan(0);
     expect(screen.getByText(/publishes no amount for this participation/)).toBeTruthy();
-    expect(regions()).toHaveLength(0);
+    // Pas de chemin descendant forcé — mais la constellation
+    // multi-provenance : deux branches financeurs convergent.
+    expect(cnodes()).toHaveLength(0);
+    const provenance = screen.getByRole("navigation", { name: "Funding relations" });
+    const hrefs = Array.from(provenance.querySelectorAll("a")).map((a) => a.getAttribute("href"));
+    expect(hrefs).toContain("/money/funder/ec");
+    expect(hrefs).toContain("/money/funder/nsf");
+    expect(provenance.querySelector('[aria-current="true"]')?.textContent).toContain(
+      "Itaconix corporation",
+    );
   });
 
   it("méthodologie : l'inspecteur s'ouvre à la demande, se referme, focus restitué", async () => {
@@ -950,22 +969,18 @@ describe("money trail (B2.5)", () => {
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
     fireEvent.click(screen.getByText("Programme 0").closest("a")!);
     await screen.findByRole("heading", { name: "Programme 0", level: 1 });
-    expect(geometry()).toEqual([
-      { grow: 0, basis: "56px" },
-      { grow: 1, basis: "0px" },
-    ]);
-    // Back : le financeur reprend le focus, la bande disparaît.
+    expect(cnodes()).toHaveLength(2);
+    // Back : le financeur reprend le focus, la constellation se
+    // recompose par la même logique de LCP — pas un remplacement.
     fireEvent.click(screen.getByRole("button", { name: "test-back" }));
     expect(await screen.findByRole("heading", { name: "European Commission", level: 1 })).toBeTruthy();
-    expect(geometry()).toEqual([{ grow: 1, basis: "0px" }]);
+    expect(cnodes()).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: "Programme 0", level: 1 })).toBeNull();
-    // Forward : la pile se recompose à l'identique.
+    // Forward : recomposition identique.
     fireEvent.click(screen.getByRole("button", { name: "test-forward" }));
     expect(await screen.findByRole("heading", { name: "Programme 0", level: 1 })).toBeTruthy();
-    expect(geometry()).toEqual([
-      { grow: 0, basis: "56px" },
-      { grow: 1, basis: "0px" },
-    ]);
-    expect(regions()[0].textContent).toContain("European Commission");
+    expect(cnodes()).toHaveLength(2);
+    expect(cnodes()[0].textContent).toContain("European Commission");
+    expect(document.querySelector("[data-cexit]")).toBeNull();
   });
 });

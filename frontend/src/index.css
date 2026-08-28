@@ -265,30 +265,74 @@
   }
 }
 
-/* B2.5/B2.6 : le morphing du Depth Stack. Chaque niveau du chemin
-   actif garde son élément (clé par nœud) : quand le focus se déplace,
-   la géométrie — flex-grow + flex-basis, jamais le montant — se
-   REJOUE en une vraie transition de layout : le niveau quitté se
-   replie vers le haut en bande contextuelle pendant que le nouveau
-   focus se déploie sous lui (region-in, à l'entrée seulement) ; en
-   remontant, la bande recliquée se redéploie. La couleur accompagne
-   la prise de focus. Tués par le bloc reduced-motion : état final
-   instantané. */
-@utility morph-region {
-  transition:
-    flex-grow 0.24s cubic-bezier(0.2, 0.6, 0.2, 1),
-    flex-basis 0.24s cubic-bezier(0.2, 0.6, 0.2, 1),
-    background-color 0.24s ease;
+/* B2.7 : la Constellation Trace. Les liens sont des Bézier
+   normalisées (`pathLength="1"`) — l'entrée les fait croître depuis
+   le pivot (dashoffset 1 → 0), la résorption les replie (0 → 1) ;
+   les nœuds persistants GLISSENT (transition de transform sur le même
+   élément, jamais démontés), les entrants naissent depuis la zone du
+   pivot, les sortants s'atténuent en se rapprochant du pivot
+   (variables --exit-dx/--exit-dy). Épaisseur unique : un lien encode
+   une relation, jamais un montant. Tués par le bloc reduced-motion :
+   état final instantané. */
+@utility const-node {
+  transition: transform 0.24s cubic-bezier(0.2, 0.6, 0.2, 1);
 }
 
-@utility region-in {
-  animation: region-in 0.22s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
+@utility const-node-in {
+  animation: const-node-in 0.2s cubic-bezier(0.2, 0.6, 0.2, 1) 0.1s backwards;
 }
 
-@keyframes region-in {
+@keyframes const-node-in {
   from {
-    flex-grow: 0.001;
-    opacity: 0.2;
+    opacity: 0;
+  }
+}
+
+@utility const-node-out {
+  animation: const-node-out 0.2s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+}
+
+@keyframes const-node-out {
+  to {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--exit-dx, 0px)), calc(-50% + var(--exit-dy, 0px)));
+  }
+}
+
+@utility const-link {
+  fill: none;
+  stroke-width: 1;
+  transition:
+    d 0.24s cubic-bezier(0.2, 0.6, 0.2, 1),
+    opacity 0.2s ease;
+}
+
+@utility const-link-in {
+  stroke-dasharray: 1;
+  animation: const-link-in 0.18s cubic-bezier(0.2, 0.6, 0.2, 1) 0.08s backwards;
+}
+
+@keyframes const-link-in {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@utility const-link-out {
+  stroke-dasharray: 1;
+  animation: const-link-out 0.2s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+}
+
+@keyframes const-link-out {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 1;
+    opacity: 0;
   }
 }
 
