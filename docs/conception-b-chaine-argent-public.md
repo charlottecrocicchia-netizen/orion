@@ -1426,3 +1426,85 @@ n'existe plus). Note de suite : un échec de test isolé lors d'un
 passage complet, non reproduit en sept réexécutions (nom non capturé
 — premier run sous forte charge parallèle) ; à attribuer s'il
 réapparaît.
+
+### 15.13 B2.8 — Colonnes proportionnelles (2026-08-28)
+
+**Décision.** La Constellation Trace (B2.7) est retirée : la
+géométrie du chemin n'encodait volontairement aucun montant, et c'est
+précisément ce qui manquait à la lecture. B2.8 renverse la
+répartition des rôles : le CHEMIN devient du texte (fil d'Ariane), la
+GÉOMÉTRIE ne code plus que les montants (colonnes verticales). Moteur
+B1 strictement intact — aucun endpoint, aucun chiffre, aucune
+réconciliation calculée ne change.
+
+① **Le fil d'Ariane textuel.** « European Commission · €176B →
+Horizon 2020 · €68,3B → … » : chaque segment ancêtre est un lien
+(nom · montant, jamais un ratio — les parts restent au focus,
+`ShareLine`), le focus ferme la ligne en fort (`aria-current="page"`),
+« ↩ » ramène à la racine. Coupes à l'unité de sens réutilisées
+(`src/lib/display-label.ts`, cascade extraite de B2.7 § 15.12 ter),
+nom complet au `title` et au libellé accessible.
+
+② **Les colonnes proportionnelles** (`BarStrip`,
+`DestinationsSection`). Les enfants du niveau courant en barres
+VERTICALES — jamais horizontales (doctrine) — hauteur = montant,
+échelle linéaire commune ancrée sur l'élément le plus haut du niveau
+(godet et non-ventilé compris), tri décroissant, largeur
+d'emplacement fixe (72 px + gouttière). Chaque barre : nom (2 lignes
+clampées + cascade), montant, part du parent. Une barre enfant est un
+LIEN de descente ; sur écran étroit la rampe défile horizontalement
+(`overflow-x-auto`) — le modèle mobile 375 proposé à la recette.
+
+③ **La réconciliation D5 dans la forme.**
+- Segment « non ventilé » hachuré (`recon-hatch`), atténué, JAMAIS
+  caché : aux niveaux agrégés il vaut parent − Σ(montants connus
+  servis), calculé UNIQUEMENT quand l'ensemble des enfants est
+  entièrement servi (une page partielle ne sait pas ce qui manque) et
+  s'il dépasse 1 ; au projet il vient du MOTEUR
+  (`reconciliation.unallocated`, statut `gap`).
+- Dépassement (`children_exceed_parent`) : PAS de segment résiduel —
+  les parts dépassent le plafond, la lecture comptable signée
+  existante l'explique.
+- Inconnu ≠ 0 : un montant null n'est JAMAIS une barre — il vit dans
+  la liste complète et les notes de couverture existantes, conservées
+  sous la rampe.
+- NIH bénéficiaire : AUCUNE barre (le moteur ne ventile pas) ; racine
+  et vues transverses (organisation, pays) : AUCUNE barre — des
+  hauteurs communes entre mesures/devises non comparables seraient un
+  total inventé ; les constellations transverses disparaissent avec
+  la B2.7.
+
+④ **Ratio d'échelle extrême — problème n°1.** Hauteur plancher
+3 px : une part réelle mais écrasée reste visible, marquée « ≈ » et
+sa part réelle dite au `title` (« < 0,1 % », jamais « 0 % ») — jamais
+une proportion silencieusement fausse. Pas d'échelle log. Le
+regroupement honnête : au-delà des emplacements disponibles
+(6–16 selon la largeur mesurée, 12 par défaut), godet « + N autres ·
+€X » cliquable vers la liste complète existante (recherche locale —
+uniquement sur ensemble entièrement servi — pagination, retour
+« Revenir aux colonnes »). Le montant du godet est exact quand tout
+est servi (somme des cachés) et exact pour un appel paginé (invariant
+moteur : le montant d'un appel EST la somme des montants connus de
+ses projets) ; sinon « + N autres » sans chiffre — l'honnêteté avant
+la complétude.
+
+**Suppressions délibérées** (zéro dette, récupérables à `b5d4831` /
+`676713c`) : `constellation-trace.tsx`, `constellation-layout.ts`,
+`constellation-engine.ts` et ses 15 tests — B2.8 rend le moteur de
+transition inutilisé (les transitions se réduisent au fondu
+`focus-in` 150 ms, tué par `prefers-reduced-motion`) ; utilities CSS
+`const-*` ; clés i18n mortes (`constellation.step`,
+`stack.transversal`, `trace.*`, `topOf`, `concentration`,
+`money.showMore/showLess`). Les invariants de l'addendum B2.7
+survivent comme tests permanents de la page (réponse obsolète §E,
+Back/Forward §K).
+
+**Ce qu'on ne construit pas** : treemap, sunburst (lot futur),
+Sankey, barres horizontales, échelle log, animation de hauteur
+(propriété de layout — interdite par la doctrine web), total
+inter-financeurs.
+
+**Condition de validité.** Le segment « non ventilé » agrégé n'est
+affiché que si `items.length === total` ; si le moteur venait à
+paginer un niveau aujourd'hui entièrement servi, le segment
+disparaîtrait silencieusement au lieu de mentir — comportement voulu.

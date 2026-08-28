@@ -24,29 +24,34 @@ All notable changes to Orion are documented here. The format follows
   programme scope). The B1 engine gained two additive endpoints so
   the UI never guesses: per-node `ancestors` (enriched with amounts,
   share-of-parent and comparability) and `GET /chain/funders`. The
-  surface is a Constellation Trace (B2.7): the travelled path becomes
-  a light constellation of nodes and hairline links above the
-  analytic focus — deterministic layout (geometry encodes the
-  journey, never the money), real semantic zoom (focus detailed,
-  parent name+amount+share, older ancestors a stable short name and
-  amount), and a deterministic transition engine: persisting nodes
-  glide as the same DOM elements, the abandoned branch resorbs toward
-  the common-prefix pivot, the new one grows from it (instant under
-  reduced motion; stale responses can never overwrite a newer
-  selection). Clicking an ancestor node reveals its main branches as
-  a temporary preview layer — back-to-level plus top alternatives —
-  without ever touching the committed path until a link is chosen.
-  Transverse organisations are the one multi-arm case (several
-  provenances converge; links mean provenance, not flow). The focus
-  level carries one
-  question — where does this money go next? — then editorial
-  destination rows (adaptive top, an honest local filter only when
-  the whole child set is served); a methodology inspector slides in
-  on demand. No footer on this route, no document scroll in the
-  nominal desktop journey, and a deep link rebuilds path, amounts,
-  valid shares and layout from the engine in a single request.
+  surface reads as proportional columns (B2.8): a textual breadcrumb
+  says the travelled path — each ancestor a link with its name and
+  amount, the focus closing the line in strong type, never a ratio —
+  and the children of the current level stand as VERTICAL bars whose
+  height says the amount, on one common linear scale, sorted
+  descending. The D5 reconciliation is visible in the shape itself: a
+  hatched, dimmed "unallocated" segment (aggregate levels compute it
+  only when the whole child set is served; projects take it straight
+  from the engine), no residual segment when children exceed the
+  ceiling, unknown amounts never drawn as bars (they live in the
+  complete list and the coverage notes). The extreme scale ratio is
+  handled honestly: a 3-px visibility floor with an explicit "≈"
+  marker and the real share in the tooltip — never a silently false
+  proportion — and an exact "+ N more · €X" bucket (a button) opens
+  the existing complete list (local filter only when fully served,
+  pagination, a way back to the columns). Labels reuse the
+  sense-unit truncation cascade; the strip scrolls horizontally on
+  narrow screens; NIH beneficiary, the root and transverse
+  organisation/country views draw no bars at all — bar heights
+  across non-comparable measures would be an invented total. The
+  focus level carries one question — where does this money go
+  next? — and a methodology inspector slides in on demand. No footer
+  on this route, no document scroll in the nominal desktop journey,
+  and a deep link rebuilds path and amounts from the engine in a
+  single request; stale responses can never overwrite a newer
+  selection (permanent test, inherited from the B2.7 engine work).
   Shared `Breadcrumb` and `Pager` primitives extracted; full EN/FR
-  copy; 20 page tests.
+  copy; 21 page tests.
 
 - **Public-money chain engine (B1,
   docs/conception-b-chaine-argent-public.md § 14).** New `/api/chain/*`

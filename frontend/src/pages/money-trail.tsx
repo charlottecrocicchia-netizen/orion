@@ -1,14 +1,15 @@
-/** B2.7 — « Où est passé cet argent ? » (docs/conception-b-chaine-argent-public.md § 15).
+/** B2.8 — « Où est passé cet argent ? » (docs/conception-b-chaine-argent-public.md § 15).
  *
- *  Constellation Trace : le chemin parcouru devient une constellation
- *  de navigation (src/components/constellation-trace.tsx) — nœuds,
- *  liens, labels, branche active, bifurcations temporaires — portée
- *  par le moteur de transition déterministe b5d4831. La géométrie
- *  représente le parcours, JAMAIS la quantité financière. Sous elle,
- *  UN focus analytique : la constellation explique le chemin, le
- *  panneau explique le nœud.
+ *  Colonnes proportionnelles : le fil d'Ariane textuel dit le chemin
+ *  (ancêtres cliquables, focus en fort), les colonnes verticales
+ *  disent la répartition — hauteur = montant, échelle linéaire
+ *  commune, tri décroissant, godet « + N autres » cliquable, segment
+ *  « non ventilé » hachuré jamais caché, hauteur plancher marquée
+ *  (« ≈ ») quand le ratio d'échelle écrase une part. La géométrie du
+ *  chemin ne code jamais les montants ; celle des colonnes ne code
+ *  QUE les montants.
  *
- *  Le contrat métier est inchangé (B0/B1, acquis B2.2→B2.6) : le
+ *  Le contrat métier est inchangé (B0/B1, acquis B2.2→B2.7) : le
  *  moteur fait foi ; le fil enrichi de la réponse courante
  *  reconstruit tout le chemin en UNE requête (deep-link ≡ descente,
  *  aucune dépendance au cache) ; le focus se rend d'après le niveau
@@ -19,16 +20,11 @@
  *  route-outil : pas de footer, pas de défilement du document au
  *  parcours nominal desktop. URL = état du focus. */
 
-import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
 
-import {
-  ConstellationTrace,
-  TransverseConstellation,
-  type ConstellationPathNode,
-} from "@/components/constellation-trace";
 import { ExploreExits } from "@/components/explore-exits";
 import { Pager } from "@/components/pager";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,16 +43,14 @@ import {
   type ChainProvenance,
   type ChainReconciliation,
 } from "@/lib/api";
+import { useMeasure } from "@/hooks/use-measure";
 import { childTo, crumbPath } from "@/lib/chain-routes";
+import { displayLabel } from "@/lib/display-label";
 import { countryFlag, formatCompactMoney, formatInt, formatOrgName } from "@/lib/format";
 import { pct } from "@/lib/format-share";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 50;
-/** Hauteur approximative d'une ligne de destination (px) — sert au
- *  nombre adaptatif de destinations visibles. */
-const ROW_PX = 76;
-const DEFAULT_VISIBLE = 8;
 /** Au-delà de ce nombre d'enfants ENTIÈREMENT servis, le focus
  *  propose un filtre local ; jamais pour trois enfants. */
 const SEARCH_THRESHOLD = 15;
@@ -126,38 +120,6 @@ function shareFamily(key: string | null | undefined): "cordis" | "nih" | "nsf" |
   if (key.startsWith("nih_")) return "nih";
   if (key.startsWith("nsf_")) return "nsf";
   return null;
-}
-
-/** Le nombre de destinations visibles sans dépli : adapté à la
- *  hauteur réellement disponible (7 à 10) quand le workspace est
- *  contraint en hauteur (≥ md) ; valeur fixe en flux naturel étroit
- *  — mesurer un conteneur dimensionné par son contenu nourrirait le
- *  compte qu'il mesure. */
-function useVisibleCount(listRef: RefObject<HTMLDivElement | null>): number {
-  const [count, setCount] = useState(DEFAULT_VISIBLE);
-  useEffect(() => {
-    const el = listRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const mql = window.matchMedia("(min-width: 768px)");
-    const apply = (height: number) => {
-      if (!mql.matches) {
-        setCount(DEFAULT_VISIBLE);
-        return;
-      }
-      if (height > 0) setCount(Math.max(4, Math.min(10, Math.floor(height / ROW_PX))));
-    };
-    const observer = new ResizeObserver((entries) => {
-      apply(entries[0]?.contentRect.height ?? 0);
-    });
-    observer.observe(el);
-    const onChange = () => apply(el.clientHeight);
-    mql.addEventListener?.("change", onChange);
-    return () => {
-      observer.disconnect();
-      mql.removeEventListener?.("change", onChange);
-    };
-  }, [listRef]);
-  return count;
 }
 
 /* ------------------------------------------------------------------ */
@@ -278,8 +240,20 @@ function MethodologyPanel({
 /* ------------------------------------------------------------------ */
 /* Le chemin actif                                                     */
 
-type PathNode = ConstellationPathNode;
+interface PathNode {
+  level: string;
+  id: number | string;
+  label: string;
+  code?: string;
+  to?: string;
+  amount?: number | null;
+  currency?: string | null;
+  active?: boolean;
+}
 
+/** Le chemin complet — ancêtres du fil enrichi B1 + focus courant.
+ *  Le fil d'Ariane ne dit que nom et montant : les parts (valides ou
+ *  transversales) appartiennent au focus analytique (ShareLine). */
 function pathFromSpine(ancestors: ChainCrumb[], current: PathNode): PathNode[] {
   return [
     ...ancestors.map((a) => ({
@@ -290,73 +264,84 @@ function pathFromSpine(ancestors: ChainCrumb[], current: PathNode): PathNode[] {
       to: crumbPath(a),
       amount: a.amount,
       currency: a.currency,
-      share: a.comparability === "ok" ? a.share_of_parent : null,
-      transversal: a.comparability === "transversal_call",
     })),
     { ...current, active: true },
   ];
 }
 
-/** Le chemin compact (< md) : la grammaire de la constellation en une
- *  ligne directionnelle — « ↩ ● EC ── ● H2020 ── ● ERC » ; cliquer
- *  une étape remonte, le retour à la racine est un geste. */
-function TraceLine({ nodes }: { nodes: PathNode[] }) {
-  const { t } = useMoneyCopy();
+/** Le fil d'Ariane textuel (B2.8) — les ancêtres du focus en une
+ *  ligne sobre : « European Commission · €176B → Horizon 2020 ·
+ *  €68,3B → … » ; chaque segment navigue vers son niveau, le focus
+ *  courant ferme la ligne en fort. Pas de courbe, pas de point, pas
+ *  d'ornement : du texte dans la grammaire Orion, coupé à l'unité de
+ *  sens (nom complet en title + libellé du lien). */
+function TrailBreadcrumb({ path }: { path: PathNode[] }) {
+  const { t, money } = useMoneyCopy();
   return (
     <nav
       aria-label={t("money.rail.title")}
-      className="flex items-center gap-2 overflow-x-auto px-6 pt-4 text-[12.5px] md:hidden"
+      className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 px-6 pt-4 text-[12.5px] md:px-10"
     >
       <Link
         to="/money"
         aria-label={t("money.backToRoot")}
-        className="shrink-0 text-muted-foreground hover:text-foreground"
+        className="text-muted-foreground hover:text-foreground"
       >
         <span aria-hidden="true">↩</span>
       </Link>
-      {nodes.map((node, index) => (
-        <span key={`${node.level}-${index}`} className="flex shrink-0 items-center gap-2">
-          {index > 0 ? (
-            <span aria-hidden="true" className="h-px w-4 bg-border" />
-          ) : null}
-          {node.to && !node.active ? (
-            <Link
-              to={node.to}
-              className="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
-              title={node.label}
-            >
-              <span
-                aria-hidden="true"
-                className="h-[5px] w-[5px] rounded-full bg-muted-foreground/60 transition-colors group-hover:bg-accent"
-              />
-              <span className="max-w-[15ch] truncate">{node.label}</span>
-            </Link>
-          ) : (
-            <span
-              aria-current="true"
-              className="flex items-center gap-1.5 font-medium"
-              title={node.label}
-            >
-              <span aria-hidden="true" className="h-[6px] w-[6px] rounded-full bg-accent" />
-              <span className="max-w-[18ch] truncate">{node.label}</span>
-            </span>
-          )}
-        </span>
-      ))}
+      {path.map((node, index) => {
+        const amountText = node.amount != null ? money(node.amount, node.currency) : "";
+        const name = displayLabel(node, 220, 12.5);
+        return (
+          <span
+            key={`${node.level}:${node.id}`}
+            className="flex items-baseline gap-x-2.5 whitespace-nowrap"
+          >
+            {index > 0 ? (
+              <span aria-hidden="true" className="text-muted-foreground/50">
+                →
+              </span>
+            ) : null}
+            {node.to && !node.active ? (
+              <Link
+                to={node.to}
+                title={`${node.label}${amountText ? ` — ${amountText}` : ""}`}
+                aria-label={t("money.stack.backTo", { name: node.label, amount: amountText })}
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {name}
+                {amountText ? (
+                  <span className="tnum text-[11.5px] text-muted-foreground/80">
+                    {" "}
+                    · {amountText}
+                  </span>
+                ) : null}
+              </Link>
+            ) : (
+              <span aria-current="page" title={node.label} className="font-semibold">
+                {name}
+                {amountText ? (
+                  <span className="tnum text-[11.5px] font-medium text-foreground/70">
+                    {" "}
+                    · {amountText}
+                  </span>
+                ) : null}
+              </span>
+            )}
+          </span>
+        );
+      })}
     </nav>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* La coquille : constellation au-dessus, UN focus analytique dessous  */
+/* La coquille : fil d'Ariane au-dessus, UN focus analytique dessous   */
 
-function ConstellationWorkspace({ path, children }: { path: PathNode[]; children: ReactNode }) {
+function TrailWorkspace({ path, children }: { path: PathNode[]; children: ReactNode }) {
   return (
     <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
-      <TraceLine nodes={path} />
-      <div className="md:px-10">
-        <ConstellationTrace path={path} />
-      </div>
+      <TrailBreadcrumb path={path} />
       <div className="flex min-h-0 flex-1 flex-col">{children}</div>
     </div>
   );
@@ -452,10 +437,167 @@ function normalize(value: string): string {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-/** La question unique du niveau, puis ses destinations. Top adaptatif
- *  (7–10 selon la hauteur), « Voir les N autres », filtre local
- *  uniquement quand l'ensemble des enfants est déjà entièrement servi
- *  — un filtre qui ne verrait qu'une page mentirait. */
+/* ------------------------------------------------------------------ */
+/* B2.8 — les colonnes proportionnelles : la hauteur dit le montant    */
+
+/** Hauteur utile maximale d'une barre (px) — l'élément le plus haut
+ *  du niveau (godet et non-ventilé compris) ancre l'échelle linéaire
+ *  commune ; tout le reste s'y rapporte. */
+const BAR_MAX_H = 220;
+/** Hauteur plancher de visibilité : une part écrasée par le ratio
+ *  d'échelle reste visible ET marquée (« ≈ » + part réelle au title)
+ *  — jamais une proportion silencieusement fausse. */
+const BAR_FLOOR = 3;
+/** Largeur d'un emplacement de colonne (barre + gouttière, px). */
+const SLOT_W = 84;
+/** Nombre d'emplacements quand la largeur n'est pas encore mesurée
+ *  (premier rendu, environnements sans ResizeObserver). */
+const DEFAULT_SLOTS = 12;
+
+interface BarSpec {
+  key: string;
+  kind: "child" | "others" | "unallocated";
+  name: string;
+  /** Montant connu ; null = « + N autres » dont la somme cachée n'est
+   *  pas connaissable honnêtement (page partielle hors invariant
+   *  d'agrégation) — la colonne reste au plancher, sans chiffre. */
+  amount: number | null;
+  /** Part du total du parent (%), seulement quand le parent est connu. */
+  share: number | null;
+  to?: string;
+  onClick?: () => void;
+}
+
+interface PlacedBar extends BarSpec {
+  height: number;
+  crushed: boolean;
+}
+
+function barGeometry(bars: BarSpec[]): PlacedBar[] {
+  const maxAmount = Math.max(...bars.map((bar) => bar.amount ?? 0), 1);
+  return bars.map((bar) => {
+    if (bar.amount == null) return { ...bar, height: BAR_FLOOR, crushed: false };
+    const raw = (bar.amount / maxAmount) * BAR_MAX_H;
+    return { ...bar, height: Math.max(BAR_FLOOR, Math.round(raw)), crushed: raw < BAR_FLOOR };
+  });
+}
+
+/** La rampe de colonnes verticales, triées décroissant sur une
+ *  échelle linéaire commune. Un enfant est un lien (descendre) ; le
+ *  godet « + N autres » est un bouton (ouvrir la liste complète) ; le
+ *  « non ventilé » est un segment hachuré, atténué, jamais caché. Sur
+ *  écran étroit la rampe défile horizontalement — les barres restent
+ *  verticales. */
+function BarStrip({
+  bars,
+  currency,
+  ariaLabel,
+}: {
+  bars: BarSpec[];
+  currency: string | null | undefined;
+  ariaLabel: string;
+}) {
+  const { t, locale, money } = useMoneyCopy();
+  const placed = barGeometry(bars);
+  return (
+    <ul
+      aria-label={ariaLabel}
+      className="flex list-none items-end gap-3 overflow-x-auto overscroll-x-contain pb-1"
+    >
+      {placed.map((bar) => {
+        const amountText = bar.amount == null ? "—" : money(bar.amount, currency);
+        const shareText = bar.share == null ? "" : pct(bar.share, locale);
+        const flooredNote =
+          bar.crushed && bar.share != null
+            ? ` ${t("money.columns.floored", { pct: pct(bar.share, locale) })}`
+            : "";
+        // Le godet porte déjà son montant dans son nom — pas de doublon.
+        const title =
+          bar.kind === "others"
+            ? `${bar.name}${shareText ? ` · ${shareText}` : ""}${flooredNote}`
+            : `${bar.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${flooredNote}`;
+        const column = (
+          <>
+            <span className="flex flex-col justify-end" style={{ height: BAR_MAX_H + 14 }}>
+              {bar.crushed ? (
+                <span
+                  aria-hidden="true"
+                  className="mb-0.5 text-center text-[10px] leading-none text-muted-foreground"
+                >
+                  ≈
+                </span>
+              ) : null}
+              <span
+                data-bar={bar.kind}
+                data-crushed={bar.crushed || undefined}
+                className={cn(
+                  "block w-full",
+                  bar.kind === "child" && "bg-accent/85 transition-colors group-hover:bg-accent",
+                  bar.kind === "others" &&
+                    "bg-muted-foreground/30 transition-colors group-hover:bg-muted-foreground/45",
+                  bar.kind === "unallocated" && "recon-hatch",
+                )}
+                style={{ height: bar.height }}
+              />
+            </span>
+            <span className="mt-1.5 block text-left leading-tight">
+              <span
+                className={cn(
+                  "line-clamp-2 text-[10.5px] leading-[1.25]",
+                  bar.kind === "child"
+                    ? "text-foreground/80 transition-colors group-hover:text-accent"
+                    : "text-muted-foreground",
+                )}
+              >
+                {bar.name}
+              </span>
+              {bar.kind !== "others" ? (
+                <span className="tnum mt-0.5 block text-[11px] font-medium text-foreground/90">
+                  {amountText}
+                </span>
+              ) : null}
+              {shareText ? (
+                <span className="tnum block text-[10px] text-muted-foreground">{shareText}</span>
+              ) : null}
+            </span>
+          </>
+        );
+        const slotClass = "group block w-[72px] shrink-0";
+        return (
+          <li key={bar.key} className="shrink-0">
+            {bar.kind === "child" && bar.to ? (
+              <Link to={bar.to} title={title} aria-label={title} className={slotClass}>
+                {column}
+              </Link>
+            ) : bar.kind === "others" ? (
+              <button
+                type="button"
+                onClick={bar.onClick}
+                title={`${title} — ${t("money.columns.othersTitle")}`}
+                aria-label={`${title} — ${t("money.columns.othersTitle")}`}
+                className={cn(slotClass, "cursor-pointer text-left")}
+              >
+                {column}
+              </button>
+            ) : (
+              <span title={title} className={slotClass}>
+                <span className="sr-only">{title}</span>
+                {column}
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** La question unique du niveau, puis ses destinations : les colonnes
+ *  proportionnelles au repos (hauteur = montant, échelle commune,
+ *  godet « + N autres » et segment « non ventilé » quand ils
+ *  existent) ; la liste complète — recherche locale, pagination — au
+ *  clic sur le godet ou sur « + N autres ». Le filtre local n'existe
+ *  que si l'ensemble des enfants est entièrement servi. */
 function DestinationsSection({
   data,
   parentLabel,
@@ -471,9 +613,8 @@ function DestinationsSection({
   q: string;
   patch: (changes: Record<string, string | null>) => void;
 }) {
-  const { t, locale } = useMoneyCopy();
-  const listRef = useRef<HTMLDivElement>(null);
-  const visibleCount = useVisibleCount(listRef);
+  const { t, locale, money } = useMoneyCopy();
+  const { ref: stripRef, width: stripWidth } = useMeasure<HTMLDivElement>();
 
   const children = data.children;
   const parentAmount = data.aggregate?.amount ?? null;
@@ -495,19 +636,103 @@ function DestinationsSection({
   const matched = query
     ? items.filter((item) => normalize(`${item.name} ${item.code ?? ""}`).includes(normalize(query)))
     : items;
-
-  const collapsed = !query && !expanded && items.length > visibleCount;
-  const top = collapsed ? items.slice(0, visibleCount) : matched;
   const hasMore = !query && expanded && page * PAGE_SIZE < children.total;
-  // Concentration : dérivé d'affichage sur le top replié seul — même
-  // mesure, même réponse, parent connu.
-  const topSum = collapsed
-    ? top.reduce((sum, row) => (row.amount != null ? sum + row.amount : sum), 0)
-    : 0;
-  const concentration =
-    collapsed && parentAmount != null && parentAmount > 0 && topSum > 0
-      ? (topSum / parentAmount) * 100
+
+  // ----- géométrie des colonnes (état de repos) ---------------------
+  const candidates = [...items]
+    .filter((item) => item.amount != null)
+    .sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0));
+  const knownSumServed = candidates.reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  // Résiduel « non ventilé » : uniquement quand TOUS les enfants sont
+  // servis — une page partielle ne sait pas ce qui manque. Négatif
+  // (dépassement) ⇒ pas de segment : les parts dépassent le plafond.
+  const residual =
+    fullyLoaded && parentAmount != null ? parentAmount - knownSumServed : null;
+  const showResidual = residual != null && residual > 1;
+  const slotCount =
+    stripWidth > 0
+      ? Math.max(6, Math.min(16, Math.floor(stripWidth / SLOT_W)))
+      : DEFAULT_SLOTS;
+  const capacity = slotCount - (showResidual ? 1 : 0);
+  const shown =
+    candidates.length + (children.total - candidates.length > 0 ? 1 : 0) <= capacity
+      ? candidates
+      : candidates.slice(0, capacity - 1);
+  const hiddenCount = children.total - shown.length;
+  const hiddenKnownSum =
+    candidates.slice(shown.length).reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  // Montant du godet : exact quand tout est servi (somme des cachés) ;
+  // exact aussi pour un appel paginé — invariant moteur B1 : le
+  // montant d'un appel EST la somme des montants connus de tous ses
+  // projets, donc parent − Σ(barres affichées) restitue les cachés.
+  const othersAmount = fullyLoaded
+    ? hiddenKnownSum > 0
+      ? hiddenKnownSum
+      : null
+    : data.node.level === "call" && parentAmount != null
+      ? Math.max(0, parentAmount - knownSumServed + hiddenKnownSum)
       : null;
+  const shareOf = (amount: number | null) =>
+    amount != null && parentAmount != null && parentAmount > 0
+      ? (amount / parentAmount) * 100
+      : null;
+
+  // Coupe à l'unité de sens, puis règle de non-ambiguïté : si deux
+  // colonnes du même niveau tombent sur le MÊME libellé coupé
+  // (« SOCIETAL CHALLENGES » × 4 dans H2020), ces colonnes reprennent
+  // leur code stable du moteur — distinct par construction. Le nom
+  // complet reste au title et au libellé accessible.
+  const cutNames = shown.map((item) => displayLabel({ label: item.name, code: item.code }, 144, 10.5));
+  const nameCounts = new Map<string, number>();
+  for (const name of cutNames) nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1);
+  const bars: BarSpec[] = [
+    ...shown.map((item, index) => ({
+      key: `${item.level}:${item.id}`,
+      kind: "child" as const,
+      name:
+        (nameCounts.get(cutNames[index]) ?? 0) > 1 && item.code
+          ? displayLabel({ label: item.code, code: item.code }, 144, 10.5)
+          : cutNames[index],
+      amount: item.amount,
+      share: shareOf(item.amount),
+      to: item.to,
+    })),
+    ...(hiddenCount > 0
+      ? [
+          {
+            key: "others",
+            kind: "others" as const,
+            name:
+              othersAmount != null
+                ? t("money.columns.others", {
+                    count: hiddenCount,
+                    n: formatInt(hiddenCount, locale),
+                    amount: money(othersAmount, currency),
+                  })
+                : t("money.columns.othersNoAmount", {
+                    count: hiddenCount,
+                    n: formatInt(hiddenCount, locale),
+                  }),
+            amount: othersAmount,
+            share: shareOf(othersAmount),
+            onClick: () => patch({ expanded: "1" }),
+          },
+        ]
+      : []),
+    ...(showResidual
+      ? [
+          {
+            key: "unallocated",
+            kind: "unallocated" as const,
+            name: t("money.columns.unallocated"),
+            amount: residual,
+            share: shareOf(residual),
+          },
+        ]
+      : []),
+  ];
+
+  const listMode = expanded || Boolean(query) || bars.length === 0;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -517,7 +742,7 @@ function DestinationsSection({
         <h2 className="text-[14px] font-semibold uppercase tracking-[.07em]">
           {t("money.nextQuestion")}
         </h2>
-        {searchable ? (
+        {listMode && searchable ? (
           <input
             type="search"
             value={q}
@@ -537,24 +762,24 @@ function DestinationsSection({
       <p className="mt-1 text-[12px] text-muted-foreground">
         {query
           ? `${childrenLabel} · ${formatInt(matched.length, locale)} / ${formatInt(children.total, locale)}`
-          : collapsed
-            ? t("money.topOf", { top: top.length, n: formatInt(children.total, locale) }) +
-              (concentration != null
-                ? ` — ${t("money.concentration", { top: top.length, pct: pct(concentration, locale) })}`
-                : "")
-            : `${childrenLabel} · ${formatInt(children.total, locale)}`}
+          : `${childrenLabel} · ${formatInt(children.total, locale)}`}
       </p>
-      <div ref={listRef} className="mt-3 min-h-0 flex-1 md:overflow-y-auto md:overscroll-contain">
+      <div
+        ref={stripRef}
+        className="mt-3 min-h-0 flex-1 md:overflow-y-auto md:overscroll-contain"
+      >
         {children.items.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {t("money.emptyLevel")}
           </p>
+        ) : !listMode ? (
+          <BarStrip bars={bars} currency={currency} ariaLabel={childrenLabel} />
         ) : matched.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {t("money.search.noMatch")}
           </p>
         ) : (
-          top.map((item) => (
+          matched.map((item) => (
             <DestinationRow
               key={`${item.level}:${item.id}`}
               item={item}
@@ -564,29 +789,26 @@ function DestinationsSection({
             />
           ))
         )}
-        {collapsed ? (
+        {!query ? <Pager page={page} hasMore={hasMore} update={patch} /> : null}
+        {listMode && expanded && !query && page === 1 && bars.length > 0 ? (
           <button
             type="button"
-            onClick={() => patch({ expanded: "1" })}
-            className="mt-3 text-[13px] text-accent underline-offset-2 hover:underline"
-          >
-            {t("money.showMore", {
-              count: children.total - top.length,
-              n: formatInt(children.total - top.length, locale),
-            })}
-          </button>
-        ) : null}
-        {!query && expanded && page === 1 && children.total > visibleCount ? (
-          <button
-            type="button"
-            onClick={() => patch({ expanded: null, page: null })}
+            onClick={() => patch({ expanded: null, page: null, q: null })}
             className="mt-3 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
           >
-            {t("money.showLess", { n: visibleCount })}
+            {t("money.columns.collapse")}
           </button>
         ) : null}
-        {!query ? <Pager page={page} hasMore={hasMore} update={patch} /> : null}
         <div className="space-y-1 pb-4 pt-3">
+          {showResidual && !listMode ? (
+            <p className="text-[11.5px] leading-snug text-muted-foreground">
+              {t("money.columns.unallocatedNote", {
+                amount: money(residual, currency),
+                pct: shareOf(residual) != null ? pct(shareOf(residual) as number, locale) : "",
+                parent: parentLabel,
+              })}
+            </p>
+          ) : null}
           {children.coverage && children.coverage.unknown_amount > 0 ? (
             <p className="text-[11.5px] leading-snug text-muted-foreground">
               {t("money.listUnknown", {
@@ -881,6 +1103,44 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
   const items = data.children.items;
   const parent = data.measure.amount;
 
+  // Colonnes proportionnelles des participants (B2.8) : tous les
+  // participants sont servis (jamais de pagination ici) — chacun a sa
+  // colonne, la rampe défile. Le « non ventilé » vient du moteur
+  // (reconciliation.unallocated) ; un dépassement (exceed) n'a PAS de
+  // segment résiduel : les parts dépassent le plafond, le texte de
+  // réconciliation l'explique. NIH bénéficiaire : aucune barre — le
+  // moteur ne ventile pas.
+  const shareOf = (amount: number | null) =>
+    amount != null && parent != null && parent > 0 ? (amount / parent) * 100 : null;
+  const participantBars: BarSpec[] = beneficiary
+    ? []
+    : [
+        ...items
+          .filter((item) => item.amount != null)
+          .sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0))
+          .map((item) => ({
+            key: item.source_uid,
+            kind: "child" as const,
+            name: displayLabel({ label: formatOrgName(item.organisation.label) }, 144, 10.5),
+            amount: item.amount ?? null,
+            share: shareOf(item.amount ?? null),
+            to: `/money/organisation/${item.organisation.id}`,
+          })),
+        ...(data.reconciliation.status === "gap" &&
+        data.reconciliation.unallocated != null &&
+        data.reconciliation.unallocated > 1
+          ? [
+              {
+                key: "unallocated",
+                kind: "unallocated" as const,
+                name: t("money.columns.unallocated"),
+                amount: data.reconciliation.unallocated,
+                share: shareOf(data.reconciliation.unallocated),
+              },
+            ]
+          : []),
+      ];
+
   return (
     <section className="mt-12">
       <h2 className="text-[11px] font-medium uppercase tracking-[.1em] text-muted-foreground">
@@ -893,6 +1153,15 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
         <p className="mt-3 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
           {t("money.nih.beneficiaryNote")}
         </p>
+      ) : null}
+      {participantBars.length > 0 ? (
+        <div className="mt-4">
+          <BarStrip
+            bars={participantBars}
+            currency={data.measure.currency}
+            ariaLabel={t("money.children.participation", { count: data.children.total })}
+          />
+        </div>
       ) : null}
       <div className="mt-2">
         {items.length === 0 ? (
@@ -967,22 +1236,25 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
 /* États & petites briques                                             */
 
 function LoadingBlock() {
+  // Le squelette mime la composition B2.8 : la ligne du fil d'Ariane,
+  // l'en-tête du focus, la rampe de colonnes — jamais un layout que la
+  // page n'aura pas.
   return (
-    <div className="flex md:h-[calc(100dvh-4rem)]">
-      <div className="hidden w-[9%] shrink-0 border-r border-border-soft bg-surface/70 px-3 py-5 md:block">
-        <Skeleton className="h-3 w-10" />
-        <Skeleton className="mt-3 h-3 w-full" />
+    <div className="flex flex-col md:h-[calc(100dvh-4rem)]">
+      <div className="flex items-center gap-3 px-6 pt-4 md:px-10">
+        <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-3 w-40" />
+        <Skeleton className="h-3 w-24" />
       </div>
-      <div className="hidden w-[18%] shrink-0 border-r border-border-soft bg-surface/35 px-4 py-5 md:block">
-        <Skeleton className="h-3 w-14" />
-        <Skeleton className="mt-3 h-4 w-5/6" />
-        <Skeleton className="mt-2 h-3 w-2/3" />
-      </div>
-      <div className="flex-1 px-6 py-8 md:px-10">
+      <div className="px-6 pt-6 md:px-10">
         <Skeleton className="h-4 w-40" />
-        <Skeleton className="mt-4 h-10 w-1/2" />
+        <Skeleton className="mt-4 h-10 w-1/2 max-w-[420px]" />
         <Skeleton className="mt-6 h-12 w-56" />
-        <Skeleton className="mt-10 h-64 w-full max-w-[720px]" />
+        <div className="mt-12 flex items-end gap-3">
+          {[176, 122, 96, 74, 58, 44, 32].map((h, i) => (
+            <Skeleton key={i} className="w-[72px]" style={{ height: h }} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1177,7 +1449,6 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
     code: "code" in data.node ? data.node.code : undefined,
     amount: data.aggregate?.amount,
     currency: data.aggregate?.measure.currency,
-    share: data.share_of_parent?.comparability === "ok" ? data.share_of_parent.ratio : null,
   });
   const call = shown === "call" ? (data as ChainCallNode) : null;
   const transversal = Boolean(call && call.programmes.length > 1 && !call.context);
@@ -1202,7 +1473,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
       : "";
 
   return (
-    <ConstellationWorkspace path={path}>
+    <TrailWorkspace path={path}>
       <div
         key={`${shown}:${data.node.id}:${programmeContext ?? ""}`}
         className="focus-in flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10"
@@ -1310,7 +1581,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           />
         </div>
       </div>
-    </ConstellationWorkspace>
+    </TrailWorkspace>
   );
 }
 
@@ -1331,9 +1602,12 @@ function ProjectFocus({ id }: { id: string }) {
     level: "project",
     id: data.node.id,
     label: data.node.label,
+    // Dernier recours de la cascade pour un titre long sans acronyme
+    // (NIH/NSF) : le code stable de la source, jamais une coupe en
+    // plein titre.
+    code: data.node.source_id,
     amount: data.measure.amount,
     currency: data.measure.currency,
-    share: data.share_of_parent?.comparability === "ok" ? data.share_of_parent.ratio : null,
   });
   const dates =
     data.node.start_date || data.node.end_date
@@ -1346,7 +1620,7 @@ function ProjectFocus({ id }: { id: string }) {
   const attribution = data.node.programme?.attribution;
 
   return (
-    <ConstellationWorkspace path={path}>
+    <TrailWorkspace path={path}>
       <div
         key={`project:${data.node.id}`}
         className="focus-in h-full min-h-0 overflow-y-auto px-6 pb-10 pt-6 md:px-10"
@@ -1436,7 +1710,7 @@ function ProjectFocus({ id }: { id: string }) {
           />
         </div>
       </div>
-    </ConstellationWorkspace>
+    </TrailWorkspace>
   );
 }
 
@@ -1538,7 +1812,7 @@ function TransverseShell({ children }: { children: ReactNode }) {
 }
 
 function OrganisationView({ id }: { id: string }) {
-  const { t, locale } = useMoneyCopy();
+  const { t } = useMoneyCopy();
   const query = useQuery({
     queryKey: ["chain-organisation", id],
     queryFn: () => api.chainOrganisation(id),
@@ -1568,26 +1842,6 @@ function OrganisationView({ id }: { id: string }) {
           ]}
         />
       </div>
-      {data.by_funder.length > 0 ? (
-        <div className="mt-6">
-          <TransverseConstellation
-            centerLabel={label}
-            branches={data.by_funder.map((block) => ({
-              key: block.funder,
-              label: t(`money.funderNames.${block.funder}`),
-              amountText:
-                block.amount == null
-                  ? t("money.unknown")
-                  : formatCompactMoney(
-                      block.amount,
-                      locale,
-                      block.measure.currency === "USD" ? "usd" : "eur",
-                    ),
-              to: `/money/funder/${block.funder}`,
-            }))}
-          />
-        </div>
-      ) : null}
       {data.by_funder.length === 0 ? (
         <p className="py-14 text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
       ) : (
@@ -1634,26 +1888,6 @@ function CountryView({ code }: { code: string }) {
       <p className="mt-2 max-w-[68ch] text-[12px] leading-snug text-muted-foreground">
         {t("money.countryDestination")}
       </p>
-      {data.by_funder.length > 0 ? (
-        <div className="mt-6">
-          <TransverseConstellation
-            centerLabel={countryName}
-            branches={data.by_funder.map((block) => ({
-              key: block.funder,
-              label: t(`money.funderNames.${block.funder}`),
-              amountText:
-                block.amount == null
-                  ? t("money.unknown")
-                  : formatCompactMoney(
-                      block.amount,
-                      locale,
-                      block.measure.currency === "USD" ? "usd" : "eur",
-                    ),
-              to: `/money/funder/${block.funder}`,
-            }))}
-          />
-        </div>
-      ) : null}
       {data.by_funder.length === 0 ? (
         <p className="py-14 text-sm text-muted-foreground">{t("money.emptyLevel")}</p>
       ) : (
