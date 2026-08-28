@@ -268,6 +268,29 @@ const FIXTURES: Record<string, unknown> = {
     navigation: NAV_EC,
     restrictions: [],
   },
+  // Appel paginé concentré : 3 projets servis sur 400 — le godet
+  // vaudrait 3× la scène ; B2.9 ③ le plafonne (marqué), l'échelle
+  // reste ancrée sur les enfants comparables.
+  "/api/chain/call/30": {
+    node: { level: "call", id: 30, code: "CALL-BIG", label: "CALL-BIG", funder: "ec" },
+    context: null,
+    programmes: [{ level: "programme", id: 11, code: "H2020-EU.3.3.", projects: 400 }],
+    aggregate: AGG(700e6, 400),
+    children: {
+      level: "project",
+      total: 400,
+      items: [
+        { level: "project", id: 7, label: "ALPHA", amount: 2.7e6 },
+        { level: "project", id: 8, label: "BETA", amount: 2.5e6 },
+        { level: "project", id: 9, label: "GAMMA", amount: 2.4e6 },
+      ],
+      coverage: { with_amount: 400, unknown_amount: 0 },
+    },
+    ancestors: [EC_CRUMB],
+    share_of_parent: null,
+    navigation: NAV_EC,
+    restrictions: [],
+  },
   "/api/chain/project/4": {
     ancestors: [
       EC_CRUMB,
@@ -830,6 +853,29 @@ describe("money trail (B2.8)", () => {
     // Les barres non écrasées gardent la proportion vraie.
     const [h1] = heights(bars("child"));
     expect(h1).toBeGreaterThan(20);
+  });
+
+  it("godet plafonné : un agrégat ne domine jamais la scène, l'échelle reste aux comparables", async () => {
+    mount("/money/call/30");
+    await screen.findByRole("heading", { name: "CALL-BIG", level: 1 });
+    // Page partielle (3 servis sur 400) : pas de segment résiduel —
+    // mais le godet d'un appel est exact (invariant d'agrégation).
+    expect(bars("child")).toHaveLength(3);
+    expect(bars("unallocated")).toHaveLength(0);
+    const others = bars("others");
+    expect(others).toHaveLength(1);
+    expect(
+      screen.getByRole("button", { name: /\+ 397 more · €692\.4M/ }),
+    ).toBeTruthy();
+    // L'échelle s'ancre sur le plus haut enfant COMPARABLE : lui seul
+    // touche le plafond ; le godet, pourtant 250× plus gros, se
+    // plafonne et se marque — une porte, pas le champion.
+    expect(heights(bars("child"))[0]).toBe(220);
+    expect(heights(others)[0]).toBe(128);
+    expect(others[0].dataset.crushed).toBe("true");
+    const link = others[0].closest("button")!;
+    expect(link.getAttribute("title")).toContain("Height capped");
+    expect(link.getAttribute("title")).toContain("98.9 %");
   });
 
   it("appel transversal : liaison structurelle, jamais un ratio invalide", async () => {

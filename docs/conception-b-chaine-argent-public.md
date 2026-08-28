@@ -1508,3 +1508,57 @@ inter-financeurs.
 affiché que si `items.length === total` ; si le moteur venait à
 paginer un niveau aujourd'hui entièrement servi, le segment
 disparaîtrait silencieusement au lieu de mentir — comportement voulu.
+
+### 15.14 B2.9 — les barres deviennent des objets Orion (2026-08-28)
+
+Retour de recette B2.8 : structure validée (fil d'Ariane, colonnes,
+réconciliation, vides honnêtes), habillage refusé — les barres
+étaient habillées comme un chart par défaut. Refonte du STYLE seul :
+aucune donnée, aucune structure, aucune route ne change.
+
+① **L'encre.** Le remplissage bleu-violet disparaît. Les barres se
+dessinent à l'encre de la page (`bg-foreground`, inversée proprement
+en sombre). Le bleu Orion est réservé à l'interaction : survol et
+focus seulement (barre, montant et code passent à l'accent ensemble).
+Deux rendus proposés à la recette derrière la constante `BAR_STYLE`
+(un mot à changer) : « ink » (encre pleine, défaut committé) et
+« line » (contour hairline + remplissage très sobre) — captures des
+deux versées à la recette.
+
+② **Le montant règne.** Au-dessus de chaque barre, le montant en
+chiffre typographique fort (tnum semi-gras 12,5 px — la famille du
+chiffre du hero) ; sous la ligne de base, le code/nom en petit label
+technique mono 9,5 px ; la part encore dessous, plus discrète. L'œil
+lit les montants d'abord.
+
+③ **Le godet cesse de dominer.** Un agrégat n'est pas une barre
+comparable : l'échelle commune s'ancre désormais sur le plus haut
+élément COMPARABLE (enfant ou non-ventilé), jamais sur le godet. Le
+godet se dessine sur cette échelle puis se PLAFONNE (128 px), marqué
+« ≈ » avec sa part réelle au title (clé `columns.capped`, distincte
+du plancher) ; contour hairline sans remplissage, largeur réduite
+(22 px contre 40) — une porte, pas le champion. Effet de bord voulu :
+sur un appel concentré (ERC-2014-CoG), les enfants redeviennent
+lisibles (l'échelle n'est plus écrasée par l'agrégat) — la question
+d'ancrage posée à la recette B2.8 est résolue par cette doctrine.
+
+④ **Le rythme.** Ligne de base hairline continue sous les barres sur
+toute la largeur de la grille de lecture (border-b par emplacement,
+gouttières en padding — la ligne ne se rompt jamais) ; emplacements
+en `flex-1` (min 64 px) qui s'étirent pour occuper la grille — fini
+la moitié droite vide ; barres élancées (40 px) ; le ruban défile
+sur écran étroit, la ligne de base suit le contenu.
+
+**Intacts** : page d'entrée (validée), fil d'Ariane, réconciliation,
+plancher « ≈ » des parts écrasées, hachures du non-ventilé,
+regroupement, routes, moteur. Tests : + 1 (godet plafonné sur appel
+paginé concentré — l'échelle reste aux comparables, le godet exact se
+plafonne marqué), 169 frontend. e2e non relancée : changement de
+style seul, aucun spec e2e ne couvre /money (suite verte à 7a3b658
+sur les mêmes routes).
+
+**Critère de sortie** : les barres appartiennent à la même page que
+le « $736B » du hero — même encre, même précision, même calme.
+Vérifié en réel (session semée puis supprimée) : /money/funder/nih
+(le cas de la capture refusée), programme/210 (CORDIS riche), clair
+et sombre, 1440 et 375, survol = seul moment bleu.

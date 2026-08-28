@@ -1394,6 +1394,7 @@ const resources = {
           othersNoAmount_other: "+ {{n}} more",
           othersTitle: "Open the complete list",
           floored: "Shown at the visibility floor — the actual share is {{pct}}.",
+          capped: "Height capped — an aggregate never towers over the level; the actual share is {{pct}}.",
           unallocated: "Unallocated",
           unallocatedNote:
             "Unallocated: {{amount}} ({{pct}}) of the observed total of {{parent}} sits on no listed destination — shown hatched, never hidden.",
@@ -3030,6 +3031,7 @@ const resources = {
           othersNoAmount_other: "+ {{n}} autres",
           othersTitle: "Ouvrir la liste complète",
           floored: "Affichée à la hauteur plancher de visibilité — la part réelle est {{pct}}.",
+          capped: "Hauteur plafonnée — un agrégat ne domine jamais le niveau ; la part réelle est {{pct}}.",
           unallocated: "Non ventilé",
           unallocatedNote:
             "Non ventilé : {{amount}} ({{pct}}) du total observé de {{parent}} ne repose sur aucune destination listée — hachuré, jamais caché.",

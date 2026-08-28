@@ -29,7 +29,12 @@ All notable changes to Orion are documented here. The format follows
   amount, the focus closing the line in strong type, never a ratio —
   and the children of the current level stand as VERTICAL bars whose
   height says the amount, on one common linear scale, sorted
-  descending. The D5 reconciliation is visible in the shape itself: a
+  descending — drawn in the page's own ink (B2.9): the amount reigns
+  above each bar in strong figures, the code sits under a continuous
+  hairline baseline as a small technical label, Orion blue appears
+  only on interaction, and the "+ N more" bucket is a capped,
+  hairline-outlined door that never towers over the level (the scale
+  anchors on comparable elements only). The D5 reconciliation is visible in the shape itself: a
   hatched, dimmed "unallocated" segment (aggregate levels compute it
   only when the whole child set is served; projects take it straight
   from the engine), no residual segment when children exceed the
@@ -51,7 +56,7 @@ All notable changes to Orion are documented here. The format follows
   single request; stale responses can never overwrite a newer
   selection (permanent test, inherited from the B2.7 engine work).
   Shared `Breadcrumb` and `Pager` primitives extracted; full EN/FR
-  copy; 21 page tests.
+  copy; 22 page tests.
 
 - **Public-money chain engine (B1,
   docs/conception-b-chaine-argent-public.md § 14).** New `/api/chain/*`

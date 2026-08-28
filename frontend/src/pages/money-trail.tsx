@@ -438,21 +438,38 @@ function normalize(value: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* B2.8 — les colonnes proportionnelles : la hauteur dit le montant    */
+/* B2.8/B2.9 — les colonnes proportionnelles : la hauteur dit le      */
+/* montant, l'ENCRE de la page dessine les barres                      */
 
-/** Hauteur utile maximale d'une barre (px) — l'élément le plus haut
- *  du niveau (godet et non-ventilé compris) ancre l'échelle linéaire
- *  commune ; tout le reste s'y rapporte. */
+/** Hauteur utile maximale d'une barre (px). L'échelle linéaire
+ *  commune s'ancre sur le plus haut élément COMPARABLE du niveau
+ *  (enfant ou non-ventilé) — jamais sur le godet (§ B2.9 ③). */
 const BAR_MAX_H = 220;
 /** Hauteur plancher de visibilité : une part écrasée par le ratio
  *  d'échelle reste visible ET marquée (« ≈ » + part réelle au title)
  *  — jamais une proportion silencieusement fausse. */
 const BAR_FLOOR = 3;
-/** Largeur d'un emplacement de colonne (barre + gouttière, px). */
-const SLOT_W = 84;
+/** Largeur MINIMALE d'un emplacement (px) — les emplacements
+ *  s'étirent ensuite pour occuper la largeur de la grille de lecture
+ *  (gouttières régulières, ligne de base continue). */
+const SLOT_W = 72;
 /** Nombre d'emplacements quand la largeur n'est pas encore mesurée
  *  (premier rendu, environnements sans ResizeObserver). */
 const DEFAULT_SLOTS = 12;
+/** Largeur d'une barre (px) — élancée, dessinée à l'encre. */
+const BAR_W = 40;
+/** Largeur réduite du godet « + N autres » : une porte, pas une
+ *  destination. */
+const OTHERS_W = 22;
+/** Plafond de hauteur du godet : un agrégat n'est jamais le champion
+ *  de la scène — au-delà, il se plafonne et se marque « ≈ ». */
+const OTHERS_CAP = 128;
+/** Réserve verticale du montant au-dessus de chaque barre (px). */
+const AMOUNT_ZONE = 24;
+/** ① Deux rendus d'encre proposés à la recette : « ink » (remplissage
+ *  encre pleine, défaut) ou « line » (contour hairline + remplissage
+ *  très sobre). Une constante, un mot à changer — décision recette. */
+const BAR_STYLE: "ink" | "line" = "ink";
 
 interface BarSpec {
   key: string;
@@ -474,20 +491,40 @@ interface PlacedBar extends BarSpec {
 }
 
 function barGeometry(bars: BarSpec[]): PlacedBar[] {
-  const maxAmount = Math.max(...bars.map((bar) => bar.amount ?? 0), 1);
+  // ③ le godet n'ancre JAMAIS l'échelle : un agrégat de N enfants
+  // n'est pas une barre comparable. Il se dessine sur l'échelle des
+  // éléments comparables puis se plafonne (marqué « ≈ », part réelle
+  // au title) — il se lit comme une porte, pas comme le champion.
+  const maxAmount = Math.max(
+    ...bars.filter((bar) => bar.kind !== "others").map((bar) => bar.amount ?? 0),
+    1,
+  );
   return bars.map((bar) => {
     if (bar.amount == null) return { ...bar, height: BAR_FLOOR, crushed: false };
     const raw = (bar.amount / maxAmount) * BAR_MAX_H;
+    if (bar.kind === "others") {
+      return {
+        ...bar,
+        height: Math.max(BAR_FLOOR, Math.min(Math.round(raw), OTHERS_CAP)),
+        crushed: raw > OTHERS_CAP,
+      };
+    }
     return { ...bar, height: Math.max(BAR_FLOOR, Math.round(raw)), crushed: raw < BAR_FLOOR };
   });
 }
 
-/** La rampe de colonnes verticales, triées décroissant sur une
- *  échelle linéaire commune. Un enfant est un lien (descendre) ; le
- *  godet « + N autres » est un bouton (ouvrir la liste complète) ; le
- *  « non ventilé » est un segment hachuré, atténué, jamais caché. Sur
- *  écran étroit la rampe défile horizontalement — les barres restent
- *  verticales. */
+/** La rampe de colonnes (B2.9) : des barres à l'encre de la page —
+ *  sœurs du gros chiffre du hero, pas d'un chart importé. Le montant
+ *  règne AU-DESSUS de chaque barre en chiffre typographique fort ; le
+ *  nom descend sous la ligne de base en petit label technique, la
+ *  part encore dessous, plus discrète. Le bleu Orion n'apparaît qu'à
+ *  l'interaction (survol, focus). Une ligne de base hairline court
+ *  sous les barres sur toute la largeur de la grille ; les
+ *  emplacements s'étirent pour l'occuper. Un enfant est un lien
+ *  (descendre) ; le godet « + N autres » — contour sans remplissage,
+ *  étroit, plafonné — est un bouton (ouvrir la liste complète) ; le
+ *  « non ventilé » reste un segment hachuré, atténué, jamais caché.
+ *  Sur écran étroit la rampe défile horizontalement. */
 function BarStrip({
   bars,
   currency,
@@ -502,27 +539,44 @@ function BarStrip({
   return (
     <ul
       aria-label={ariaLabel}
-      className="flex list-none items-end gap-3 overflow-x-auto overscroll-x-contain pb-1"
+      className="flex w-full list-none overflow-x-auto overscroll-x-contain pb-1"
     >
       {placed.map((bar) => {
         const amountText = bar.amount == null ? "—" : money(bar.amount, currency);
         const shareText = bar.share == null ? "" : pct(bar.share, locale);
-        const flooredNote =
+        const crushNote =
           bar.crushed && bar.share != null
-            ? ` ${t("money.columns.floored", { pct: pct(bar.share, locale) })}`
+            ? ` ${t(bar.kind === "others" ? "money.columns.capped" : "money.columns.floored", {
+                pct: pct(bar.share, locale),
+              })}`
             : "";
         // Le godet porte déjà son montant dans son nom — pas de doublon.
         const title =
           bar.kind === "others"
-            ? `${bar.name}${shareText ? ` · ${shareText}` : ""}${flooredNote}`
-            : `${bar.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${flooredNote}`;
+            ? `${bar.name}${shareText ? ` · ${shareText}` : ""}${crushNote}`
+            : `${bar.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${crushNote}`;
         const column = (
           <>
-            <span className="flex flex-col justify-end" style={{ height: BAR_MAX_H + 14 }}>
+            <span
+              className="flex flex-col items-start justify-end border-b border-border"
+              style={{ height: BAR_MAX_H + AMOUNT_ZONE }}
+            >
+              {bar.amount != null ? (
+                <span
+                  className={cn(
+                    "tnum mb-1.5 block leading-none",
+                    bar.kind === "child"
+                      ? "text-[12.5px] font-semibold text-foreground transition-colors group-hover:text-accent"
+                      : "text-[11.5px] font-medium text-muted-foreground",
+                  )}
+                >
+                  {amountText}
+                </span>
+              ) : null}
               {bar.crushed ? (
                 <span
                   aria-hidden="true"
-                  className="mb-0.5 text-center text-[10px] leading-none text-muted-foreground"
+                  className="mb-0.5 block text-[10px] leading-none text-muted-foreground"
                 >
                   ≈
                 </span>
@@ -531,42 +585,41 @@ function BarStrip({
                 data-bar={bar.kind}
                 data-crushed={bar.crushed || undefined}
                 className={cn(
-                  "block w-full",
-                  bar.kind === "child" && "bg-accent/85 transition-colors group-hover:bg-accent",
+                  "block",
+                  bar.kind === "child" &&
+                    (BAR_STYLE === "ink"
+                      ? "bg-foreground transition-colors group-hover:bg-accent group-focus-visible:bg-accent"
+                      : "border border-foreground/70 bg-foreground/[0.04] transition-colors group-hover:border-accent group-hover:bg-accent/10"),
                   bar.kind === "others" &&
-                    "bg-muted-foreground/30 transition-colors group-hover:bg-muted-foreground/45",
+                    "border border-muted-foreground/50 bg-transparent transition-colors group-hover:border-accent",
                   bar.kind === "unallocated" && "recon-hatch",
                 )}
-                style={{ height: bar.height }}
+                style={{ height: bar.height, width: bar.kind === "others" ? OTHERS_W : BAR_W }}
               />
             </span>
-            <span className="mt-1.5 block text-left leading-tight">
+            <span className="mt-1.5 block pr-3 text-left leading-tight">
               <span
                 className={cn(
-                  "line-clamp-2 text-[10.5px] leading-[1.25]",
+                  "line-clamp-2 font-mono text-[9.5px] leading-[1.4]",
                   bar.kind === "child"
-                    ? "text-foreground/80 transition-colors group-hover:text-accent"
-                    : "text-muted-foreground",
+                    ? "text-muted-foreground transition-colors group-hover:text-accent"
+                    : "text-muted-foreground/80",
                 )}
               >
                 {bar.name}
               </span>
-              {bar.kind !== "others" ? (
-                <span className="tnum mt-0.5 block text-[11px] font-medium text-foreground/90">
-                  {amountText}
-                </span>
-              ) : null}
               {shareText ? (
-                <span className="tnum block text-[10px] text-muted-foreground">{shareText}</span>
+                <span className="tnum mt-0.5 block text-[9.5px] text-muted-foreground/70">
+                  {shareText}
+                </span>
               ) : null}
             </span>
           </>
         );
-        const slotClass = "group block w-[72px] shrink-0";
         return (
-          <li key={bar.key} className="shrink-0">
+          <li key={bar.key} className="min-w-[64px] flex-1">
             {bar.kind === "child" && bar.to ? (
-              <Link to={bar.to} title={title} aria-label={title} className={slotClass}>
+              <Link to={bar.to} title={title} aria-label={title} className="group block">
                 {column}
               </Link>
             ) : bar.kind === "others" ? (
@@ -575,12 +628,12 @@ function BarStrip({
                 onClick={bar.onClick}
                 title={`${title} — ${t("money.columns.othersTitle")}`}
                 aria-label={`${title} — ${t("money.columns.othersTitle")}`}
-                className={cn(slotClass, "cursor-pointer text-left")}
+                className="group block w-full cursor-pointer text-left"
               >
                 {column}
               </button>
             ) : (
-              <span title={title} className={slotClass}>
+              <span title={title} className="group block">
                 <span className="sr-only">{title}</span>
                 {column}
               </span>
