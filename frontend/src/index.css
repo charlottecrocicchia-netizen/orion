@@ -265,6 +265,81 @@
   }
 }
 
+/* ── B2.10 : la scène des colonnes proportionnelles — trois
+   directions, vocabulaire relevé sur pièce (Lens Room, hero, verres ;
+   docs/conception § 15.15 ⓪). La direction se choisit dans
+   money-trail.tsx (constante SCENE). Aucun motion nouveau : seuls des
+   états de survol qui s'illuminent (transitions de couleur/lueur). ── */
+
+/* A — la salle des mesures : le panneau impose les tokens de la Lens
+   Room (sol profond, même en thème clair — le geste ROOM_TOKENS de
+   /lenses) ; les barres sont des objets émissifs à lueur froide, le
+   survol s'illumine à l'accent de la salle. */
+.scene-room{
+  --background:#0b0d12; --surface:#11141b; --foreground:#f5f5f7;
+  --muted-foreground:#9d9da6; --accent:#8b9aff; --accent-soft:#1b2040;
+  --border:rgba(255,255,255,.14); --border-soft:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.14);
+  color:var(--foreground);
+  background:
+    radial-gradient(120% 90% at 28% 0%, rgba(139,154,255,.10), transparent 55%),
+    radial-gradient(90% 70% at 78% 100%, rgba(255,255,255,.045), transparent 60%),
+    #0b0d12;
+  box-shadow:inset 0 0 26px rgba(255,255,255,.03);
+}
+.bar-room{
+  background:var(--foreground);
+  box-shadow:0 0 22px -6px color-mix(in srgb, var(--accent) 55%, transparent);
+  transition:background-color .3s ease, box-shadow .3s ease;
+}
+.group:hover .bar-room,.group:focus-visible .bar-room{
+  background:var(--accent);
+  box-shadow:0 0 44px -10px var(--accent);
+}
+
+/* B — le panneau verre : translucidité et bord lumineux dans le thème
+   de la page ; les barres sont des lames de verre accent à arête
+   supérieure lumineuse. */
+.scene-glass{
+  border-color:color-mix(in srgb, var(--accent) 22%, var(--border));
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 48%),
+    color-mix(in srgb, var(--surface) 62%, transparent);
+  backdrop-filter:blur(14px);
+  box-shadow:inset 0 1px 0 color-mix(in srgb, #ffffff 30%, transparent);
+}
+.bar-glass{
+  background:linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent) 38%, transparent),
+    color-mix(in srgb, var(--accent) 10%, transparent)
+  );
+  border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-top:2px solid var(--accent);
+  transition:box-shadow .3s ease, border-color .3s ease;
+}
+.group:hover .bar-glass,.group:focus-visible .bar-glass{
+  border-color:var(--accent);
+  box-shadow:0 0 34px -10px var(--accent), inset 0 1px 10px color-mix(in srgb, #ffffff 22%, transparent);
+}
+
+/* C — l'encre du hero sur grille technique : papier millimétré
+   hairline sur la surface du thème ; les barres portent le dégradé du
+   chiffre trésor (hero-gradient), le survol les fait luire. */
+.scene-grid{
+  background:
+    repeating-linear-gradient(to top, var(--border) 0 1px, transparent 1px 24px),
+    var(--surface);
+}
+.bar-grid{
+  background:linear-gradient(180deg, var(--color-gradient-from), var(--color-gradient-to));
+  transition:box-shadow .3s ease, filter .3s ease;
+}
+.group:hover .bar-grid,.group:focus-visible .bar-grid{
+  filter:saturate(1.15) brightness(1.06);
+  box-shadow:0 0 30px -8px var(--color-gradient-from);
+}
+
 /* B2.8 : le segment « non ventilé » des colonnes proportionnelles —
    hachures atténuées : la part que le moteur ne ventile sur aucun
    enfant reste visible dans la forme, jamais pleine comme une

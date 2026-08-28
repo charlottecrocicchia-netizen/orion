@@ -466,10 +466,18 @@ const OTHERS_W = 22;
 const OTHERS_CAP = 128;
 /** Réserve verticale du montant au-dessus de chaque barre (px). */
 const AMOUNT_ZONE = 24;
-/** ① Deux rendus d'encre proposés à la recette : « ink » (remplissage
- *  encre pleine, défaut) ou « line » (contour hairline + remplissage
- *  très sobre). Une constante, un mot à changer — décision recette. */
-const BAR_STYLE: "ink" | "line" = "ink";
+/** B2.10 ② — les trois directions de scène proposées à la recette
+ *  (un mot à changer, captures des trois versées) :
+ *  - "room"  : la salle des mesures — le panneau adopte les tokens de
+ *    la Lens Room (sol profond forcé, même en thème clair), barres
+ *    émissives à lueur froide, survol qui s'illumine à l'accent ;
+ *  - "glass" : le panneau verre — translucidité, bord lumineux,
+ *    barres en verre accent à arête supérieure lumineuse ;
+ *  - "grid"  : l'encre du hero sur grille technique — papier
+ *    millimétré hairline, barres dans le dégradé du chiffre trésor.
+ *  Les invariants d'honnêteté (montants dominants, plancher marqué,
+ *  godet-porte plafonné, non-ventilé hachuré) tiennent dans les trois. */
+const SCENE: "room" | "glass" | "grid" = "room";
 
 interface BarSpec {
   key: string;
@@ -537,10 +545,14 @@ function BarStrip({
   const { t, locale, money } = useMoneyCopy();
   const placed = barGeometry(bars);
   return (
-    <ul
-      aria-label={ariaLabel}
-      className="flex w-full list-none overflow-x-auto overscroll-x-contain pb-1"
-    >
+    // La scène : le graphique vit dans un panneau à surface propre —
+    // le vocabulaire vient de l'inventaire DA (§ 15.15 ⓪), jamais
+    // d'un chart par défaut.
+    <div className={cn("rounded-2xl border p-4 md:px-7 md:pb-3 md:pt-6", `scene-${SCENE}`)}>
+      <ul
+        aria-label={ariaLabel}
+        className="flex w-full list-none overflow-x-auto overscroll-x-contain pb-1"
+      >
       {placed.map((bar) => {
         const amountText = bar.amount == null ? "—" : money(bar.amount, currency);
         const shareText = bar.share == null ? "" : pct(bar.share, locale);
@@ -586,10 +598,7 @@ function BarStrip({
                 data-crushed={bar.crushed || undefined}
                 className={cn(
                   "block",
-                  bar.kind === "child" &&
-                    (BAR_STYLE === "ink"
-                      ? "bg-foreground transition-colors group-hover:bg-accent group-focus-visible:bg-accent"
-                      : "border border-foreground/70 bg-foreground/[0.04] transition-colors group-hover:border-accent group-hover:bg-accent/10"),
+                  bar.kind === "child" && `bar-${SCENE}`,
                   bar.kind === "others" &&
                     "border border-muted-foreground/50 bg-transparent transition-colors group-hover:border-accent",
                   bar.kind === "unallocated" && "recon-hatch",
@@ -641,7 +650,8 @@ function BarStrip({
           </li>
         );
       })}
-    </ul>
+      </ul>
+    </div>
   );
 }
 

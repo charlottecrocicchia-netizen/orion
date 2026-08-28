@@ -1562,3 +1562,66 @@ le « $736B » du hero — même encre, même précision, même calme.
 Vérifié en réel (session semée puis supprimée) : /money/funder/nih
 (le cas de la capture refusée), programme/210 (CORDIS riche), clair
 et sombre, 1440 et 375, survol = seul moment bleu.
+
+### 15.15 B2.10 — la scène Orion des colonnes : fond, profondeur, contraste (2026-08-28)
+
+Retour de recette B2.9 : les barres à l'encre nue sont refusées —
+trop plat, pas de fond, pas de contraste. Désalignement de référence
+nommé : le rendu visait une sobriété de journal papier ; la DA réelle
+d'Orion, telle que construite, est high-tech — c'est elle qui fait
+loi. Refonte de l'habillage de scène seul.
+
+⓪ **Inventaire DA, sur pièce** (Lens Room /lenses, hero de monde,
+verres, tokens — code ET rendu réel) :
+1. *Le sol profond de la Room* : #0b0d12, surface #11141b — tokens
+   FORCÉS quel que soit le thème (`ROOM_TOKENS`) : la salle impose sa
+   nuit, même en thème clair.
+2. *Le verre* : bord hairline lumineux rgba(255,255,255,.32), double
+   dégradé radial (halo accent ~13 % en haut-gauche, reflet blanc
+   ~5 % en bas-droite), lueur interne `inset 0 0 26px`.
+3. *La lueur d'interaction* : survol = bord teinté + halo externe
+   `0 0 44px -14px <teinte>` ; glyphes en drop-shadow teinté ; mots
+   de monde en text-shadow.
+4. *L'encre du hero* : le chiffre trésor porte le dégradé outremer
+   `--gradient-from → --gradient-to` en background-clip:text.
+5. *Les constellations de fond* : points fins + liaisons accent à
+   faible opacité, flou léger.
+6. *Teintes de monde périphériques* (indigo espace, cyan aviation) :
+   signatures seulement, jamais le fond de page.
+7. *Chiffres* : tnum partout, display resserré, mono technique.
+8. *Une seule élévation* (--shadow-elev) ; hairlines partout ailleurs.
+
+① **La scène.** Le graphique vit désormais dans un panneau à surface
+propre (rounded-2xl, bord, fond travaillé selon la direction) ; les
+barres gagnent matière et lueur ; le survol s'illumine. Aucun motion
+nouveau — uniquement des transitions de couleur/lueur au survol et
+focus (compatibles reduced-motion : états, pas d'animation).
+
+② **Trois directions implémentées** derrière la constante `SCENE`
+(money-trail.tsx — un mot à changer), captures versées à la recette
+(funder/nih + programme/210, clair et sombre, desktop + mobile) :
+- **A « room »** — la salle des mesures : le panneau adopte les
+  tokens de la Lens Room (sol profond forcé, dégradés radiaux du
+  verre, lueur interne) ; barres émissives (encre claire) à lueur
+  accent froide ; survol : la barre s'illumine à l'accent de la
+  salle, halo 44 px. Défaut rendu en attendant l'élection.
+- **B « glass »** — le panneau verre : translucidité (blur 14 px),
+  bord lumineux teinté accent, reflet supérieur ; barres en lames de
+  verre accent (dégradé translucide, arête supérieure lumineuse).
+- **C « grid »** — l'encre du hero sur grille technique : papier
+  millimétré hairline (pas de 24 px) sur la surface du thème ;
+  barres dans le dégradé du chiffre trésor ; survol : lueur.
+
+③ **Invariants tenus dans les trois** : montants dominants au-dessus
+des barres, plancher « ≈ », godet-porte plafonné distinct (contour,
+largeur réduite), non-ventilé hachuré, réconciliation intacte,
+interaction accent cohérente (les tokens scopés de la scène « room »
+re-teintent l'accent, les textes et les hairlines d'un bloc — les
+classes existantes suivent sans duplication).
+
+④ Structure, données, routes, moteur, page d'entrée : intacts.
+
+**État** : aucune direction élue — captures soumises, recette
+Charlotte sur sa machine, ajustements de la direction choisie, puis
+rituel de livraison complet (CHANGELOG inclus). Statiques verts
+(169 frontend, oxlint, tsc -b, build) sur la direction par défaut.
