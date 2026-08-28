@@ -682,22 +682,17 @@ function trailCurrent(): HTMLElement {
   return trail().querySelector('[aria-current="page"]') as HTMLElement;
 }
 
-/** Les segments de la rosace, dans l'ordre du DOM (tri décroissant). */
-function segs(kind?: "child" | "others" | "unallocated"): HTMLElement[] {
+/** Les étoiles de la carte, dans l'ordre du DOM (tri décroissant).
+ *  Chaque étoile EST la surface accessible : lien (destination),
+ *  bouton (godet), astre creux nommé (non-ventilé). */
+function stars(kind?: "child" | "others" | "unallocated"): HTMLElement[] {
   return Array.from(
-    document.querySelectorAll<HTMLElement>(kind ? `[data-seg="${kind}"]` : "[data-seg]"),
+    document.querySelectorAll<HTMLElement>(kind ? `[data-star="${kind}"]` : "[data-star]"),
   );
 }
 
-function degs(els: HTMLElement[]): number[] {
-  return els.map((el) => Number(el.dataset.deg));
-}
-
-/** Les rangées de la légende (la surface accessible de l'orbite). */
-function rows(kind?: "child" | "others" | "unallocated"): HTMLElement[] {
-  return Array.from(
-    document.querySelectorAll<HTMLElement>(kind ? `[data-row="${kind}"]` : "[data-row]"),
-  );
+function radii(els: HTMLElement[]): number[] {
+  return els.map((el) => Number(el.dataset.r));
 }
 
 describe("money trail (B2.8)", () => {
@@ -721,7 +716,7 @@ describe("money trail (B2.8)", () => {
     // choisi : la racine reste la porte typographique, sans barres —
     // trois mesures non comparables ne se dessinent pas ensemble.
     expect(screen.queryByRole("navigation", { name: "Trace" })).toBeNull();
-    expect(segs()).toHaveLength(0);
+    expect(stars()).toHaveLength(0);
   });
 
   it("profondeur 1 : colonnes triées, godet exact, non-ventilé hachuré jamais caché", async () => {
@@ -732,20 +727,20 @@ describe("money trail (B2.8)", () => {
     expect(trailLinks()).toHaveLength(0);
     expect(trailCurrent().textContent).toContain("European Commission");
     expect(trailCurrent().textContent).toContain("€176B");
-    // 14 programmes, 11 emplacements : 9 segments + godet + non-ventilé.
-    expect(segs("child")).toHaveLength(9);
-    expect(segs("others")).toHaveLength(1);
-    expect(segs("unallocated")).toHaveLength(1);
-    // L'angle dit le montant, tri décroissant, assiette = total du
-    // parent : le non-ventilé (71 sur 176 Md€) est le plus grand arc.
-    const childDegs = degs(segs("child"));
-    for (let i = 1; i < childDegs.length; i += 1) {
-      expect(childDegs[i]).toBeLessThanOrEqual(childDegs[i - 1]);
+    // 14 programmes, 11 emplacements : 9 étoiles + godet + non-ventilé.
+    expect(stars("child")).toHaveLength(9);
+    expect(stars("others")).toHaveLength(1);
+    expect(stars("unallocated")).toHaveLength(1);
+    // L'AIRE dit le montant (r ∝ √montant), tri décroissant : le
+    // non-ventilé (71 sur 176 Md€) est le plus grand astre — creux.
+    const childRs = radii(stars("child"));
+    for (let i = 1; i < childRs.length; i += 1) {
+      expect(childRs[i]).toBeLessThanOrEqual(childRs[i - 1]);
     }
-    expect(degs(segs("unallocated"))[0]).toBe(145);
-    expect(childDegs[0]).toBe(29);
-    // Chaque rangée enfant de la légende est un vrai LIEN de descente.
-    const first = rows("child")[0].querySelector("a")!;
+    expect(radii(stars("unallocated"))[0]).toBe(30);
+    expect(childRs[0]).toBe(13);
+    // Chaque étoile enfant est un vrai LIEN de descente, nommé.
+    const first = stars("child")[0];
     expect(first.getAttribute("href")).toBe("/money/programme/100");
     expect(first.getAttribute("aria-label")).toContain("Programme 0");
     expect(first.getAttribute("aria-label")).toContain("€14B");
@@ -772,13 +767,13 @@ describe("money trail (B2.8)", () => {
     ).toBeTruthy();
     expect(screen.getByText("Where does this money go next?")).toBeTruthy();
     // Deux enfants seulement : pas de godet ; le non-ventilé
-    // (62 − 15 = 47 Md€) reste un segment visible, le plus grand arc.
-    expect(segs("child")).toHaveLength(2);
-    expect(segs("others")).toHaveLength(0);
-    expect(segs("unallocated")).toHaveLength(1);
-    const [d1, d2] = degs(segs("child"));
-    expect(d1).toBeGreaterThan(d2);
-    expect(degs(segs("unallocated"))[0]).toBe(273);
+    // (62 − 15 = 47 Md€) reste un astre visible, le plus grand.
+    expect(stars("child")).toHaveLength(2);
+    expect(stars("others")).toHaveLength(0);
+    expect(stars("unallocated")).toHaveLength(1);
+    const [r1, r2] = radii(stars("child"));
+    expect(r1).toBeGreaterThan(r2);
+    expect(radii(stars("unallocated"))[0]).toBe(30);
   });
 
   it("profondeur 5 : le fil d'Ariane complet, dans l'ordre, sans ratio inventé", async () => {
@@ -804,10 +799,10 @@ describe("money trail (B2.8)", () => {
     expect(screen.getByText(/10\.7\s?% of the observed EU contributions of CALL-X/)).toBeTruthy();
   });
 
-  it("clic rangée : la descente recompose le focus et le fil d'Ariane", async () => {
+  it("clic étoile : la descente recompose le focus et le fil d'Ariane", async () => {
     mount("/money/funder/ec");
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
-    fireEvent.click(rows("child")[0].querySelector("a")!);
+    fireEvent.click(stars("child")[0]);
     expect(await screen.findByRole("heading", { name: "Programme 0", level: 1 })).toBeTruthy();
     expect(trailLinks().map((l) => l.href)).toEqual(["/money/funder/ec"]);
     expect(trailCurrent().textContent).toContain("Programme 0");
@@ -828,60 +823,58 @@ describe("money trail (B2.8)", () => {
   it("godet : le clic ouvre la liste complète, le repli revient aux colonnes", async () => {
     mount("/money/funder/ec");
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
-    // Au repos : l'orbite ; le 10e programme n'est pas un segment.
+    // Au repos : la carte ; le 10e programme n'est pas une étoile.
     expect(screen.queryByText("Programme 13")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /\+ 5 more · €15B/ }));
     // La liste complète : TOUTES les destinations, y compris cachées.
     expect(await screen.findByText("Programme 13")).toBeTruthy();
-    expect(segs()).toHaveLength(0);
+    expect(stars()).toHaveLength(0);
     // 14 enfants ≤ seuil : la liste complète n'invente pas de filtre.
     expect(screen.queryByRole("searchbox")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Back to the columns" }));
     expect(screen.queryByText("Programme 13")).toBeNull();
-    expect(segs("child")).toHaveLength(9);
+    expect(stars("child")).toHaveLength(9);
   });
 
   it("ratio d'échelle extrême : hauteur plancher marquée, jamais une proportion fausse en silence", async () => {
     mount("/money/call/20");
     await screen.findByRole("heading", { name: "CALL-X", level: 1 });
     // 3 projets servis + non-ventilé, pas de godet.
-    expect(segs("child")).toHaveLength(3);
-    expect(segs("others")).toHaveLength(0);
-    expect(segs("unallocated")).toHaveLength(1);
-    // MICRO (3 k€ sur une assiette de 50 M€) : plancher 2°, marqué,
-    // la part réelle dite au title — « < 0,1 % », jamais « 0 % ».
+    expect(stars("child")).toHaveLength(3);
+    expect(stars("others")).toHaveLength(0);
+    expect(stars("unallocated")).toHaveLength(1);
+    // MICRO (3 k€ face à 42,7 M€ non ventilés) : rayon plancher,
+    // marqué « ≈ », la part réelle dite au title — jamais « 0 % ».
     const crushed = document.querySelector<HTMLElement>("[data-crushed]")!;
     expect(crushed).toBeTruthy();
-    expect(crushed.dataset.deg).toBe("2");
-    const crushedRow = rows("child")[2].querySelector("a")!;
-    expect(crushedRow.getAttribute("title")).toContain("MICRO");
-    expect(crushedRow.getAttribute("title")).toContain("visibility floor");
-    expect(crushedRow.getAttribute("title")).toContain("< 0.1 %");
-    // Les segments non écrasés gardent la proportion vraie.
-    const [d1] = degs(segs("child"));
-    expect(d1).toBe(38);
+    expect(crushed.dataset.r).toBe("5");
+    expect(crushed.getAttribute("title")).toContain("MICRO");
+    expect(crushed.getAttribute("title")).toContain("visibility floor");
+    expect(crushed.getAttribute("title")).toContain("< 0.1 %");
+    // Les astres non écrasés gardent la proportion d'aire vraie.
+    const [r1] = radii(stars("child"));
+    expect(r1).toBe(11);
   });
 
-  it("godet dominant : sa vraie part en angle, en NEUTRE — jamais une destination colorée", async () => {
+  it("godet dominant : sa vraie taille, en NEUTRE — jamais une destination colorée", async () => {
     mount("/money/call/30");
     await screen.findByRole("heading", { name: "CALL-BIG", level: 1 });
-    // Page partielle (3 servis sur 400) : pas de segment résiduel —
+    // Page partielle (3 servis sur 400) : pas d'astre résiduel —
     // mais le godet d'un appel est exact (invariant d'agrégation).
-    expect(segs("child")).toHaveLength(3);
-    expect(segs("unallocated")).toHaveLength(0);
-    const others = segs("others");
+    expect(stars("child")).toHaveLength(3);
+    expect(stars("unallocated")).toHaveLength(0);
+    const others = stars("others");
     expect(others).toHaveLength(1);
     expect(
       screen.getByRole("button", { name: /\+ 397 more · €692\.4M/ }),
     ).toBeTruthy();
-    // L'angle ne ment pas : le godet porte sa part réelle (98,9 % du
+    // L'aire ne ment pas : le godet porte sa taille réelle (98,9 % du
     // total), mais en NEUTRE « autres » — une porte, pas une
     // destination ; les 3 projets restent visibles au plancher marqué.
-    expect(degs(others)[0]).toBeGreaterThanOrEqual(350);
-    expect(others[0].getAttribute("fill")).toBe("var(--donut-others)");
-    for (const seg of segs("child")) {
-      expect(seg.dataset.deg).toBe("2");
-      expect(seg.dataset.crushed).toBe("true");
+    expect(radii(others)[0]).toBe(30);
+    for (const star of stars("child")) {
+      expect(star.dataset.r).toBe("5");
+      expect(star.dataset.crushed).toBe("true");
     }
   });
 
@@ -899,7 +892,7 @@ describe("money trail (B2.8)", () => {
     // Au repos : les colonnes, sans filtre — le filtre appartient à la
     // liste complète.
     expect(screen.queryByRole("searchbox")).toBeNull();
-    expect(segs("child")).toHaveLength(9);
+    expect(stars("child")).toHaveLength(9);
     fireEvent.click(screen.getByRole("button", { name: /\+ 9 more · \$72B/ }));
     const input = await screen.findByRole("searchbox");
     fireEvent.change(input, { target: { value: "NIAID" } });
@@ -916,13 +909,14 @@ describe("money trail (B2.8)", () => {
     expect(screen.getByText(/do not cover the whole project total/)).toBeTruthy();
     expect(screen.getByText("Not broken down")).toBeTruthy();
     expect(screen.getByText(/43\.8\s?% of the amount is not broken down/)).toBeTruthy();
-    // L'orbite des participants : la part connue en segment coloré, le
-    // non-ventilé du MOTEUR en segment hachuré — et JAMAIS de segment
-    // pour ITACONIX, dont le montant est inconnu, pas nul.
-    expect(segs("child")).toHaveLength(1);
-    expect(degs(segs("child"))[0]).toBe(202);
-    expect(segs("unallocated")).toHaveLength(1);
-    expect(degs(segs("unallocated"))[0]).toBe(158);
+    // La carte des participants : la part connue en étoile colorée, le
+    // non-ventilé du MOTEUR en astre creux — et JAMAIS d'étoile pour
+    // ITACONIX, dont le montant est inconnu, pas nul.
+    expect(stars("child")).toHaveLength(1);
+    expect(radii(stars("child"))[0]).toBe(30);
+    expect(stars("child")[0].getAttribute("href")).toBe("/money/organisation/100");
+    expect(stars("unallocated")).toHaveLength(1);
+    expect(radii(stars("unallocated"))[0]).toBe(26);
     const row = screen.getByText("Itaconix corporation").closest("div.border-b");
     expect(row?.textContent).toContain("unknown");
     expect(row?.textContent).not.toContain("€0");
@@ -936,12 +930,12 @@ describe("money trail (B2.8)", () => {
     expect(screen.getByText("Project ceiling")).toBeTruthy();
     expect(screen.getByText("Gap")).toBeTruthy();
     expect(screen.getByText("+€115.1M")).toBeTruthy();
-    // Les parts dépassent le plafond : l'assiette s'étend à la somme
-    // (l'anneau se remplit), PAS de « non ventilé » — un résiduel
-    // négatif serait un mensonge ; le texte comptable signé dit tout.
-    expect(segs("child")).toHaveLength(2);
-    expect(segs("unallocated")).toHaveLength(0);
-    expect(degs(segs("child")).reduce((a, b) => a + b, 0)).toBeGreaterThanOrEqual(359);
+    // Les parts dépassent le plafond : deux étoiles vraies, PAS de
+    // « non ventilé » — un résiduel négatif serait un mensonge ; le
+    // texte comptable signé dit tout.
+    expect(stars("child")).toHaveLength(2);
+    expect(stars("unallocated")).toHaveLength(0);
+    expect(radii(stars("child"))).toEqual([30, 10]);
   });
 
   it("NIH : bénéficiaire, jamais une ventilation — aucune barre, aucune région appel", async () => {
@@ -955,8 +949,8 @@ describe("money trail (B2.8)", () => {
     // projet, sans appel.
     expect(trailLinks().map((l) => l.href)).toEqual(["/money/funder/nih", "/money/programme/30"]);
     expect(screen.getByText(/skips it rather than inventing it/)).toBeTruthy();
-    // Le moteur ne ventile pas : AUCUN anneau.
-    expect(segs()).toHaveLength(0);
+    // Le moteur ne ventile pas : AUCUNE étoile.
+    expect(stars()).toHaveLength(0);
   });
 
   it("NSF : deux systèmes de mesure, réconciliation exacte compacte et calme", async () => {
@@ -972,10 +966,10 @@ describe("money trail (B2.8)", () => {
     expect(screen.queryByText("Project contribution")).toBeNull();
     expect(screen.queryByText("Participants with unknown share")).toBeNull();
     expect(trailLinks().map((l) => l.href)).toEqual(["/money/funder/nsf", "/money/programme/40"]);
-    // Exact : le segment unique remplit l'anneau, sans résiduel.
-    expect(segs("child")).toHaveLength(1);
-    expect(degs(segs("child"))[0]).toBe(360);
-    expect(segs("unallocated")).toHaveLength(0);
+    // Exact : l'étoile unique porte tout, sans astre résiduel.
+    expect(stars("child")).toHaveLength(1);
+    expect(radii(stars("child"))[0]).toBe(30);
+    expect(stars("unallocated")).toHaveLength(0);
   });
 
   it("organisation : relations de financement, aucun morphing forcé, refus du total", async () => {
@@ -993,7 +987,7 @@ describe("money trail (B2.8)", () => {
     // de colonnes entre financeurs : deux mesures, deux devises — des
     // hauteurs communes seraient un total inventé.
     expect(screen.queryByRole("navigation", { name: "Trace" })).toBeNull();
-    expect(segs()).toHaveLength(0);
+    expect(stars()).toHaveLength(0);
     const hrefs = Array.from(document.querySelectorAll("a")).map((a) => a.getAttribute("href"));
     expect(hrefs).toContain("/money/funder/ec");
     expect(hrefs).toContain("/money/funder/nsf");
@@ -1062,12 +1056,12 @@ describe("money trail (B2.8)", () => {
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
     // Clic A : les données chargent — l'état visuel courant est
     // conservé, le panneau analytique n'est pas vidé.
-    fireEvent.click(rows("child")[0].querySelector("a")!);
+    fireEvent.click(stars("child")[0]);
     expect(screen.getByRole("heading", { name: "European Commission", level: 1 })).toBeTruthy();
     // Clic B (depuis le fil encore rendu de l'ancien focus, via la
     // liste : les barres appartiennent au focus servi) — Programme 1
     // répond immédiatement et prend le focus.
-    fireEvent.click(rows("child")[1].querySelector("a")!);
+    fireEvent.click(stars("child")[1]);
     expect(await screen.findByRole("heading", { name: "Programme 1", level: 1 })).toBeTruthy();
     // La réponse de A arrive APRÈS : elle ne doit rien écraser.
     releaseA!();
@@ -1080,7 +1074,7 @@ describe("money trail (B2.8)", () => {
   it("navigation Back/Forward : le chemin se recompose sans fantôme", async () => {
     mount("/money/funder/ec");
     await screen.findByRole("heading", { name: "European Commission", level: 1 });
-    fireEvent.click(rows("child")[0].querySelector("a")!);
+    fireEvent.click(stars("child")[0]);
     await screen.findByRole("heading", { name: "Programme 0", level: 1 });
     expect(trailLinks()).toHaveLength(1);
     // Back : le financeur reprend le focus, le fil se recompose.

@@ -23,7 +23,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 
 import { ExploreExits } from "@/components/explore-exits";
 import { Pager } from "@/components/pager";
@@ -43,6 +43,7 @@ import {
   type ChainProvenance,
   type ChainReconciliation,
 } from "@/lib/api";
+import { useMeasure } from "@/hooks/use-measure";
 import { childTo, crumbPath } from "@/lib/chain-routes";
 import { displayLabel } from "@/lib/display-label";
 import { countryFlag, formatCompactMoney, formatInt, formatOrgName } from "@/lib/format";
@@ -339,9 +340,10 @@ function TrailBreadcrumb({ path }: { path: PathNode[] }) {
 
 function TrailWorkspace({ path, children }: { path: PathNode[]; children: ReactNode }) {
   return (
-    <div className="relative flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
-      {/* L'âme de fond habite TOUTE la page de la chambre, pas un
-          panneau : teinte radiale + courant descendant (B2.11 ⓪). */}
+    <div className="chamber-night relative flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
+      {/* La chambre impose sa nuit — même en thème clair, comme la
+          salle des lentilles impose la sienne — et le ciel habite
+          TOUTE la page : étoiles fines + sceau d'Orion. */}
       <ChamberBackdrop />
       <div className="relative flex min-h-0 flex-1 flex-col">
         <TrailBreadcrumb path={path} />
@@ -442,64 +444,102 @@ function normalize(value: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* B2.11 — la chambre de l'argent, vision « Orbite » : le focus est   */
-/* un astre rangé sur le côté, ses destinations se déploient en arc   */
-/* proportionnel (l'angle dit le montant), la page entière porte le   */
-/* fond — le courant de l'argent qui descend.                          */
+/* B2.11 — la chambre de l'argent, vision « Carte stellaire »          */
+/* (recette fondatrice : direction ASSUMÉE). La chambre impose sa      */
+/* nuit — même en thème clair, comme la salle des lentilles impose la  */
+/* sienne — la constellation d'Orion veille en sceau de fond, le       */
+/* focus est l'étoile centrale et ses destinations l'entourent,        */
+/* reliées par des rayons. La navigation reste DANS la page : les      */
+/* étoiles glissent (transform), jamais un remontage.                  */
 
-/** L'atmosphère de la chambre : une teinte radiale douce et un
- *  courant de particules qui descend lentement — l'argent circule.
- *  Positions et cadences DÉTERMINISTES (table fixe, jamais de
- *  hasard) ; reduced-motion : le courant s'efface, la teinte reste. */
-const CHAMBER_DOTS: { x: number; t: number; d: number; a: number }[] = [
-  { x: 6, t: 44, d: 0, a: 0.3 },
-  { x: 14, t: 56, d: -18, a: 0.22 },
-  { x: 23, t: 38, d: -7, a: 0.34 },
-  { x: 31, t: 62, d: -31, a: 0.2 },
-  { x: 42, t: 47, d: -12, a: 0.28 },
-  { x: 55, t: 53, d: -26, a: 0.24 },
-  { x: 63, t: 41, d: -3, a: 0.32 },
-  { x: 71, t: 58, d: -22, a: 0.2 },
-  { x: 80, t: 45, d: -15, a: 0.3 },
-  { x: 88, t: 64, d: -37, a: 0.22 },
-  { x: 94, t: 50, d: -9, a: 0.26 },
+/** Le ciel de la chambre : étoiles fines déterministes (position,
+ *  taille, scintillement — table fixe, jamais de hasard) et le sceau
+ *  d'Orion — les épaules, la ceinture, les pieds — tracé en liaisons
+ *  accent discrètes. Reduced-motion : tout est visible, immobile. */
+const SKY_STARS: { x: number; y: number; r: number; tw?: number }[] = [
+  { x: 4, y: 12, r: 1.2 }, { x: 9, y: 64, r: 1.0, tw: 5.2 }, { x: 13, y: 30, r: 1.4 },
+  { x: 18, y: 82, r: 1.1 }, { x: 22, y: 18, r: 1.0, tw: 6.4 }, { x: 27, y: 52, r: 1.3 },
+  { x: 32, y: 8, r: 1.1 }, { x: 36, y: 72, r: 1.0 }, { x: 41, y: 38, r: 1.5, tw: 4.6 },
+  { x: 47, y: 88, r: 1.0 }, { x: 51, y: 14, r: 1.2 }, { x: 56, y: 58, r: 1.0, tw: 7.1 },
+  { x: 60, y: 28, r: 1.1 }, { x: 65, y: 78, r: 1.3 }, { x: 70, y: 6, r: 1.0 },
+  { x: 74, y: 46, r: 1.2, tw: 5.8 }, { x: 79, y: 90, r: 1.0 }, { x: 84, y: 22, r: 1.4 },
+  { x: 88, y: 62, r: 1.0, tw: 6.9 }, { x: 93, y: 36, r: 1.2 }, { x: 97, y: 74, r: 1.0 },
 ];
+/** Le sceau : les sept étoiles d'Orion (épaules, ceinture, pieds) en
+ *  coordonnées de la fenêtre (%), et leurs liaisons. */
+const ORION_SEAL = {
+  stars: [
+    { x: 68, y: 16, r: 2.6 }, // Bételgeuse (épaule gauche vue du ciel)
+    { x: 84, y: 20, r: 2.2 }, // Bellatrix
+    { x: 73.5, y: 44, r: 2.0 }, // Alnitak
+    { x: 76.5, y: 47, r: 2.0 }, // Alnilam
+    { x: 79.5, y: 50, r: 2.0 }, // Mintaka
+    { x: 70, y: 76, r: 2.2 }, // Saïph
+    { x: 87, y: 72, r: 2.8 }, // Rigel
+  ],
+  links: [
+    [0, 2], [1, 4], [2, 3], [3, 4], [2, 5], [4, 6],
+  ] as [number, number][],
+};
 
 function ChamberBackdrop() {
   return (
     <div aria-hidden="true" className="chamber-bg">
-      {CHAMBER_DOTS.map((dot) => (
-        <span
-          key={dot.x}
-          className="chamber-dot"
-          style={
-            {
-              left: `${dot.x}%`,
-              "--fall-time": `${dot.t}s`,
-              "--fall-delay": `${dot.d}s`,
-              "--dot-a": dot.a,
-            } as React.CSSProperties
-          }
-        />
-      ))}
+      <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {SKY_STARS.map((star, i) => (
+          <circle
+            key={i}
+            cx={star.x}
+            cy={star.y}
+            r={star.r * 0.14}
+            className={star.tw ? "chamber-twinkle" : undefined}
+            style={star.tw ? { animationDuration: `${star.tw}s` } : undefined}
+            fill="currentColor"
+          />
+        ))}
+        <g className="chamber-seal">
+          {ORION_SEAL.links.map(([a, b]) => (
+            <line
+              key={`${a}-${b}`}
+              x1={ORION_SEAL.stars[a].x}
+              y1={ORION_SEAL.stars[a].y}
+              x2={ORION_SEAL.stars[b].x}
+              y2={ORION_SEAL.stars[b].y}
+              stroke="var(--accent)"
+              strokeOpacity="0.2"
+              strokeWidth="0.08"
+            />
+          ))}
+          {ORION_SEAL.stars.map((star, i) => (
+            <circle
+              key={i}
+              cx={star.x}
+              cy={star.y}
+              r={star.r * 0.16}
+              fill="var(--accent)"
+              fillOpacity="0.75"
+            />
+          ))}
+        </g>
+      </svg>
     </div>
   );
 }
 
-/** Nombre de rangées/segments montrés au repos — au-delà, le godet
+/** Nombre d'objets montrés sur la carte — au-delà, le godet
  *  « + N autres » ouvre la liste complète. */
 const SHOWN_SLOTS = 11;
-/** Plancher de visibilité d'un segment (degrés) : une part réelle
- *  mais minuscule reste visible ET marquée « ≈ », sa part réelle au
+/** Rayon maximal d'une étoile (px) — l'AIRE dit le montant
+ *  (r ∝ √montant), l'encodage proportionnel vrai du disque. */
+const STAR_RMAX = 30;
+/** Rayon plancher de visibilité : une part réelle mais minuscule
+ *  reste une étoile visible ET marquée « ≈ », sa part réelle au
  *  title — jamais une proportion silencieusement fausse. */
-const FLOOR_DEG = 2;
-/** La rosace : dimensions du dessin (px SVG). */
-const ORBIT = { size: 340, c: 170, rOut: 158, rIn: 118 };
+const STAR_FLOOR = 5;
 /** Les couleurs des destinations : la palette catégorielle VALIDÉE
- *  d'Orion (--series-*, CVD + contraste au script), dans l'ordre du
- *  classement. Le godet porte le neutre « autres » du produit
- *  (--donut-others) : un agrégat n'est pas une destination ; le
- *  non-ventilé reste hachuré. */
+ *  d'Orion (--series-*), dans l'ordre du classement. Le godet porte
+ *  le neutre « autres » (--donut-others) : une porte, pas une
+ *  destination ; le non-ventilé est un astre creux, en pointillés. */
 const SERIES_VARS = [1, 2, 3, 4, 5, 6].map((i) => `var(--series-${i})`);
 
 interface BarSpec {
@@ -508,7 +548,7 @@ interface BarSpec {
   name: string;
   /** Montant connu ; null = « + N autres » dont la somme cachée n'est
    *  pas connaissable honnêtement (page partielle hors invariant
-   *  d'agrégation) — le segment reste au plancher, sans chiffre. */
+   *  d'agrégation) — l'étoile reste au plancher, sans chiffre. */
   amount: number | null;
   /** Part du total du parent (%), seulement quand le parent est connu. */
   share: number | null;
@@ -516,44 +556,25 @@ interface BarSpec {
   onClick?: () => void;
 }
 
-interface ArcSeg extends BarSpec {
-  start: number;
-  sweep: number;
+interface StarSpec extends BarSpec {
+  r: number;
   crushed: boolean;
   color: string | null;
 }
 
-/** L'angle dit le montant. Assiette : le total du parent quand il est
- *  connu (les segments laissent alors une lacune de piste si une part
- *  n'est servie nulle part) ; sinon la somme des montants connus — les
- *  proportions ENTRE destinations restent vraies, aucune part du
- *  parent n'est inventée. Un dépassement (Σ enfants > plafond) étend
- *  l'assiette à la somme : l'anneau se remplit, le texte comptable
- *  signé dit le dépassement. */
-function arcGeometry(bars: BarSpec[], parentAmount: number | null): ArcSeg[] {
-  const knownSum = bars.reduce((sum, bar) => sum + (bar.amount ?? 0), 0);
-  const basis =
-    parentAmount != null && parentAmount > 0 ? Math.max(parentAmount, knownSum) : knownSum;
-  const raw = bars.map((bar) =>
-    bar.amount != null && basis > 0 ? (bar.amount / basis) * 360 : FLOOR_DEG,
-  );
-  const floored = raw.map((deg, i) => deg < FLOOR_DEG && bars[i].amount != null);
-  const noAngle = bars.map((bar) => bar.amount == null);
-  const reserved = raw.reduce(
-    (sum, _deg, i) => sum + (floored[i] || noAngle[i] ? FLOOR_DEG : 0),
-    0,
-  );
-  const restRaw = raw.reduce((sum, deg, i) => (floored[i] || noAngle[i] ? sum : sum + deg), 0);
-  const scale = restRaw > 0 ? Math.min(1, (360 - reserved) / restRaw) : 1;
+/** L'aire de l'étoile dit le montant : r = √(montant/max) × R_MAX,
+ *  ancré sur le plus grand objet du niveau — proportion de disque
+ *  vraie, plancher marqué. */
+function starGeometry(bars: BarSpec[]): StarSpec[] {
+  const maxAmount = Math.max(...bars.map((bar) => bar.amount ?? 0), 1);
   let childRank = 0;
-  let cursor = 0;
-  return bars.map((bar, i) => {
-    const sweep = floored[i] || noAngle[i] ? FLOOR_DEG : raw[i] * scale;
-    const seg: ArcSeg = {
+  return bars.map((bar) => {
+    const raw =
+      bar.amount != null ? Math.sqrt(bar.amount / maxAmount) * STAR_RMAX : STAR_FLOOR;
+    const star: StarSpec = {
       ...bar,
-      start: cursor,
-      sweep,
-      crushed: floored[i],
+      r: Math.max(STAR_FLOOR, Math.round(raw)),
+      crushed: bar.amount != null && raw < STAR_FLOOR,
       color:
         bar.kind === "child"
           ? SERIES_VARS[childRank % SERIES_VARS.length]
@@ -562,210 +583,162 @@ function arcGeometry(bars: BarSpec[], parentAmount: number | null): ArcSeg[] {
             : null,
     };
     if (bar.kind === "child") childRank += 1;
-    cursor += sweep;
-    return seg;
+    return star;
   });
 }
 
-function polar(r: number, deg: number): string {
-  const rad = ((deg - 90) * Math.PI) / 180;
-  return `${(ORBIT.c + r * Math.cos(rad)).toFixed(2)} ${(ORBIT.c + r * Math.sin(rad)).toFixed(2)}`;
-}
-
-function segPath(start: number, sweep: number): string {
-  const end = start + Math.min(sweep, 359.9);
-  const large = end - start > 180 ? 1 : 0;
-  return [
-    `M ${polar(ORBIT.rOut, start)}`,
-    `A ${ORBIT.rOut} ${ORBIT.rOut} 0 ${large} 1 ${polar(ORBIT.rOut, end)}`,
-    `L ${polar(ORBIT.rIn, end)}`,
-    `A ${ORBIT.rIn} ${ORBIT.rIn} 0 ${large} 0 ${polar(ORBIT.rIn, start)}`,
-    "Z",
-  ].join(" ");
-}
-
-/** La rosace de l'orbite : un SEUL anneau proportionnel du niveau
- *  courant (jamais la hiérarchie empilée en angles — c'est le
- *  sunburst multi-anneaux qu'on ne construit pas). Le total du
- *  parent habite le centre. L'anneau est décoratif-interactif ; la
- *  légende à côté est LA surface accessible (liens, bouton godet). */
-function OrbitArc({
-  segs,
+/** La carte stellaire : le focus au centre (son total au cœur), les
+ *  destinations autour sur l'anneau, reliées par des rayons. Chaque
+ *  étoile est un vrai lien HTML (focusable, nommé) — la carte EST la
+ *  surface accessible ; le godet est un bouton vers la liste
+ *  complète. Les positions se posent en transform : au changement de
+ *  niveau les étoiles GLISSENT, la page ne se remonte pas. */
+function StarMap({
+  stars,
   centerAmount,
   centerNote,
   currency,
-}: {
-  segs: ArcSeg[];
-  centerAmount: number | null;
-  centerNote: string;
-  currency: string | null | undefined;
-}) {
-  const { t, locale, money } = useMoneyCopy();
-  const navigate = useNavigate();
-  return (
-    <div
-      aria-hidden="true"
-      className="orbit-in relative shrink-0"
-      style={{ width: ORBIT.size, height: ORBIT.size }}
-    >
-      <svg viewBox={`0 0 ${ORBIT.size} ${ORBIT.size}`} className="h-full w-full">
-        <defs>
-          <pattern
-            id="orbit-hatch"
-            width="7"
-            height="7"
-            patternTransform="rotate(-45)"
-            patternUnits="userSpaceOnUse"
-          >
-            <rect width="7" height="7" fill="transparent" />
-            <rect width="3" height="7" fill="var(--muted-foreground)" opacity="0.3" />
-          </pattern>
-        </defs>
-        {/* La piste : ce que l'anneau n'attribue pas reste une lacune
-            visible sur ce fond — jamais comblée en silence. */}
-        <circle
-          cx={ORBIT.c}
-          cy={ORBIT.c}
-          r={(ORBIT.rOut + ORBIT.rIn) / 2}
-          fill="none"
-          stroke="var(--border-soft)"
-          strokeWidth={ORBIT.rOut - ORBIT.rIn}
-        />
-        {segs.map((seg) => {
-          const amountText = seg.amount == null ? "—" : money(seg.amount, currency);
-          const shareText = seg.share == null ? "" : ` · ${pct(seg.share, locale)}`;
-          const floorNote =
-            seg.crushed && seg.share != null
-              ? ` ${t("money.columns.floored", { pct: pct(seg.share, locale) })}`
-              : "";
-          return (
-            <path
-              key={seg.key}
-              d={segPath(seg.start, seg.sweep)}
-              data-seg={seg.kind}
-              data-deg={Math.round(seg.sweep)}
-              data-crushed={seg.crushed || undefined}
-              className="orbit-seg"
-              fill={seg.color ?? "url(#orbit-hatch)"}
-              stroke="var(--background)"
-              strokeWidth="1.4"
-              onClick={
-                seg.to
-                  ? () => void navigate(seg.to as string)
-                  : seg.onClick
-              }
-            >
-              <title>{`${seg.name}${seg.kind === "others" ? "" : ` — ${amountText}`}${shareText}${floorNote}`}</title>
-            </path>
-          );
-        })}
-      </svg>
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="tnum text-[22px] font-semibold leading-none">
-          {centerAmount == null ? "—" : money(centerAmount, currency)}
-        </span>
-        <span className="mt-1 max-w-[120px] text-[10.5px] leading-snug text-muted-foreground">
-          {centerNote}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/** La légende de l'orbite — LA surface accessible et précise : une
- *  rangée par destination (pastille couleur, nom, montant fort,
- *  part), le godet en bouton vers la liste complète, le non-ventilé
- *  en rangée hachurée jamais cachée. */
-function OrbitLegend({
-  segs,
-  currency,
   ariaLabel,
 }: {
-  segs: ArcSeg[];
+  stars: StarSpec[];
+  centerAmount: number | null;
+  centerNote: string;
   currency: string | null | undefined;
   ariaLabel: string;
 }) {
   const { t, locale, money } = useMoneyCopy();
+  const { ref, width } = useMeasure<HTMLDivElement>();
+  const H = 470;
+  const w = width || 960;
+  const cx = w / 2;
+  const cy = H / 2 - 8;
+  const rx = Math.min(Math.max(w * 0.34, 210), 420);
+  const ry = 160;
+  const placed = stars.map((star, i) => {
+    const angle = ((-90 + (360 / stars.length) * i) * Math.PI) / 180;
+    return { ...star, x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) };
+  });
   return (
-    <ul aria-label={ariaLabel} className="w-full min-w-0 flex-1 list-none">
-      {segs.map((seg) => {
-        const amountText = seg.amount == null ? "—" : money(seg.amount, currency);
-        const shareText = seg.share == null ? "" : pct(seg.share, locale);
+    <div ref={ref} role="group" aria-label={ariaLabel} className="relative w-full" style={{ height: H }}>
+      <svg aria-hidden="true" className="absolute inset-0 h-full w-full">
+        {placed.map((star) => (
+          <line
+            key={star.key}
+            x1={cx}
+            y1={cy}
+            x2={star.x}
+            y2={star.y}
+            stroke="var(--foreground)"
+            strokeOpacity="0.13"
+            strokeWidth="1"
+          />
+        ))}
+      </svg>
+      {/* Le cœur : le focus, son total. */}
+      <div
+        aria-hidden="true"
+        className="star-glide pointer-events-none absolute left-0 top-0"
+        style={{ transform: `translate(${cx}px, ${cy}px)` }}
+      >
+        <div className="-translate-x-1/2 -translate-y-1/2 text-center">
+          <span className="star-core mx-auto mb-2 block" />
+          <span className="tnum block text-[21px] font-semibold leading-none">
+            {centerAmount == null ? "—" : money(centerAmount, currency)}
+          </span>
+          <span className="mt-1 block max-w-[140px] text-[10.5px] leading-snug text-muted-foreground">
+            {centerNote}
+          </span>
+        </div>
+      </div>
+      {placed.map((star) => {
+        const amountText = star.amount == null ? "—" : money(star.amount, currency);
+        const shareText = star.share == null ? "" : pct(star.share, locale);
         const floorNote =
-          seg.crushed && seg.share != null
-            ? ` ${t("money.columns.floored", { pct: pct(seg.share, locale) })}`
+          star.crushed && star.share != null
+            ? ` ${t("money.columns.floored", { pct: pct(star.share, locale) })}`
             : "";
         const title =
-          seg.kind === "others"
-            ? `${seg.name}${shareText ? ` · ${shareText}` : ""}${floorNote}`
-            : `${seg.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${floorNote}`;
-        const chip = (
-          <span
-            aria-hidden="true"
-            className={cn(
-              "h-2.5 w-2.5 shrink-0 rounded-[3px]",
-              seg.color == null && "recon-hatch",
-            )}
-            style={seg.color ? { background: seg.color } : undefined}
-          />
-        );
-        const row = (
-          <>
-            {chip}
+          star.kind === "others"
+            ? `${star.name}${shareText ? ` · ${shareText}` : ""}${floorNote}`
+            : `${star.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${floorNote}`;
+        const body = (
+          <span className="block -translate-x-1/2 -translate-y-1/2 text-center">
             <span
+              aria-hidden="true"
+              data-orb
               className={cn(
-                "min-w-0 flex-1 truncate text-left text-[13px] leading-snug",
-                seg.kind === "child"
-                  ? "transition-colors group-hover:text-accent"
-                  : "text-muted-foreground",
+                "mx-auto block rounded-full transition-[box-shadow,filter] duration-300",
+                star.kind === "child" && "star-orb",
+                star.kind === "others" && "star-door",
+                star.kind === "unallocated" && "star-hollow",
               )}
-            >
-              {seg.name}
-            </span>
-            {seg.crushed ? (
-              <span aria-hidden="true" className="text-[11px] text-muted-foreground">
-                ≈
+              style={{
+                width: star.r * 2,
+                height: star.r * 2,
+                background: star.color ?? undefined,
+                "--star-tint": star.color ?? "var(--muted-foreground)",
+              } as React.CSSProperties}
+            />
+            <span aria-hidden="true" className="mt-1.5 block leading-tight">
+              <span className="tnum block text-[13px] font-semibold">
+                {star.kind === "others" ? "" : amountText}
+                {star.crushed ? " ≈" : ""}
               </span>
-            ) : null}
-            {seg.kind !== "others" ? (
-              <span className="tnum shrink-0 text-[13.5px] font-semibold">{amountText}</span>
-            ) : null}
-            <span className="tnum w-14 shrink-0 text-right text-[11.5px] text-muted-foreground">
-              {shareText}
+              <span className="mx-auto block max-w-[130px] truncate font-mono text-[9.5px] text-muted-foreground">
+                {star.name}
+              </span>
+              {shareText ? (
+                <span className="tnum block text-[9.5px] text-muted-foreground/80">
+                  {shareText}
+                </span>
+              ) : null}
             </span>
-          </>
+          </span>
         );
-        return (
-          <li key={seg.key} data-row={seg.kind}>
-            {seg.kind === "child" && seg.to ? (
-              <Link
-                to={seg.to}
-                title={title}
-                aria-label={title}
-                className="group flex items-center gap-3 border-b border-border-soft py-2.5"
-              >
-                {row}
-              </Link>
-            ) : seg.kind === "others" ? (
-              <button
-                type="button"
-                onClick={seg.onClick}
-                title={`${title} — ${t("money.columns.othersTitle")}`}
-                aria-label={`${title} — ${t("money.columns.othersTitle")}`}
-                className="group flex w-full cursor-pointer items-center gap-3 border-b border-border-soft py-2.5"
-              >
-                {row}
-              </button>
-            ) : (
-              <span title={title} className="flex items-center gap-3 border-b border-border-soft py-2.5">
-                <span className="sr-only">{title}</span>
-                {row}
-              </span>
-            )}
-          </li>
+        const glide = { transform: `translate(${star.x}px, ${star.y}px)` };
+        return star.kind === "child" && star.to ? (
+          <Link
+            key={star.key}
+            to={star.to}
+            title={title}
+            aria-label={title}
+            data-star="child"
+            data-r={star.r}
+            data-crushed={star.crushed || undefined}
+            className="star-glide group absolute left-0 top-0"
+            style={glide}
+          >
+            {body}
+          </Link>
+        ) : star.kind === "others" ? (
+          <button
+            key={star.key}
+            type="button"
+            onClick={star.onClick}
+            title={`${title} — ${t("money.columns.othersTitle")}`}
+            aria-label={`${title} — ${t("money.columns.othersTitle")}`}
+            data-star="others"
+            data-r={star.r}
+            className="star-glide group absolute left-0 top-0 cursor-pointer"
+            style={glide}
+          >
+            {body}
+          </button>
+        ) : (
+          <span
+            key={star.key}
+            title={title}
+            data-star="unallocated"
+            data-r={star.r}
+            className="star-glide absolute left-0 top-0"
+            style={glide}
+          >
+            <span className="sr-only">{title}</span>
+            {body}
+          </span>
         );
       })}
-    </ul>
+    </div>
   );
 }
 
@@ -905,7 +878,7 @@ function DestinationsSection({
   ];
 
   const listMode = expanded || Boolean(query) || bars.length === 0;
-  const segs = listMode ? [] : arcGeometry(bars, parentAmount);
+  const stars = listMode ? [] : starGeometry(bars);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -943,15 +916,13 @@ function DestinationsSection({
             {t("money.emptyLevel")}
           </p>
         ) : !listMode ? (
-          <div className="flex flex-col items-center gap-7 pt-2 xl:flex-row xl:items-start xl:gap-12">
-            <OrbitArc
-              segs={segs}
-              centerAmount={parentAmount}
-              centerNote={childrenLabel}
-              currency={currency}
-            />
-            <OrbitLegend segs={segs} currency={currency} ariaLabel={childrenLabel} />
-          </div>
+          <StarMap
+            stars={stars}
+            centerAmount={parentAmount}
+            centerNote={childrenLabel}
+            currency={currency}
+            ariaLabel={childrenLabel}
+          />
         ) : matched.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {t("money.search.noMatch")}
@@ -1318,9 +1289,9 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
             ]
           : []),
       ];
-  const participantSegs = participantBars.length > 0 ? arcGeometry(participantBars, parent) : [];
-  // La pastille de rang relie chaque rangée à son segment.
-  const segColor = new Map(participantSegs.map((seg) => [seg.key, seg.color]));
+  const participantStars = participantBars.length > 0 ? starGeometry(participantBars) : [];
+  // La pastille de rang relie chaque rangée à son étoile.
+  const segColor = new Map(participantStars.map((star) => [star.key, star.color]));
 
   return (
     <section className="mt-12">
@@ -1335,13 +1306,14 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
           {t("money.nih.beneficiaryNote")}
         </p>
       ) : null}
-      {participantSegs.length > 0 ? (
-        <div className="mt-5 flex justify-center md:justify-start">
-          <OrbitArc
-            segs={participantSegs}
+      {participantStars.length > 0 ? (
+        <div className="mt-4">
+          <StarMap
+            stars={participantStars}
             centerAmount={parent}
             centerNote={t("money.children.participation", { count: data.children.total })}
             currency={data.measure.currency}
+            ariaLabel={t("money.children.participation", { count: data.children.total })}
           />
         </div>
       ) : null}
@@ -1663,13 +1635,10 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
 
   return (
     <TrailWorkspace path={path}>
-      <div
-        key={`${shown}:${data.node.id}:${programmeContext ?? ""}`}
-        className="focus-in flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10 xl:flex-row xl:gap-14"
-      >
-        {/* L'astre : le nœud où l'on est entré se range sur le côté —
-            son nom, son grand chiffre en encre du hero, sa méthode. */}
-        <header className="w-full max-w-[980px] shrink-0 xl:w-[360px]">
+      {/* Pas de clé de remontage : la page RESTE — les étoiles
+          glissent quand le niveau change (recette fondatrice). */}
+      <div className="flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10">
+        <header className="w-full max-w-[980px] shrink-0">
           <Eyebrow>
             {t(`money.levels.${shown}`)}
             {"code" in data.node && data.node.code !== label ? (
@@ -1691,9 +1660,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
             {data.aggregate?.amount == null ? (
               <span title={t("money.unknownAmount")}>—</span>
             ) : (
-              <span className="hero-gradient">
-                {money(data.aggregate.amount, data.aggregate.measure.currency)}
-              </span>
+              money(data.aggregate.amount, data.aggregate.measure.currency)
             )}
           </p>
           <ShareLine share={data.share_of_parent} measureKey={data.aggregate?.measure.key} />
@@ -1763,7 +1730,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
             </p>
           ) : null}
         </header>
-        <div className="mt-2 flex w-full max-w-[980px] min-h-0 flex-1 flex-col xl:mt-0 xl:max-w-none xl:overflow-y-auto xl:overscroll-contain">
+        <div className="mt-2 flex w-full max-w-[1240px] min-h-0 flex-1 flex-col">
           <DestinationsSection
             data={data}
             parentLabel={label}
@@ -1836,9 +1803,7 @@ function ProjectFocus({ id }: { id: string }) {
             {data.measure.amount == null ? (
               <span title={t("money.unknownAmount")}>—</span>
             ) : (
-              <span className="hero-gradient">
-                {money(data.measure.amount, data.measure.currency)}
-              </span>
+              money(data.measure.amount, data.measure.currency)
             )}
           </p>
           <ShareLine share={data.share_of_parent} measureKey={data.measure.key} />
