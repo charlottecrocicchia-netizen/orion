@@ -1388,6 +1388,10 @@ const resources = {
           ofPreviousSr: "of {{parent}}",
         },
         transversalShort: "Cross-cutting call — no per-programme ratio.",
+        stack: {
+          backTo: "Back to {{name}} — {{amount}}",
+          transversal: "Cross-cutting call",
+        },
         search: {
           placeholder: "Search among {{n}} {{what}}…",
           noMatch: "Nothing here matches.",
@@ -3018,6 +3022,10 @@ const resources = {
           ofPreviousSr: "de {{parent}}",
         },
         transversalShort: "Appel transversal — ratio au programme non applicable.",
+        stack: {
+          backTo: "Revenir à {{name}} — {{amount}}",
+          transversal: "Appel transversal",
+        },
         search: {
           placeholder: "Rechercher parmi {{n}} {{what}}…",
           noMatch: "Rien ne correspond ici.",

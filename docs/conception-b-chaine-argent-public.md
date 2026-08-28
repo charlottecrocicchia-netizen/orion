@@ -1153,3 +1153,77 @@ ITACONIX 26640, deep-link 26403, 1920/1440/1280/1024/768/420, EN/FR,
 clair/sombre. Suppressions (zéro code mort) : TracePanel et la
 coquille bi-régions B2.4, la clé `trace.convention` ; `focus-in` est
 réutilisé pour le contenu du focus.
+
+### 15.10 B2.6 — Depth Stack / Semantic Zoom (2026-08-28)
+
+Changement de géométrie après la recette fondatrice de B2.5 (le
+comportement interactif est validé et conservé ; les tranches
+verticales sont rejetées — illisibles, gourmandes en largeur, encore
+des panneaux). Principes : Focus + Context, Semantic Zoom, Visual
+Momentum. Descendre = le niveau courant se REPLIE verticalement vers
+le haut en bande contextuelle pleine largeur ; le niveau suivant se
+déploie sous lui. L'espace horizontal appartient au focus ; les
+ancêtres consomment de la hauteur.
+
+- **Pile verticale.** Bandes ancêtres empilées sous la navbar, focus
+  = tout le reste. Hauteurs par distance — jamais par montant :
+  parent 56 px, grand-parent 40 px, plus ancien 32 px (constaté à
+  profondeur 5 : 32/32/40/56 + focus ~676 px à 900 de hauteur).
+  Indentation de profondeur 24 + 14 px par niveau, plafonnée à 56 —
+  elle dit la profondeur, rien d'autre. Séparations : hairlines ;
+  le parent immédiat porte un fond `accent-soft` léger et une
+  hairline d'accent — la frontière contexte / focus.
+- **Zoom sémantique réel** (la représentation change, pas seulement
+  la taille) : focus = détail maximal (type·code, nom, chiffre, part
+  libellée, nature courte, ⓘ, question, destinations) ; parent
+  immédiat = nom + montant + SA part (« └ 38,7 % de European
+  Commission », petite touche d'accent) — ou « Appel transversal »
+  sans ratio quand le moteur le refuse ; ancêtre plus ancien = nom +
+  montant, rien de plus (sa part, pourtant servie, ne s'affiche pas —
+  testé). Pleine largeur : plus aucun label compressé, les noms
+  restent lisibles à profondeur 5.
+- **Visual momentum.** Le mécanisme B2.5 est conservé et pivoté :
+  UN SEUL map keyé par nœud — le MÊME élément DOM passe de focus à
+  bande (prouvé au probe, et attrapé en plein vol en recette :
+  l'élément EC saisi à mi-repli, 478 px entre pleine hauteur et
+  56 px). Transition `flex-grow` + `flex-basis` 240 ms ; l'entrée du
+  nouveau focus pousse depuis zéro (`region-in`, délai 60 ms) ; la
+  remontée est l'inverse cohérent (la bande recliquée se redéploie,
+  les descendants quittent la pile — 5 → 2 → branche MSCA → 4 vérifié
+  sans fantôme). Reduced-motion : état final instantané.
+- **Chaque bande est une action** : lien pleine surface,
+  `aria-label` « Revenir à {nom} — {montant} », survol accent léger,
+  focus clavier visible, aucun bouton retour.
+- **Largeur de lecture du focus** : contenu et destinations bornés à
+  980 px alignés à gauche — les montants ne sont plus à 1 100 px du
+  nom ; les bandes alignent leurs montants sur la même limite. LA
+  question devient une vraie articulation (hairline au-dessus,
+  semi-graisse) entre « comprendre le focus » et « continuer » ; les
+  phrases de couverture restent dans l'inspecteur.
+- **Top adaptatif conscient de la pile** : le plancher passe de 7 à
+  4 — la hauteur mangée par les bandes entre dans la mesure (constaté :
+  7 destinations à profondeur 1, 5 à profondeur 2, 4 à profondeur 4 —
+  aucune ligne coupée).
+- **Cas doctrinaux inchangés et vérifiés en réel** : NIH → institut →
+  projet et NSF → division → projet (aucune bande réservée à un étage
+  absent ; les deux systèmes NSF vivent dans le focus, jamais dans la
+  pile) ; bande transversale « └ Appel transversal » sans % ;
+  ITACONIX en vue transverse (les financeurs sont des branches
+  possibles) ; racine trois portes, rythme renforcé. Deep-link à
+  froid : UNE requête reconstruit bandes, zoom sémantique, focus,
+  montants, ratios valides (26403 vérifié). Route-outil : pas de
+  footer, pas de défilement du document (1440×900, 1024×768 mesurés ;
+  1920/1280 déjà au même mécanisme), mobile = chemin compact + focus
+  plein écran (0 bande, mesuré à 420).
+
+Suppressions (zéro code mort) : `regionWeight`/les poids horizontaux,
+les styles de slivers et la compression de labels par code,
+`AncestorRegion` → `Band`, `MorphWorkspace` → `DepthStack` ; le CSS
+`morph-region` passe à flex-grow + flex-basis (une seule mécanique de
+layout) ; les séquences unicode littérales laissées dans les
+commentaires du fichier de tests ont été décodées. Clés i18n :
++`stack.backTo`, +`stack.transversal`, +`methodology.coverage` ;
+audit des clés mortes : 0. Tests : 165 frontend (18 surface : bases
+par profondeur 1/2/5, zoom sémantique parent vs ancien, bande
+transversale sans ratio, descente/remontée/branche, filtre honnête,
+NIH/NSF/transverse, FR/EN), 372 backend inchangés.

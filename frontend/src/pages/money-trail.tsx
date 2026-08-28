@@ -170,7 +170,7 @@ function useVisibleCount(listRef: RefObject<HTMLDivElement | null>): number {
         setCount(DEFAULT_VISIBLE);
         return;
       }
-      if (height > 0) setCount(Math.max(7, Math.min(10, Math.floor(height / ROW_PX))));
+      if (height > 0) setCount(Math.max(4, Math.min(10, Math.floor(height / ROW_PX))));
     };
     const observer = new ResizeObserver((entries) => {
       apply(entries[0]?.contentRect.height ?? 0);
@@ -313,6 +313,8 @@ interface PathNode {
   amount?: number | null;
   currency?: string | null;
   share?: number | null;
+  /** Liaison structurelle sans ratio valide (appel transversal). */
+  transversal?: boolean;
   active?: boolean;
 }
 
@@ -327,87 +329,90 @@ function pathFromSpine(ancestors: ChainCrumb[], current: PathNode): PathNode[] {
       amount: a.amount,
       currency: a.currency,
       share: a.comparability === "ok" ? a.share_of_parent : null,
+      transversal: a.comparability === "transversal_call",
     })),
     { ...current, active: true },
   ];
 }
 
-/** La largeur d'une région ne code que sa DISTANCE au focus — jamais
- *  le montant. Poids relatifs (flex-grow, animé) : le focus domine,
- *  le parent reste lisible, au-delà les bandes se compressent. */
-function regionWeight(distance: number): number {
-  if (distance === 0) return 62;
-  if (distance === 1) return 18;
-  if (distance === 2) return 10;
-  return 6;
+/** La hauteur d'une bande ne code que sa DISTANCE au focus — jamais
+ *  le montant : le parent reste détaillé, au-delà les bandes se
+ *  condensent. Le focus prend tout l'espace restant (flex-grow). */
+function bandBasis(distance: number): number {
+  if (distance === 1) return 56;
+  if (distance === 2) return 40;
+  return 32;
 }
 
-/** Une région ancêtre compressée : une vraie surface interactive, pas
- *  un breadcrumb — nom (court quand la place manque, complet pour
- *  l'accessibilité), montant, part valide, niveau. Cliquer ramène le
- *  focus à ce niveau. */
-function AncestorRegion({
+/** L'indentation dit la profondeur — légère, plafonnée, jamais
+ *  décorative. */
+function bandIndent(index: number): number {
+  return 24 + Math.min(index * 14, 56);
+}
+
+/** Une bande ancêtre : le niveau quitté, replié vers le haut — toute
+ *  la largeur, une vraie action (cliquer y ramène le focus). Zoom
+ *  sémantique : le parent immédiat garde nom + montant + sa part ;
+ *  un ancêtre plus ancien ne dit plus que nom + montant. */
+function Band({
   node,
   previousLabel,
   distance,
+  index,
 }: {
   node: PathNode;
   previousLabel?: string;
   distance: number;
+  index: number;
 }) {
   const { t, locale, money } = useMoneyCopy();
-  const sliver = distance >= 3;
-  const display = sliver ? (node.code ?? node.label) : node.label;
+  const parent = distance === 1;
+  const amount = node.amount != null ? money(node.amount, node.currency) : "";
   return (
     <Link
       to={node.to ?? "/money"}
-      title={`${node.label}${node.amount != null ? ` — ${money(node.amount, node.currency)}` : ""}`}
-      className="group flex h-full min-w-0 flex-col overflow-hidden px-3 py-5 transition-colors hover:bg-accent-soft/40 lg:px-4"
+      aria-label={t("money.stack.backTo", { name: node.label, amount })}
+      className="group flex h-full min-w-0 flex-col justify-center pr-6 transition-colors hover:bg-accent-soft/40 md:pr-10"
+      style={{ paddingLeft: bandIndent(index) }}
     >
-      <span className="sr-only">{t("money.followTo", { name: node.label })} — </span>
-      {!sliver ? (
-        <span className="text-[9.5px] font-medium uppercase leading-tight tracking-[.09em] text-muted-foreground/80">
-          {LEVELS.has(node.level) ? t(`money.levels.${node.level}`) : node.level}
-        </span>
-      ) : null}
-      <span
-        aria-hidden="true"
-        className={cn(
-          "mt-1 leading-snug text-muted-foreground transition-colors group-hover:text-accent",
-          distance === 1
-            ? "text-[13px] font-medium text-foreground/80 line-clamp-3"
-            : sliver
-              ? "text-[11px] line-clamp-2"
-              : "text-[12px] line-clamp-2",
-        )}
-      >
-        {display}
-      </span>
-      {node.amount != null ? (
+      <span className="flex w-full max-w-[980px] items-baseline justify-between gap-6">
         <span
           aria-hidden="true"
           className={cn(
-            "tnum mt-1 text-foreground/70",
-            distance === 1 ? "text-[12.5px] font-medium" : "text-[11px]",
+            "min-w-0 truncate leading-tight text-foreground/80 transition-colors group-hover:text-accent",
+            parent ? "text-[13.5px] font-medium" : distance === 2 ? "text-[12.5px]" : "text-[12px]",
           )}
+          title={node.label}
         >
-          {money(node.amount, node.currency)}
+          {node.label}
         </span>
-      ) : null}
-      {node.share != null ? (
-        <span
-          className="tnum mt-0.5 text-[10.5px] text-muted-foreground"
-          title={t("money.trace.ofPrevious", {
-            pct: pct(node.share * 100, locale),
-            parent: previousLabel ?? "",
-          })}
-        >
-          {pct(node.share * 100, locale)}
-          <span className="sr-only">
-            {" "}
-            {t("money.trace.ofPreviousSr", { parent: previousLabel ?? "" })}
+        {node.amount != null ? (
+          <span
+            aria-hidden="true"
+            className={cn(
+              "tnum shrink-0 text-muted-foreground",
+              parent ? "text-[12.5px] font-medium text-foreground/70" : "text-[11.5px]",
+            )}
+          >
+            {amount}
           </span>
-        </span>
+        ) : null}
+      </span>
+      {parent ? (
+        node.transversal ? (
+          <span className="mt-0.5 text-[10.5px] text-muted-foreground">
+            <span aria-hidden="true">└ </span>
+            {t("money.stack.transversal")}
+          </span>
+        ) : node.share != null ? (
+          <span className="tnum mt-0.5 text-[10.5px] text-accent">
+            <span aria-hidden="true">└ </span>
+            {t("money.trace.ofPrevious", {
+              pct: pct(node.share * 100, locale),
+              parent: previousLabel ?? "",
+            })}
+          </span>
+        ) : null
       ) : null}
     </Link>
   );
@@ -462,16 +467,18 @@ function TraceLine({ nodes }: { nodes: PathNode[] }) {
 /* ------------------------------------------------------------------ */
 /* La coquille morphing : le chemin actif EST la disposition           */
 
-function MorphWorkspace({ path, children }: { path: PathNode[]; children: ReactNode }) {
+function DepthStack({ path, children }: { path: PathNode[]; children: ReactNode }) {
   return (
     <div className="flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
       <TraceLine nodes={path} />
-      <div className="flex min-h-0 flex-1">
-        {/* UN SEUL map keyé par nœud : quand le focus se déplace, le
-            MÊME élément change de rôle (l'ancien focus DEVIENT la
-            région parent) et sa compression est une vraie transition
-            de flex-grow — deux fratries séparées casseraient la
-            réconciliation par clé et remonteraient l'élément. */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/* UN SEUL map keyé par nœud (visual momentum) : quand le
+            focus se déplace, le MÊME élément change de représentation
+            — le niveau quitté se replie vers le haut en bande
+            contextuelle (transition flex-grow + flex-basis), le
+            nouveau focus se déploie sous lui. Deux fratries séparées
+            casseraient la réconciliation par clé et remonteraient
+            l'élément (leçon B2.5). */}
         {path.map((node, index) => {
           const distance = path.length - 1 - index;
           const isFocus = distance === 0;
@@ -481,26 +488,32 @@ function MorphWorkspace({ path, children }: { path: PathNode[]; children: ReactN
               data-region={node.level}
               data-distance={distance}
               style={{
-                flexGrow: regionWeight(distance),
+                flexGrow: isFocus ? 1 : 0,
+                flexBasis: isFocus ? 0 : bandBasis(distance),
                 animationDelay: isFocus ? "60ms" : undefined,
               }}
               className={cn(
-                "morph-region region-in min-w-0 basis-0",
+                "morph-region region-in min-h-0 shrink-0 overflow-hidden",
                 isFocus
-                  ? "bg-accent-soft/25"
+                  ? "shrink"
                   : cn(
-                      "hidden border-r border-border-soft md:block",
-                      distance === 1 ? "min-w-[132px] bg-surface/35" : "min-w-[68px] bg-surface/70",
+                      "hidden md:block",
+                      // L'accent fin marque le parent immédiat — la
+                      // frontière contexte / focus.
+                      distance === 1
+                        ? "border-b-2 border-accent/50 bg-accent-soft/30"
+                        : "border-b border-border-soft",
                     ),
               )}
             >
               {isFocus ? (
                 children
               ) : (
-                <AncestorRegion
+                <Band
                   node={node}
                   previousLabel={index > 0 ? path[index - 1]?.label : undefined}
                   distance={distance}
+                  index={index}
                 />
               )}
             </div>
@@ -660,8 +673,9 @@ function DestinationsSection({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        {/* LA question — la promesse de la surface, jamais secondaire. */}
+      {/* LA question sépare « comprendre le focus » de « continuer
+          l'exploration » — une vraie articulation, pas une méta-ligne. */}
+      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-t border-border-soft pt-5">
         <h2 className="text-[14px] font-semibold uppercase tracking-[.07em]">
           {t("money.nextQuestion")}
         </h2>
@@ -1350,12 +1364,12 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
       : "";
 
   return (
-    <MorphWorkspace path={path}>
+    <DepthStack path={path}>
       <div
         key={`${shown}:${data.node.id}:${programmeContext ?? ""}`}
-        className="focus-in flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-9"
+        className="focus-in flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10"
       >
-        <header className="shrink-0">
+        <header className="w-full max-w-[980px] shrink-0">
           <Eyebrow>
             {t(`money.levels.${shown}`)}
             {"code" in data.node && data.node.code !== label ? (
@@ -1447,7 +1461,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
             </p>
           ) : null}
         </header>
-        <div className="mt-6 flex min-h-0 flex-1 flex-col">
+        <div className="mt-2 flex w-full max-w-[980px] min-h-0 flex-1 flex-col">
           <DestinationsSection
             data={data}
             parentLabel={label}
@@ -1458,7 +1472,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           />
         </div>
       </div>
-    </MorphWorkspace>
+    </DepthStack>
   );
 }
 
@@ -1494,10 +1508,10 @@ function ProjectFocus({ id }: { id: string }) {
   const attribution = data.node.programme?.attribution;
 
   return (
-    <MorphWorkspace path={path}>
+    <DepthStack path={path}>
       <div
         key={`project:${data.node.id}`}
-        className="focus-in h-full min-h-0 overflow-y-auto px-6 pb-10 pt-6 md:px-9"
+        className="focus-in h-full min-h-0 overflow-y-auto px-6 pb-10 pt-6 md:px-10"
       >
         <div className="max-w-[720px]">
           <Eyebrow>
@@ -1584,7 +1598,7 @@ function ProjectFocus({ id }: { id: string }) {
           />
         </div>
       </div>
-    </MorphWorkspace>
+    </DepthStack>
   );
 }
 

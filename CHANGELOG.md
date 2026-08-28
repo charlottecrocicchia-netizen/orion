@@ -24,13 +24,15 @@ All notable changes to Orion are documented here. The format follows
   programme scope). The B1 engine gained two additive endpoints so
   the UI never guesses: per-node `ancestors` (enriched with amounts,
   share-of-parent and comparability) and `GET /chain/funders`. The
-  surface is a full-height Morphing Trace Explorer (B2.5): the screen
-  IS the active path — one region per traversed level, whose widths
-  encode only distance to the focus (never money), so descending
-  visibly reshapes the layout (the old focus contracts into context
-  while the new level takes the space, a real flex-grow transition,
-  instant under reduced motion) and clicking a compressed ancestor
-  rebalances the screen around it. The focus level carries one
+  surface is a full-height Depth Stack explorer (B2.6): the screen IS
+  the active path — ancestors fold upward into full-width context
+  bands whose heights encode only distance to the focus (never
+  money), with real semantic zoom (the parent keeps name, amount and
+  its share; older ancestors say name and amount, nothing more), so
+  descending visibly folds the level you leave above the new one (a
+  real flex transition on the same DOM element, instant under reduced
+  motion) and clicking a band redeploys that level. The focus level
+  owns almost the full width even at depth 5 and carries one
   question — where does this money go next? — then editorial
   destination rows (adaptive top, an honest local filter only when
   the whole child set is served); a methodology inspector slides in

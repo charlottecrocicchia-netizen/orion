@@ -265,18 +265,20 @@
   }
 }
 
-/* B2.5 : le morphing du Focus+Context Explorer. Chaque région du
-   chemin actif garde son élément (clé par nœud) : quand le focus se
-   déplace, la répartition des largeurs — flex-grow, jamais le montant
-   — se REJOUE en une vraie transition de layout : l'ancien focus se
-   contracte vers le contexte pendant que la nouvelle région pousse
-   depuis zéro (region-in, à l'entrée seulement). La couleur
-   accompagne la prise de focus. Tués par le bloc reduced-motion :
-   état final instantané. */
+/* B2.5/B2.6 : le morphing du Depth Stack. Chaque niveau du chemin
+   actif garde son élément (clé par nœud) : quand le focus se déplace,
+   la géométrie — flex-grow + flex-basis, jamais le montant — se
+   REJOUE en une vraie transition de layout : le niveau quitté se
+   replie vers le haut en bande contextuelle pendant que le nouveau
+   focus se déploie sous lui (region-in, à l'entrée seulement) ; en
+   remontant, la bande recliquée se redéploie. La couleur accompagne
+   la prise de focus. Tués par le bloc reduced-motion : état final
+   instantané. */
 @utility morph-region {
   transition:
-    flex-grow 0.22s cubic-bezier(0.2, 0.6, 0.2, 1),
-    background-color 0.22s ease;
+    flex-grow 0.24s cubic-bezier(0.2, 0.6, 0.2, 1),
+    flex-basis 0.24s cubic-bezier(0.2, 0.6, 0.2, 1),
+    background-color 0.24s ease;
 }
 
 @utility region-in {
