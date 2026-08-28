@@ -607,20 +607,36 @@ function StarMap({
   ariaLabel: string;
 }) {
   const { t, locale, money } = useMoneyCopy();
-  const { ref, width } = useMeasure<HTMLDivElement>();
-  const H = 470;
+  const { ref, width, height } = useMeasure<HTMLDivElement>();
   const w = width || 960;
+  const H = height || 470;
   const cx = w / 2;
-  const cy = H / 2 - 8;
-  const rx = Math.min(Math.max(w * 0.34, 210), 420);
-  const ry = 160;
+  const cy = H / 2 - 6;
+  const rx = Math.min(Math.max(w * 0.34, 210), 430);
+  const ry = Math.min(Math.max(H * 0.33, 130), 235);
   const placed = stars.map((star, i) => {
     const angle = ((-90 + (360 / stars.length) * i) * Math.PI) / 180;
     return { ...star, x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) };
   });
   return (
-    <div ref={ref} role="group" aria-label={ariaLabel} className="relative w-full" style={{ height: H }}>
+    <div
+      ref={ref}
+      role="group"
+      aria-label={ariaLabel}
+      className="relative h-full min-h-[440px] w-full"
+    >
       <svg aria-hidden="true" className="absolute inset-0 h-full w-full">
+        {/* L'anneau-guide : l'ellipse où les destinations demeurent. */}
+        <ellipse
+          cx={cx}
+          cy={cy}
+          rx={rx}
+          ry={ry}
+          fill="none"
+          stroke="var(--foreground)"
+          strokeOpacity="0.06"
+          strokeWidth="1"
+        />
         {placed.map((star) => (
           <line
             key={star.key}
@@ -629,7 +645,7 @@ function StarMap({
             x2={star.x}
             y2={star.y}
             stroke="var(--foreground)"
-            strokeOpacity="0.13"
+            strokeOpacity="0.1"
             strokeWidth="1"
           />
         ))}
@@ -662,7 +678,20 @@ function StarMap({
             ? `${star.name}${shareText ? ` · ${shareText}` : ""}${floorNote}`
             : `${star.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${floorNote}`;
         const body = (
-          <span className="block -translate-x-1/2 -translate-y-1/2 text-center">
+          <span className="relative block -translate-x-1/2 -translate-y-1/2 text-center">
+            {/* La carte-étiquette du survol : le nom ENTIER, le
+                montant, la part — révélés en grand, jamais tronqués. */}
+            <span aria-hidden="true" className="star-tip">
+              <span className="block max-w-[280px] whitespace-normal text-[12.5px] font-medium leading-snug">
+                {star.name}
+              </span>
+              <span className="tnum mt-0.5 block text-[13.5px] font-semibold">
+                {star.kind === "others" ? "" : amountText}
+                {shareText ? (
+                  <span className="ml-1.5 font-normal text-muted-foreground">{shareText}</span>
+                ) : null}
+              </span>
+            </span>
             <span
               aria-hidden="true"
               data-orb
@@ -675,20 +704,19 @@ function StarMap({
               style={{
                 width: star.r * 2,
                 height: star.r * 2,
-                background: star.color ?? undefined,
                 "--star-tint": star.color ?? "var(--muted-foreground)",
               } as React.CSSProperties}
             />
-            <span aria-hidden="true" className="mt-1.5 block leading-tight">
-              <span className="tnum block text-[13px] font-semibold">
+            <span aria-hidden="true" className="mt-2 block leading-tight">
+              <span className="tnum block text-[14.5px] font-semibold">
                 {star.kind === "others" ? "" : amountText}
                 {star.crushed ? " ≈" : ""}
               </span>
-              <span className="mx-auto block max-w-[130px] truncate font-mono text-[9.5px] text-muted-foreground">
+              <span className="mx-auto block max-w-[150px] truncate font-mono text-[10.5px] text-foreground/65">
                 {star.name}
               </span>
               {shareText ? (
-                <span className="tnum block text-[9.5px] text-muted-foreground/80">
+                <span className="tnum block text-[10px] text-muted-foreground">
                   {shareText}
                 </span>
               ) : null}
@@ -705,7 +733,7 @@ function StarMap({
             data-star="child"
             data-r={star.r}
             data-crushed={star.crushed || undefined}
-            className="star-glide group absolute left-0 top-0"
+            className="star-glide group absolute left-0 top-0 hover:z-20 focus-visible:z-20"
             style={glide}
           >
             {body}
@@ -719,7 +747,7 @@ function StarMap({
             aria-label={`${title} — ${t("money.columns.othersTitle")}`}
             data-star="others"
             data-r={star.r}
-            className="star-glide group absolute left-0 top-0 cursor-pointer"
+            className="star-glide group absolute left-0 top-0 cursor-pointer hover:z-20 focus-visible:z-20"
             style={glide}
           >
             {body}
@@ -910,7 +938,12 @@ function DestinationsSection({
           ? `${childrenLabel} · ${formatInt(matched.length, locale)} / ${formatInt(children.total, locale)}`
           : `${childrenLabel} · ${formatInt(children.total, locale)}`}
       </p>
-      <div className="mt-3 min-h-0 flex-1 md:overflow-y-auto md:overscroll-contain">
+      <div
+        className={cn(
+          "mt-3 min-h-0 flex-1",
+          listMode && "md:overflow-y-auto md:overscroll-contain",
+        )}
+      >
         {children.items.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {t("money.emptyLevel")}
@@ -1636,9 +1669,11 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
   return (
     <TrailWorkspace path={path}>
       {/* Pas de clé de remontage : la page RESTE — les étoiles
-          glissent quand le niveau change (recette fondatrice). */}
-      <div className="flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10">
-        <header className="w-full max-w-[980px] shrink-0">
+          glissent quand le niveau change (recette fondatrice). La
+          carte tient à l'écran : l'astre se range en colonne, la
+          carte prend toute la hauteur restante. */}
+      <div className="flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10 xl:flex-row xl:gap-12">
+        <header className="w-full max-w-[980px] shrink-0 xl:w-[350px]">
           <Eyebrow>
             {t(`money.levels.${shown}`)}
             {"code" in data.node && data.node.code !== label ? (
@@ -1730,7 +1765,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
             </p>
           ) : null}
         </header>
-        <div className="mt-2 flex w-full max-w-[1240px] min-h-0 flex-1 flex-col">
+        <div className="mt-2 flex w-full max-w-[1240px] min-h-0 flex-1 flex-col xl:mt-0 xl:max-w-none">
           <DestinationsSection
             data={data}
             parentLabel={label}

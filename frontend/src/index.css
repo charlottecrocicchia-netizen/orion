@@ -284,8 +284,10 @@
   color:var(--foreground);
   color-scheme:dark;
   background:
-    radial-gradient(85% 60% at 50% 0%, rgba(139,154,255,.09), transparent 60%),
-    linear-gradient(#0b0e16, #08090f);
+    radial-gradient(85% 60% at 50% 0%, rgba(139,154,255,.1), transparent 60%),
+    radial-gradient(60% 45% at 12% 88%, rgba(124,92,246,.07), transparent 65%),
+    radial-gradient(50% 40% at 90% 70%, rgba(13,148,136,.05), transparent 65%),
+    linear-gradient(#0b0e16, #07080d);
 }
 .chamber-bg{position:absolute; inset:0; overflow:hidden; pointer-events:none; color:rgba(245,245,247,.5)}
 .chamber-twinkle{animation:chamber-twinkle 5s ease-in-out infinite}
@@ -295,22 +297,52 @@
    lueur vient de la couleur de l'étoile. */
 .star-glide{transition:transform .5s cubic-bezier(.3,.7,.25,1)}
 .star-orb{
-  box-shadow:0 0 18px -2px color-mix(in srgb, var(--star-tint) 70%, transparent);
+  background:radial-gradient(
+    circle at 32% 28%,
+    color-mix(in srgb, #ffffff 70%, var(--star-tint)),
+    var(--star-tint) 55%,
+    color-mix(in srgb, var(--star-tint) 55%, #05060a) 100%
+  );
+  box-shadow:
+    0 0 20px -2px color-mix(in srgb, var(--star-tint) 75%, transparent),
+    inset 0 0 6px color-mix(in srgb, #ffffff 25%, transparent);
 }
 .group:hover .star-orb,.group:focus-visible .star-orb{
-  box-shadow:0 0 34px 0 color-mix(in srgb, var(--star-tint) 85%, transparent);
-  filter:brightness(1.12);
+  box-shadow:
+    0 0 40px 2px color-mix(in srgb, var(--star-tint) 85%, transparent),
+    inset 0 0 8px color-mix(in srgb, #ffffff 35%, transparent);
+  filter:brightness(1.12) saturate(1.08);
 }
 .star-door{
-  box-shadow:0 0 12px -4px rgba(245,245,247,.35);
+  background:radial-gradient(
+    circle at 34% 30%,
+    color-mix(in srgb, #ffffff 16%, var(--donut-others)),
+    var(--donut-others) 60%,
+    color-mix(in srgb, var(--donut-others) 55%, #05060a) 100%
+  );
+  box-shadow:0 0 14px -4px rgba(245,245,247,.4);
 }
 .group:hover .star-door,.group:focus-visible .star-door{
-  box-shadow:0 0 24px -4px var(--accent);
+  box-shadow:0 0 28px -4px var(--accent);
 }
 .star-hollow{
-  background:transparent;
+  background:radial-gradient(circle, transparent 55%, rgba(245,245,247,.05) 100%);
   border:1.5px dashed color-mix(in srgb, var(--muted-foreground) 70%, transparent);
 }
+/* La carte-étiquette du survol : révélée au-dessus de l'étoile,
+   lisible, jamais tronquée. */
+.star-tip{
+  position:absolute; left:50%; bottom:calc(100% + 10px);
+  transform:translateX(-50%);
+  min-width:max-content;
+  padding:8px 13px; border-radius:11px;
+  background:color-mix(in srgb, var(--surface) 92%, transparent);
+  border:1px solid var(--border);
+  box-shadow:0 0 28px -8px color-mix(in srgb, var(--accent) 55%, transparent);
+  opacity:0; transition:opacity .2s ease;
+  pointer-events:none;
+}
+.group:hover .star-tip,.group:focus-visible .star-tip{opacity:1}
 .star-core{
   width:14px; height:14px; border-radius:9999px;
   background:var(--foreground);
