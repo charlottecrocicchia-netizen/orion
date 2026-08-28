@@ -27,12 +27,15 @@
  *  d'animation se perd — jamais d'état `entering` permanent, jamais
  *  de nœud fantôme. `prefers-reduced-motion` : état final instantané.
  *
- *  Les bifurcations (§ 11-13) : cliquer un nœud ancêtre RÉVÈLE ses
+ *  Les bifurcations (§ 11-13, recette fondatrice) : au REPOS, la
+ *  constellation ne montre que le chemin du focus — rien d'autre. Le
+ *  survol ou le focus clavier d'un nœud ancêtre RÉVÈLE ses
  *  principales destinations (chargées à la demande par les MÊMES clés
- *  de cache que les vues — une descente par clics a déjà tout) plus
- *  « revenir à ce niveau ». Couche à part : les previews ne déplacent
- *  pas les nœuds actifs et ne touchent JAMAIS le chemin committé —
- *  seule la sélection d'un lien navigue. Escape referme. */
+ *  de cache que les vues) ; le CLIC du nœud navigue vers ce niveau
+ *  (vrai lien). Couche à part : les previews ne déplacent pas les
+ *  nœuds actifs, ne dupliquent JAMAIS un label du tronc et ne
+ *  touchent JAMAIS le chemin committé — seule la sélection d'un lien
+ *  navigue. Escape ou la sortie de la constellation referment. */
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -101,7 +104,6 @@ interface PreviewItem {
   amount: number | null;
   currency: string | null | undefined;
   to: string;
-  self?: boolean;
 }
 
 interface ExitingNode {
@@ -126,12 +128,37 @@ function useMoneyText() {
   };
 }
 
-/** Le nom court d'un nœud compacté : le nom réel s'il tient, sinon le
- *  code stable du moteur — jamais une troncature qui rend deux
- *  niveaux indistincts. Le nom complet reste dans l'accessibilité. */
-function shortLabel(node: ConstellationPathNode): string {
-  if (node.code && node.label.length > 26) return node.code;
-  return node.label;
+/** Le nom affiché d'un nœud : le nom complet s'il tient, sinon une
+ *  coupe AVANT la parenthèse ou le qualificatif (« Horizon 2020 »,
+ *  jamais « Horizon 2020 (2014-2… »), sinon le premier segment,
+ *  en dernier recours le code stable du moteur — jamais un « … » en
+ *  pleine unité de sens. Le nom complet reste dans l'accessibilité
+ *  (title + libellé du lien) et dans le panneau analytique. */
+function displayLabel(
+  node: Pick<ConstellationPathNode, "label" | "code">,
+  maxWidth: number,
+  fontPx: number,
+): string {
+  // Coefficient volontairement conservateur (0,58 em/caractère) : il
+  // vaut mieux couper à l'unité de sens un nom qui aurait tenu que
+  // laisser le filet CSS tronquer en pleine parenthèse.
+  const fits = (text: string) => text.length * fontPx * 0.58 + 8 <= maxWidth;
+  const stripped = node.label.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const beforeParen = node.label.split(" (")[0].trim();
+  const firstSegment = node.label.split(" - ")[0].trim();
+  for (const candidate of [node.label, stripped, beforeParen, firstSegment]) {
+    if (candidate && fits(candidate)) return candidate;
+  }
+  const last = node.code ?? firstSegment;
+  if (fits(last)) return last;
+  // Un code trop long se coupe à une FRONTIÈRE de segment (tirets),
+  // jamais en plein segment : « HORIZON-EIC-2021… ».
+  const segments = last.split("-");
+  for (let n = segments.length - 1; n >= 2; n -= 1) {
+    const prefix = `${segments.slice(0, n).join("-")}…`;
+    if (fits(prefix)) return prefix;
+  }
+  return last;
 }
 
 export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) {
@@ -249,10 +276,7 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
 
   const openPreview = async (node: ConstellationPathNode, index: number) => {
     const key = constellationKey(node);
-    if (preview?.key === key) {
-      setPreview(null);
-      return;
-    }
+    if (preview?.key === key) return;
     const committedChild = path[index + 1];
     const committedChildKey = committedChild ? constellationKey(committedChild) : null;
     const token = (previewToken.current += 1);
@@ -271,20 +295,10 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
           currency: data.aggregate?.measure.currency,
           to: childTo(item, node),
         }));
-      setPreview({
-        key,
-        items: [
-          {
-            key: `self:${key}`,
-            label: node.label,
-            amount: node.amount ?? null,
-            currency: node.currency,
-            to: node.to ?? crumbPath(node),
-            self: true,
-          },
-          ...alternatives,
-        ],
-      });
+      // JAMAIS d'item « soi-même » : un label du tronc ne se duplique
+      // pas ailleurs dans la scène (recette fondatrice). Revenir au
+      // niveau = cliquer le nœud lui-même.
+      setPreview({ key, items: alternatives });
     } finally {
       if (previewToken.current === token) setPreviewLoading(null);
     }
@@ -299,6 +313,7 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
   return (
     <nav
       aria-label={t("money.rail.title")}
+      onMouseLeave={() => setPreview(null)}
       className="hidden shrink-0 border-b border-border-soft md:block"
     >
       <div ref={ref} className="relative mx-auto w-full" style={{ height: layout.height }}>
@@ -326,7 +341,7 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
                 data-clink="active"
                 d={linkPath(layout.points[index], layout.points[index + 1])}
                 pathLength={1}
-                className="const-link const-link-in text-accent/45"
+                className="const-link const-link-in text-accent/60"
                 stroke="currentColor"
                 style={{ d: `path("${linkPath(layout.points[index], layout.points[index + 1])}")` }}
               />
@@ -408,7 +423,7 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
                       style={{ width: layout.labelWidths[index] }}
                     >
                       <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground">
-                        {node.label}
+                        {displayLabel(node, layout.labelWidths[index] * 2, 13)}
                       </span>
                       <span className="tnum block text-[11.5px] text-foreground/75">
                         {amountText}
@@ -432,30 +447,38 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
                     </span>
                   </span>
                 ) : (
-                  <button
-                    type="button"
-                    aria-expanded={preview?.key === keys[index]}
+                  /* Un nœud ancêtre NAVIGUE au clic (vrai lien) ; le
+                     survol / focus clavier RÉVÈLE ses bifurcations —
+                     jamais un changement métier. Présence graduée :
+                     le parent direct plus affirmé que les lointains. */
+                  <Link
+                    to={node.to ?? crumbPath(node)}
                     aria-busy={previewLoading === keys[index] || undefined}
-                    onClick={() => void openPreview(node, index)}
-                    aria-label={`${t("money.constellation.branches", { name: node.label })} — ${amountText}${
+                    onMouseEnter={() => void openPreview(node, index)}
+                    onFocus={() => void openPreview(node, index)}
+                    aria-label={`${t("money.stack.backTo", { name: node.label, amount: amountText })}${
                       shareText ? ` — ${shareText}` : ""
                     } — ${stepText}`}
+                    title={`${node.label} — ${amountText}`}
                     className={cn(
-                      "const-node-in group block cursor-pointer text-left",
+                      "const-node-in group block text-left",
                       previewLoading === keys[index] ? "animate-pulse" : undefined,
                     )}
                   >
                     <span
                       aria-hidden="true"
                       className={cn(
-                        "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors",
+                        "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors group-hover:bg-accent",
                         distance === 1
-                          ? "bg-foreground/60 group-hover:bg-accent"
-                          : "bg-muted-foreground/55 group-hover:bg-accent",
+                          ? "bg-foreground/70"
+                          : distance === 2
+                            ? "bg-foreground/50"
+                            : "bg-foreground/40",
                       )}
-                      style={
-                        distance === 1 ? { width: 7, height: 7 } : { width: 6, height: 6 }
-                      }
+                      style={{
+                        width: distance === 1 ? 7 : distance === 2 ? 6 : 5,
+                        height: distance === 1 ? 7 : distance === 2 ? 6 : 5,
+                      }}
                     />
                     <span
                       aria-hidden="true"
@@ -469,13 +492,28 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
                         className={cn(
                           "block truncate leading-snug transition-colors group-hover:text-accent",
                           distance === 1
-                            ? "text-[11.5px] text-foreground/80"
-                            : "text-[10.5px] text-foreground/60",
+                            ? "text-[11.5px] text-foreground/85"
+                            : distance === 2
+                              ? "text-[10.5px] text-foreground/65"
+                              : "text-[10.5px] text-foreground/55",
                         )}
                       >
-                        {distance === 1 ? node.label : shortLabel(node)}
+                        {displayLabel(
+                          node,
+                          layout.labelWidths[index],
+                          distance === 1 ? 11.5 : 10.5,
+                        )}
                       </span>
-                      <span className="tnum block text-[10px] text-muted-foreground/90">
+                      <span
+                        className={cn(
+                          "tnum block text-[10px]",
+                          distance === 1
+                            ? "text-foreground/65"
+                            : distance === 2
+                              ? "text-foreground/50"
+                              : "text-foreground/45",
+                        )}
+                      >
                         {amountText}
                       </span>
                       {distance === 1 && node.share != null ? (
@@ -488,7 +526,7 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
                         </span>
                       ) : null}
                     </span>
-                  </button>
+                  </Link>
                 )}
               </li>
             );
@@ -505,21 +543,14 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
               return (
                 <li
                   key={item.key}
-                  data-cpreview={item.self ? "self" : "alt"}
+                  data-cpreview="alt"
                   className="absolute left-0 top-0"
                   style={{ transform: `translate(${slot.x}px, ${slot.y}px)` }}
                 >
                   <Link
                     to={item.to}
                     className="const-node-in group block"
-                    title={
-                      item.self
-                        ? t("money.stack.backTo", {
-                            name: item.label,
-                            amount: item.amount != null ? money(item.amount, item.currency) : "",
-                          })
-                        : t("money.followTo", { name: item.label })
-                    }
+                    title={t("money.followTo", { name: item.label })}
                   >
                     <span
                       aria-hidden="true"
@@ -533,7 +564,6 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
                       )}
                     >
                       <span className="block truncate text-[10.5px] leading-snug text-muted-foreground transition-colors group-hover:text-accent">
-                        {item.self ? <span aria-hidden="true">↩ </span> : null}
                         {item.label}
                       </span>
                       {item.amount != null ? (

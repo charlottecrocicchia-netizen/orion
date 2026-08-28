@@ -11,12 +11,12 @@
  *    viewport ;
  *  - le pas horizontal est adaptatif mais borné (150–220 px ; il ne
  *    descend sous 150 que si la fenêtre l'impose physiquement) ;
- *  - l'ondulation verticale est une vraie sinusoïde douce (amplitude
- *    crête-à-crête ≈ 22 px, phase irrationnelle pour éviter toute
- *    répétition mécanique), pas un zigzag de parité ;
- *  - chaque label se place selon la GÉOMÉTRIE LOCALE : du côté où la
- *    courbe ne passe pas (nœud haut → label au-dessus, nœud bas →
- *    au-dessous), jamais superposé au trait. */
+ *  - l'ondulation verticale est une vraie sinusoïde affirmée
+ *    (amplitude crête-à-crête ≈ 28 px, phase 1,6 rad → alternance
+ *    quasi systématique), pas un zigzag de parité ;
+ *  - chaque label se place selon la GÉOMÉTRIE LOCALE : du côté
+ *    opposé à la courbe SORTANTE du nœud, jamais superposé au
+ *    trait. */
 
 export interface ConstellationPoint {
   x: number;
@@ -45,14 +45,16 @@ const FOCUS_LABEL = 280;
 const EDGE = 16;
 
 /** L'ondulation : y(i) = MID + A·sin(PHASE·i + SHIFT). Amplitude
- *  douce (A = 11 → ±11 px), phase irrationnelle (0,9 rad) — continue,
- *  jamais un motif mécanique, jamais reliée aux montants. */
-const MID_Y = 54;
-const AMP = 11;
-const PHASE = 0.9;
+ *  affirmée (recette fondatrice : ±14 px — l'ondulation est une
+ *  intention, pas une devinette), phase 1,6 rad (alternance
+ *  dessus/dessous quasi systématique) — continue, jamais un motif
+ *  mécanique, jamais reliée aux montants. */
+const MID_Y = 64;
+const AMP = 14;
+const PHASE = 1.6;
 const SHIFT = -0.55;
 
-const HEIGHT = 150;
+const HEIGHT = 164;
 
 function waveY(index: number): number {
   return MID_Y + AMP * Math.sin(PHASE * index + SHIFT);
@@ -92,11 +94,15 @@ export function layoutTracePath(count: number, width: number): ConstellationLayo
     return Math.max(72, Math.min(cap, step - 24));
   });
 
-  // Le label va du côté où la courbe ne passe pas : un nœud HAUT
-  // (crête, y sous la médiane) reçoit son label au-dessus, un nœud
-  // BAS au-dessous — la sinusoïde repart toujours vers la médiane.
+  // Le label va du côté où la courbe ne passe pas. Les labels
+  // s'étendent à DROITE du point : seule la courbe SORTANTE traverse
+  // leur zone (l'entrante arrive à tangente horizontale par la
+  // gauche). Règle : sortante descendante → label au-dessus ;
+  // montante → au-dessous. Le focus, sans sortante, est toujours
+  // au-dessous. Garantie structurelle : aucun label sur le trait,
+  // quelle que soit l'amplitude.
   const labelSides: LabelSide[] = points.map((point, index) =>
-    index === count - 1 ? "below" : point.y <= MID_Y ? "above" : "below",
+    index === count - 1 ? "below" : points[index + 1].y >= point.y ? "above" : "below",
   );
 
   return { points, labelWidths, labelSides, height: HEIGHT };

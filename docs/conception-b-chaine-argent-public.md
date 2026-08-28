@@ -1382,3 +1382,47 @@ mêmes garanties de pureté et de déterminisme :
 de la recette des transitions attend la validation fondatrice de ces
 états fixes (les transitions restent branchées telles quelles : le
 moteur et les clés de nœuds sont inchangés).
+
+#### 15.12 ter — retour de recette : voisinage du focus et relief (2026-08-28)
+
+Recette fondatrice sur /money/project/50164, quatre corrections de
+layout (aucun motion) :
+
+① **Repos strict.** Le doublon constaté (« H2020-ICT-2014-1 »
+flottant avec ses montants) était l'item « ↩ soi-même » de la couche
+preview, qui restait ouverte après un clic. Corrigé en profondeur :
+plus AUCUN item « soi-même » (un label du tronc ne se duplique jamais
+dans la scène) ; la découverte des frères passe au SURVOL / focus
+clavier du nœud ancêtre (jamais un changement métier) ; le CLIC du
+nœud navigue vers ce niveau (vrai lien — middle-clic compris) ;
+sortir de la constellation ou Escape referment. Au repos : le chemin,
+rien d'autre.
+
+② **Relief.** Amplitude ±14 px, phase 1,6 rad (alternance
+dessus/dessous quasi systématique), médiane 64, bande 164 px. La
+règle de placement des labels passe de « position vs médiane » à la
+géométrie stricte : le label va du côté OPPOSÉ à la courbe SORTANTE
+du nœud (les labels s'étendent à droite ; l'entrante arrive à
+tangente horizontale par la gauche) — garantie structurelle quelle
+que soit l'amplitude, re-vérifiée.
+
+③ **Coupes à l'unité de sens.** Cascade : nom complet → sans
+parenthèse finale → avant la première parenthèse → premier segment
+(« - ») → code ; un code trop long se coupe à une frontière de
+segment (« HORIZON-EIC-2021… »), jamais en plein segment. Coefficient
+de largeur volontairement conservateur (0,58 em/car) : le filet CSS
+ne tronque plus en pleine parenthèse (constat « Horizon 2020
+(2014-2… » corrigé, devient « Horizon 2020 »).
+
+④ **Hiérarchie graduée.** Points 7/6/5 px et textes foreground
+85/65/55 selon la distance (parent > lointains) ; le trait actif
+porte le bleu Orion à /60 sur TOUTE sa longueur. Le focus reste le
+roi (10 px, accent).
+
+Re-vérifié au repos strict (sondes : 0 preview, 0 sortie, opacités
+stabilisées) sur 210 / 211 / 50456 / 26403 / 50164, clair et sombre.
+Clé i18n `constellation.branches` supprimée (le bouton de révélation
+n'existe plus). Note de suite : un échec de test isolé lors d'un
+passage complet, non reproduit en sept réexécutions (nom non capturé
+— premier run sous forte charge parallèle) ; à attribuer s'il
+réapparaît.

@@ -1,10 +1,11 @@
 /** B2.7 — la Constellation Trace contre des réponses B1 fidèles aux
  *  golds : le chemin committé devient une constellation (nœuds HTML
  *  stables + liens SVG), au zoom sémantique réel (focus détaillé,
- *  parent nom+montant+part, ancêtre ancien nom+montant seuls) ; un
- *  clic sur un nœud ancêtre RÉVÈLE ses bifurcations (previews hors du
- *  chemin committé) — « ↩ » remonte, une alternative change de
- *  branche via le moteur b5d4831. Deep-link ≡ descente (UNE requête),
+ *  parent nom+montant+part, ancêtre ancien nom+montant seuls) ; le
+ *  SURVOL d'un nœud ancêtre révèle ses bifurcations (previews hors du
+ *  chemin committé, jamais un label du tronc dupliqué), son CLIC
+ *  remonte au niveau, une alternative change de branche via le moteur
+ *  b5d4831. Deep-link ≡ descente (UNE requête),
  *  réponses obsolètes ignorées, Back/Forward recomposés, inconnu ≠ 0,
  *  transversal sans ratio, NIH/NSF sans faux niveau, transverse
  *  multi-provenance, EN/FR.
@@ -698,12 +699,12 @@ describe("money trail (B2.7)", () => {
     expect(activeLinks()).toHaveLength(1);
     const parent = cnodes()[0];
     expect(parent.dataset.distance).toBe("1");
-    // Le nœud ancêtre est un vrai bouton de bifurcation, au libellé
-    // complet (nom, montant, position dans la trace).
-    const button = parent.querySelector("button");
-    expect(button?.getAttribute("aria-expanded")).toBe("false");
-    expect(button?.getAttribute("aria-label")).toContain("European Commission");
-    expect(button?.getAttribute("aria-label")).toContain("step 1 of 2");
+    // Le nœud ancêtre est un vrai LIEN (le clic navigue), au libellé
+    // complet (retour, nom, montant, position dans la trace).
+    const link = parent.querySelector("a");
+    expect(link?.getAttribute("href")).toBe("/money/funder/ec");
+    expect(link?.getAttribute("aria-label")).toContain("European Commission");
+    expect(link?.getAttribute("aria-label")).toContain("step 1 of 2");
     expect(parent.textContent).toContain("European Commission");
     expect(parent.textContent).toContain("€176B");
     // La part du focus est libellée dans le focus.
@@ -756,32 +757,30 @@ describe("money trail (B2.7)", () => {
     expect(document.querySelector("[data-cexit]")).toBeNull();
   });
 
-  it("bifurcations : un clic ancêtre révèle, ↩ remonte, une alternative change de branche", async () => {
+  it("bifurcations : le survol révèle (sans doublon), le clic navigue, Escape referme", async () => {
     mount("/money/project/1");
     await screen.findByRole("heading", { name: "BIO-QED", level: 1 });
     expect(cnodes()).toHaveLength(5);
-    // Révélation : le clic sur HORIZON ouvre ses bifurcations — le
-    // chemin committé ne bouge PAS.
-    const horizonButton = cnodes()[1].querySelector("button");
-    expect(horizonButton).toBeTruthy();
-    fireEvent.click(horizonButton!);
-    await screen.findByTitle(/Back to Horizon Europe/);
-    // self « ↩ » + les alternatives (l'enfant committé Énergie est exclu).
-    expect(previews().length).toBeGreaterThan(1);
-    expect(previews()[0].dataset.cpreview).toBe("self");
+    // Au repos : rien d'autre que le chemin.
+    expect(previews()).toHaveLength(0);
+    // Le survol de HORIZON révèle ses bifurcations — le chemin
+    // committé ne bouge PAS.
+    const horizonLink = cnodes()[1].querySelector("a")!;
+    fireEvent.mouseEnter(horizonLink);
+    await screen.findByTitle(/Follow the funding to Actions Marie Curie/);
+    // Alternatives seules : ni item « soi-même », ni l'enfant committé
+    // — aucun label du tronc n'est dupliqué dans la scène.
     const previewText = previews().map((el) => el.textContent).join(" ");
     expect(previewText).toContain("Actions Marie Curie");
     expect(previewText).not.toContain("Énergie");
-    // Preview ≠ commit : focus et chemin inchangés.
+    expect(previewText).not.toContain("Horizon Europe");
     expect(screen.getByRole("heading", { name: "BIO-QED", level: 1 })).toBeTruthy();
     expect(cnodes()).toHaveLength(5);
     // Escape referme la révélation.
     fireEvent.keyDown(document, { key: "Escape" });
     expect(previews()).toHaveLength(0);
-    // « ↩ » remonte au niveau : l'écran se recompose autour de lui.
-    fireEvent.click(cnodes()[1].querySelector("button")!);
-    const self = await screen.findByTitle(/Back to Horizon Europe/);
-    fireEvent.click(self);
+    // Le CLIC du nœud remonte au niveau : l'écran se recompose.
+    fireEvent.click(horizonLink);
     expect(await screen.findByRole("heading", { name: "Horizon Europe", level: 1 })).toBeTruthy();
     expect(cnodes()).toHaveLength(2);
     expect(document.body.textContent).not.toContain("CALL-X");

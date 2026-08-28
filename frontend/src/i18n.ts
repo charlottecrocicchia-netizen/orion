@@ -1393,7 +1393,6 @@ const resources = {
           transversal: "Cross-cutting call",
         },
         constellation: {
-          branches: "Show the main branches of {{name}}",
           step: "step {{i}} of {{n}}",
         },
         search: {
@@ -3031,7 +3030,6 @@ const resources = {
           transversal: "Appel transversal",
         },
         constellation: {
-          branches: "Voir les principales branches de {{name}}",
           step: "étape {{i}} sur {{n}}",
         },
         search: {
