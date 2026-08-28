@@ -401,13 +401,13 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
                     <span
                       aria-hidden="true"
                       className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
-                      style={{ width: 9, height: 9 }}
+                      style={{ width: 10, height: 10 }}
                     />
                     <span
                       className="absolute top-[9px] block pl-2 leading-tight"
                       style={{ width: layout.labelWidths[index] }}
                     >
-                      <span className="line-clamp-2 text-[12.5px] font-semibold leading-snug text-foreground">
+                      <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground">
                         {node.label}
                       </span>
                       <span className="tnum block text-[11.5px] text-foreground/75">
@@ -461,14 +461,16 @@ export function ConstellationTrace({ path }: { path: ConstellationPathNode[] }) 
                       aria-hidden="true"
                       className={cn(
                         "absolute block pl-2 leading-tight",
-                        index % 2 === 1 ? "bottom-[8px]" : "top-[8px]",
+                        layout.labelSides[index] === "above" ? "bottom-[9px]" : "top-[9px]",
                       )}
                       style={{ width: layout.labelWidths[index] }}
                     >
                       <span
                         className={cn(
-                          "block truncate leading-snug text-muted-foreground transition-colors group-hover:text-accent",
-                          distance === 1 ? "text-[11.5px] text-foreground/75" : "text-[10.5px]",
+                          "block truncate leading-snug transition-colors group-hover:text-accent",
+                          distance === 1
+                            ? "text-[11.5px] text-foreground/80"
+                            : "text-[10.5px] text-foreground/60",
                         )}
                       >
                         {distance === 1 ? node.label : shortLabel(node)}

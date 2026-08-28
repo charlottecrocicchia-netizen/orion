@@ -5,62 +5,101 @@
  *  parcours, pas la quantité financière), jamais d'aléatoire, jamais
  *  de simulation de forces.
  *
- *  Composition : un axe général horizontal avec une très légère
- *  descente vers le focus ; les distances inter-nœuds se resserrent
- *  vers les ancêtres anciens et respirent vers le focus (le zoom
- *  sémantique s'applique aussi à l'espace). La hauteur reste bornée
- *  (~120–180 px) : la constellation ne doit jamais avaler l'écran. */
+ *  Composition (révision fondatrice, 2026-08-28) :
+ *  - la zone graphique est PLAFONNÉE (~1050 px) et centrée quand la
+ *    largeur le permet — le chemin n'est plus étiré sur tout le
+ *    viewport ;
+ *  - le pas horizontal est adaptatif mais borné (150–220 px ; il ne
+ *    descend sous 150 que si la fenêtre l'impose physiquement) ;
+ *  - l'ondulation verticale est une vraie sinusoïde douce (amplitude
+ *    crête-à-crête ≈ 22 px, phase irrationnelle pour éviter toute
+ *    répétition mécanique), pas un zigzag de parité ;
+ *  - chaque label se place selon la GÉOMÉTRIE LOCALE : du côté où la
+ *    courbe ne passe pas (nœud haut → label au-dessus, nœud bas →
+ *    au-dessous), jamais superposé au trait. */
 
 export interface ConstellationPoint {
   x: number;
   y: number;
 }
 
+export type LabelSide = "above" | "below";
+
 export interface ConstellationLayout {
   points: ConstellationPoint[];
-  /** Largeur maximale du label de chaque nœud, bornée par l'espace
-   *  jusqu'au voisin — un label ne mord jamais le nœud suivant. */
+  /** Largeur maximale du label de chaque nœud, bornée par le pas —
+   *  un label ne mord jamais le nœud suivant. */
   labelWidths: number[];
+  /** Le côté de chaque label, choisi par la géométrie locale. */
+  labelSides: LabelSide[];
   height: number;
 }
 
-const MARGIN_LEFT = 24;
+/** La zone graphique plafonnée — au-delà, l'espace sert à respirer. */
+const GRAPH_MAX = 1050;
+const STEP_MIN = 150;
+const STEP_MAX = 220;
 /** La place réservée au bloc du focus (nom sur 2 lignes, montant,
  *  part) qui s'étend à droite et sous son nœud. */
-const MARGIN_RIGHT = 300;
-/** Le tronc est quasi horizontal : une micro-ondulation alternée
- *  (±5 px) donne le rythme, les labels alternent dessus / dessous —
- *  un trait ne traverse jamais un label (constat de recette à
- *  profondeur 5 avec l'ancienne pente cumulée). */
-const TRUNK_Y = 46;
-const WAVE = 5;
-const FOCUS_Y = 56;
+const FOCUS_LABEL = 280;
+const EDGE = 16;
+
+/** L'ondulation : y(i) = MID + A·sin(PHASE·i + SHIFT). Amplitude
+ *  douce (A = 11 → ±11 px), phase irrationnelle (0,9 rad) — continue,
+ *  jamais un motif mécanique, jamais reliée aux montants. */
+const MID_Y = 54;
+const AMP = 11;
+const PHASE = 0.9;
+const SHIFT = -0.55;
+
+const HEIGHT = 150;
+
+function waveY(index: number): number {
+  return MID_Y + AMP * Math.sin(PHASE * index + SHIFT);
+}
 
 export function layoutTracePath(count: number, width: number): ConstellationLayout {
   const safeWidth = Math.max(360, width);
   if (count <= 1) {
-    return { points: [{ x: MARGIN_LEFT + 6, y: FOCUS_Y - 12 }], labelWidths: [280], height: 128 };
+    const x = Math.max(EDGE + 6, (safeWidth - FOCUS_LABEL) / 2);
+    return {
+      points: [{ x, y: waveY(0) }],
+      labelWidths: [FOCUS_LABEL],
+      labelSides: ["below"],
+      height: 138,
+    };
   }
-  const usable = Math.max(220, safeWidth - MARGIN_LEFT - MARGIN_RIGHT);
-  // Les segments s'élargissent vers le focus : poids 1, 1.45, 1.9, …
-  const weights: number[] = [];
-  for (let i = 0; i < count - 1; i += 1) weights.push(1 + i * 0.45);
-  const total = weights.reduce((sum, w) => sum + w, 0);
-  const points: ConstellationPoint[] = [{ x: MARGIN_LEFT + 6, y: TRUNK_Y }];
-  for (let i = 0; i < count - 1; i += 1) {
-    const isFocus = i + 1 === count - 1;
-    points.push({
-      x: points[i].x + (usable * weights[i]) / total,
-      y: isFocus ? FOCUS_Y : TRUNK_Y + ((i + 1) % 2) * WAVE,
-    });
+  // Le pas : adaptatif dans [150, 220] pour tenir dans la zone
+  // plafonnée ; il ne se comprime davantage que si la fenêtre
+  // l'impose physiquement.
+  const zone = Math.min(GRAPH_MAX, safeWidth - EDGE * 2);
+  const ideal = (zone - FOCUS_LABEL) / (count - 1);
+  let step = Math.max(STEP_MIN, Math.min(STEP_MAX, ideal));
+  const hardMax = (safeWidth - EDGE * 2 - FOCUS_LABEL) / (count - 1);
+  if (step > hardMax) step = Math.max(110, hardMax);
+
+  const graphWidth = step * (count - 1) + FOCUS_LABEL;
+  const offsetX = Math.max(EDGE, (safeWidth - graphWidth) / 2);
+
+  const points: ConstellationPoint[] = [];
+  for (let i = 0; i < count; i += 1) {
+    points.push({ x: offsetX + step * i, y: waveY(i) });
   }
-  const labelWidths = points.map((point, index) => {
-    if (index === count - 1) return 290;
-    const gap = points[index + 1].x - point.x - 16;
-    const cap = count - 1 - index === 1 ? 170 : 120;
-    return Math.max(64, Math.min(cap, gap));
+
+  const labelWidths = points.map((_, index) => {
+    if (index === count - 1) return FOCUS_LABEL;
+    const cap = count - 1 - index === 1 ? 170 : 140;
+    return Math.max(72, Math.min(cap, step - 24));
   });
-  return { points, labelWidths, height: 136 };
+
+  // Le label va du côté où la courbe ne passe pas : un nœud HAUT
+  // (crête, y sous la médiane) reçoit son label au-dessus, un nœud
+  // BAS au-dessous — la sinusoïde repart toujours vers la médiane.
+  const labelSides: LabelSide[] = points.map((point, index) =>
+    index === count - 1 ? "below" : point.y <= MID_Y ? "above" : "below",
+  );
+
+  return { points, labelWidths, labelSides, height: HEIGHT };
 }
 
 export interface PreviewSlot extends ConstellationPoint {

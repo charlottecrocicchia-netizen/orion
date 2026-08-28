@@ -1353,3 +1353,32 @@ sans ratio ; multi-provenance ; Back/Forward ; réponse obsolète — +
 15 moteur + 3 workspace), 372 backend. Vérifié en réel : profondeurs
 2/3/5 STATIQUES d'abord (porte § 49), bifurcation MARS → H2020 → ICT,
 deep-link à froid, Back/Forward, 1440/420, EN/FR, clair/sombre.
+
+#### 15.12 bis — révision du layout (2026-08-28, sur constat fondateur)
+
+L'audit demandé a confirmé le diagnostic : `x` était normalisé sur
+100 % de la largeur disponible (chemin étiré au viewport) et
+l'ondulation était un zigzag de parité (±5 px), l'anti-collision des
+labels reposant sur cette parité. Le moteur de layout est révisé —
+mêmes garanties de pureté et de déterminisme :
+
+- zone graphique PLAFONNÉE (~1050 px) et centrée quand la profondeur
+  le permet — l'espace excédentaire sert à respirer, plus jamais à
+  étirer ;
+- pas horizontal adaptatif borné 150–220 px (compression sous 150
+  uniquement si la fenêtre l'impose physiquement) ;
+- ondulation continue réelle : y(i) = 54 + 11·sin(0,9·i − 0,55) —
+  amplitude douce (~22 px crête-à-crête), phase irrationnelle, aucun
+  motif mécanique, toujours aucun lien avec les montants ;
+- labels placés par la GÉOMÉTRIE LOCALE : un nœud en crête reçoit son
+  label au-dessus, un nœud en creux au-dessous (la sinusoïde repart
+  vers la médiane : le côté choisi est structurellement libre) —
+  l'alternance de parité disparaît ;
+- focus densifié (point 10 px, nom 13 px), noms d'ancêtres remontés
+  en contraste (foreground/60–80).
+
+États statiques re-vérifiés en réel aux profondeurs 2, 3 et 5
+(clair/sombre, EN/FR) : chemin compact, centré, organique. La reprise
+de la recette des transitions attend la validation fondatrice de ces
+états fixes (les transitions restent branchées telles quelles : le
+moteur et les clés de nœuds sont inchangés).
