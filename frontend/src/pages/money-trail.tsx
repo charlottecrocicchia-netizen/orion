@@ -276,6 +276,26 @@ function pathFromSpine(ancestors: ChainCrumb[], current: PathNode): PathNode[] {
   ];
 }
 
+/** Le rappel visuel du chemin : la mini-planète (nuit) ou la
+ *  mini-montgolfière (jour) du nœud, dans la couleur qu'elle portait
+ *  quand on l'a cliquée (mémoire de scène) — IMMOBILE, jamais de
+ *  flottement dans le fil. */
+function CrumbGlyph({ node }: { node: PathNode }) {
+  const tint = SCENE_TINTS.get(`${node.level}:${node.id}`) ?? "var(--accent)";
+  return (
+    <span
+      aria-hidden="true"
+      className="crumb-glyph"
+      style={{ "--star-tint": tint } as React.CSSProperties}
+    >
+      <span className="chamber-night-only crumb-orb" />
+      <span className="chamber-day-only">
+        <BalloonGlyph r={6} tint={tint} kind="child" />
+      </span>
+    </span>
+  );
+}
+
 /** Le fil d'Ariane textuel (B2.8) — les ancêtres du focus en une
  *  ligne sobre : « European Commission · €176B → Horizon 2020 ·
  *  €68,3B → … » ; chaque segment navigue vers son niveau, le focus
@@ -309,6 +329,7 @@ function TrailBreadcrumb({ path }: { path: PathNode[] }) {
                 →
               </span>
             ) : null}
+            <CrumbGlyph node={node} />
             {node.to && !node.active ? (
               <Link
                 to={node.to}
@@ -522,6 +543,12 @@ const DAY_CLOUDS: { x: number; y: number; s: number; t: number; o: number; b: nu
   { x: 18, y: 78, s: 1.2, t: 155, o: 0.5, b: 3 },
 ];
 
+/** La mémoire des teintes de scène : quand une destination est
+ *  rendue (donc cliquable), sa couleur de rang est retenue — le fil
+ *  d'Ariane la ressort en rappel visuel du chemin. Décor pur, jamais
+ *  une donnée ; en lien profond à froid, repli sur l'accent. */
+const SCENE_TINTS = new Map<string, string>();
+
 function ChamberBackdrop() {
   return (
     <div aria-hidden="true" className="chamber-bg">
@@ -732,6 +759,11 @@ function StarMap({
 }) {
   const { t, locale, money } = useMoneyCopy();
   const { ref, width, height } = useMeasure<HTMLDivElement>();
+  useEffect(() => {
+    for (const star of stars) {
+      if (star.kind === "child" && star.color) SCENE_TINTS.set(star.key, star.color);
+    }
+  }, [stars]);
   const w = width || 960;
   const H = height || 470;
   const cx = w / 2;
@@ -1906,6 +1938,12 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
     amount: data.aggregate?.amount,
     currency: data.aggregate?.measure.currency,
   });
+  // Un titre interminable ne s'affiche jamais en grand : coupe à
+  // l'unité de sens (cascade), code stable en dernier recours — le
+  // nom COMPLET reste au title et en sous-ligne.
+  const nodeCode = "code" in data.node ? data.node.code : undefined;
+  const headingName = displayLabel({ label, code: nodeCode }, 640, 26);
+  const headingIsCode = nodeCode != null && headingName === nodeCode && headingName !== label;
   const call = shown === "call" ? (data as ChainCallNode) : null;
   const transversal = Boolean(call && call.programmes.length > 1 && !call.context);
   const funderCode =
@@ -1946,13 +1984,24 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
             ) : null}
           </Eyebrow>
           <h1
+            title={label}
             className={cn(
               "chamber-neon display-tight mt-1.5 text-[clamp(23px,2.4vw,31px)] font-semibold",
-              shown === "call" ? "font-mono text-[clamp(17px,1.8vw,22px)]" : undefined,
+              shown === "call" || headingIsCode
+                ? "font-mono text-[clamp(17px,1.8vw,22px)]"
+                : undefined,
             )}
           >
-            {label}
+            {headingName}
           </h1>
+          {headingName !== label ? (
+            <p
+              title={label}
+              className="mt-2 line-clamp-3 max-w-[52ch] text-[13px] leading-snug text-muted-foreground"
+            >
+              {label}
+            </p>
+          ) : null}
           {/* Le bloc-chiffre : une étiquette de mesure AU-DESSUS, le
               chiffre en roi (halo froid, jamais un dégradé), la part
               juste dessous — la grammaire d'une fiche de référence. */}
@@ -2082,6 +2131,13 @@ function ProjectFocus({ id }: { id: string }) {
           .join(" → ")
       : null;
   const attribution = data.node.programme?.attribution;
+  const projectHeading = displayLabel(
+    { label: data.node.label, code: data.node.source_id },
+    640,
+    26,
+  );
+  const projectHeadingIsCode =
+    projectHeading === data.node.source_id && projectHeading !== data.node.label;
 
   return (
     <TrailWorkspace path={path}>
@@ -2105,9 +2161,23 @@ function ProjectFocus({ id }: { id: string }) {
           </Link>
         </div>
         <div className="max-w-[720px]">
-          <h1 className="chamber-neon display-tight mt-1.5 text-[clamp(23px,2.4vw,31px)] font-semibold">
-            {data.node.label}
+          <h1
+            title={data.node.label}
+            className={cn(
+              "chamber-neon display-tight mt-1.5 text-[clamp(23px,2.4vw,31px)] font-semibold",
+              projectHeadingIsCode ? "font-mono text-[clamp(17px,1.8vw,22px)]" : undefined,
+            )}
+          >
+            {projectHeading}
           </h1>
+          {projectHeading !== data.node.label ? (
+            <p
+              title={data.node.label}
+              className="mt-2 line-clamp-3 max-w-[52ch] text-[13px] leading-snug text-muted-foreground"
+            >
+              {data.node.label}
+            </p>
+          ) : null}
           {data.node.title !== data.node.label ? (
             <p className="mt-1.5 max-w-[68ch] text-[13.5px] leading-relaxed text-muted-foreground">
               {data.node.title}

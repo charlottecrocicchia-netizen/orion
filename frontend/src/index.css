@@ -334,6 +334,23 @@
 /* Le flottement doux des objets du ciel (planètes ET montgolfières) :
    oscillation verticale, chaque objet à sa cadence (--float-t/-delay/
    -y posés par la carte). Reduced-motion : immobiles, centrés. */
+/* Le rappel du fil d'Ariane : mini-planète immobile (la nuit) dans
+   la teinte mémorisée du clic ; la mini-montgolfière (le jour) vient
+   du glyphe dessiné. AUCUNE animation ici. */
+.crumb-glyph{display:inline-flex; align-items:center; align-self:center}
+.crumb-glyph .chamber-day-only{display:block}
+.dark .crumb-glyph .chamber-day-only{display:none}
+.crumb-orb{
+  width:10px; height:10px; border-radius:9999px;
+  background:radial-gradient(
+    circle at 32% 28%,
+    color-mix(in srgb, #ffffff 70%, var(--star-tint)),
+    var(--star-tint) 55%,
+    color-mix(in srgb, var(--star-tint) 55%, #05060a) 100%
+  );
+  box-shadow:0 0 7px -1px color-mix(in srgb, var(--star-tint) 75%, transparent);
+}
+
 /* Un segment du donut des participants : transition douce, éclat au
    survol. */
 .orbit-seg{transition:filter .25s ease}
