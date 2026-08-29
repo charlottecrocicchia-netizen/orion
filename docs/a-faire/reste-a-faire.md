@@ -57,8 +57,10 @@ R11, upgrade VPS-3/VPS-4 en un clic OVH si elle casse.
 Quota Actions épuisé. À la reprise : remettre les guetteurs (avec
 `timeout-minutes` partout — la règle), et **revoir la décision D1 du
 déploiement** (build sur serveur ↔ images GHCR redevenues fiables).
-Jusque-là : validation en local, déploiement par le runbook (étape 9
-de `docs/conception-deploiement.md`).
+Jusque-là : validation en local, déploiement manuel par
+`infra/deploy.sh` derrière la porte snapshot (l'étape 9 de
+`docs/conception-deploiement.md` renvoie désormais au script — la
+séquence `git pull && make up` est supplantée depuis le verrou R1).
 
 ## 4 bis. Les suites du pivot « accès privé » (2026-08-22)
 

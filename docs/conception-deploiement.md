@@ -353,25 +353,33 @@ Le backup OVH couvre le disque. S'y ajoute un dump logique quotidien :
 
 ### Étape 9 — La procédure de mise à jour future (le runbook des fins de chantier)
 
+> **SUPPLANTÉE le 2026-08-23 (verrou R1), corrigée ici le 2026-08-29
+> (chantier Hygiène, B4).** La séquence historique `git pull && make up`
+> laissait une fenêtre où la nouvelle révision était servie sans son
+> schéma. La procédure atomique fait autorité et vit dans
+> **`infra/deploy.sh`** — l'ordre EST la garantie :
+> pull → build (la pile courante continue de servir) → migration via la
+> NOUVELLE image AVANT bascule → données de référence du lot (manuel) →
+> `make up`. Voir l'en-tête du script et `infra/README.md`
+> (« Deploying a revision »).
+
 ```
-# Sur le Mac : merger/pousser main comme d'habitude, puis :
-ssh orion-vps
-cd ~/orion && git pull --ff-only
-make up        # reconstruit ce qui a changé, redémarre, attend le healthy
-curl -fsS https://lensorion.com/api/health
+# Sur le Mac, après la porte snapshot (D7 bis) :
+DEPLOY_HOST=<hôte> DEPLOY_USER=<user> ./infra/deploy.sh
 ```
 
-- `make up` porte déjà le tampon `GIT_REV` : la pile affiche la
-  révision qu'elle sert.
+Restent vrais, quel que soit le véhicule :
+
+- Le tampon `GIT_REV` : la pile affiche la révision qu'elle sert
+  (le script l'imprime en fin de course, avec le smoke test).
 - **Piège vérifié en recette locale (2026-08-21)** : le Caddyfile est
   monté en volume — `docker compose up -d` ne recrée pas le conteneur
   quand seul ce fichier change, et Caddy continue de servir l'ancienne
   config. Après toute modification du Caddyfile :
   `docker compose ... restart caddy`.
-- Migration de schéma : appliquée automatiquement au démarrage de
-  l'API (`MIGRATE_ON_START`). Avant un déploiement qui migre le
-  schéma : dump manuel d'abord (le cron de la nuit ne suffit pas si le
-  commit du matin casse).
+- Avant un déploiement qui migre le schéma : dump manuel d'abord dans
+  `~/backups/jalons/` (le cron de la nuit ne suffit pas si le commit du
+  matin casse), et rituel snapshot.
 - Rollback applicatif : `git checkout <rev précédente> && make up`.
   Rollback de données : restauration du dump du jour (annexe C).
   Rollback machine : snapshot OVH.
