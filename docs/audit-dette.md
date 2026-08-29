@@ -2,6 +2,16 @@
 
 **Date : 2026-08-29 · HEAD `f069ef2` · 358 commits · aucun code modifié dans ce lot.**
 
+> **Exécution — lots 0, 1 et 2 traités le 2026-08-29** (validation
+> Charlotte) : les items ~~barrés~~ ✅ dans les tableaux sont faits,
+> commits `00ebc63` → HEAD. Restent les lots 3-6, à ouvrir un par un
+> sur décision. Deux corrections au constat d'origine : (a) une
+> restauration d'essai ÉTAIT tracée à l'annexe C (2026-08-21) — le
+> « jamais tracée » de G16 était inexact ; celle du 2026-08-29 revalide
+> sur la base courante ; (b) les jalons manuels comptaient un
+> `pre-r3-20260824` que l'audit n'avait pas listé (six jalons, pas
+> cinq).
+
 Méthode : six balayages indépendants sur pièce (code mort, incohérences, modularité,
 tests, doc vs réel, infra), chaque constat vérifié par chemin:ligne ou commande.
 Les suites unitaires ont été exécutées ; le serveur a été inspecté en lecture seule
@@ -17,9 +27,10 @@ de sa naissance, la doctrine « jamais 0 % » appliquée sur 1 surface sur 7) et
 documentation qui a décroché du produit** (README figé au 31 juillet avec un
 quickstart qui aboutit à une porte fermée, 9 chantiers livrés absents du CHANGELOG,
 13 docs de conception qui jurent « rien n'est codé » sur du code en production).
-Le point le plus dangereux n'est pas dans le code : l'archive brute R5-NSF, déclarée
-non re-téléchargeable, n'existe que sur ce Mac (hors git) et dans un volume du VPS —
-aucun runbook ne la transfère, aucune sauvegarde ne la couvre.
+Le point le plus dangereux n'était pas dans le code : l'archive brute R5-NSF, déclarée
+non re-téléchargeable, n'existait que sur ce Mac (hors git) et dans un volume du VPS —
+aucun runbook ne la transférait, aucune sauvegarde ne la couvrait.
+*(Réglé au lot 0 : `/home/ubuntu/archives/r5-nsf/` + checksums versionnés.)*
 
 ---
 
@@ -31,29 +42,29 @@ Gravité : **B** bloquant · **G** gênant · **C** cosmétique. Effort : heures
 
 | # | Item | Où | Effort |
 |---|---|---|---|
-| B1 | Archive brute R5-NSF (« seule archive brute, pas re-téléchargeable ») hors git, hors sauvegarde, hors runbook de provisionnement | `backend/data/r5-nsf/` (gitignoré), `docs/runbook-nsf-obligations.md` §1, `infra/README.md` | heures–session |
-| B2 | README mort depuis le 31/07 : « Phase 0, no real data », sources fausses (ANR/ADEME/LIFE), quickstart qui aboutit à une porte auth fermée sans issue documentée | `README.md` (dernier commit `17e632c`) | session |
-| B3 | CHANGELOG : 9 chantiers livrés en prod sans aucune entrée (accès privé/comptes, Reference Engine R1–R4, R5B, A1 Aviation, M0–M1.4, Lens Room, lot F NUTS, outillage local, pondération coentreprises) | `CHANGELOG.md` (trou du 06/08 au 22/08, ~120 commits feat/fix) | chantier |
-| B4 | Runbook de déploiement étape 9 = `git pull && make up`, supplanté par `deploy.sh` atomique mais jamais corrigé — et **cité comme référence** par `reste-a-faire.md` §4 | `docs/conception-deploiement.md` §4 ; `docs/a-faire/reste-a-faire.md` §4 | heures |
-| B5 | Smoke test de `deploy.sh` vise `localhost:8080` alors que la prod écoute sur 80 : `make deploy` sort en erreur après une bascule réussie (dette connue de `reste-a-faire.md` §8, absente d'`infra/README.md`) | `infra/deploy.sh` (dernière ligne) | heures |
-| B6 | `etat-des-lieux-produit.md` (« écrit pour des regards extérieurs ») déclare `/calls` et `/workspace` « vitrine sans fonction » — les deux sont fonctionnels — et ignore `/money`, `/nsf-obligations`, `/login` | `docs/etat-des-lieux-produit.md` (22/08) | 1 h de bandeau, chantier pour la refonte |
+| ~~B1~~ ✅ | Archive brute R5-NSF (« seule archive brute, pas re-téléchargeable ») hors git, hors sauvegarde, hors runbook de provisionnement | `backend/data/r5-nsf/` (gitignoré), `docs/runbook-nsf-obligations.md` §1, `infra/README.md` | heures–session |
+| ~~B2~~ ✅ | README mort depuis le 31/07 : « Phase 0, no real data », sources fausses (ANR/ADEME/LIFE), quickstart qui aboutit à une porte auth fermée sans issue documentée | `README.md` (dernier commit `17e632c`) | session |
+| ~~B3~~ ✅ | CHANGELOG : 9 chantiers livrés en prod sans aucune entrée (accès privé/comptes, Reference Engine R1–R4, R5B, A1 Aviation, M0–M1.4, Lens Room, lot F NUTS, outillage local, pondération coentreprises) | `CHANGELOG.md` (trou du 06/08 au 22/08, ~120 commits feat/fix) | chantier |
+| ~~B4~~ ✅ | Runbook de déploiement étape 9 = `git pull && make up`, supplanté par `deploy.sh` atomique mais jamais corrigé — et **cité comme référence** par `reste-a-faire.md` §4 | `docs/conception-deploiement.md` §4 ; `docs/a-faire/reste-a-faire.md` §4 | heures |
+| ~~B5~~ ✅ | Smoke test de `deploy.sh` vise `localhost:8080` alors que la prod écoute sur 80 : `make deploy` sort en erreur après une bascule réussie (dette connue de `reste-a-faire.md` §8, absente d'`infra/README.md`) | `infra/deploy.sh` (dernière ligne) | heures |
+| ~~B6~~ ✅ (bandeau ; la refonte écran par écran reste un chantier) | `etat-des-lieux-produit.md` (« écrit pour des regards extérieurs ») déclare `/calls` et `/workspace` « vitrine sans fonction » — les deux sont fonctionnels — et ignore `/money`, `/nsf-obligations`, `/login` | `docs/etat-des-lieux-produit.md` (22/08) | 1 h de bandeau, chantier pour la refonte |
 | B7 | Test UKRI raté par le moteur de chaîne : 3 financeurs en dur dans **10 registres** de `chain.py`, dont un défaut silencieux `.get(funder.code, "cordis")` (`:606`) qui présenterait des livres sterling comme une contribution UE en euros, et un `continue` (`:266`) qui rendrait un financeur chargé invisible à la racine `/chain/funders` | `backend/src/orion/search/chain.py:59-126, 150-199, 266, 606, 1123, 1185, 1236` | session (registre `FUNDER_PROFILE`) |
 | B8 | Test UKRI côté front : `sourceLabel` retombe sur `"CORDIS"` par défaut (le commentaire jure « a badge can never lie about its origin ») et `moneySymbol` retombe sur `€` — un badge et une devise faux par construction pour toute source nouvelle | `frontend/src/lib/format.ts:7, 13-15, 253-256` ; `money-trail.tsx:86` | heures |
 | B9 | Renommage `sector`→`lens` promis « diff d'une ligne » par `LENS_PARAM` — en réalité 38 sites écrivent `sector=` en dur, dont 32 URLs de decks dans `stories.ts` | `frontend/src/lib/lens.ts:31` vs `stories.ts`, `home.tsx:340`, `call-detail.tsx:308`, `lens-room.tsx:92`, `landing.tsx:146`, `about-data.tsx:175` | chantier |
 | B10 | La doctrine B2 (plancher, godet neutre, non-ventilé jamais caché) n'est testée qu'à travers les rayons d'étoiles (`[data-star]`, `data-r`) : remplacer la scène détruit la preuve des invariants | `frontend/src/test/money-trail.test.tsx:688-886` (~13 tests) | chantier |
 | B11 | Zéro test unitaire sur `lib/api.ts` (1 129 l.) et `pages/explorer.tsx` (1 464 l.) ; scène céleste (1 725 l.) couverte uniquement par l'e2e ; `seed_e2e.py`, fondation des 35 specs, non testé | `frontend/src/lib/api.ts`, `pages/explorer.tsx`, `backend/scripts/seed_e2e.py` | chantier |
 | B12 | Couplage d'ordre entre modules pytest : 8 fixtures `scope="module"` committent puis nettoient par `DELETE` en clair (dont `DELETE FROM countries WHERE code='FR'` inconditionnel ×2 et 3 `DELETE` sans WHERE) — la suite n'est verte que dans un ordre | `backend/tests/test_call_actors.py:15-30,162`, `test_call_opportunities.py`, `test_nsf_obligations.py:298`, `test_accounts.py:47` | chantier |
-| B13 | Docs `conception-a1-aviation.md` (« AUCUNE règle chargée » — lentille published v2, 179 règles) et `conception-r4-ppp.md` (« aucun code, aucune surface touchée » — R4B livré) : un lecteur peut recharger/écraser sur leur foi | `docs/conception-a1-aviation.md`, `docs/conception-r4-ppp.md` | heures (bandeaux) |
+| ~~B13~~ ✅ | Docs `conception-a1-aviation.md` (« AUCUNE règle chargée » — lentille published v2, 179 règles) et `conception-r4-ppp.md` (« aucun code, aucune surface touchée » — R4B livré) : un lecteur peut recharger/écraser sur leur foi | `docs/conception-a1-aviation.md`, `docs/conception-r4-ppp.md` | heures (bandeaux) |
 | B14 | Cache d'agrégats non invalidé par une source hors `CORPUS_SOURCES` : toute source nouvelle servirait des chiffres périmés en silence ; et `ATTRIBUTIONS` sans entrée = fiche projet sans mention de licence (règle n°1 de `data-sources.md`) | `backend/src/orion/search/service.py:34` ; `api/projects.py:12-22` | heures |
 
 ### Gênant
 
 | # | Item | Où | Effort |
 |---|---|---|---|
-| G1 | Version affichée : le runtime backend annonce `0.1.0` (`__init__.py` jamais bumpé par la release `87f39eb`) → la page à-propos affiche « v0.4.0 » au pied et « Version 0.1.0 » dans l'état système, rationalisé après coup dans l'état des lieux au lieu d'être corrigé | `backend/src/orion/__init__.py:1` → `main.py:47`, `api/health.py:34` → `frontend/src/pages/about-data.tsx:281` ; footer en dur `i18n.ts:1267,2905` | heures |
-| G2 | 11 autres docs de conception « périmés-et-trompeurs » (« rien n'est codé » sur du livré) : e2-acteurs, space-natif, symetrie-geo, drill-etats, couverture, globe-accueil, recherche-composable, architecture-site, a-euros-constants, parcours-visualisations, architecture-information | `docs/conception-*.md`, `docs/architecture-*.md` | session (bandeaux d'état) |
-| G3 | `roadmap.md` se déclare « tenu à jour à chaque validation » et s'arrête au 18/08 : Lens Room « après A1 seulement » (livrée le 19/08), Reference Engine et Workspace absents en totalité | `docs/roadmap.md` | session |
-| G4 | Job `deploy` de la CI : contredit « deliberately no CI/CD » d'`infra/README.md`, tire de GHCR contre la décision D1, et court-circuite la porte snapshot D7 bis (un `workflow_dispatch` déploierait sans confirmation) | `.github/workflows/ci.yml:218-245` | heures |
+| ~~G1~~ ✅ | Version affichée : le runtime backend annonce `0.1.0` (`__init__.py` jamais bumpé par la release `87f39eb`) → la page à-propos affiche « v0.4.0 » au pied et « Version 0.1.0 » dans l'état système, rationalisé après coup dans l'état des lieux au lieu d'être corrigé | `backend/src/orion/__init__.py:1` → `main.py:47`, `api/health.py:34` → `frontend/src/pages/about-data.tsx:281` ; footer en dur `i18n.ts:1267,2905` | heures |
+| ~~G2~~ ✅ | 11 autres docs de conception « périmés-et-trompeurs » (« rien n'est codé » sur du livré) : e2-acteurs, space-natif, symetrie-geo, drill-etats, couverture, globe-accueil, recherche-composable, architecture-site, a-euros-constants, parcours-visualisations, architecture-information | `docs/conception-*.md`, `docs/architecture-*.md` | session (bandeaux d'état) |
+| ~~G3~~ ✅ | `roadmap.md` se déclare « tenu à jour à chaque validation » et s'arrête au 18/08 : Lens Room « après A1 seulement » (livrée le 19/08), Reference Engine et Workspace absents en totalité | `docs/roadmap.md` | session |
+| ~~G4~~ ✅ | Job `deploy` de la CI : contredit « deliberately no CI/CD » d'`infra/README.md`, tire de GHCR contre la décision D1, et court-circuite la porte snapshot D7 bis (un `workflow_dispatch` déploierait sans confirmation) | `.github/workflows/ci.yml:218-245` | heures |
 | G5 | `auth.ts` jette le `detail` d'erreur (`throw new Error("HTTP …")`) : tout le parcours connexion ne peut pas distinguer `INVALID_LINK` d'un 400 générique — et 3 grammaires de `detail` backend coexistent, dont une (dict) illisible par `api.ts:29` | `frontend/src/lib/auth.ts:29-36` ; `backend/src/orion/api/{auth,calls,dossiers,explore,chain}.py` | heures + demi-session |
 | G6 | La vue B2 recalcule de la sémantique comptable : non-ventilé agrégé refait côté client (seuil `> 1` local), invariant « montant d'un appel = somme des projets » en dur, famille déduite par préfixe de clé, liste blanche des mesures dupliquée avec repli « clé brute affichée » | `frontend/src/pages/money-trail.tsx:66-80, 87-88, 117-123, 968-993` | session |
 | G7 | Scène céleste non extractible : `SHOWN_SLOTS=11` (constante de mise en scène) décide du contenu du godet « + N autres » ; `SCENE_TINTS` est une Map module-level jamais purgée dont dépend le fil d'Ariane ; `.chamber` habille des surfaces sans étoile | `money-trail.tsx:550, 620-632, 975-980` ; `index.css:276-459` | chantier (extraction) |
@@ -61,15 +72,15 @@ Gravité : **B** bloquant · **G** gênant · **C** cosmétique. Effort : heures
 | G9 | Doublons de formatage : montants (5 réimplémentations, dont `stat-hero` en `€…B` codé en dur et un seuil d'axe divergent dans `charts.tsx:236`), parts % (6 implémentations, la doctrine anti-faux-zéro de `format-share.ts` suivie par 1 surface sur 7), dates (4 conventions, seule `lib/calls.ts` fixe un `timeZone` — décalage d'un jour possible sur des deadlines) | `frontend/src/components/stat-hero.tsx:40`, `charts.tsx:236`, `lib/format-share.ts`, `lib/calls.ts` et consorts | session cumulée |
 | G10 | `breadcrumb.tsx` né mort le 27/08 (0 importeur) alors que la conception B2 §15.2 le déclare partagé ; 7 fils d'Ariane recopiés à la main, seul le mort a la sémantique `ol/li` + `aria-current` | `frontend/src/components/breadcrumb.tsx` ; 6 hubs + `TrailBreadcrumb` | demi-session |
 | G11 | Palette sombre forkée : `.dark .chamber` redéfinit 17 tokens dont **5 divergent silencieusement** de `.dark` (`--background`, `--surface`, `--muted-foreground`, `--border`, `--border-soft`) et 12 sont recopiés à l'identique — toute évolution de charte à faire deux fois | `frontend/src/index.css:50-75` vs `:287-306` | demi-session |
-| G12 | 32 clés i18n mortes ×2 langues (~80 l.), dont deux générations de l'accueil superposées à 2 lignes d'écart — `i18n.ts` ne se lit plus comme la vérité du vocabulaire produit ; et une clé absente des deux langues s'affiche brute à l'écran sans qu'aucun test l'attrape | `frontend/src/i18n.ts:115-126, 179-182, 431-451…` (liste au volet ①) | heures |
+| ~~G12~~ ✅ | 32 clés i18n mortes ×2 langues (~80 l.), dont deux générations de l'accueil superposées à 2 lignes d'écart — `i18n.ts` ne se lit plus comme la vérité du vocabulaire produit ; et une clé absente des deux langues s'affiche brute à l'écran sans qu'aucun test l'attrape | `frontend/src/i18n.ts:115-126, 179-182, 431-451…` (liste au volet ①) | heures |
 | G13 | Aucun outil de couverture configuré (ni vitest coverage, ni pytest-cov, ni CI) ; gold tests NSF (194 l.) skippés en permanence en CI faute d'artefacts | `frontend/package.json`, `backend/pyproject.toml`, `backend/tests/test_nsf_obligations_gold.py:30` | session / chantier |
 | G14 | 12 `eslint-disable exhaustive-deps` sans justification (jusqu'à 28 jours d'âge, concentrés sur `search-composer`, `explorer`, `world-globe`) ; import différé `explore.py:34` signant un cycle `search`↔`ingest` | grep `frontend/src` ; `backend/src/orion/search/explore.py:34` | demi-session |
 | G15 | Deux venvs backend concurrents (`backend/.venv` py3.13 vs `~/.venvs/orion-backend` imposé par le Makefile) : `uv run pytest` nu ≠ `make test` ; et le `find backend/.venv -name "*.pth"` du Makefile vise le mauvais venv (neutralisé par `|| true`) | `Makefile` | session |
-| G16 | Rotation des sauvegardes : les dumps manuels pré-migration (`orion-pre-*`) matchent le glob `orion-*.dump -mtime +7 -delete` et sont supprimés silencieusement après 7 jours ; restauration d'essai exigée par le script lui-même, aucune trace datée d'une exécution | VPS `~/orion/infra/backup-db.sh` ; `~/backups` (15 dumps, 20 G) | heures |
-| G17 | Logs Docker prod sans rotation : pas de `daemon.json`, aucune section `logging:` dans `compose.prod.yml` → json-file non borné (postgres up 7 j) — bombe lente | VPS `/etc/docker/`, `~/orion/infra/compose.prod.yml` | heures |
+| ~~G16~~ ✅ | Rotation des sauvegardes : les dumps manuels pré-migration (`orion-pre-*`) matchent le glob `orion-*.dump -mtime +7 -delete` et sont supprimés silencieusement après 7 jours ; restauration d'essai exigée par le script lui-même, aucune trace datée d'une exécution | VPS `~/orion/infra/backup-db.sh` ; `~/backups` (15 dumps, 20 G) | heures |
+| ~~G17~~ ✅ | Logs Docker prod sans rotation : pas de `daemon.json`, aucune section `logging:` dans `compose.prod.yml` → json-file non borné (postgres up 7 j) — bombe lente | VPS `/etc/docker/`, `~/orion/infra/compose.prod.yml` | heures |
 | G18 | CI muette depuis le 26/08 (échec en 5 s à chaque push, quota) : aucun filet — plan de réactivation au §6 | `.github/workflows/ci.yml` ; `gh run list` | heures (le 01/09) |
 | G19 | `/money` sans aucune spec e2e (la surface la plus interactive du produit) alors que chaque autre chantier a la sienne (36 specs) | `frontend/e2e/` | demi-session |
-| G20 | Nommage backend incohérent : `api/nsf_obligations.py` vs `search/nsfobligations.py`, deux moitiés du même domaine créées le même jour avec deux orthographes ; `callstatus.py`, `constanteuro.py`, `ftcalls/` concaténés | `backend/src/orion/` | heures |
+| ~~G20~~ ✅ | Nommage backend incohérent : `api/nsf_obligations.py` vs `search/nsfobligations.py`, deux moitiés du même domaine créées le même jour avec deux orthographes ; `callstatus.py`, `constanteuro.py`, `ftcalls/` concaténés | `backend/src/orion/` | heures |
 | G21 | 42 des 47 endpoints retournent `dict[str, Any]` : l'OpenAPI n'a aucun schéma, le front maintient 55 interfaces à la main — deux contrats parallèles sans vérification croisée | `backend/src/orion/api/*.py` vs `frontend/src/lib/api.ts` | chantier |
 | G22 | Monolithes : `money-trail.tsx` 2 299 l. (8 rôles, 20 % de `pages/`), `search/chain.py` 1 358 l., `search/explore.py` 1 417 l., `i18n.ts` 3 247 l. (63 importeurs), `api.ts` 1 129 l. (42 importeurs) | — | chantier |
 | G23 | `hebergement.md` : tuning §2 désynchronisé des deux compose (3 valeurs de `shared_buffers`, 3 tailles de base contradictoires) ; §§7-8 présentent comme ouvertes des décisions exécutées depuis 5 semaines | `docs/hebergement.md` | heures |
@@ -80,15 +91,15 @@ Gravité : **B** bloquant · **G** gênant · **C** cosmétique. Effort : heures
 
 | # | Item | Où | Effort |
 |---|---|---|---|
-| C1 | Code mort certain : `partner-graph.tsx` (97 l., mort depuis `fd6324e` du 03/08 — confirmé), bloc CSS `.lens-room-*` + keyframes (~38 l., orphelin depuis `fc9f0b6`), package `analytics/` vide, `useActiveLens`, `fix_org_types.py` (one-shot accompli), 2 constantes Python, 2 maquettes design non liées | volet ① — ~710 l. au total | session (~2 h 30) |
-| C2 | `BRIEF.md` : archive fondatrice non marquée comme telle (chiffres ×6,6, positionnement inversé) — à bander, surtout pas à réécrire | `BRIEF.md` | 15 min |
-| C3 | 3 scripts utiles mais introuvables : `audit_ppp_conventions.py` (filet méthodologique, 0 référence), `claude-dev.sh` (absent d'`outillage-local.md`), `install-local.sh` (0 occurrence dans `docs/`) — à référencer, pas à supprimer | `backend/scripts/`, `scripts/`, `infra/launcher/` | heures |
+| ~~C1~~ ✅ | Code mort certain : `partner-graph.tsx` (97 l., mort depuis `fd6324e` du 03/08 — confirmé), bloc CSS `.lens-room-*` + keyframes (~38 l., orphelin depuis `fc9f0b6`), package `analytics/` vide, `useActiveLens`, `fix_org_types.py` (one-shot accompli), 2 constantes Python, 2 maquettes design non liées | volet ① — ~710 l. au total | session (~2 h 30) |
+| ~~C2~~ ✅ | `BRIEF.md` : archive fondatrice non marquée comme telle (chiffres ×6,6, positionnement inversé) — à bander, surtout pas à réécrire | `BRIEF.md` | 15 min |
+| ~~C3~~ ✅ | 3 scripts utiles mais introuvables : `audit_ppp_conventions.py` (filet méthodologique, 0 référence), `claude-dev.sh` (absent d'`outillage-local.md`), `install-local.sh` (0 occurrence dans `docs/`) — à référencer, pas à supprimer | `backend/scripts/`, `scripts/`, `infra/launcher/` | heures |
 | C4 | `design-doctrine.md` « prime sur tout » mais ignore `ROOM_TOKENS` et `.chamber`, et a été arbitrée contre en recette B2.10 sans le consigner | `docs/design-doctrine.md` | heures |
 | C5 | ~600 tailles `[Npx]` arbitraires sans échelle typographique (record : `money-trail.tsx`, 96) ; 24 couleurs hex en dur dans le TSX recopiant des tokens existants | `frontend/src` | chantier / heures |
 | C6 | Assertions couplées à l'implémentation : `dataset.r === "5"`, `closest("div.border-b")`, comptage de `<polyline>`, IDs `ck-opt-*`, sélecteurs e2e `.pin-spacer` (classe interne GSAP) et `[class*='snap-x']` | volet ④, détail ci-dessous | session cumulée |
 | C7 | 8 copies du patch `URLSearchParams`, 4 micro-graphes SVG jamais mutualisés, 3 accès `localStorage` sans try/catch, fenêtres « matures » copiées 3 fois avec replis divergents, `lib/workspace.ts` homonyme trompeur du socle | volet ② | heures chacun |
 | C8 | VPS : ~7 G Docker récupérables (cache de build 5,8 G + 2 images dangling 1 G), vestiges `~/r5-nsf-staging` (392 M) et `~/transfer-b01` (119 M, zips CORDIS), 15 paquets apt upgradables | VPS | heures |
-| C9 | Message du commit `f069ef2` annonce « CHANGELOG réécrit » pour 34 lignes dans un seul bullet ; commentaire mort « participants en donut » à `money-trail.tsx:1950` ; §§15.13-15.15 sans marqueur de supersession | `CHANGELOG.md`, `money-trail.tsx:1950`, `conception-b…md` | minutes |
+| ~~C9~~ ✅ | Message du commit `f069ef2` annonce « CHANGELOG réécrit » pour 34 lignes dans un seul bullet ; commentaire mort « participants en donut » à `money-trail.tsx:1950` ; §§15.13-15.15 sans marqueur de supersession | `CHANGELOG.md`, `money-trail.tsx:1950`, `conception-b…md` | minutes |
 | C10 | Vitest : 43 s CPU d'instanciation jsdom pour 26 s de tests (21 environnements, `i18n.ts` réimporté) | `frontend/vitest` config | heures |
 
 ---
