@@ -166,9 +166,11 @@ la mise en ligne publique). Le script sort donc en erreur **après une
 bascule pourtant réussie** — au B0.1, la vérification s'est faite sur
 `https://lensorion.com/api/health` (200), conformément à l'arbitrage
 du jour : ne pas modifier le script pendant un déploiement pour
-contourner un smoke. Correctif d'une ligne à faire **à froid** (lire le
-port depuis `.env`, ou viser l'URL publique), avec le prochain passage
-sur `deploy.sh`.
+contourner un smoke.
+
+**RÉGLÉ le 2026-08-29** (chantier Hygiène, B5) : le smoke lit désormais
+`HTTP_PORT` dans le `.env` du serveur, repli `8080` pour une pile
+locale. À vérifier en conditions réelles au prochain déploiement.
 
 ## Registre des écarts de rituel
 

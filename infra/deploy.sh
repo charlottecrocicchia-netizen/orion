@@ -54,6 +54,9 @@ ssh "$target" "docker inspect ghcr.io/charlottecrocicchia-netizen/orion-api:late
   --format '{{index .Config.Labels \"org.opencontainers.image.revision\"}}'"
 
 echo "==> Smoke test"
-ssh "$target" "curl -fsS http://localhost:8080/api/health"
+# Le port vient du .env de prod (HTTP_PORT=80 depuis la mise en ligne
+# publique) — jamais en dur : l'incident B0.1 (2026-08-27) était un
+# smoke qui visait :8080 après une bascule réussie.
+ssh "$target" "cd '${DEPLOY_PATH}' && port=\$(grep -E '^HTTP_PORT=' .env | cut -d= -f2); curl -fsS \"http://localhost:\${port:-8080}/api/health\""
 echo ""
 echo "==> Déployé."
