@@ -331,6 +331,18 @@
    neutre (godet), astre creux pointillé (non-ventilé). La teinte de
    lueur vient de la couleur de l'étoile. */
 .star-glide{transition:transform .5s cubic-bezier(.3,.7,.25,1)}
+/* Le flottement doux des objets du ciel (planètes ET montgolfières) :
+   oscillation verticale, chaque objet à sa cadence (--float-t/-delay/
+   -y posés par la carte). Reduced-motion : immobiles, centrés. */
+.star-body{
+  transform:translate(-50%,-50%);
+  animation:chamber-float var(--float-t,6s) ease-in-out var(--float-delay,0s) infinite;
+  will-change:transform;
+}
+@keyframes chamber-float{
+  0%,100%{transform:translate(-50%,-50%) translateY(var(--float-y,6px))}
+  50%{transform:translate(-50%,-50%) translateY(calc(-1 * var(--float-y,6px)))}
+}
 .star-orb{
   background:radial-gradient(
     circle at 32% 28%,
@@ -427,6 +439,7 @@
 @media (prefers-reduced-motion: reduce){
   .chamber-twinkle{animation:none; opacity:.6}
   .chamber-cloud{animation:none}
+  .star-body{animation:none}
 }
 
 /* B2.8 : le segment « non ventilé » des colonnes proportionnelles —

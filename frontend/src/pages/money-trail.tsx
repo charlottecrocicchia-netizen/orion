@@ -749,31 +749,8 @@ function StarMap({
       aria-label={ariaLabel}
       className="relative h-full min-h-[440px] w-full"
     >
-      <svg aria-hidden="true" className="absolute inset-0 h-full w-full">
-        {/* L'anneau-guide : l'ellipse où les destinations demeurent. */}
-        <ellipse
-          cx={cx}
-          cy={cy}
-          rx={rx}
-          ry={ry}
-          fill="none"
-          stroke="var(--foreground)"
-          strokeOpacity="0.06"
-          strokeWidth="1"
-        />
-        {placed.map((star) => (
-          <line
-            key={star.key}
-            x1={cx}
-            y1={cy}
-            x2={star.x}
-            y2={star.y}
-            stroke="var(--foreground)"
-            strokeOpacity="0.1"
-            strokeWidth="1"
-          />
-        ))}
-      </svg>
+      {/* Ni rayons ni anneau-guide (recette fondatrice) : les objets
+          tiennent seuls dans le ciel. */}
       {/* Le cœur : le focus, son total. */}
       <div
         aria-hidden="true"
@@ -790,7 +767,15 @@ function StarMap({
           </span>
         </div>
       </div>
-      {placed.map((star) => {
+      {placed.map((star, index) => {
+        // Le flottement en DÉSACCORD (le geste de la Lens Room) :
+        // période, phase et amplitude propres à chaque objet,
+        // déterministes — jamais une respiration commune.
+        const floatVars = {
+          "--float-t": `${(5.5 + (index % 5) * 0.9).toFixed(1)}s`,
+          "--float-delay": `${(-(index * 0.7) % 8).toFixed(1)}s`,
+          "--float-y": `${5 + (index % 3) * 2}px`,
+        } as React.CSSProperties;
         const amountText = star.amount == null ? "—" : money(star.amount, currency);
         const shareText = star.share == null ? "" : pct(star.share, locale);
         const floorNote =
@@ -802,7 +787,7 @@ function StarMap({
             ? `${star.name}${shareText ? ` · ${shareText}` : ""}${floorNote}`
             : `${star.name} — ${amountText}${shareText ? ` · ${shareText}` : ""}${floorNote}`;
         const body = (
-          <span className="relative block -translate-x-1/2 -translate-y-1/2 text-center">
+          <span className="star-body relative block text-center" style={floatVars}>
             {/* La carte-étiquette du survol : le nom ENTIER, le
                 montant, la part — révélés en grand, jamais tronqués. */}
             <span aria-hidden="true" className="star-tip">
