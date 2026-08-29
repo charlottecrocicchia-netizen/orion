@@ -1,5 +1,14 @@
 # État des lieux du produit — tout ce qu'Orion sait faire, écran par écran
 
+> **PÉRIMÉ depuis le 2026-08-22 — lire avec précaution.** Ce relevé
+> précède : le pivot accès privé (la prod est `https://lensorion.com`,
+> porte close hors allowlist — plus `localhost:8080`), les surfaces
+> `/money` (chaîne de l'argent, B2), `/nsf-obligations` (R5B), `/login`,
+> et la mise en fonction de `/calls` et `/workspace` (le § 1.11
+> « portes datées, sans fonction » est FAUX aujourd'hui : les deux
+> routes sont fonctionnelles). Une refonte écran par écran est un
+> chantier à part (audit Hygiène, B6). *(Bandeau posé le 2026-08-29.)*
+
 Chantier documentation, 2026-08-21. Constat **sur pièce** : chaque page de
 ce document a été ouverte dans la prod locale (`make up`, `http://localhost:8080`,
 version affichée au pied de page **v0.4.0**), chaque menu déroulé, chaque

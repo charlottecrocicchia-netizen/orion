@@ -1,5 +1,10 @@
 # Refonte de l'architecture du site — la navigation par intentions
 
+> **ÉTAT : LIVRÉ (lots A-D) — document historique.** La navigation par
+> intentions est en production (lots A-C `42d4394`, lot D `0a69650`).
+> Le « rien de ce document n'est implémenté » ci-dessous est dépassé.
+> *(Bandeau posé le 2026-08-29, Hygiène G2.)*
+
 - **Statut : proposition du 2026-08-02, à itérer avec la fondatrice avant
   toute implémentation.** Rien de ce document n'est implémenté.
 - **Objet** : le chantier « première visite », élargi en refonte de

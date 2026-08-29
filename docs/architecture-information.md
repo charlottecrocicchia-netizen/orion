@@ -1,5 +1,10 @@
 # Architecture de l'information — Orion
 
+> **ÉTAT : SUPPLANTÉ — document historique.** Le sitemap réellement
+> construit est celui d'`architecture-site.md` (lots A-D livrés) ; ce
+> document du 2026-07-31 reste l'étude d'origine. *(Bandeau posé le
+> 2026-08-29, Hygiène G2.)*
+
 - **Statut : proposé le 2026-07-31, en attente de validation**
 - **Objet : la maison entière** — sitemap complet (phases 2 à 7), modèle de navigation et gabarits de pages. On n'implémente que la phase 2, mais chaque mur posé aujourd'hui doit tenir quand les étages arriveront.
 - **Méthode : benchmark d'abord** (concurrents + produits data adjacents), puis principes, puis structure.

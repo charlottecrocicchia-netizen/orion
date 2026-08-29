@@ -1,5 +1,10 @@
 # Conception — le chantier « Space natif »
 
+> **ÉTAT : LIVRÉ — document historique.** Les trois périmètres sont en
+> production (`5b1d057`, `9476f3f`, `162bec9`). Le « rien de ce qui suit
+> n'est codé » et les « — ok ? » ci-dessous datent de l'instruction du
+> 2026-08-17. *(Bandeau posé le 2026-08-29, Hygiène G2.)*
+
 *2026-08-17 — les P0 de l'audit produit externe, triés par la commande
 fondatrice : tout est frontend / données existantes, rien de lourd ne se
 charge. Conception courte, lots courts, validation avant les surfaces —

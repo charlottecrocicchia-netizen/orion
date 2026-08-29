@@ -1,5 +1,11 @@
 # Conception A — Euros constants
 
+> **ÉTAT : LIVRÉ — document historique.** R1 « euros constants » est en
+> production (`694ae84`, `f73d27e`, `b7ed1fc`), amendé ensuite par
+> R2-R4 (voir conception-reference-engine.md). Le mandat « aucun code »
+> et l'« arrêt pour recette locale avant tout push » ci-dessous datent
+> de l'instruction du 2026-08-22. *(Bandeau posé le 2026-08-29, Hygiène G2.)*
+
 > Document de conception instruit le 2026-08-22. Mandat : **méthode et
 > audit chiffré uniquement, aucun code, aucune modification du
 > corpus**. Les mesures ont été prises sur la base locale de recette

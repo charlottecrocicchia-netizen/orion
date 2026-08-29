@@ -1,5 +1,11 @@
 # Conception — le drill-down par État américain (et les fédérations)
 
+> **ÉTAT : LIVRÉ — document historique.** Le drill par État est en
+> production (`1b533d7`, migration 0021, `by=subdivision` dans
+> l'Explorateur — il est au CHANGELOG). Les « décisions à trancher avant
+> lancement » ci-dessous sont tranchées. *(Bandeau posé le 2026-08-29,
+> Hygiène G2.)*
+
 *2026-08-17 — instruction fondatrice, conception AVANT implémentation.
 Verdict données d'abord, architecture ensuite, coût et équivalents
 fédéraux en fin. Rien n'est commencé.*

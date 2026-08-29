@@ -1,5 +1,10 @@
 # Conception — la symétrie géographique
 
+> **ÉTAT : LIVRÉ — document historique.** La symétrie est en réel — F2
+> fait (`93c9277` → `f258fa7`, clôture `152893a`) ; la route
+> `/explore/regions/:slug` existe. Le « rien n'est codé » ci-dessous date
+> de l'instruction du 2026-08-17. *(Bandeau posé le 2026-08-29, Hygiène G2.)*
+
 *2026-08-17 — commande fondatrice, intégrée au lot F : « une hiérarchie
 prévisible où chaque niveau est une vraie page et le geste est identique
 partout : premier clic = panneau, second clic = on descend ». Des

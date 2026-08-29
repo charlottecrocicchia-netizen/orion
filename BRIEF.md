@@ -1,5 +1,14 @@
 # ORION ; Prompt fondateur
 
+> **Document fondateur du 2026-07-31, conservé TEL QUEL comme archive.**
+> Le produit réel a divergé sur des points structurants : corpus ×6,6
+> (699 798 projets), NIH + NSF majoritaires en valeur, ANR retirée,
+> application privée sur invitation (le § 10 « créer un compte » est
+> inversé par conception-acces-prive.md, D4), plan en chantiers
+> A/B/E/M/R plutôt qu'en phases 0-7. L'état réel vit dans README.md,
+> CHANGELOG.md et docs/. Ne pas réécrire ce document : sa valeur est
+> d'être le point de départ intact. *(Bandeau posé le 2026-08-29.)*
+
 Tu es Claude Code. Tu vas construire Orion de zéro, en partant d'un dossier vide. Ce document est le cahier des charges fondateur : lis-le en entier avant d'écrire la moindre ligne de code, puis conserve-le à la racine du repo comme référence permanente.
 
 ## 1. Contexte et vision

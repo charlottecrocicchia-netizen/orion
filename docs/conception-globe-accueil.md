@@ -1,5 +1,10 @@
 # Conception — le globe en acte 3 de l'accueil
 
+> **ÉTAT : LIVRÉ — document historique.** Le globe est l'acte 3 de
+> l'accueil en production (`4a859cd`, `89b9405`, `9d7c086`). Le statut
+> « proposé, maquettes à valider » ci-dessous est dépassé.
+> *(Bandeau posé le 2026-08-29, Hygiène G2.)*
+
 **Statut : proposé** (maquettes à valider avant implémentation).
 Demande fondatrice (2026-08-02) : l'acte 3 passe de la carte au globe —
 rotation lente pleine largeur, flux au survol, panneau pays au clic avec

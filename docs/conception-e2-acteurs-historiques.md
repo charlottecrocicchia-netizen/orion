@@ -1,5 +1,10 @@
 # Conception E2 — « Acteurs historiquement proches » d'un appel
 
+> **ÉTAT : LIVRÉ — document historique.** E2 V1 « acteurs historiques »
+> est en production (`e3ce25c`), prolongé par E3 (`b9b99f1`, `d3e0935`,
+> `5968820`). La mention « aucun code écrit » ci-dessous date de
+> l'instruction du 2026-08-22. *(Bandeau posé le 2026-08-29, Hygiène G2.)*
+
 > Plan court, instruit le 2026-08-22 sur la prod fraîchement déployée
 > (E1 recetté le même jour). Périmètre : une V1 **sans embeddings,
 > sans score global de fit** — une réponse factuelle, explicable et

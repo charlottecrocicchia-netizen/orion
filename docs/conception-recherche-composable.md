@@ -1,5 +1,11 @@
 # La recherche composable — refonte des pages Découvrir
 
+> **ÉTAT : LIVRÉ (V1) — document historique.** La recherche composable
+> V1 est en production (`e310570`, `c7173d6`) — la roadmap la dit
+> « livrée (V1 en recette) ». Le statut « proposition à itérer avant
+> toute implémentation » ci-dessous est dépassé. *(Bandeau posé le
+> 2026-08-29, Hygiène G2.)*
+
 - **Statut : proposition du 2026-08-02, à itérer avec la fondatrice avant
   toute implémentation** (grande recette : « une liste de tout le
   catalogue n'intéresse personne »).

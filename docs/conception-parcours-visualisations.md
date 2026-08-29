@@ -1,5 +1,11 @@
 # Conception — Parcours utilisateur & bibliothèque de visualisations
 
+> **ÉTAT : PARTIELLEMENT LIVRÉ — document historique.** Les Angles
+> (`555dbdc`), le dossier (`028f41b`), la timeline par rôle et la carte
+> des collaborateurs (`fd6324e`) sont en production ; le reste du
+> catalogue n'a pas été ouvert. Le statut « proposé » ci-dessous date du
+> 2026-08-02. *(Bandeau posé le 2026-08-29, Hygiène G2.)*
+
 **Statut : proposé** (itération avec la fondatrice avant toute implémentation).
 Compagnon de [pieges-vega.md](pieges-vega.md). S'appuie sur la vision §9
 (personas), l'étude d'orientation (R1-R7), la doctrine de design, et les

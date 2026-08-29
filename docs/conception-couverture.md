@@ -1,5 +1,10 @@
 # Conception — dire la couverture au moment où l'on compare
 
+> **ÉTAT : LIVRÉ — document historique.** La couverture est dite en
+> production (`823ac77`, testée `26598e3`, `4de2ca8`). Le « rien n'est
+> commencé » ci-dessous date de l'instruction du 2026-08-17.
+> *(Bandeau posé le 2026-08-29, Hygiène G2.)*
+
 *2026-08-17 — instruction fondatrice : « quelqu'un peut croire que
 l'Asie ne finance rien ». Sujet d'honnêteté centrale. Conception
 seulement, rien n'est commencé.*
