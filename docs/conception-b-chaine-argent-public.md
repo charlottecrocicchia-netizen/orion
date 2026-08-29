@@ -1429,6 +1429,8 @@ réapparaît.
 
 ### 15.13 B2.8 — Colonnes proportionnelles (2026-08-28)
 
+> *Supersédé par la chambre céleste — l'état livré est au § 15.16 ; cette section est l'histoire du chemin (marqueur posé le 2026-08-29, Hygiène C9).*
+
 **Décision.** La Constellation Trace (B2.7) est retirée : la
 géométrie du chemin n'encodait volontairement aucun montant, et c'est
 précisément ce qui manquait à la lecture. B2.8 renverse la
@@ -1511,6 +1513,8 @@ disparaîtrait silencieusement au lieu de mentir — comportement voulu.
 
 ### 15.14 B2.9 — les barres deviennent des objets Orion (2026-08-28)
 
+> *Supersédé par la chambre céleste — l'état livré est au § 15.16 ; cette section est l'histoire du chemin (marqueur posé le 2026-08-29, Hygiène C9).*
+
 Retour de recette B2.8 : structure validée (fil d'Ariane, colonnes,
 réconciliation, vides honnêtes), habillage refusé — les barres
 étaient habillées comme un chart par défaut. Refonte du STYLE seul :
@@ -1564,6 +1568,8 @@ Vérifié en réel (session semée puis supprimée) : /money/funder/nih
 et sombre, 1440 et 375, survol = seul moment bleu.
 
 ### 15.15 B2.10 — la scène Orion des colonnes : fond, profondeur, contraste (2026-08-28)
+
+> *Supersédé par la chambre céleste — l'état livré est au § 15.16 ; cette section est l'histoire du chemin (marqueur posé le 2026-08-29, Hygiène C9).*
 
 Retour de recette B2.9 : les barres à l'encre nue sont refusées —
 trop plat, pas de fond, pas de contraste. Désalignement de référence

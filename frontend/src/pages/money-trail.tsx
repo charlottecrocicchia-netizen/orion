@@ -1947,7 +1947,7 @@ function ProjectFocus({ id }: { id: string }) {
         {/* La fiche projet VERTICALE (recette fondatrice B2.12) — la
             grammaire des fiches du site : en-tête avec la sortie vers
             la vraie fiche en haut à droite, puis chiffre,
-            réconciliation, participants en donut. */}
+            réconciliation, participants en liste. */}
         <div className="mx-auto w-full max-w-[860px]">
         <div className="flex items-start justify-between gap-6">
           <Eyebrow>
