@@ -34,37 +34,40 @@ All notable changes to Orion are documented here. The format follows
   programme scope). The B1 engine gained two additive endpoints so
   the UI never guesses: per-node `ancestors` (enriched with amounts,
   share-of-parent and comparability) and `GET /chain/funders`. The
-  surface reads as proportional columns (B2.8): a textual breadcrumb
-  says the travelled path — each ancestor a link with its name and
-  amount, the focus closing the line in strong type, never a ratio —
-  and the children of the current level stand as VERTICAL bars whose
-  height says the amount, on one common linear scale, sorted
-  descending — drawn in the page's own ink (B2.9): the amount reigns
-  above each bar in strong figures, the code sits under a continuous
-  hairline baseline as a small technical label, Orion blue appears
-  only on interaction, and the "+ N more" bucket is a capped,
-  hairline-outlined door that never towers over the level (the scale
-  anchors on comparable elements only). The D5 reconciliation is visible in the shape itself: a
-  hatched, dimmed "unallocated" segment (aggregate levels compute it
-  only when the whole child set is served; projects take it straight
-  from the engine), no residual segment when children exceed the
-  ceiling, unknown amounts never drawn as bars (they live in the
-  complete list and the coverage notes). The extreme scale ratio is
-  handled honestly: a 3-px visibility floor with an explicit "≈"
-  marker and the real share in the tooltip — never a silently false
-  proportion — and an exact "+ N more · €X" bucket (a button) opens
-  the existing complete list (local filter only when fully served,
-  pagination, a way back to the columns). Labels reuse the
-  sense-unit truncation cascade; the strip scrolls horizontally on
-  narrow screens; NIH beneficiary, the root and transverse
-  organisation/country views draw no bars at all — bar heights
-  across non-comparable measures would be an invented total. The
-  focus level carries one question — where does this money go
-  next? — and a methodology inspector slides in on demand. No footer
-  on this route, no document scroll in the nominal desktop journey,
-  and a deep link rebuilds path and amounts from the engine in a
-  single request; stale responses can never overwrite a newer
-  selection (permanent test, inherited from the B2.7 engine work).
+  surface is the CELESTIAL CHAMBER (B2.8→B2.12): a textual breadcrumb
+  says the travelled path — each ancestor a link with its name,
+  amount and a small still planet/balloon in the colour it wore when
+  clicked — and the current level is a celestial scene where the
+  focus is the central star (its total at the heart) and each
+  destination an object whose AREA says the amount (r ∝ √value,
+  amounts written large beside every object, share of parent always
+  shown, validated categorical palette). The chamber has a day and a
+  night: light theme is a hand-drawn sky — gradient, veiled sun,
+  layered drifting cumulus — inhabited by drawn hot-air balloons
+  (gored envelope, skirt, lines, wicker basket); dark theme is deep
+  space with fine deterministic stars, the Orion seal, and glowing
+  planet-spheres. Objects float gently out of phase (the Lens Room
+  gesture; frozen under reduced-motion), glow on hover, and each is a
+  real named link — the scene is the accessible surface. Honesty is
+  translated into the celestial language: unknown amounts are never
+  drawn, tiny real shares keep a minimum size with an explicit "≈"
+  marker and the true share in the tooltip, the "+ N more" bucket is
+  a neutral door-object opening the complete list (local filter only
+  when fully served, pagination), the unallocated remainder is a
+  dashed ghost object never hidden, and the signed reconciliation
+  texts stay intact. Level headings pass through the sense-unit
+  truncation cascade (stable code as last resort, full name in a
+  clamped subline); the focus column reads as a record header — neon
+  name, uppercase measure label above the reigning figure, metadata
+  under hairlines, methodology in a centred scrollable card. The
+  project page is a vertical record: "Open the project sheet" pinned
+  top-right, reconciliation, then participants as a plain list with
+  clickable country flags (no chart). Navigation stays in the page
+  (no remount keys — objects glide), a deep link rebuilds everything
+  in a single request, stale responses can never overwrite a newer
+  selection and Back/Forward recompose (permanent tests). The
+  country-hub exit now points to the real route
+  (/explore/countries/CODE).
   Shared `Breadcrumb` and `Pager` primitives extracted; full EN/FR
   copy; 22 page tests.
 

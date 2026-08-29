@@ -1625,3 +1625,87 @@ classes existantes suivent sans duplication).
 Charlotte sur sa machine, ajustements de la direction choisie, puis
 rituel de livraison complet (CHANGELOG inclus). Statiques verts
 (169 frontend, oxlint, tsc -b, build) sur la direction par défaut.
+
+### 15.16 B2.11–B2.12 — la chambre céleste, état livré (2026-08-28/29)
+
+**Le chemin de conception, tel qu'il s'est réellement joué.** Après
+les colonnes (B2.8-B2.10), la recette fondatrice a réclamé une âme de
+page entière. Trois visions proposées (orbite, cascade, carte
+stellaire) ; l'Orbite prototypée puis refusée (dégradé, fond
+invisible, identité faible) ; la **Carte stellaire** construite en
+direction ASSUMÉE et élue — puis affinée en recette interactive
+continue (HMR), à l'accord explicite à chaque pas. Un chantier de
+consolidation (registres denses) a été lancé puis **annulé sur
+recette** avant tout commit (retour propre à `a688974`, consigné au
+CHANGELOG).
+
+**L'état livré.**
+
+① **La chambre a un jour et une nuit** (tokens scopés `.chamber` /
+`.dark .chamber`, même geste que ROOM_TOKENS de la salle des
+lentilles). Nuit : espace profond, étoiles fines déterministes,
+SCEAU D'ORION (épaules, ceinture, pieds), sphères-planètes
+lumineuses. Jour : ciel dessiné maison (dégradé, soleil voilé,
+CUMULUS en couches de profondeur à dérive lente, brume d'horizon),
+MONTGOLFIÈRES dessinées (enveloppe à fuseaux, reflet, jupe,
+suspentes, nacelle). Aucun asset externe. La bascule de thème change
+le monde, jamais les chiffres ni les positions.
+
+② **La scène** : le focus est l'astre central (cœur lumineux — soleil
+le jour, étoile la nuit — le total au centre) ; ses destinations
+l'entourent, chacune un objet dont l'AIRE dit le montant
+(r ∝ √montant — jamais le rayon proportionnel, qui mentirait au
+carré), montant fort écrit sous chaque objet, part du parent
+affichée, palette catégorielle validée. Ni rayons ni anneau-guide
+(recette). Les objets FLOTTENT en désaccord (périodes/phases/
+amplitudes déterministes par index — le geste de la Lens Room),
+figés sous reduced-motion ; positions moyennes intouchées.
+
+③ **Honnêteté traduite en céleste** : inconnu jamais dessiné ;
+plancher de visibilité (rayon minimal + « ≈ », part réelle au
+title) ; « + N autres » = objet neutre --donut-others (porte vers la
+liste complète — recherche si entièrement servi, pagination) ;
+non-ventilé = objet fantôme en pointillés sans nacelle, jamais
+caché ; dépassement/étages absents : les textes comptables existants,
+intacts. Chaque objet est un vrai lien/bouton nommé (la carte est la
+surface accessible).
+
+④ **Le fil d'Ariane se souvient** : chaque segment porte la
+mini-planète/mini-montgolfière du nœud dans la couleur qu'il avait
+quand on l'a cliqué (mémoire de teintes de scène — décor pur, repli
+accent en lien profond à froid), IMMOBILE. **Titres interminables** :
+le grand titre passe par la coupe à l'unité de sens (code stable en
+dernier recours, rendu mono), nom complet au title et en sous-ligne
+clampée — agrégats ET projets.
+
+⑤ **La colonne de l'astre** : grammaire de fiche de référence —
+repère, nom en NÉON (teinte accent + halo, le geste du mot-monde),
+étiquette de mesure en capitales AU-DESSUS du chiffre-roi (halo
+d'étoile froid, jamais un dégradé), part, métadonnées sous filets.
+La méthodologie s'ouvre en carte CENTRÉE défilable (le tiroir
+plein-droite, geste étranger au site, retiré).
+
+⑥ **La fiche projet** : VERTICALE (grammaire des fiches du site),
+sortie « Ouvrir la fiche projet » en pastille néon-contour EN HAUT À
+DROITE, réconciliation, puis participants en LISTE simple —
+organisation, rôle, drapeau-pays cliquable, montant, part (un donut
+a été posé puis retiré en recette : la liste fait foi). NIH
+bénéficiaire : aucun graphique nulle part.
+
+⑦ **Navigation** : la page RESTE (pas de clé de remontage — les
+objets glissent en transform), URL = état du focus, deep-link ≡ une
+requête, réponses obsolètes jamais gagnantes et Back/Forward
+recomposés (tests permanents). Sortie hub pays corrigée
+(`/explore/countries/<CODE>` — `/countries/:code` n'existait pas).
+
+**Ce qu'on ne construit pas** (réaffirmé) : sunburst multi-anneaux,
+rayon ∝ montant, total inter-financeurs, étage synthétisé, ornement
+confondable avec une donnée (les étoiles de fond font 1-3 px, les
+objets-données ≥ 10 px).
+
+**Condition de validité de la scène** : SHOWN_SLOTS = 11 objets + la
+porte « + N autres » — un niveau dense (NIH 77, appels 40+) reste
+honnête (porte exacte) mais visuellement chargé ; le registre dense
+dédié a été proposé (B2.11 ②) et REFUSÉ en l'état — si la lecture
+dense redevient un besoin, c'est un chantier à part entière, pas un
+réglage.
