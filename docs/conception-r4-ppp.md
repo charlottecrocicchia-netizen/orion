@@ -1,5 +1,12 @@
 # Conception R4 — Purchasing power (PPP)
 
+> **ÉTAT : LIVRÉ — document historique.** R4B est **en production**
+> (commits `401270c` → `e08cfb5` : ingestion PPP, mode `value=ppp` de
+> l'Explorateur, dégradations honnêtes). Le statut ci-dessous
+> (« aucun code, aucune surface touchée ») décrit l'étude R4A au
+> 2026-08-25, PAS l'état courant. *(Bandeau posé le 2026-08-29,
+> chantier Hygiène B13.)*
+
 > **Statut : étude méthodologique R4A, soumise à arbitrage — aucun code,
 > aucune migration, aucune ingestion, aucune dépendance, aucune surface
 > touchée.** Instruite le 2026-08-25 sur pièces officielles (métadonnées

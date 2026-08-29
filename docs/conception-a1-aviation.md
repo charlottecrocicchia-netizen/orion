@@ -1,5 +1,14 @@
 # A1-Conception — la lentille Aviation (étude + conception, AUCUNE règle chargée)
 
+> **ÉTAT : LIVRÉ — document historique.** La lentille `aviation` est
+> **publiée en production** (published v2, 179 règles, cœur 1 752
+> projets — relevé de prod, `conception-deploiement.md` annexe B).
+> L'en-tête ci-dessous (« AUCUNE règle chargée », `status=draft ») décrit
+> l'état au 2026-08-18, PAS l'état courant : ne rien recharger ni
+> écraser sur la foi de ce document. La vérité vivante est en base
+> (`lenses`, `lens_rules`) et dans `backend/curation/lenses/`.
+> *(Bandeau posé le 2026-08-29, chantier Hygiène B13.)*
+
 *2026-08-18 — cadre : deuxième vraie lentille d'Orion, famille
 `aerospace_mobility`, même sérieux que les 23 règles spatiales sur un
 terrain plus piégeux. Ce document est une ÉTUDE du corpus réel et une
