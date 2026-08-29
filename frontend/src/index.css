@@ -349,6 +349,11 @@
   color:var(--accent);
   text-shadow:0 0 16px color-mix(in srgb, var(--accent) 50%, transparent);
 }
+/* Le chiffre-roi de la colonne : blanc, halo d'étoile froid — jamais
+   un dégradé (recette fondatrice). */
+.chamber-figure{
+  text-shadow:0 0 30px color-mix(in srgb, var(--accent) 30%, transparent);
+}
 /* La sortie mise en valeur (fiche projet) : pastille néon-contour,
    toujours en tête de scène. */
 .chamber-cta{

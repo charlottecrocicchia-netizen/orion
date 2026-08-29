@@ -191,14 +191,18 @@ function MethodologyPanel({
       </button>
       {open ? (
         <>
-          <div aria-hidden="true" className="fixed inset-0 z-40" onClick={close} />
+          <div
+            aria-hidden="true"
+            className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]"
+            onClick={close}
+          />
           <div
             id={panelId}
             ref={panelRef}
             role="dialog"
             aria-label={t("money.methodology.title")}
             tabIndex={-1}
-            className="absolute left-0 top-[calc(100%+10px)] z-50 max-h-[64vh] w-[min(400px,86vw)] overflow-y-auto overscroll-contain rounded-xl border bg-surface p-5 shadow-[0_0_36px_-10px_color-mix(in_srgb,var(--accent)_50%,transparent)]"
+            className="fixed left-1/2 top-1/2 z-50 max-h-[76vh] w-[min(480px,92vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-2xl border bg-surface p-6 shadow-[0_0_44px_-10px_color-mix(in_srgb,var(--accent)_50%,transparent)]"
           >
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
@@ -1676,7 +1680,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           carte tient à l'écran : l'astre se range en colonne, la
           carte prend toute la hauteur restante. */}
       <div className="flex h-full min-h-0 flex-col px-6 pb-4 pt-6 md:px-10 xl:flex-row xl:gap-12">
-        <header className="w-full max-w-[980px] shrink-0 xl:w-[350px]">
+        <header className="flex w-full max-w-[980px] shrink-0 flex-col xl:w-[360px] xl:justify-center xl:pb-16">
           <Eyebrow>
             {t(`money.levels.${shown}`)}
             {"code" in data.node && data.node.code !== label ? (
@@ -1694,16 +1698,23 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           >
             {label}
           </h1>
-          <p className="display-tight tnum mt-4 text-[clamp(32px,3.4vw,46px)] font-semibold">
-            {data.aggregate?.amount == null ? (
-              <span title={t("money.unknownAmount")}>—</span>
-            ) : (
-              money(data.aggregate.amount, data.aggregate.measure.currency)
-            )}
-          </p>
-          <ShareLine share={data.share_of_parent} measureKey={data.aggregate?.measure.key} />
-          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border-soft pt-4 text-[13px] text-muted-foreground">
-            <span>{measureShort(data.aggregate?.measure.key)}</span>
+          {/* Le bloc-chiffre : une étiquette de mesure AU-DESSUS, le
+              chiffre en roi (halo froid, jamais un dégradé), la part
+              juste dessous — la grammaire d'une fiche de référence. */}
+          <div className="mt-7 border-t border-border-soft pt-5">
+            <p className="text-[10.5px] font-medium uppercase tracking-[.16em] text-muted-foreground">
+              {measureShort(data.aggregate?.measure.key)}
+            </p>
+            <p className="chamber-figure display-tight tnum mt-2 text-[clamp(38px,3.8vw,54px)] font-semibold leading-none">
+              {data.aggregate?.amount == null ? (
+                <span title={t("money.unknownAmount")}>—</span>
+              ) : (
+                money(data.aggregate.amount, data.aggregate.measure.currency)
+              )}
+            </p>
+            <ShareLine share={data.share_of_parent} measureKey={data.aggregate?.measure.key} />
+          </div>
+          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border-soft pt-4 text-[13px] text-muted-foreground">
             <NatureMark provenance={data.aggregate?.measure.provenance} />
             <MethodologyPanel
               rows={[
@@ -1842,16 +1853,20 @@ function ProjectFocus({ id }: { id: string }) {
             </p>
           ) : null}
           {dates ? <p className="tnum mt-1.5 text-[12.5px] text-muted-foreground">{dates}</p> : null}
-          <p className="display-tight tnum mt-4 text-[clamp(32px,3.4vw,46px)] font-semibold">
-            {data.measure.amount == null ? (
-              <span title={t("money.unknownAmount")}>—</span>
-            ) : (
-              money(data.measure.amount, data.measure.currency)
-            )}
-          </p>
-          <ShareLine share={data.share_of_parent} measureKey={data.measure.key} />
-          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border-soft pt-4 text-[13px] text-muted-foreground">
-            <span>{measureShort(data.measure.key)}</span>
+          <div className="mt-7 border-t border-border-soft pt-5">
+            <p className="text-[10.5px] font-medium uppercase tracking-[.16em] text-muted-foreground">
+              {measureShort(data.measure.key)}
+            </p>
+            <p className="chamber-figure display-tight tnum mt-2 text-[clamp(38px,3.8vw,54px)] font-semibold leading-none">
+              {data.measure.amount == null ? (
+                <span title={t("money.unknownAmount")}>—</span>
+              ) : (
+                money(data.measure.amount, data.measure.currency)
+              )}
+            </p>
+            <ShareLine share={data.share_of_parent} measureKey={data.measure.key} />
+          </div>
+          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border-soft pt-4 text-[13px] text-muted-foreground">
             <NatureMark provenance={data.measure.provenance} />
             <MethodologyPanel
               rows={[
