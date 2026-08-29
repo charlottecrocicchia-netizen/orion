@@ -265,13 +265,25 @@
   }
 }
 
-/* ── B2.11 : la chambre de l'argent, « Carte stellaire » — la
-   chambre impose sa NUIT (tokens scopés, même geste que ROOM_TOKENS
-   de la salle des lentilles), le ciel porte des étoiles fines et le
-   sceau d'Orion, le focus est l'étoile centrale. Les étoiles
-   GLISSENT au changement de niveau (transform seul) ; reduced-motion
-   fige tout, ciel visible. ── */
-.chamber-night{
+/* ── B2.11 : la chambre de l'argent, « Carte stellaire » — un JOUR
+   et une NUIT. En thème clair, la chambre est un ciel de jour
+   dessiné (dégradé de ciel, soleil voilé, nuages en voiles flous) ;
+   en thème sombre, elle impose sa nuit spatiale (tokens scopés, même
+   geste que ROOM_TOKENS de la salle des lentilles). Même lieu, même
+   configuration, deux lumières. Le sceau d'Orion veille dans les
+   deux — constellation pâle le jour, lumineuse la nuit. Reduced-
+   motion fige tout, ciel visible. ── */
+.chamber{
+  /* le jour : tokens du thème clair hérités, seuls la lumière et les
+     réglages de matière changent */
+  --star-shade:#c6d2e2;
+  --halo-soft:16%;
+  color-scheme:light;
+  background:
+    radial-gradient(55% 40% at 82% 6%, rgba(255,243,205,.6), transparent 62%),
+    linear-gradient(#dceafc 0%, #f2f7fe 62%, #ecf3fc 100%);
+}
+.dark .chamber{
   --background:#0a0c13; --surface:#12151d; --foreground:#f5f5f7;
   --muted-foreground:#9da3b0;
   --border:rgba(245,245,247,.12); --border-soft:rgba(245,245,247,.06);
@@ -281,6 +293,8 @@
   --series-1:#6366f1; --series-2:#d97706; --series-3:#0d9488;
   --series-4:#be185d; --series-5:#8b5cf6; --series-6:#65a30d;
   --donut-others:#3a3f4b;
+  --star-shade:#05060a;
+  --halo-soft:30%;
   color:var(--foreground);
   color-scheme:dark;
   background:
@@ -290,6 +304,25 @@
     linear-gradient(#0b0e16, #07080d);
 }
 .chamber-bg{position:absolute; inset:0; overflow:hidden; pointer-events:none; color:rgba(245,245,247,.5)}
+/* Les étoiles fines n'existent que la nuit ; les nuages que le jour ;
+   le sceau vit dans les deux (pâle en plein jour). */
+.chamber-stars{display:none}
+.dark .chamber-stars{display:block}
+.chamber-seal{opacity:.45}
+.dark .chamber-seal{opacity:1}
+.chamber-clouds{position:absolute; inset:0; display:block}
+.dark .chamber-clouds{display:none}
+.chamber-cloud{
+  position:absolute; border-radius:9999px;
+  background:radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0));
+  filter:blur(6px);
+  opacity:var(--cloud-o,.6);
+  animation:chamber-cloud-drift var(--cloud-t,110s) ease-in-out infinite alternate;
+}
+@keyframes chamber-cloud-drift{
+  from{transform:translateX(-24px)}
+  to{transform:translateX(24px)}
+}
 .chamber-twinkle{animation:chamber-twinkle 5s ease-in-out infinite}
 @keyframes chamber-twinkle{0%,100%{opacity:.25}50%{opacity:.9}}
 /* Une étoile du niveau : pleine et lumineuse (destination), porte
@@ -301,7 +334,7 @@
     circle at 32% 28%,
     color-mix(in srgb, #ffffff 70%, var(--star-tint)),
     var(--star-tint) 55%,
-    color-mix(in srgb, var(--star-tint) 55%, #05060a) 100%
+    color-mix(in srgb, var(--star-tint) 55%, var(--star-shade)) 100%
   );
   box-shadow:
     0 0 20px -2px color-mix(in srgb, var(--star-tint) 75%, transparent),
@@ -318,9 +351,9 @@
     circle at 34% 30%,
     color-mix(in srgb, #ffffff 16%, var(--donut-others)),
     var(--donut-others) 60%,
-    color-mix(in srgb, var(--donut-others) 55%, #05060a) 100%
+    color-mix(in srgb, var(--donut-others) 55%, var(--star-shade)) 100%
   );
-  box-shadow:0 0 14px -4px rgba(245,245,247,.4);
+  box-shadow:0 0 14px -4px color-mix(in srgb, var(--foreground) 30%, transparent);
 }
 .group:hover .star-door,.group:focus-visible .star-door{
   box-shadow:0 0 28px -4px var(--accent);
@@ -347,12 +380,12 @@
    du header (AVIATION) — teinte accent + halo lumineux, lisible. */
 .chamber-neon{
   color:var(--accent);
-  text-shadow:0 0 16px color-mix(in srgb, var(--accent) 50%, transparent);
+  text-shadow:0 0 16px color-mix(in srgb, var(--accent) var(--halo-soft, 30%), transparent);
 }
 /* Le chiffre-roi de la colonne : blanc, halo d'étoile froid — jamais
    un dégradé (recette fondatrice). */
 .chamber-figure{
-  text-shadow:0 0 30px color-mix(in srgb, var(--accent) 30%, transparent);
+  text-shadow:0 0 30px color-mix(in srgb, var(--accent) var(--halo-soft, 30%), transparent);
 }
 /* La sortie mise en valeur (fiche projet) : pastille néon-contour,
    toujours en tête de scène. */
@@ -371,6 +404,12 @@
 }
 .star-core{
   width:14px; height:14px; border-radius:9999px;
+  background:#ffffff;
+  box-shadow:
+    0 0 22px 2px rgba(255,214,130,.85),
+    0 0 60px 10px rgba(255,214,130,.35);
+}
+.dark .star-core{
   background:var(--foreground);
   box-shadow:
     0 0 22px 2px color-mix(in srgb, var(--accent) 75%, transparent),
@@ -378,6 +417,7 @@
 }
 @media (prefers-reduced-motion: reduce){
   .chamber-twinkle{animation:none; opacity:.6}
+  .chamber-cloud{animation:none}
 }
 
 /* B2.8 : le segment « non ventilé » des colonnes proportionnelles —

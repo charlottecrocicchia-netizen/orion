@@ -347,10 +347,12 @@ function TrailBreadcrumb({ path }: { path: PathNode[] }) {
 
 function TrailWorkspace({ path, children }: { path: PathNode[]; children: ReactNode }) {
   return (
-    <div className="chamber-night relative flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
-      {/* La chambre impose sa nuit — même en thème clair, comme la
-          salle des lentilles impose la sienne — et le ciel habite
-          TOUTE la page : étoiles fines + sceau d'Orion. */}
+    <div className="chamber relative flex flex-col md:h-[calc(100dvh-4rem)] md:overflow-hidden">
+      {/* La chambre a un JOUR et une NUIT (recette fondatrice) : même
+          lieu, même configuration — ciel de jour dessiné (dégradé,
+          soleil voilé, nuages) en thème clair, nuit spatiale en thème
+          sombre. Le sceau d'Orion veille dans les deux, comme une
+          lune visible en plein jour. */}
       <ChamberBackdrop />
       <div className="relative flex min-h-0 flex-1 flex-col">
         <TrailBreadcrumb path={path} />
@@ -489,21 +491,53 @@ const ORION_SEAL = {
   ] as [number, number][],
 };
 
+/** Les nuages du jour : voiles dessinés (dégradés radiaux flous),
+ *  positions et dérives déterministes. Visibles en thème clair
+ *  seulement ; reduced-motion : immobiles. */
+const DAY_CLOUDS: { x: number; y: number; w: number; h: number; t: number; o: number }[] = [
+  { x: 8, y: 14, w: 340, h: 90, t: 96, o: 0.75 },
+  { x: 34, y: 34, w: 260, h: 70, t: 118, o: 0.55 },
+  { x: 58, y: 10, w: 420, h: 110, t: 104, o: 0.7 },
+  { x: 74, y: 46, w: 300, h: 84, t: 126, o: 0.5 },
+  { x: 16, y: 66, w: 380, h: 100, t: 110, o: 0.6 },
+  { x: 62, y: 78, w: 320, h: 90, t: 132, o: 0.5 },
+];
+
 function ChamberBackdrop() {
   return (
     <div aria-hidden="true" className="chamber-bg">
-      <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {SKY_STARS.map((star, i) => (
-          <circle
-            key={i}
-            cx={star.x}
-            cy={star.y}
-            r={star.r * 0.14}
-            className={star.tw ? "chamber-twinkle" : undefined}
-            style={star.tw ? { animationDuration: `${star.tw}s` } : undefined}
-            fill="currentColor"
+      <div className="chamber-clouds">
+        {DAY_CLOUDS.map((cloud) => (
+          <span
+            key={`${cloud.x}-${cloud.y}`}
+            className="chamber-cloud"
+            style={
+              {
+                left: `${cloud.x}%`,
+                top: `${cloud.y}%`,
+                width: cloud.w,
+                height: cloud.h,
+                "--cloud-t": `${cloud.t}s`,
+                "--cloud-o": cloud.o,
+              } as React.CSSProperties
+            }
           />
         ))}
+      </div>
+      <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <g className="chamber-stars">
+          {SKY_STARS.map((star, i) => (
+            <circle
+              key={i}
+              cx={star.x}
+              cy={star.y}
+              r={star.r * 0.14}
+              className={star.tw ? "chamber-twinkle" : undefined}
+              style={star.tw ? { animationDuration: `${star.tw}s` } : undefined}
+              fill="currentColor"
+            />
+          ))}
+        </g>
         <g className="chamber-seal">
           {ORION_SEAL.links.map(([a, b]) => (
             <line
