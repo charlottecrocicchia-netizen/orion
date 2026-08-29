@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from orion.core.db import get_db
-from orion.search import nsfobligations
+from orion.search import nsf_obligations
 
 router = APIRouter()
 
@@ -53,7 +53,7 @@ def nsf_obligations_meta(
 ) -> dict[str, Any]:
     """Les FY que la surface peut offrir — jamais un FY qui refuserait."""
     _reject_foreign_params(request)
-    return nsfobligations.fiscal_years(db)
+    return nsf_obligations.fiscal_years(db)
 
 
 @router.get("/nsf-obligations/aggregate")
@@ -68,12 +68,12 @@ def nsf_obligations_aggregate(
     if fy is None:
         raise HTTPException(status_code=400, detail="fy_required")
     fys = _parse_fy(fy)
-    if by not in nsfobligations.DIMENSIONS:
+    if by not in nsf_obligations.DIMENSIONS:
         raise HTTPException(status_code=400, detail="dimension_not_supported")
     try:
-        return nsfobligations.aggregate(db, fys=fys, by=by, limit=limit)
-    except nsfobligations.FyCoverageBelowThreshold as exc:
+        return nsf_obligations.aggregate(db, fys=fys, by=by, limit=limit)
+    except nsf_obligations.FyCoverageBelowThreshold as exc:
         raise HTTPException(status_code=422, detail="fy_coverage_below_threshold") from exc
-    except nsfobligations.FyUnavailable as exc:
+    except nsf_obligations.FyUnavailable as exc:
         detail = "nsf_obligations_unavailable" if str(exc) == "no_vintage" else "fy_unavailable"
         raise HTTPException(status_code=422, detail=detail) from exc

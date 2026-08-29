@@ -19,7 +19,7 @@ import pytest
 from sqlalchemy import text
 
 from orion.core.db import SessionLocal
-from orion.ingest.nsfobligations import load as obligations_load
+from orion.ingest.nsf_obligations import load as obligations_load
 
 # Le magasin durable (régime data/, promotion du runbook § 2) — le
 # dernier millésime, comme l'ingestion de production.

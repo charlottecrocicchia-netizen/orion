@@ -35,7 +35,7 @@ from sqlalchemy.orm import Session
 
 from orion.core.config import get_settings
 from orion.core.db import SessionLocal
-from orion.ingest.nsfobligations import parse
+from orion.ingest.nsf_obligations import parse
 from orion.ingest.runlog import RunStats, record_run
 from orion.models import NsfAwardObligation, NsfObligationArtifact, NsfObligationTotal
 

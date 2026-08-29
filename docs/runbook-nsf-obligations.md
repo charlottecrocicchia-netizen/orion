@@ -150,7 +150,7 @@ suffit du dossier de millésime `data/r5-nsf/<vintage>/` (copié du VPS
 ou d'une sauvegarde) et de cette commande — aucun accès au dashboard
 n'est nécessaire, aucun chiffre retapé.
 
-Le chargeur (`orion/ingest/nsfobligations/`) : vérifie sidecar + SHA256,
+Le chargeur (`orion/ingest/nsf_obligations/`) : vérifie sidecar + SHA256,
 parse en refus bruyant (dialecte strict ; une ligne rigoureusement
 identique dupliquée = artefact corrompu, refusé), calcule par
 FY le total officiel, la part joignable (`award_id` ↔

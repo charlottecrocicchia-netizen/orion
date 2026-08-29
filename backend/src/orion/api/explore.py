@@ -4,7 +4,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
-from orion import constanteuro, macro
+from orion import constant_euro, macro
 from orion.api.lens_param import resolve_lens_param
 from orion.core.config import get_settings
 from orion.core.db import get_db
@@ -68,10 +68,10 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
     rates = None
     ppp_set = None
     if value == "real":
-        if cur not in constanteuro.DISPLAY_CURRENCIES:
+        if cur not in constant_euro.DISPLAY_CURRENCIES:
             raise HTTPException(status_code=400, detail="Unsupported display currency")
         reference_year = base or get_settings().constant_euro_reference_year
-        factor_set = constanteuro.factor_set(db, reference_year, display_currency=cur)
+        factor_set = constant_euro.factor_set(db, reference_year, display_currency=cur)
         if factor_set is None:
             raise HTTPException(status_code=422, detail="real_unavailable")
     elif value in ("gdp", "capita"):
@@ -95,10 +95,10 @@ def explore_aggregate(  # noqa: PLR0913 — one whitelisted signature for every 
         else:
             # Par-habitant : numérateur en valeur RÉELLE — année de
             # référence et devise d'affichage comme en real (R0 § D1).
-            if cur not in constanteuro.DISPLAY_CURRENCIES:
+            if cur not in constant_euro.DISPLAY_CURRENCIES:
                 raise HTTPException(status_code=400, detail="Unsupported display currency")
             reference_year = base or get_settings().constant_euro_reference_year
-            factor_set = constanteuro.factor_set(db, reference_year, display_currency=cur)
+            factor_set = constant_euro.factor_set(db, reference_year, display_currency=cur)
             if factor_set is None:
                 raise HTTPException(status_code=422, detail="capita_unavailable")
     elif value == "ppp":

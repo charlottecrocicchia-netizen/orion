@@ -30,8 +30,8 @@ from sqlalchemy import text
 
 from orion.core.config import get_settings
 from orion.core.db import SessionLocal
-from orion.ingest.ftcalls import client as ft
-from orion.ingest.ftcalls.parse import framework_labels, parse_topic
+from orion.ingest.ft_calls import client as ft
+from orion.ingest.ft_calls.parse import framework_labels, parse_topic
 from orion.ingest.lenses import LENSES_DIR, REGISTRY_FILE, parse_registry, parse_rules
 from orion.ingest.runlog import RunStats, record_run
 from orion.ingest.upsert import upsert

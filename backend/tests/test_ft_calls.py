@@ -10,12 +10,12 @@ import pytest
 from sqlalchemy import text
 
 from orion.api.calls import derived_status, next_deadline
-from orion.ingest.ftcalls.parse import framework_labels, parse_topic
-from orion.ingest.ftcalls.sanitize import sanitize_html
+from orion.ingest.ft_calls.parse import framework_labels, parse_topic
+from orion.ingest.ft_calls.sanitize import sanitize_html
 from orion.ingest.upsert import upsert
 from orion.models import CallTopic
 
-FIXTURES = Path(__file__).parent / "fixtures" / "ftcalls"
+FIXTURES = Path(__file__).parent / "fixtures" / "ft_calls"
 
 
 @pytest.fixture(scope="module")

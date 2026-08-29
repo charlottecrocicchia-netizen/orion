@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # dans la vintage courante des indices (HICP, CPI-U) avec son taux
     # BCE en base. Basculer vers 2026 = changer cette valeur, zéro
     # migration — le mode constant se REFUSE de lui-même tant que les
-    # trois données de l'année demandée manquent (constanteuro.py).
+    # trois données de l'année demandée manquent (constant_euro.py).
     constant_euro_reference_year: int = 2025
 
     # --- Comptes (conception-workspace, lot 1) ---

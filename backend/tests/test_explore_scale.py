@@ -23,7 +23,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from orion import constanteuro, macro
+from orion import constant_euro, macro
 from orion.core.db import engine
 from orion.ingest.reference import seed_reference
 from orion.ingest.runlog import RunStats
@@ -314,7 +314,7 @@ def test_or_capita_cumul_pluriannuel(seeded):
     cumul, jamais dix ans de financement divisés par la population
     d'une seule année."""
     _, pop, _ = _sets(seeded)
-    fs = constanteuro.factor_set(seeded, 2025)
+    fs = constant_euro.factor_set(seeded, 2025)
     result = explore.aggregate(
         seeded, metric="funding", by="country", scale="capita", macro=pop, factor_set=fs
     )
@@ -328,7 +328,7 @@ def test_or_capita_usd_re_exprime(seeded):
     """La devise d'affichage reste un scalaire : per capita USD = per
     capita EUR × 1,25 — et l'unité le dit."""
     _, pop, _ = _sets(seeded)
-    usd = constanteuro.factor_set(seeded, 2025, display_currency="USD")
+    usd = constant_euro.factor_set(seeded, 2025, display_currency="USD")
     result = explore.aggregate(
         seeded, metric="funding", by="country", scale="capita", macro=pop, factor_set=usd
     )
@@ -450,7 +450,7 @@ def test_verrou_echantillon_nominal_a_travers_les_modes(seeded):
     )
     assert {s_["key"] for s_ in as_gdp["series"]} == nominal_keys
 
-    fs = constanteuro.factor_set(seeded, 2025)
+    fs = constant_euro.factor_set(seeded, 2025)
     as_capita = explore.aggregate(
         seeded,
         metric="funding",

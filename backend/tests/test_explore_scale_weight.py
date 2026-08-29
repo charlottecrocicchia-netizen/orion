@@ -31,7 +31,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from orion import constanteuro, macro
+from orion import constant_euro, macro
 from orion.core.db import engine
 from orion.ingest.reference import seed_reference
 from orion.ingest.runlog import RunStats
@@ -197,7 +197,7 @@ def _aggregate(session: Session, group_id: int, value: str | None):
     """La vue cadrée sur le GROUPE, dans le mode demandé."""
     kwargs: dict = {}
     if value in ("real", "capita"):
-        kwargs["factor_set"] = constanteuro.factor_set(session, YEAR, display_currency="EUR")
+        kwargs["factor_set"] = constant_euro.factor_set(session, YEAR, display_currency="EUR")
     if value in ("gdp", "capita"):
         kwargs["scale"] = value
         kwargs["macro"] = macro.macro_set(
@@ -284,7 +284,7 @@ def test_les_modes_sans_groupe_sont_inchanges(seeded):
     def sans_groupe(value: str | None):
         kwargs: dict = {}
         if value in ("real", "capita"):
-            kwargs["factor_set"] = constanteuro.factor_set(session, YEAR, display_currency="EUR")
+            kwargs["factor_set"] = constant_euro.factor_set(session, YEAR, display_currency="EUR")
         if value in ("gdp", "capita"):
             kwargs["scale"] = value
             kwargs["macro"] = macro.macro_set(

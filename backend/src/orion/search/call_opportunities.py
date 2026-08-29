@@ -63,7 +63,7 @@ def calls_stamp(session: Session) -> str:
 
 def _live_topics(session: Session, stamp: str) -> list[dict[str, Any]]:
     """Tous les topics du flux, bruts — la dérivation ouvert/à venir se
-    fait à la lecture (orion.callstatus), jamais figée en cache."""
+    fait à la lecture (orion.call_status), jamais figée en cache."""
 
     def build() -> list[dict[str, Any]]:
         rows = session.execute(

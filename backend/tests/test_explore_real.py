@@ -15,7 +15,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from orion import constanteuro
+from orion import constant_euro
 from orion.core.db import engine
 from orion.ingest.reference import seed_reference
 from orion.ingest.runlog import RunStats
@@ -125,7 +125,7 @@ def test_nominal_reste_strictement_identique(seeded):
 
 
 def test_real_kpi_et_part_exclue(seeded):
-    fs = constanteuro.factor_set(seeded, 2025)
+    fs = constant_euro.factor_set(seeded, 2025)
     assert fs is not None
     result = explore.aggregate(seeded, metric="funding", by="funder", factor_set=fs)
     expected = EUR_2025 + USD_2025_EUR + EUR_2020_REAL
@@ -155,8 +155,8 @@ def test_real_usd_re_expression_scalaire(seeded):
     """Test-or R1 : la vue en `cur=USD` est la vue EUR multipliée par le
     seul taux BCE de l'année de référence — mêmes exclusions (toujours
     chiffrées en EUR nominal), même périmètre, autre unité."""
-    eur = constanteuro.factor_set(seeded, 2025)
-    usd = constanteuro.factor_set(seeded, 2025, display_currency="USD")
+    eur = constant_euro.factor_set(seeded, 2025)
+    usd = constant_euro.factor_set(seeded, 2025, display_currency="USD")
     r_eur = explore.aggregate(seeded, metric="funding", by="funder", factor_set=eur)
     r_usd = explore.aggregate(seeded, metric="funding", by="funder", factor_set=usd)
     rate = float(Decimal(USD_PER_EUR_2025))
@@ -172,7 +172,7 @@ def test_real_usd_re_expression_scalaire(seeded):
 def test_real_serie_temporelle_sans_faux_zero(seeded):
     """A1 à l'écran : 2026 émet un point à valeur ABSENTE (null), jamais
     un zéro — et l'année reste dans la série (l'axe garde l'horizon)."""
-    fs = constanteuro.factor_set(seeded, 2025)
+    fs = constant_euro.factor_set(seeded, 2025)
     result = explore.aggregate(seeded, metric="funding", by="year", factor_set=fs)
     points = {p["year"]: p["value"] for p in result["series"][0]["points"]}
     assert points[2026] is None
@@ -188,7 +188,7 @@ def test_real_serie_temporelle_sans_faux_zero(seeded):
 def test_real_grain_participation(seeded):
     """La même mécanique au grain participations (by=country) : devise
     NATIVE de la participation, année de début du projet."""
-    fs = constanteuro.factor_set(seeded, 2025)
+    fs = constant_euro.factor_set(seeded, 2025)
     result = explore.aggregate(seeded, metric="funding", by="country", factor_set=fs)
     fr = next(s for s in result["series"] if s["key"] == "FR")
     expected = EUR_2025 + USD_2025_EUR + EUR_2020_REAL
@@ -199,7 +199,7 @@ def test_real_grain_participation(seeded):
 def test_metrique_de_comptes_identique_en_real(seeded):
     """Le mode real ne transforme que l'argent : une métrique de comptes
     rend les mêmes valeurs, seule `meta.reference` s'ajoute."""
-    fs = constanteuro.factor_set(seeded, 2025)
+    fs = constant_euro.factor_set(seeded, 2025)
     nominal = explore.aggregate(seeded, metric="projects", by="funder")
     real = explore.aggregate(seeded, metric="projects", by="funder", factor_set=fs)
     assert real["series"] == nominal["series"]

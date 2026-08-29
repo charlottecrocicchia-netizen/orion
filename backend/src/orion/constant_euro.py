@@ -1,5 +1,5 @@
 """Euros constants (lot A) — la SOURCE UNIQUE du facteur, comme
-`callstatus.py` l'est pour les statuts d'appels.
+`call_status.py` l'est pour les statuts d'appels.
 
 Chaîne C de la taxonomie monétaire (docs/conception-a-euros-constants.md
 § 2.7) : pour un montant NATIF en devise `d` rattaché à l'année de

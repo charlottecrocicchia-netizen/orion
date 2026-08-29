@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any
 from urllib.parse import unquote
 
-from orion.ingest.ftcalls.sanitize import sanitize_html
+from orion.ingest.ft_calls.sanitize import sanitize_html
 
 SOURCE = "ft-portal"
 

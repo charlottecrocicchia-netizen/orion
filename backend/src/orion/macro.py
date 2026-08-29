@@ -1,5 +1,5 @@
 """Dénominateurs macro des juridictions (lot R3) — la SOURCE UNIQUE,
-comme `constanteuro.py` l'est pour les facteurs de prix.
+comme `constant_euro.py` l'est pour les facteurs de prix.
 
 ECONOMIC SCALE (R0 § D1/D3) rapporte le financement à l'économie d'une
 juridiction. Deux concepts en R3, tous deux WDI (CC BY-4.0 vérifié PAR

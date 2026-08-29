@@ -21,7 +21,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from orion.api.lens_param import resolve_lens_param
-from orion.callstatus import derived_status, next_deadline, parse_instants
+from orion.call_status import derived_status, next_deadline, parse_instants
 from orion.core.db import get_db
 from orion.models import CallTopic
 from orion.search.call_actors import historical_actors
@@ -42,7 +42,7 @@ DERIVED_STATUSES = ("open", "upcoming", "closed")
 
 
 # derived_status / next_deadline / parse_instants vivent dans
-# orion.callstatus (une seule source de vérité depuis E3) — réexportés
+# orion.call_status (une seule source de vérité depuis E3) — réexportés
 # ici pour les tests et la stabilité des imports.
 _instants = parse_instants
 

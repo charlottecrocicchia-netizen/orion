@@ -17,7 +17,7 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from orion.constanteuro import COVERED, FactorSet
+from orion.constant_euro import COVERED, FactorSet
 from orion.macro import MacroSet, PppRatioSet
 from orion.search.service import (
     _cached_bounded,
@@ -753,7 +753,7 @@ def _build(
             "AND m.organisation_id = pa.organisation_id AND m.status = 'active')"
         )
     # Le mode « euros constants » (lot A) : la table des facteurs vient
-    # de constanteuro.py (source unique) et se joint en VALUES sur
+    # de constant_euro.py (source unique) et se joint en VALUES sur
     # (devise NATIVE, année de début) — LEFT JOIN : une ligne sans
     # facteur reste dans la vue, sa somme constante l'ignore, la part
     # exclue la compte. Le chemin nominal n'ajoute RIEN (aucun octet de

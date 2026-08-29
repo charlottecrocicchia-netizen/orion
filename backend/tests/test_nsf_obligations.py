@@ -18,9 +18,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from orion.core.db import SessionLocal, engine
-from orion.ingest.nsfobligations import load as obligations_load
-from orion.ingest.nsfobligations import parse
-from orion.search import nsfobligations
+from orion.ingest.nsf_obligations import load as obligations_load
+from orion.ingest.nsf_obligations import parse
+from orion.search import nsf_obligations
 
 MARK = "ZZR5B"
 
@@ -549,8 +549,8 @@ def test_unite_no_vintage(test_database):
             # le cas « aucune vintage » doit exister quel que soit l'ordre
             # des tests du module.
             session.execute(text("DELETE FROM nsf_obligation_totals"))
-            with pytest.raises(nsfobligations.FyUnavailable, match="no_vintage"):
-                nsfobligations.aggregate(session, fys=[2022], by="fy")
+            with pytest.raises(nsf_obligations.FyUnavailable, match="no_vintage"):
+                nsf_obligations.aggregate(session, fys=[2022], by="fy")
         finally:
             session.close()
             outer.rollback()

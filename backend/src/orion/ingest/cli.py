@@ -6,14 +6,14 @@ from functools import partial
 from orion.ingest import cordis, dedup
 from orion.ingest import reference as reference_module
 from orion.ingest.cordis.config import FRAMEWORKS
-from orion.ingest.ftcalls import load as ftcalls_load
+from orion.ingest.ft_calls import load as ft_calls_load
 from orion.ingest.gleif import load as gleif_load
 from orion.ingest.groups import build as groups_build
 from orion.ingest.lenses import run as lenses_run
 from orion.ingest.macro import run as macro_run
 from orion.ingest.nih import load as nih_load
 from orion.ingest.nsf import load as nsf_load
-from orion.ingest.nsfobligations import load as nsf_obligations_load
+from orion.ingest.nsf_obligations import load as nsf_obligations_load
 from orion.ingest.prices import run as prices_run
 from orion.ingest.rates import run as rates_run
 from orion.ingest.subdivisions import run as subdivisions_run
@@ -51,7 +51,7 @@ REGISTRY = {
     "subdivisions": subdivisions_run,
     # Les appels à venir (E1) : régime « fraîcheur légère » — le seul
     # chargeur pensé pour tourner AUSSI sur le VPS, quotidien, léger.
-    "calls": ftcalls_load.run,
+    "calls": ft_calls_load.run,
 }
 
 # `all` rebuilds everything: reference data first, deduplication before
