@@ -1,9 +1,14 @@
 # Conception F — Dépendance et exposition (F0 : le contrat méthodologique)
 
-> **Statut : F0 soumis à arbitrage — aucun code, aucun écran, aucun plan
-> d'implémentation avant validation.** Le NO-GO est un résultat valide
-> (précédent R5A) : chaque mesure refusée ci-dessous l'est avec son
-> motif, et la condition sous laquelle elle redeviendrait instruisable.
+> **Statut : VALIDÉ le 2026-08-29 (arbitrage Charlotte) — GO, avec
+> trois corrections gravées ici même (M4 sans qualificatif, règle de
+> refus F-D6, branche unique pour la dette Explorateur) et les deux
+> questions ouvertes tranchées (groupes : première issue retenue, hors
+> F1 ; contrefactuel : NO-GO).** Le plan d'implémentation est
+> `docs/plan-f1-dependance.md`, soumis à arbitrage séparément.
+> Le NO-GO reste un résultat valide (précédent R5A) : chaque mesure
+> refusée ci-dessous l'est avec son motif, et la condition sous
+> laquelle elle redeviendrait instruisable.
 > Gold set calculé à la main le 2026-08-29 sur le corpus complet local
 > (699 798 / 110 116 / 1 102 270, état de référence) et vérifié **au
 > centime** contre le moteur de chaîne B1 (`chain.organisation_node`,
@@ -143,6 +148,7 @@ jamais dans un libellé de mesure.
 | Phrase top N | Les {{n}} premiers programmes portent {{pct}} du montant observé ({{funder measure}}) | The top {{n}} programmes carry {{pct}} of the observed amount ({{funder measure}}) |
 | Inconnu | {{n}} participations sans montant connu — exclues du calcul et comptées | {{n}} participations carry no known amount — excluded from the ratio and counted |
 | Refus majorité inconnue | La part n'est pas calculable : la majorité des montants est inconnue ({{unknown}}/{{total}}) | No share can be computed: most amounts are unknown ({{unknown}}/{{total}}) |
+| Refus de persistance (entité sans identifiant stable, F-D6) | Cette entité n'a pas d'identifiant public stable : la vue se consulte mais ne peut pas être conservée — une référence enregistrée pourrait se briser sans prévenir | This entity has no stable public identifier: the view can be browsed but not saved — a stored reference could break without warning |
 | Non-surinterprétation (bloc méthode, fixe) | Parts calculées au sein des financements observés par Orion — jamais le budget ni les ressources de l'entité. Constat observé, aucune prédiction. | Shares computed within Orion-observed funding — never the entity's budget or resources. Observed facts, no prediction. |
 
 **Interdits, avec leur remplacement :**
@@ -221,10 +227,15 @@ jamais l'indice nu (doctrine « un score sans ses composantes ne
 s'affiche pas », audit-intelligence).
 - **Formule, affichée dans le bloc méthode** :
   `HHI = 10 000 × Σᵢ (partᵢ)²` sur les parts M2 (montants connus, un
-  financeur, une mesure). Convention et seuils **sourcés** : l'échelle
-  0–10 000 et les paliers des *US DOJ/FTC Merger Guidelines* (2023) —
-  < 1 000 : concentration faible ; 1 000–1 800 : modérée ; > 1 800 :
-  élevée — cités comme convention d'usage, pas comme norme Orion.
+  financeur, une mesure). L'échelle 0–10 000 est affichée avec sa
+  source (l'indice de Herfindahl-Hirschman, convention d'usage des
+  *US DOJ/FTC Merger Guidelines*). **Aucun qualificatif** — pas de
+  « faible / modérée / élevée » : ces paliers qualifient une
+  concentration de MARCHÉ entre concurrents, quand F mesure un
+  portefeuille (condition (d) ci-dessous) ; les importer serait le
+  diagnostic que F-D2 bannit, avec l'habit d'un régulateur (arbitrage
+  du 2026-08-29). Le nombre, la formule, l'échelle sourcée — rien
+  d'autre.
 - **Conditions de validité nommées** : (a) intra-financeur strictement —
   un HHI inter-financeurs est le ratio du § 2.2, refusé ; (b) même
   régime « majorité connue » que M2 ; (c) maille = code programme par
@@ -266,11 +277,11 @@ règles, mêmes refus.
 |---|---|---|
 | Double comptage multi-participants | Grain participation partout (R1) ; le gold ITACONIX et VerSiLiB restent les tests de recette ; NIH via convention bénéficiaire, étiquetée | § 8, golds F-1/F-2 ; `test_chain_gold.py:417-427, 567-591` |
 | Remontée organisation (deux niveaux d'argent B0) | F lit les blocs B1 (`_by_funder_blocks`), qui somment les PARTS (jamais l'étage projet) ; R2 : les deux étages jamais additionnés | § 7, F-R1 |
-| Fusions/alias — les IDs bougent | La dépendance se calcule sur l'**entité canonique dédupliquée** (analyse Orion, déclarée en méthode). Toute persistance (dossier, export, URL durable) référence le couple **`(scheme, value)` d'`organisation_identifiers`** (pic > uei > ipf > rnsr — faits source réattachés au survivant d'une fusion), jamais `organisations.id` (supprimé par `merge.py:143`), jamais `lei` (dérivé, reconstruit à chaque run). Une organisation sans identifiant fort est un cas nommé (« entité sans identifiant stable »), pas un cas normal | inventaire § dédup ; audit G8 |
+| Fusions/alias — les IDs bougent | La dépendance se calcule sur l'**entité canonique dédupliquée** (analyse Orion, déclarée en méthode). Toute persistance (dossier, export, URL durable) référence le couple **`(scheme, value)` d'`organisation_identifiers`** (pic > uei > ipf > rnsr — faits source réattachés au survivant d'une fusion), jamais `organisations.id` (supprimé par `merge.py:143`), jamais `lei` (dérivé, reconstruit à chaque run). **La règle du cas « entité sans identifiant stable » (arbitrage 2026-08-29)** : elles sont **9 016 sur 110 116** (8,2 %, portant 5 565,9 M€ observés — mesuré sur l'état de référence, chiffre au contrat). Pour elles, la **persistance durable est REFUSÉE avec message explicite** (phrase au § 3.2) : pas de dossier, pas d'export référencé, pas d'URL durable — la consultation à chaud reste entière. Jamais de référence dégradée silencieuse (un `organisations.id` persisté « faute de mieux » serait exactement le défaut G8 que cette règle ferme) | inventaire § dédup ; audit G8 |
 | Deux entités légitimes sous un même nom | Le CNRS existe en DEUX entités à PIC distincts (18159 : 3 016,6 M€ ; 2373 : 0,78 M€) — ce n'est pas un défaut de dédup (PIC différents = jamais fusionnés, `STRONG_SCHEMES`). Une part calculée sur l'une n'inclut pas l'autre : la surface liste les homonymes non consolidés quand ils existent (régime « note d'honnêteté de périmètre » des groupes), jamais une fusion silencieuse | gold F-2 |
 | Natures jamais sommées entre financeurs | F-D1 § 2.2 — le refus est structurel, pas un affichage | gold F-1 |
 | Montants inconnus | Trois étages, chacun nommé : `unknown_amount` (inconnu à la source — exclu du ratio et compté), `excluded_no_rate` (connu mais sans taux BCE — n'affecte que la vue EUR, jamais les parts natives), et l'inconnu **dépendant de la convention** (les instituts intra-muros NIH : participations NULL mais convention bénéficiaire pleine — gold F-4a). Garde-fou : règle « majorité connue » (§ 6) | golds F-1, F-4 |
-| Le chemin existant qui contredit tout ça | `explore.aggregate(by="funder", organisation=…)` produit DÉJÀ une répartition par financeur en `sum(amount_eur)` inter-natures — exactement ce que F refuse. **Dette nommée** : le lot d'implémentation devra soit aligner ce chemin sur M1, soit l'étiqueter « Σ observée corpus Orion, natures mêlées » ; en l'état il est le contre-modèle | inventaire § 4 ; même régime que la dette « hero » de conception-b § NO-GO 3 |
+| Le chemin existant qui contredit tout ça | `explore.aggregate(by="funder", organisation=…)` produit DÉJÀ une répartition par financeur en `sum(amount_eur)` inter-natures — exactement ce que F refuse. **Branche unique, arbitrée (2026-08-29) : alignement sur M1** — `by=funder` garde ses comptes et ses montants natifs par financeur, il **perd la somme EUR inter-natures**. L'option « étiqueter Σ observée, natures mêlées » est écartée : une étiquette ne rend pas un chiffre vrai, elle s'en excuse — et elle installerait la même somme interdite sur la fiche et tolérée sur l'Explorateur. Résorption en **F1.1**, avant toute surface nouvelle | inventaire § 4 ; même régime que la dette « hero » de conception-b § NO-GO 3 |
 
 ## 6. La condition de validité « majorité connue » (F-D4)
 
@@ -333,7 +344,8 @@ servi par le moteur) ; la part EC de JHU est refusée par F-D4
 EC seul : 4 962 participations, 129 inconnues (2,6 % — « majorité
 connue » passée), **3 016 610 461,35 €** observés (moteur : ✓).
 Concentration intra-EC sur 58 programmes (montants connus) :
-**top 3 = 57,04 %**, **HHI = 1 273** (modéré, convention § M4). Le
+**top 3 = 57,04 %**, **HHI = 1 273** (échelle 0–10 000, § M4 — sans
+qualificatif). Le
 plancher-famille en acte : ERC = 349,16 + 734,30 + 637,06 M€ sur trois
 codes de générations — la part « ERC famille » (57 %) n'est pas servie
 faute de curation famille, et le HHI par code sous-estime cette
@@ -377,36 +389,39 @@ sans contribution UE publiée.
 | Fiche organisation | « Mon labo est-il mono-dépendant ? » « D'où vient l'argent de mon concurrent ? » | M1 (panorama par financeur) ; par financeur : M2 (parts programmes), M3 (top 3 + phrase), M4 (HHI), M5 (deux fenêtres de cohortes) |
 | Fiche pays | « Quels acteurs français sont les plus exposés au programme X ? » « Que reçoit ce pays, de qui ? » | M1 pays ; M6 (classement des organisations par exposition à P) ; M2-M4 par financeur au grain pays |
 | Vue comparative (benchmark existant) | « Entre A, B et C, qui est le plus exposé à Horizon Europe ? » | M2/M3 côte à côte, même financeur, même fenêtre — jamais de comparaison inter-financeurs |
-| Fiche groupe | « À quoi mon groupe est-il exposé ? » | **Reporté à l'arbitrage** : le groupe consolide en EUR pondéré JV inter-sources — exactement la somme que F-D1 refuse. Deux issues possibles : blocs M1 par financeur AVANT pondération (chaque bloc pondéré dans sa devise), ou refus nommé. Non tranché ici, à instruire au plan F1 |
-
-Le contrefactuel (« si Horizon Space −20 % ») évoqué par
-l'audit-intelligence n'entre PAS dans F0 : c'est une arithmétique
-d'exposition historique dont tout le risque est le wording
-anti-prévision — question ouverte, à instruire séparément si F1 est GO.
+| Fiche groupe | « À quoi mon groupe est-il exposé ? » | **Tranché (arbitrage 2026-08-29), première issue retenue** : blocs M1 par financeur AVANT pondération — chaque bloc pondéré JV dans SA devise et SA nature, **jamais de total consolidé** ; la pondération des JV est une classification dérivée Orion, déclarée au bloc méthode. **Chantier séparé, hors F1** — rien de groupe dans le plan F1 |
 
 ## 10. Ce qu'on ne construit pas
 
 Un total inter-financeurs sous quelque étiquette que ce soit (même
 « Σ observée ») sur une surface F — le panorama suffit ; un « % du
 budget » ; un score de dépendance composite (un indice sans formule
-affichée, une note, un feu tricolore) ; une famille de programmes par
-règle de préfixe non versionnée ; une série annuelle de dépendance ;
-un HHI de « marché » ; une prédiction, une recommandation, un
-qualificatif de risque ; une part calculée en re-requêtant les tables
-depuis la vue (F-R1).
+affichée, une note, un feu tricolore) ; **un qualificatif de
+concentration** (faible/modérée/élevée — arbitrage 2026-08-29, § M4) ;
+une famille de programmes par règle de préfixe non versionnée ; une
+série annuelle de dépendance ; un HHI de « marché » ; une prédiction,
+une recommandation, un qualificatif de risque ; une part calculée en
+re-requêtant les tables depuis la vue (F-R1) ; **le contrefactuel
+(« si le programme X −20 % ») : NO-GO tranché (2026-08-29)** —
+l'arithmétique n'ajoute rien à M2/M3 (la part EST déjà l'exposition),
+et le cadrage de scénario ajoute tout le risque de lecture prédictive.
+Question fermée, pas reportée.
 
-## 11. Récapitulatif des décisions soumises à l'arbitrage
+## 11. Récapitulatif des décisions — ARBITRÉES le 2026-08-29
 
-| # | Décision | Verdict proposé |
+| # | Décision | Verdict |
 |---|---|---|
-| F-D1 | Dénominateur | budget : NO-GO (R5A) ; inter-financeurs : NO-GO (I3/I8, golds F-1/F-3) ; intra-financeur sur montants connus : GO |
-| F-D2 | Wording | « dépendance » banni des libellés ; formulations exactes § 3.2, parité FR/EN testée ; « % du budget » interdit |
-| F-D3 | Mesures | M1 panorama (B1 tel quel), M2 parts programmes, M3 top 3, M4 HHI (formule affichée, seuils DOJ/FTC cités), M5 fenêtres de cohortes, M6 exposition pays→programme |
-| F-D4 | Refus « majorité connue » | `unknown_amount > with_amount` ⇒ M2-M5 fermées, motif `unknown_majority` — y compris JHU côté EC |
-| F-D5 | Maille programme | code par génération (la seule en base) ; part = plancher de famille, dit ; famille = curation versionnée future, jamais un préfixe silencieux |
-| F-D6 | Clé stable | entité canonique dédupliquée (analyse Orion déclarée) ; persistance par `(scheme, value)` — jamais `organisations.id`, jamais `lei` |
-| Ouvert | Groupes (§ 9), contrefactuel historique | à instruire au plan F1 si GO |
+| F-D1 | Dénominateur | **VALIDÉ** — budget : NO-GO (R5A) ; inter-financeurs : NO-GO (I3/I8, golds F-1/F-3) ; intra-financeur sur montants connus : GO |
+| F-D2 | Wording | **VALIDÉ** — « dépendance » banni des libellés ; formulations exactes § 3.2, parité FR/EN testée ; « % du budget » interdit |
+| F-D3 | Mesures | **VALIDÉ, corrigé** — M1 panorama (B1 tel quel), M2 parts programmes, M3 top 3, M4 HHI (nombre + formule + échelle 0–10 000 sourcée, **sans qualificatif**), M5 fenêtres de cohortes, M6 exposition pays→programme |
+| F-D4 | Refus « majorité connue » | **VALIDÉ** — `unknown_amount > with_amount` ⇒ M2-M5 fermées, motif `unknown_majority` — y compris JHU côté EC |
+| F-D5 | Maille programme | **VALIDÉ** — code par génération (la seule en base) ; part = plancher de famille, dit ; famille = curation versionnée future, jamais un préfixe silencieux |
+| F-D6 | Clé stable | **VALIDÉ, complété** — entité canonique dédupliquée (analyse Orion déclarée) ; persistance par `(scheme, value)` — jamais `organisations.id`, jamais `lei` ; **9 016 entités sans identifiant fort : persistance refusée avec message explicite (§ 3.2), jamais de référence dégradée silencieuse** |
+| F-D7 | Dette Explorateur | **TRANCHÉ** — branche unique : alignement de `by=funder` sur M1 (comptes + montants natifs, plus de somme EUR inter-natures), en F1.1 avant toute surface nouvelle |
+| F-D8 | Groupes | **TRANCHÉ** — blocs M1 par financeur avant pondération, chaque bloc pondéré JV dans sa devise et sa nature, jamais de total consolidé ; JV = classification dérivée déclarée. **Chantier séparé, hors F1** |
+| F-D9 | Contrefactuel | **NO-GO** — inscrit au § 10 avec son motif. Question fermée |
 
-**Si l'arbitrage valide : F1 sera le plan d'implémentation (moteur
-d'abord, F-R1/R3), avec le prérequis de l'audit maintenu — le registre
-`FUNDER_PROFILE` (lot 4 de l'audit) avant toute extension du moteur.**
+**Le plan d'implémentation est `docs/plan-f1-dependance.md` (soumis à
+arbitrage), séquence imposée : F1.0 registre `FUNDER_PROFILE` (lot 4 de
+l'audit — prérequis maintenu) → F1.1 dette Explorateur → F1.2 moteur
+M1-M4 → F1.3 M5-M6 → F1.4 surfaces.**
