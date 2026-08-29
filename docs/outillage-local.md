@@ -22,6 +22,17 @@ le frontend ; la base Postgres de dev reste allumée (coût négligeable).
 En ligne de commande : `./scripts/orion-local.sh` et
 `./scripts/orion-local-stop.sh` (`--db` pour éteindre aussi la base).
 
+Les deux `.app` du Bureau s'installent (ou se réinstallent après une
+perte) par **`infra/launcher/install-local.sh`** — c'est lui qui pose
+`Orion.app` et `Stop Orion.app` ; `infra/launcher/install.sh` installe
+l'app distincte « Orion prod locale ».
+
+Pour une recette pilotée par Claude (ou tout harnais qui lit la
+réponse HTTP) : **`./scripts/claude-dev.sh`** — API + vite sur la base
+de dev déjà lancée (`make db-up`), `ORION_AUTH_DEV=1` avec l'allowlist
+`dev@lensorion.test` : le lien magique revient dans la réponse JSON,
+aucun email ne part.
+
 ## Initialisation du corpus (une fois)
 
 `./scripts/bootstrap-local-review.sh` copie le corpus complet

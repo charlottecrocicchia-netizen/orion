@@ -1599,6 +1599,11 @@ produit du bruit, pas de la sécurité.
 
 Le filet est donc réparti en deux niveaux, de nature différente.
 
+> **Où vit le filet** (référencé au chantier Hygiène C3, 2026-08-29) :
+> `backend/scripts/audit_ppp_conventions.py` — diagnostic non bloquant,
+> lancé à la main (`uv run python scripts/audit_ppp_conventions.py`).
+> Dernière mesure : 2026-08-25, 5 428/5 428 cellules conformes.
+
 **Niveau 1 — garde-fous bloquants, sur le couple réellement utilisé en
 production.** Ils ne supposent **aucune** identité externe :
 
