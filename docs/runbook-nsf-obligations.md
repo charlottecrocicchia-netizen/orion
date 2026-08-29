@@ -35,11 +35,29 @@ régime `data/` d'Orion (sources brutes hors git) avec une différence
 capitale : **ces artefacts ne sont pas re-téléchargeables à
 l'identique** (la série officielle est restatée sans archives) — le
 dossier de millésime est la seule archive brute. La garantie hors du
-poste d'acquisition tient à deux choses : la base versionnée porte
-lignes + SHA256 + provenance (dumpée et sauvegardée comme le reste), et
-**le dossier `backend/data/r5-nsf/` doit être copié sur le VPS (rsync)
-au déploiement R5** — geste à inscrire au runbook de déploiement le
-jour du GO, comme le transfert du dump.
+poste d'acquisition tient à trois choses : la base versionnée porte
+lignes + SHA256 + provenance (dumpée et sauvegardée comme le reste),
+**l'archive vit sur le VPS** dans `/home/ubuntu/archives/r5-nsf/<vintage>/`
+(couvert par la sauvegarde disque OVH), et son manifeste de checksums est
+**versionné dans git** : `infra/checksums/r5-nsf-<vintage>.sha256`.
+
+État au 2026-08-29 (audit Hygiène, B1) : le millésime `2026-08-26`
+(35 fichiers, 392 Mo) est archivé sur le VPS avec `SHA256SUMS` vérifié
+sur place, bit-identique à la copie du poste (`backend/data/r5-nsf/`).
+
+**Restauration de l'archive** (poste neuf ou nouveau serveur) :
+
+```bash
+rsync -av orion-vps:archives/r5-nsf/2026-08-26/ backend/data/r5-nsf/2026-08-26/
+cd backend/data/r5-nsf/2026-08-26 && shasum -a 256 -c SHA256SUMS
+# ou contre le manifeste versionné :
+shasum -a 256 -c ../../../../infra/checksums/r5-nsf-2026-08-26.sha256
+```
+
+Tout nouveau millésime promu suit le même geste : rsync vers
+`~/archives/r5-nsf/` sur le VPS, `SHA256SUMS` écrit et vérifié aux deux
+bouts, manifeste ajouté à `infra/checksums/` (étape 8 du provisionnement,
+`infra/README.md`).
 
 ## 2. Acquisition
 

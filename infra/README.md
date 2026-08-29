@@ -204,6 +204,13 @@ reproducible. Any Docker-capable VPS works; 4 vCPU / 8 GB is comfortable.
    `COMPOSE_PROFILES=scheduler`.
 6. **DNS**: an A record — and AAAA, the current host answers on IPv6.
 7. **Deploy** with `./infra/deploy.sh`, then install the backup cron.
+8. **Restore the R5-NSF raw archive** — it is NOT in git and NOT
+   re-downloadable (the official series is restated without archives).
+   Copy it from the old server or from the workstation, then verify:
+   `rsync -av <source>/r5-nsf/ /home/ubuntu/archives/r5-nsf/` and
+   `sha256sum -c SHA256SUMS` inside each vintage directory (manifests are
+   also versioned in `infra/checksums/`). Without this step the server
+   cannot replay the R5 ingestion (docs/runbook-nsf-obligations.md, § 1).
 
 ## Scaling path (in order, no rewrites)
 
