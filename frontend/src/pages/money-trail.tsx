@@ -745,10 +745,11 @@ function StarMap({
               style={{
                 width: star.r * 2,
                 height: star.r * 2,
+                "--orb-d": `${star.r * 2}px`,
                 "--star-tint": star.color ?? "var(--muted-foreground)",
               } as React.CSSProperties}
             />
-            <span aria-hidden="true" className="mt-2 block leading-tight">
+            <span aria-hidden="true" className="mt-3 block leading-tight">
               <span className="tnum block text-[14.5px] font-semibold">
                 {star.kind === "others" ? "" : amountText}
                 {star.crushed ? " ≈" : ""}

@@ -308,8 +308,8 @@
    le sceau vit dans les deux (pâle en plein jour). */
 .chamber-stars{display:none}
 .dark .chamber-stars{display:block}
-.chamber-seal{opacity:.45}
-.dark .chamber-seal{opacity:1}
+.chamber-seal{display:none}
+.dark .chamber-seal{display:block}
 .chamber-clouds{position:absolute; inset:0; display:block}
 .dark .chamber-clouds{display:none}
 .chamber-cloud{
@@ -362,6 +362,32 @@
   background:radial-gradient(circle, transparent 55%, rgba(245,245,247,.05) 100%);
   border:1.5px dashed color-mix(in srgb, var(--muted-foreground) 70%, transparent);
 }
+/* Le jour : montgolfières. L'enveloppe est la sphère existante ; la
+   nacelle (proportionnée au diamètre) pend dessous, reliée par deux
+   suspentes hairline. La nuit les efface — les étoiles n'ont pas de
+   nacelle. Le ballon-fantôme (non-ventilé) garde son pointillé, sans
+   nacelle : rien n'y est suspendu. */
+.chamber .star-orb, .chamber .star-door{position:relative}
+.chamber .star-orb::before, .chamber .star-door::before{
+  content:""; position:absolute; top:96%; left:50%;
+  width:calc(var(--orb-d, 24px) * 0.34); height:calc(var(--orb-d, 24px) * 0.16);
+  min-height:3px;
+  transform:translateX(-50%);
+  border-left:1px solid color-mix(in srgb, var(--foreground) 35%, transparent);
+  border-right:1px solid color-mix(in srgb, var(--foreground) 35%, transparent);
+}
+.chamber .star-orb::after, .chamber .star-door::after{
+  content:""; position:absolute; left:50%;
+  top:calc(96% + var(--orb-d, 24px) * 0.16);
+  width:calc(var(--orb-d, 24px) * 0.3); height:calc(var(--orb-d, 24px) * 0.14);
+  min-width:5px; min-height:4px;
+  transform:translateX(-50%);
+  border-radius:2px;
+  background:color-mix(in srgb, #8a6a3f 78%, var(--star-shade));
+  box-shadow:0 1px 2px rgba(29,29,31,.22);
+}
+.dark .chamber .star-orb::before, .dark .chamber .star-door::before,
+.dark .chamber .star-orb::after, .dark .chamber .star-door::after{display:none}
 /* La carte-étiquette du survol : révélée au-dessus de l'étoile,
    lisible, jamais tronquée. */
 .star-tip{
