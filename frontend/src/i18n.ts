@@ -74,7 +74,6 @@ const resources = {
         legend: "domestic funding not covered",
         tipParticipations: "Seen through European consortiums only",
         tipNone: "No data in Orion yet",
-        badgeFunders: "covered",
         badgePartial: "partial",
         mixedTitle: "Uneven coverage",
         regionAllPartial:
@@ -97,7 +96,6 @@ const resources = {
         projects: "funded projects",
         organisations: "organisations",
         countries: "participating countries",
-        chips: "Try",
       },
       home: {
         lensCta: "Explore {{lens}}",
@@ -112,18 +110,6 @@ const resources = {
         example2: "CNRS vs Fraunhofer",
         example3: "solar by theme since 2021",
         scrollCue: "Scroll",
-        entryThemes: "Explore the 41 disciplines",
-        entryThemesDesc:
-          "Hydrogen, quantum, health — their funding and their trajectories, composed your way in the Explorer.",
-        entryThemesFigure: "{{count, number}} funded projects",
-        entryOrgs: "Benchmark the actors",
-        entryOrgsDesc:
-          "Up to four organisations side by side — portfolios, recurring partners, themes.",
-        entryOrgsFigure: "{{count, number}} organisations",
-        entryCountries: "Open the country files",
-        entryCountriesDesc:
-          "The globe, the collaboration flows, one hub per country.",
-        entryCountriesFigure: "{{count, number}} countries",
         doorDiscoverDesc:
           "the {{name}} file — watch-post, partners, trajectory",
         doorDiscoverFigure: "among {{count, number}} organisations",
@@ -176,10 +162,6 @@ const resources = {
         panelClose: "Close the panel",
         panelPhotoCredit: "Photo: {{author}} · {{licence}}",
         now: "Right now",
-        signalTheme: "{{theme}} is accelerating since 2021",
-        signalThemeHint: "open the trend in the Explorer",
-        signalHydrogen: "hydrogen projects under {{programme}}",
-        signalHydrogenHint: "see the programme donut",
       },
       calls: {
         eyebrow: "Orion · Calls",
@@ -327,7 +309,6 @@ const resources = {
       dossier: {
         counter: "Dossier · {{count}}",
         add: "Add to dossier",
-        added: "Added ✓",
         eyebrow: "Orion · dossier · session",
         titleLabel: "Dossier title",
         untitled: "Dossier — {{date}}",
@@ -428,8 +409,6 @@ const resources = {
         programmesTitle: "Programmes",
         exits: "Explore from here",
         allProjects: "All projects",
-        allOrganisations: "All organisations",
-        showAll: "Show all {{count, number}} programmes",
         programmesFilter: "Filter the {{count}} programmes…",
         themesTitle: "Themes",
         themesLead:
@@ -437,18 +416,13 @@ const resources = {
         themesShare: "{{pct}} % of the corpus",
         sortFunding: "By funding",
         sortDelta: "By momentum",
-        frameworksSection: "Framework programmes",
         allSources: "All sources",
         sourcesLead:
           "One row per funding agency — its programmes unfold inside. NIH and NSF are here; wave 1 continues with UKRI.",
         sourceMeta:
           "{{programmes}} programmes · {{projects}} projects · {{amount}}",
         sourcesSoon: "wave 1 · UKRI (UK) in instruction",
-        nationalSection: "Funding institutes",
-        programmesCount: "{{count}} programmes · {{amount}}",
         noProgrammeMatch: "No programme matches “{{q}}”.",
-        openExplorer: "The Explorer",
-        openExplorerHint: "Compose your own view of the data",
         mapLabel: "World map — funding by country, tinted by region",
         mapLegend: "Public R&D funding",
         mapFlows: "on hover, the country's top collaborations",
@@ -539,7 +513,6 @@ const resources = {
         totalCost: "Total cost",
         duration: "Duration",
         programme: "Programme",
-        call: "Call",
         participants: "Participants ({{count}})",
         coordinator: "Coordinator",
         participant: "Participant",
@@ -687,7 +660,6 @@ const resources = {
         portfolio: "Portfolio",
         fundingByYear: "Funding by year",
         topProgrammes: "Top programmes",
-        partners: "Recurring partners",
         sharedProjects_one: "{{count}} shared project",
         sharedProjects_other: "{{count}} shared projects",
         role: "Role",
@@ -742,7 +714,6 @@ const resources = {
         projects_one: "{{formatted}} project",
         projects_other: "{{formatted}} projects",
         enter: "Explore",
-        focusLens: "Focus the {{lens}} lens",
         enterLens: "Enter Orion through the {{lens}} lens",
         backHome: "Back to Orion",
         open: "The lenses",
@@ -1041,7 +1012,6 @@ const resources = {
           showFull: "Show full range",
           showRobust: "Show typical range",
         },
-        unit: { eur: "€", count: "count", pct: "%" },
         basis: {
           participants: "participants' share",
           projects: "project budgets",
@@ -1080,7 +1050,6 @@ const resources = {
         shared: "Link copied ✓",
         csv: "CSV",
         freeText: "Tell us what interests you…",
-        storiesTitle: "Ready-made analyses — click, then make them yours",
         libraryLink: "Ready-made analyses — the library",
         libraryCount_one: "{{count}} analysis",
         libraryCount_other: "{{count}} analyses",
@@ -1193,7 +1162,6 @@ const resources = {
         commonPhrase:
           "Organisations sharing projects with EVERY compared entity — the watcher\u2019s shortcut.",
         commonNone: "No common partner in the corpus.",
-        programmesTitle: "Strongest programmes",
         geoTitle: "Geography side by side",
         composeTitle: "Compose the comparison",
         composePhrase:
@@ -1203,7 +1171,6 @@ const resources = {
         prepProgrammes: "By programme",
         prepThemes: "By theme",
         prepCountries: "By country",
-        formLabel: "Form",
         formDonuts: "Donuts",
         formBars: "Bars",
         attributedShort: "({{amount}} attributed)",
@@ -1213,8 +1180,6 @@ const resources = {
         entityViewTitle: "{{dim}} — {{name}}",
         addPlaceholder: "⌕ Add a group or an organisation…",
         remove: "Remove {{name}}",
-        themes: "Top themes",
-        chartLabel: "Funding by year, compared",
         empty:
           "Search an organisation above to start the comparison — up to four side by side.",
       },
@@ -1282,7 +1247,6 @@ const resources = {
         workspaceLink: "Workspace (P6 · 2027)",
         countries: "Countries",
         programmes: "Programmes",
-        readyMade: "Ready-made analyses",
         figProjects: "{{count, number}} projects",
         figOrgs: "{{count, number}} organisations",
         figFunding: "{{amount}} of public funding, mapped",
@@ -1660,7 +1624,6 @@ const resources = {
         legend: "financements domestiques non couverts",
         tipParticipations: "Vu par ses seules participations européennes",
         tipNone: "Aucune donnée dans Orion à ce jour",
-        badgeFunders: "couvert",
         badgePartial: "partiel",
         mixedTitle: "Couvertures inégales",
         regionAllPartial:
@@ -1681,7 +1644,6 @@ const resources = {
         projects: "projets financés",
         organisations: "organisations",
         countries: "pays participants",
-        chips: "Essayez",
       },
       home: {
         lensCta: "Explorer : {{lens}}",
@@ -1696,18 +1658,6 @@ const resources = {
         example2: "CNRS vs Fraunhofer",
         example3: "le solaire par thème depuis 2021",
         scrollCue: "Défiler",
-        entryThemes: "Explorer les 41 disciplines",
-        entryThemesDesc:
-          "L'hydrogène, le quantique, la santé — leurs montants et leurs trajectoires, composés à votre main dans l'Explorateur.",
-        entryThemesFigure: "{{count, number}} projets financés",
-        entryOrgs: "Comparer les acteurs",
-        entryOrgsDesc:
-          "Jusqu'à quatre organisations côte à côte — portefeuilles, partenaires récurrents, thèmes.",
-        entryOrgsFigure: "{{count, number}} organisations",
-        entryCountries: "Ouvrir les fiches pays",
-        entryCountriesDesc:
-          "Le globe, les flux de collaboration, une fiche par pays.",
-        entryCountriesFigure: "{{count, number}} pays",
         doorDiscoverDesc:
           "la fiche {{name}} — poste de veille, partenaires, trajectoire",
         doorDiscoverFigure: "parmi {{count, number}} organisations",
@@ -1761,10 +1711,6 @@ const resources = {
         panelClose: "Fermer le panneau",
         panelPhotoCredit: "Photo : {{author}} · {{licence}}",
         now: "En ce moment",
-        signalTheme: "{{theme}} accélère depuis 2021",
-        signalThemeHint: "ouvrir la tendance dans l'Explorateur",
-        signalHydrogen: "projets hydrogène sous {{programme}}",
-        signalHydrogenHint: "voir le donut des programmes",
       },
       calls: {
         eyebrow: "Orion · Appels",
@@ -1916,7 +1862,6 @@ const resources = {
       dossier: {
         counter: "Dossier · {{count}}",
         add: "Ajouter au dossier",
-        added: "Ajouté ✓",
         eyebrow: "Orion · dossier · session",
         titleLabel: "Titre du dossier",
         untitled: "Dossier — {{date}}",
@@ -2021,8 +1966,6 @@ const resources = {
         programmesTitle: "Programmes",
         exits: "Explorer à partir d'ici",
         allProjects: "Tous les projets",
-        allOrganisations: "Toutes les organisations",
-        showAll: "Voir les {{count, number}} programmes",
         programmesFilter: "Filtrer les {{count}} programmes…",
         themesTitle: "Thèmes",
         themesLead:
@@ -2030,18 +1973,13 @@ const resources = {
         themesShare: "{{pct}} % du corpus",
         sortFunding: "Par montant",
         sortDelta: "Par progression",
-        frameworksSection: "Les programmes-cadres",
         allSources: "Toutes les sources",
         sourcesLead:
           "Une rangée par agence de financement — ses programmes se déplient à l'intérieur. NIH et NSF sont là ; la vague 1 continue avec UKRI.",
         sourceMeta:
           "{{programmes}} programmes · {{projects}} projets · {{amount}}",
         sourcesSoon: "vague 1 · UKRI (Royaume-Uni) à l'instruction",
-        nationalSection: "Les instituts financeurs",
-        programmesCount: "{{count}} programmes · {{amount}}",
         noProgrammeMatch: "Aucun programme ne correspond à « {{q}} ».",
-        openExplorer: "L'Explorateur",
-        openExplorerHint: "Composez votre propre vue des données",
         mapLabel: "Carte du monde — financements par pays, teintés par région",
         mapLegend: "Financements publics R&D",
         mapFlows: "au survol, les principales collaborations du pays",
@@ -2134,7 +2072,6 @@ const resources = {
         totalCost: "Coût total",
         duration: "Durée",
         programme: "Programme",
-        call: "Appel",
         participants: "Participants ({{count}})",
         coordinator: "Coordinateur",
         participant: "Participant",
@@ -2283,7 +2220,6 @@ const resources = {
         portfolio: "Portefeuille",
         fundingByYear: "Financement par année",
         topProgrammes: "Programmes principaux",
-        partners: "Partenaires récurrents",
         sharedProjects_one: "{{count}} projet commun",
         sharedProjects_other: "{{count}} projets communs",
         role: "Rôle",
@@ -2342,7 +2278,6 @@ const resources = {
         projects_one: "{{formatted}} projet",
         projects_other: "{{formatted}} projets",
         enter: "Explorer",
-        focusLens: "Mettre au point la lentille {{lens}}",
         enterLens: "Entrer dans Orion par la lentille {{lens}}",
         backHome: "Revenir à Orion",
         open: "Les lentilles",
@@ -2634,7 +2569,6 @@ const resources = {
           showFull: "Afficher toute l'échelle",
           showRobust: "Resserrer l'échelle",
         },
-        unit: { eur: "€", count: "nombre", pct: "%" },
         basis: {
           participants: "part des participants",
           projects: "budget des projets",
@@ -2673,7 +2607,6 @@ const resources = {
         shared: "Lien copié ✓",
         csv: "CSV",
         freeText: "Dites ce qui vous intéresse…",
-        storiesTitle: "Analyses prêtes — cliquez, puis modifiez",
         libraryLink: "Analyses prêtes — la bibliothèque",
         libraryCount_one: "{{count}} analyse",
         libraryCount_other: "{{count}} analyses",
@@ -2829,7 +2762,6 @@ const resources = {
         commonPhrase:
           "Les organisations qui partagent des projets avec CHAQUE entité comparée — le raccourci du veilleur.",
         commonNone: "Aucun partenaire commun dans le corpus.",
-        programmesTitle: "Programmes forts",
         geoTitle: "Géographie face à face",
         composeTitle: "Composer la comparaison",
         composePhrase:
@@ -2839,7 +2771,6 @@ const resources = {
         prepProgrammes: "Par programme",
         prepThemes: "Par thème",
         prepCountries: "Par pays",
-        formLabel: "Forme",
         formDonuts: "Donuts",
         formBars: "Barres",
         attributedShort: "({{amount}} attribués)",
@@ -2849,8 +2780,6 @@ const resources = {
         entityViewTitle: "{{dim}} — {{name}}",
         addPlaceholder: "⌕ Ajouter un groupe ou une organisation…",
         remove: "Retirer {{name}}",
-        themes: "Thèmes principaux",
-        chartLabel: "Financement par année, comparé",
         empty:
           "Cherchez une organisation ci-dessus pour démarrer la comparaison — jusqu'à quatre côte à côte.",
       },
@@ -2920,7 +2849,6 @@ const resources = {
         workspaceLink: "Espace de travail (P6 · 2027)",
         countries: "Pays",
         programmes: "Programmes",
-        readyMade: "Analyses prêtes",
         figProjects: "{{count, number}} projets",
         figOrgs: "{{count, number}} organisations",
         figFunding: "{{amount}} de financements publics cartographiés",
