@@ -1,7 +1,44 @@
 # Roadmap d'exécution
 
-> Fil de pilotage tenu à jour à chaque validation de la fondatrice.
-> Règle inchangée : chaque chantier est proposé, validé, puis exécuté.
+> Fil de pilotage. Règle inchangée : chaque chantier est proposé,
+> validé, puis exécuté. Le fil avait décroché entre le 2026-08-18 et le
+> 2026-08-29 (constat de l'audit Hygiène, G3) — remis à jour ci-dessous.
+
+## Point de situation — 2026-08-29
+
+Tout ce qui suit est **LIVRÉ EN PRODUCTION** depuis la dernière mise à
+jour du fil (2026-08-18), dans l'ordre approximatif d'exécution :
+
+- **Multi-lentilles M0 → M1.4** — la lentille active (`?sector=`),
+  l'autorité unique de `lib/lens.ts`, le registre des surfaces aveugles ;
+  M1.4 : « l'alias tombe, une seule autorité » (`d37415b`).
+- **A1 — la lentille Aviation** publiée v2 : 179 règles, cœur 1 752
+  projets, famille `aerospace_mobility` (`a9024fc` → `6b43f5d`).
+- **La Lens Room et la marque composée** — `/lenses`, ORION / SPACE ·
+  ORION / AVIATION, la scène optique (`8088a91`, `1e43012`, `fc9f0b6`).
+- **La symétrie géographique et les mailles européennes (lot F)** —
+  régions Manager, `/explore/regions/:slug`, NUTS (`93c9277` → `152893a`).
+- **Le Reference Engine R0 → R5B** — euros constants (R1), index et
+  croissance (R2), % du PIB et par habitant (R3), PPP (R4B), et la
+  surface `/nsf-obligations` des obligations officielles NSF (R5B).
+  Le sélecteur « View funding as » avec dégradations honnêtes.
+- **Le socle comptes et le PIVOT ACCÈS PRIVÉ (2026-08-21/22)** — Orion
+  est en production sur `https://lensorion.com` en application PRIVÉE :
+  lien magique + allowlist, landing publique, workspaces et dossiers
+  durables. Changement de nature du produit (conception-acces-prive.md).
+- **Phase 5 ouverte et servie : E1 → E3** — `/calls` (catalogue,
+  fraîcheur quotidienne), E2 « acteurs historiques », E3.
+- **Le lot B — la chaîne de l'argent public** — B0 (golds), B0.1
+  (parasites CORDIS), B1 (moteur `/api/chain/*`), B2 (surface `/money`,
+  la chambre céleste, B2.8 → B2.12).
+- **L'outillage local** — Orion.app, `scripts/e2e-local.sh` (harnais
+  officiel), `bootstrap-local-review.sh`, base `orion_e2e` dédiée.
+- **Chantier Hygiène (2026-08-29)** — audit de dette complet
+  (`docs/audit-dette.md`), lots 0-2 exécutés (danger infra, doc remise
+  au vrai, nettoyage sec). Lots 3-6 à ouvrir un par un, sur décision.
+
+Les sections historiques ci-dessous sont conservées telles quelles ;
+celles que ce point de situation contredit sont annotées en place.
 
 ## ✅ CHANTIER UI — CLOS (v0.4.0, 2026-08-03)
 
@@ -346,6 +383,9 @@ même : [conception-drill-etats.md](conception-drill-etats.md) et
 
 ## Multi-lentilles — M0 LIVRÉ (2026-08-17) + registre des évolutions
 
+> *(Depuis : M1.0 → M1.4 livrés — la lentille active de bout en bout,
+> jusqu'à « l'alias tombe, une seule autorité », `d37415b`.)*
+
 Conception [conception-multi-lentilles.md](conception-multi-lentilles.md)
 **validée** (D1-D6, D5 amendée, deux amendements M0) — **M0 livré** : le
 tag quitte sa colonne pour `project_lens_tags` (migration 0023, un
@@ -398,18 +438,21 @@ ouverts) — **aucun code M1 écrit**.
   modèle, jamais préimplémentée dans la grammaire.
 - **Cible de marque actée : ORION marque ombrelle**, la lentille comme
   identité de contexte — **ORION / SPACE**, **ORION / AVIATION**.
-  Exécution SEULEMENT quand A1 aura produit une deuxième lentille
-  réelle, validée, exploitable en production ; d'ici là le jeton
-  « Orion Space Intelligence » ne bouge pas (D5 amendée).
+  *(FAIT le 2026-08-19, `1e43012` — la condition « quand A1 aura produit
+  une deuxième lentille réelle » était remplie.)*
 - **La Lens Room** ([vision-lens-room.md](vision-lens-room.md)) —
-  conçue et implémentée après A1 seulement, quand Orion possède au
-  moins deux lentilles réelles. **Règle d'honnêteté définitive** : elle
+  *(LIVRÉE le 2026-08-19, `8088a91` — après A1, comme prévu.)*
+  **Règle d'honnêteté définitive** : elle
   n'affichera que des lentilles réellement implémentées, aux métriques
   calculées sur les données réelles — pas de placeholder qui fait
   croire qu'une lentille existe, pas de compteur fictif, pas de
   « coming soon » présenté comme disponible.
 
 ## Puis — phase 5 : les appels (calls)
+
+> *(OUVERTE ET SERVIE : E1 `/calls` livré le 2026-08-22 (`818e2ee`),
+> E2 acteurs historiques (`e3ce25c`), E3 ensuite. Le reste de cette
+> section — matching, alertes, éligibilité — demeure l'horizon.)*
 
 **Source des appels tranchée (2026-08-17)** : l'API du portail EU
 Funding & Tenders — licence vérifiée au [registre](data-sources.md)
