@@ -10,7 +10,9 @@
 # permet une restauration ciblée sans rejouer toute la machine.
 # La procédure de restauration est dans docs/conception-deploiement.md
 # (annexe C) — recette exigée : une restauration d'essai, pas juste
-# l'existence du fichier.
+# l'existence du fichier (première exécutée et tracée le 2026-08-29).
+# Les dumps manuels pré-migration se posent dans $DEST/jalons/, hors
+# du rayon de la rotation.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -26,7 +28,14 @@ docker compose --env-file ../.env -f compose.prod.yml exec -T postgres \
   pg_dump -U orion -Fc orion > "$out.partiel"
 mv "$out.partiel" "$out"
 
-find "$DEST" -name "orion-*.dump" -mtime +"$KEEP_DAYS" -delete
-find "$DEST" -name "orion-*.dump.partiel" -mtime +1 -delete
+# Rotation des SEULS dumps quotidiens, à la racine de DEST :
+# -maxdepth 1 épargne les sous-dossiers, ! -name "*pre*" épargne un
+# jalon manuel posé à la racine par erreur. Les jalons pré-migration
+# (orion-pre-*.dump, dumps de « avant le geste ») vivent dans
+# DEST/jalons/ et ne sont JAMAIS tournés : leur purge est un geste
+# manuel de fin de chantier. (Hygiène G16, 2026-08-29 — la rotation
+# avalait les jalons après 7 jours.)
+find "$DEST" -maxdepth 1 -name "orion-*.dump" ! -name "*pre*" -mtime +"$KEEP_DAYS" -delete
+find "$DEST" -maxdepth 1 -name "orion-*.dump.partiel" -mtime +1 -delete
 
 echo "$(date -Is) dump ok : $out ($(du -h "$out" | cut -f1))"

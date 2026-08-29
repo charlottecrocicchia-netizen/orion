@@ -471,6 +471,23 @@ dump logique quotidien par `infra/backup-db.sh` (cron 04h00 UTC,
 `/home/ubuntu/backups/orion-AAAAMMJJ.dump`, rotation 7 jours, journal
 dans `backup.log`). Premier dump exécuté : 1,3 Go.
 
+**Les jalons manuels vivent dans `~/backups/jalons/`** (hygiène G16,
+2026-08-29) : la rotation avalait les dumps pré-migration après 7 jours
+— son `find` porte désormais `-maxdepth 1` et exclut `*pre*`, et les
+six jalons existants (pre-r1 → pre-b11-migration) ont été déplacés dans
+le sous-dossier, hors de son rayon. Leur purge est un geste manuel de
+fin de chantier, jamais automatique. L'archive brute R5-NSF vit dans
+`~/archives/r5-nsf/<millésime>/` (checksums versionnés dans
+`infra/checksums/`, voir runbook-nsf-obligations § 1).
+
+**Restaurations d'essai tracées** : 2026-08-21 (première, dump du jour
+dans `orion_restore_test`) ; **2026-08-29** (dump `orion-20260829.dump`,
+1,4 Go, restauré en 12 min dans `orion_essai_restauration` sur le VPS —
+comptes identiques à la prod : 699 798 projets, 110 116 organisations,
+1 102 270 participations, 326 313 lignes d'obligations NSF — base
+d'essai supprimée après vérification). Prochaine : à chaque changement
+du script ou de la machine, au minimum trimestrielle.
+
 **Procédure de restauration** (testée sur pièce le 2026-08-21 : dump du
 jour restauré dans une base jetable `orion_restore_test`, comptes
 vérifiés, base supprimée) :
