@@ -18,6 +18,38 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The dependency contract — F0 validated
+  (docs/conception-f-dependance.md, arbitrated 2026-08-29).** The
+  methodological contract for Orion's most sensitive surface (“who
+  depends on whom, and who is exposed to what”), decided on a hand-made
+  gold set verified to the cent against the B1 chain engine (Johns
+  Hopkins, CNRS, Sweden, Harvard). Three denominators examined, two
+  refused: an organisation's budget (the R5A precedent — unprovable
+  denominator) and the cross-funder observed total (three accounting
+  natures, two currencies — the naive “JHU depends 93 % on NIH” would
+  divide an EU commitment by a mix of annual and cumulative
+  obligations). Dependency therefore declines PER funder, no single
+  total — and within one funder, shares over known amounts only, closed
+  with an explicit refusal the moment unknown amounts are the majority
+  (which shuts the EU share of most large US universities, Harvard and
+  Johns Hopkins included — assumed). The word “dependency” is banned
+  from labels (an observed concentration is not a viability diagnosis);
+  exact FR/EN wordings are frozen E2-style; the HHI ships as number +
+  formula + sourced 0-10 000 scale, never a qualifier; time is declared
+  attribution-cohort windows, never annual flows (the D6/R5A lesson);
+  durable references use stable public identifiers, and the 9 016
+  canonical entities without one refuse persistence with an explicit
+  message instead of silently degrading (closing the G8 defect).
+  Groups get their verdict (per-funder blocks BEFORE JV weighting, no
+  consolidated total — a separate chantier) and the historical
+  counterfactual is a closed NO-GO. Implementation plan
+  `docs/plan-f1-dependance.md` submitted separately: FUNDER_PROFILE
+  registry first (audit lot 4), then the Explorer's `by=funder`
+  cross-nature EUR sum is retired in favour of native per-funder
+  blocks, then the engine measures with their golds, then the surfaces
+  — with a dedicated design pass so a refused share reads as dignified
+  information, not a hole.
+
 - **“Where did this money go?” — the money trail surface (B2,
   docs/conception-b-chaine-argent-public.md § 15).** New `/money`
   pages (private, lens-free) drill down the B1 chain — funder,
