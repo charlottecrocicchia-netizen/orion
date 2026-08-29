@@ -5,12 +5,12 @@ on:
     branches: [main]
     tags: ["v*"]
   pull_request:
+  # Déclenchement manuel gardé nu : il sert à valider la chaîne après
+  # une période de quota épuisé. Le job `deploy` a été RETIRÉ le
+  # 2026-08-29 (hygiène G4, arbitrage Charlotte) : il court-circuitait
+  # la porte snapshot D7 bis et tirait de GHCR contre la décision D1.
+  # Le déploiement est manuel, par ./infra/deploy.sh, derrière la porte.
   workflow_dispatch:
-    inputs:
-      deploy:
-        description: "Deploy to the configured VPS after building images"
-        type: boolean
-        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -214,32 +214,3 @@ jobs:
             GIT_REV=${{ steps.rev.outputs.short }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
-
-  deploy:
-    if: github.event_name == 'workflow_dispatch' && inputs.deploy
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: images
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check that a deployment target is configured
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-        run: |
-          if [ -z "$DEPLOY_HOST" ]; then
-            echo "::error::No deployment target configured. Set the DEPLOY_HOST, DEPLOY_USER and DEPLOY_SSH_KEY secrets (see infra/README.md)."
-            exit 1
-          fi
-      - name: Deploy over SSH
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
-          ./infra/deploy.sh
