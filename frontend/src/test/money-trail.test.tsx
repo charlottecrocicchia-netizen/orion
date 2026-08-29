@@ -695,6 +695,17 @@ function radii(els: HTMLElement[]): number[] {
   return els.map((el) => Number(el.dataset.r));
 }
 
+/** Les segments du donut des participants (fiche projet). */
+function segs(kind?: "child" | "others" | "unallocated"): HTMLElement[] {
+  return Array.from(
+    document.querySelectorAll<HTMLElement>(kind ? `[data-seg="${kind}"]` : "[data-seg]"),
+  );
+}
+
+function degs(els: HTMLElement[]): number[] {
+  return els.map((el) => Number(el.dataset.deg));
+}
+
 describe("money trail (B2.8)", () => {
   beforeEach(() => {
     stubFetch();
@@ -909,14 +920,15 @@ describe("money trail (B2.8)", () => {
     expect(screen.getByText(/do not cover the whole project total/)).toBeTruthy();
     expect(screen.getByText("Not broken down")).toBeTruthy();
     expect(screen.getByText(/43\.8\s?% of the amount is not broken down/)).toBeTruthy();
-    // La carte des participants : la part connue en étoile colorée, le
-    // non-ventilé du MOTEUR en astre creux — et JAMAIS d'étoile pour
-    // ITACONIX, dont le montant est inconnu, pas nul.
-    expect(stars("child")).toHaveLength(1);
-    expect(radii(stars("child"))[0]).toBe(30);
-    expect(stars("child")[0].getAttribute("href")).toBe("/money/organisation/100");
-    expect(stars("unallocated")).toHaveLength(1);
-    expect(radii(stars("unallocated"))[0]).toBe(26);
+    // Le donut des participants (fiche verticale) : la part connue en
+    // segment coloré (l'angle dit le montant), le non-ventilé du
+    // MOTEUR en segment hachuré — et JAMAIS de segment pour ITACONIX,
+    // dont le montant est inconnu, pas nul.
+    expect(stars()).toHaveLength(0);
+    expect(segs("child")).toHaveLength(1);
+    expect(degs(segs("child"))[0]).toBe(202);
+    expect(segs("unallocated")).toHaveLength(1);
+    expect(degs(segs("unallocated"))[0]).toBe(158);
     const row = screen.getByText("Itaconix corporation").closest("div.border-b");
     expect(row?.textContent).toContain("unknown");
     expect(row?.textContent).not.toContain("€0");
@@ -930,12 +942,12 @@ describe("money trail (B2.8)", () => {
     expect(screen.getByText("Project ceiling")).toBeTruthy();
     expect(screen.getByText("Gap")).toBeTruthy();
     expect(screen.getByText("+€115.1M")).toBeTruthy();
-    // Les parts dépassent le plafond : deux étoiles vraies, PAS de
-    // « non ventilé » — un résiduel négatif serait un mensonge ; le
-    // texte comptable signé dit tout.
-    expect(stars("child")).toHaveLength(2);
-    expect(stars("unallocated")).toHaveLength(0);
-    expect(radii(stars("child"))).toEqual([30, 10]);
+    // Les parts dépassent le plafond : l'assiette s'étend à la somme
+    // (l'anneau se remplit), PAS de « non ventilé » — un résiduel
+    // négatif serait un mensonge ; le texte comptable signé dit tout.
+    expect(segs("child")).toHaveLength(2);
+    expect(segs("unallocated")).toHaveLength(0);
+    expect(degs(segs("child")).reduce((a, b) => a + b, 0)).toBeGreaterThanOrEqual(359);
   });
 
   it("NIH : bénéficiaire, jamais une ventilation — aucune barre, aucune région appel", async () => {
@@ -966,10 +978,10 @@ describe("money trail (B2.8)", () => {
     expect(screen.queryByText("Project contribution")).toBeNull();
     expect(screen.queryByText("Participants with unknown share")).toBeNull();
     expect(trailLinks().map((l) => l.href)).toEqual(["/money/funder/nsf", "/money/programme/40"]);
-    // Exact : l'étoile unique porte tout, sans astre résiduel.
-    expect(stars("child")).toHaveLength(1);
-    expect(radii(stars("child"))[0]).toBe(30);
-    expect(stars("unallocated")).toHaveLength(0);
+    // Exact : le segment unique remplit l'anneau, sans résiduel.
+    expect(segs("child")).toHaveLength(1);
+    expect(degs(segs("child"))[0]).toBe(360);
+    expect(segs("unallocated")).toHaveLength(0);
   });
 
   it("organisation : relations de financement, aucun morphing forcé, refus du total", async () => {

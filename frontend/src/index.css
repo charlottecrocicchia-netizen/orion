@@ -334,6 +334,11 @@
 /* Le flottement doux des objets du ciel (planètes ET montgolfières) :
    oscillation verticale, chaque objet à sa cadence (--float-t/-delay/
    -y posés par la carte). Reduced-motion : immobiles, centrés. */
+/* Un segment du donut des participants : transition douce, éclat au
+   survol. */
+.orbit-seg{transition:filter .25s ease}
+.orbit-seg:hover{filter:brightness(1.1) saturate(1.06)}
+
 .star-body{
   transform:translate(-50%,-50%);
   animation:chamber-float var(--float-t,6s) ease-in-out var(--float-delay,0s) infinite;

@@ -884,6 +884,152 @@ function StarMap({
   );
 }
 
+/* — le donut des participants (fiche projet, B2.12) : UN anneau
+   proportionnel — l'angle dit le montant —, palette validée,
+   non-ventilé hachuré, plancher 2° marqué, assiette étendue à la
+   somme sur dépassement (l'anneau se remplit, le texte comptable
+   signé dit tout). Jamais la hiérarchie empilée en angles. — */
+const DONUT = { size: 240, c: 120, rOut: 112, rIn: 82 };
+const FLOOR_DEG = 2;
+
+interface ArcSeg extends BarSpec {
+  start: number;
+  sweep: number;
+  crushed: boolean;
+  color: string | null;
+}
+
+function arcGeometry(bars: BarSpec[], parentAmount: number | null): ArcSeg[] {
+  const knownSum = bars.reduce((sum, bar) => sum + (bar.amount ?? 0), 0);
+  const basis =
+    parentAmount != null && parentAmount > 0 ? Math.max(parentAmount, knownSum) : knownSum;
+  const raw = bars.map((bar) =>
+    bar.amount != null && basis > 0 ? (bar.amount / basis) * 360 : FLOOR_DEG,
+  );
+  const floored = raw.map((deg, i) => deg < FLOOR_DEG && bars[i].amount != null);
+  const noAngle = bars.map((bar) => bar.amount == null);
+  const reserved = raw.reduce(
+    (sum, _deg, i) => sum + (floored[i] || noAngle[i] ? FLOOR_DEG : 0),
+    0,
+  );
+  const restRaw = raw.reduce((sum, deg, i) => (floored[i] || noAngle[i] ? sum : sum + deg), 0);
+  const scale = restRaw > 0 ? Math.min(1, (360 - reserved) / restRaw) : 1;
+  let childRank = 0;
+  let cursor = 0;
+  return bars.map((bar, i) => {
+    const sweep = floored[i] || noAngle[i] ? FLOOR_DEG : raw[i] * scale;
+    const seg: ArcSeg = {
+      ...bar,
+      start: cursor,
+      sweep,
+      crushed: floored[i],
+      color:
+        bar.kind === "child"
+          ? SERIES_VARS[childRank % SERIES_VARS.length]
+          : bar.kind === "others"
+            ? "var(--donut-others)"
+            : null,
+    };
+    if (bar.kind === "child") childRank += 1;
+    cursor += sweep;
+    return seg;
+  });
+}
+
+function polar(r: number, deg: number): string {
+  const rad = ((deg - 90) * Math.PI) / 180;
+  return `${(DONUT.c + r * Math.cos(rad)).toFixed(2)} ${(DONUT.c + r * Math.sin(rad)).toFixed(2)}`;
+}
+
+function segPath(start: number, sweep: number): string {
+  const end = start + Math.min(sweep, 359.9);
+  const large = end - start > 180 ? 1 : 0;
+  return [
+    `M ${polar(DONUT.rOut, start)}`,
+    `A ${DONUT.rOut} ${DONUT.rOut} 0 ${large} 1 ${polar(DONUT.rOut, end)}`,
+    `L ${polar(DONUT.rIn, end)}`,
+    `A ${DONUT.rIn} ${DONUT.rIn} 0 ${large} 0 ${polar(DONUT.rIn, start)}`,
+    "Z",
+  ].join(" ");
+}
+
+/** Le donut : décoratif-interactif (title + clic) — les rangées de
+ *  participants dessous restent LA surface accessible et précise. */
+function ParticipantDonut({
+  segs,
+  centerAmount,
+  centerNote,
+  currency,
+}: {
+  segs: ArcSeg[];
+  centerAmount: number | null;
+  centerNote: string;
+  currency: string | null | undefined;
+}) {
+  const { t, locale, money } = useMoneyCopy();
+  return (
+    <div
+      aria-hidden="true"
+      className="relative shrink-0"
+      style={{ width: DONUT.size, height: DONUT.size }}
+    >
+      <svg viewBox={`0 0 ${DONUT.size} ${DONUT.size}`} className="h-full w-full">
+        <defs>
+          <pattern
+            id="donut-hatch"
+            width="7"
+            height="7"
+            patternTransform="rotate(-45)"
+            patternUnits="userSpaceOnUse"
+          >
+            <rect width="7" height="7" fill="transparent" />
+            <rect width="3" height="7" fill="var(--muted-foreground)" opacity="0.3" />
+          </pattern>
+        </defs>
+        <circle
+          cx={DONUT.c}
+          cy={DONUT.c}
+          r={(DONUT.rOut + DONUT.rIn) / 2}
+          fill="none"
+          stroke="var(--border-soft)"
+          strokeWidth={DONUT.rOut - DONUT.rIn}
+        />
+        {segs.map((seg) => {
+          const amountText = seg.amount == null ? "—" : money(seg.amount, currency);
+          const shareText = seg.share == null ? "" : ` · ${pct(seg.share, locale)}`;
+          const floorNote =
+            seg.crushed && seg.share != null
+              ? ` ${t("money.columns.floored", { pct: pct(seg.share, locale) })}`
+              : "";
+          return (
+            <path
+              key={seg.key}
+              d={segPath(seg.start, seg.sweep)}
+              data-seg={seg.kind}
+              data-deg={Math.round(seg.sweep)}
+              data-crushed={seg.crushed || undefined}
+              className="orbit-seg"
+              fill={seg.color ?? "url(#donut-hatch)"}
+              stroke="var(--background)"
+              strokeWidth="1.4"
+            >
+              <title>{`${seg.name} — ${amountText}${shareText}${floorNote}`}</title>
+            </path>
+          );
+        })}
+      </svg>
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span className="tnum text-[19px] font-semibold leading-none">
+          {centerAmount == null ? "—" : money(centerAmount, currency)}
+        </span>
+        <span className="mt-1 max-w-[110px] text-[10px] leading-snug text-muted-foreground">
+          {centerNote}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /** La question unique du niveau, puis ses destinations : l'orbite au
  *  repos (rosace proportionnelle + légende — godet « + N autres » et
  *  segment « non ventilé » quand ils existent) ; la liste complète —
@@ -1436,9 +1582,12 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
             ]
           : []),
       ];
-  const participantStars = participantBars.length > 0 ? starGeometry(participantBars) : [];
-  // La pastille de rang relie chaque rangée à son étoile.
-  const segColor = new Map(participantStars.map((star) => [star.key, star.color]));
+  // Les participants vivent dans un DONUT (fiche verticale B2.12),
+  // plus dans la scène céleste — la pastille de rang relie chaque
+  // rangée à son segment.
+  const participantSegs =
+    participantBars.length > 0 ? arcGeometry(participantBars, parent) : [];
+  const segColor = new Map(participantSegs.map((seg) => [seg.key, seg.color]));
 
   return (
     <section className="mt-12">
@@ -1453,14 +1602,13 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
           {t("money.nih.beneficiaryNote")}
         </p>
       ) : null}
-      {participantStars.length > 0 ? (
-        <div className="mt-4">
-          <StarMap
-            stars={participantStars}
+      {participantSegs.length > 0 ? (
+        <div className="mt-5 flex justify-center sm:justify-start">
+          <ParticipantDonut
+            segs={participantSegs}
             centerAmount={parent}
             centerNote={t("money.children.participation", { count: data.children.total })}
             currency={data.measure.currency}
-            ariaLabel={t("money.children.participation", { count: data.children.total })}
           />
         </div>
       ) : null}
@@ -1941,16 +2089,22 @@ function ProjectFocus({ id }: { id: string }) {
         key={`project:${data.node.id}`}
         className="focus-in h-full min-h-0 overflow-y-auto px-6 pb-10 pt-6 md:px-10"
       >
-        {/* Recomposition (recette fondatrice) : l'identité du projet
-            en colonne à gauche, la scène — sortie « fiche projet » en
-            tête à droite, réconciliation, carte des participants — à
-            droite. Rien de plat, rien de perdu en bas. */}
-        <div className="xl:flex xl:gap-14">
-        <div className="max-w-[720px] xl:w-[350px] xl:shrink-0">
+        {/* La fiche projet VERTICALE (recette fondatrice B2.12) — la
+            grammaire des fiches du site : en-tête avec la sortie vers
+            la vraie fiche en haut à droite, puis chiffre,
+            réconciliation, participants en donut. */}
+        <div className="mx-auto w-full max-w-[860px]">
+        <div className="flex items-start justify-between gap-6">
           <Eyebrow>
             {t("money.levels.project")} ·{" "}
             <span className="font-mono normal-case">{data.node.source_id}</span>
           </Eyebrow>
+          <Link to={`/projects/${data.node.id}`} className="chamber-cta shrink-0">
+            {t("money.projectSheet")}
+            <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+        <div className="max-w-[720px]">
           <h1 className="chamber-neon display-tight mt-1.5 text-[clamp(23px,2.4vw,31px)] font-semibold">
             {data.node.label}
           </h1>
@@ -2019,15 +2173,7 @@ function ProjectFocus({ id }: { id: string }) {
             </p>
           ) : null}
         </div>
-        <div className="mt-8 min-w-0 flex-1 xl:mt-0">
-          {/* La sortie vers la fiche projet : en tête à droite,
-              toujours visible, mise en valeur — jamais perdue en bas. */}
-          <div className="flex justify-start xl:justify-end">
-            <Link to={`/projects/${data.node.id}`} className="chamber-cta">
-              {t("money.projectSheet")}
-              <span aria-hidden="true">→</span>
-            </Link>
-          </div>
+        <div className="mt-2 min-w-0">
           <ReconciliationBlock
             reconciliation={data.reconciliation}
             currency={data.measure.currency}
