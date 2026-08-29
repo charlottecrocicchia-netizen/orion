@@ -6,6 +6,16 @@ All notable changes to Orion are documented here. The format follows
 
 ## [Unreleased]
 
+### Reverted
+
+- **B2.11 (consolidation de la scène céleste) annulé sur recette
+  Charlotte** — retour intégral à l'état validé `a688974` (la scène
+  céleste de la chaîne de l'argent : montgolfières dessinées sur ciel
+  diurne en thème clair, planètes lumineuses sur nuit spatiale en
+  thème sombre). Le chantier de consolidation (registres denses,
+  plafonds) n'avait pas été committé : abandon propre du travail en
+  cours, aucun code résiduel. Aucun autre changement.
+
 ### Added
 
 - **“Where did this money go?” — the money trail surface (B2,
