@@ -173,8 +173,11 @@ function MethodologyPanel({
   };
 
   const filtered = rows.filter((row) => row.value);
+  // La carte flottante s'ancre SOUS son déclencheur (recette
+  // fondatrice : le tiroir plein-droite n'était pas un geste du
+  // site) — même clavier, même focus, nouvelle place.
   return (
-    <>
+    <span className="relative inline-block">
       <button
         ref={triggerRef}
         type="button"
@@ -195,7 +198,7 @@ function MethodologyPanel({
             role="dialog"
             aria-label={t("money.methodology.title")}
             tabIndex={-1}
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-[400px] overflow-y-auto overscroll-contain border-l bg-background p-6 shadow-key"
+            className="absolute left-0 top-[calc(100%+10px)] z-50 max-h-[64vh] w-[min(400px,86vw)] overflow-y-auto overscroll-contain rounded-xl border bg-surface p-5 shadow-[0_0_36px_-10px_color-mix(in_srgb,var(--accent)_50%,transparent)]"
           >
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium uppercase tracking-[.1em] text-muted-foreground">
@@ -233,7 +236,7 @@ function MethodologyPanel({
           </div>
         </>
       ) : null}
-    </>
+    </span>
   );
 }
 
@@ -1685,13 +1688,13 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
           </Eyebrow>
           <h1
             className={cn(
-              "display-tight mt-1 text-[clamp(21px,2.2vw,28px)] font-semibold",
-              shown === "call" ? "font-mono text-[clamp(16px,1.7vw,21px)]" : undefined,
+              "chamber-neon display-tight mt-1.5 text-[clamp(23px,2.4vw,31px)] font-semibold",
+              shown === "call" ? "font-mono text-[clamp(17px,1.8vw,22px)]" : undefined,
             )}
           >
             {label}
           </h1>
-          <p className="display-tight tnum mt-3 text-[clamp(28px,3vw,40px)] font-semibold">
+          <p className="display-tight tnum mt-4 text-[clamp(32px,3.4vw,46px)] font-semibold">
             {data.aggregate?.amount == null ? (
               <span title={t("money.unknownAmount")}>—</span>
             ) : (
@@ -1699,7 +1702,7 @@ function AggregateFocus({ level, id }: { level: "funder" | "programme" | "call";
             )}
           </p>
           <ShareLine share={data.share_of_parent} measureKey={data.aggregate?.measure.key} />
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
+          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border-soft pt-4 text-[13px] text-muted-foreground">
             <span>{measureShort(data.aggregate?.measure.key)}</span>
             <NatureMark provenance={data.aggregate?.measure.provenance} />
             <MethodologyPanel
@@ -1820,12 +1823,17 @@ function ProjectFocus({ id }: { id: string }) {
         key={`project:${data.node.id}`}
         className="focus-in h-full min-h-0 overflow-y-auto px-6 pb-10 pt-6 md:px-10"
       >
-        <div className="max-w-[720px]">
+        {/* Recomposition (recette fondatrice) : l'identité du projet
+            en colonne à gauche, la scène — sortie « fiche projet » en
+            tête à droite, réconciliation, carte des participants — à
+            droite. Rien de plat, rien de perdu en bas. */}
+        <div className="xl:flex xl:gap-14">
+        <div className="max-w-[720px] xl:w-[350px] xl:shrink-0">
           <Eyebrow>
             {t("money.levels.project")} ·{" "}
             <span className="font-mono normal-case">{data.node.source_id}</span>
           </Eyebrow>
-          <h1 className="display-tight mt-1 text-[clamp(21px,2.2vw,28px)] font-semibold">
+          <h1 className="chamber-neon display-tight mt-1.5 text-[clamp(23px,2.4vw,31px)] font-semibold">
             {data.node.label}
           </h1>
           {data.node.title !== data.node.label ? (
@@ -1834,7 +1842,7 @@ function ProjectFocus({ id }: { id: string }) {
             </p>
           ) : null}
           {dates ? <p className="tnum mt-1.5 text-[12.5px] text-muted-foreground">{dates}</p> : null}
-          <p className="display-tight tnum mt-4 text-[clamp(28px,3vw,40px)] font-semibold">
+          <p className="display-tight tnum mt-4 text-[clamp(32px,3.4vw,46px)] font-semibold">
             {data.measure.amount == null ? (
               <span title={t("money.unknownAmount")}>—</span>
             ) : (
@@ -1842,7 +1850,7 @@ function ProjectFocus({ id }: { id: string }) {
             )}
           </p>
           <ShareLine share={data.share_of_parent} measureKey={data.measure.key} />
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted-foreground">
+          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border-soft pt-4 text-[13px] text-muted-foreground">
             <span>{measureShort(data.measure.key)}</span>
             <NatureMark provenance={data.measure.provenance} />
             <MethodologyPanel
@@ -1888,6 +1896,16 @@ function ProjectFocus({ id }: { id: string }) {
               )}
             </p>
           ) : null}
+        </div>
+        <div className="mt-8 min-w-0 flex-1 xl:mt-0">
+          {/* La sortie vers la fiche projet : en tête à droite,
+              toujours visible, mise en valeur — jamais perdue en bas. */}
+          <div className="flex justify-start xl:justify-end">
+            <Link to={`/projects/${data.node.id}`} className="chamber-cta">
+              {t("money.projectSheet")}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
           <ReconciliationBlock
             reconciliation={data.reconciliation}
             currency={data.measure.currency}
@@ -1900,9 +1918,7 @@ function ProjectFocus({ id }: { id: string }) {
               axis={data.annual_obligations}
             />
           ) : null}
-          <ExploreExits
-            exits={[{ label: t("money.projectSheet"), to: `/projects/${data.node.id}` }]}
-          />
+        </div>
         </div>
       </div>
     </TrailWorkspace>

@@ -343,6 +343,27 @@
   pointer-events:none;
 }
 .group:hover .star-tip,.group:focus-visible .star-tip{opacity:1}
+/* Le NÉON de la chambre : le nom du focus s'écrit comme le mot-monde
+   du header (AVIATION) — teinte accent + halo lumineux, lisible. */
+.chamber-neon{
+  color:var(--accent);
+  text-shadow:0 0 16px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+/* La sortie mise en valeur (fiche projet) : pastille néon-contour,
+   toujours en tête de scène. */
+.chamber-cta{
+  display:inline-flex; align-items:center; gap:8px;
+  border:1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color:var(--accent);
+  border-radius:9999px; padding:8px 18px;
+  font-size:13.5px; font-weight:500;
+  box-shadow:0 0 18px -6px color-mix(in srgb, var(--accent) 60%, transparent);
+  transition:box-shadow .25s ease, background-color .25s ease;
+}
+.chamber-cta:hover,.chamber-cta:focus-visible{
+  background:color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow:0 0 30px -6px var(--accent);
+}
 .star-core{
   width:14px; height:14px; border-radius:9999px;
   background:var(--foreground);
