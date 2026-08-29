@@ -1,13 +1,20 @@
 # Plan F1 — Dépendance et exposition : l'implémentation
 
-> **Statut : soumis à arbitrage — aucun code, aucun écran dans cette
-> passe.** Le contrat est `docs/conception-f-dependance.md`, **validé le
-> 2026-08-29** (F-D1 à F-D9). Ce plan exécute le contrat, rien d'autre :
-> toute question méthodologique nouvelle rencontrée en route remonte à
-> l'arbitrage, elle ne se tranche pas en implémentant. Séquence imposée
-> par l'arbitrage : **F1.0 → F1.1 → F1.2 → F1.3 → F1.4**, dans cet
-> ordre strict — F1.0 est le prérequis de l'audit (lot 4) maintenu, et
-> la dette Explorateur (F-D7) se résorbe avant toute surface nouvelle.
+> **Statut : VALIDÉ — GO le 2026-08-29 (second arbitrage), avec trois
+> conditions inscrites ci-dessous (témoins F1.0 = arrêt sur écart ;
+> réconciliation au centime en F1.2 ; le KPI unique de la fiche
+> organisation disparaît, seul son remplacement se conçoit en F1.4) et
+> une porte de calendrier : F1.0 NE COMMENCE PAS avant que la CI soit
+> verte** (réactivation prévue le mardi 2026-09-01 au matin, plan § 6
+> de l'audit : `workflow_dispatch` sans deploy, guetteur sur le run
+> id — jamais de boucle sur un id vide). Le contrat est
+> `docs/conception-f-dependance.md`, validé (F-D1 à F-D9). Ce plan
+> exécute le contrat, rien d'autre : toute question méthodologique
+> nouvelle rencontrée en route remonte à l'arbitrage, elle ne se
+> tranche pas en implémentant. Séquence imposée : **F1.0 → F1.1 →
+> F1.2 → F1.3 → F1.4**, dans cet ordre strict — F1.0 est le prérequis
+> de l'audit (lot 4) maintenu, et la dette Explorateur (F-D7) se
+> résorbe avant toute surface nouvelle.
 
 ## Règles de la marche (tous lots)
 
@@ -69,8 +76,12 @@ calcul : pour les trois financeurs existants le comportement est
 la sémantique) n'est PAS dans ce lot.
 
 **Tests.** Témoins avant/après **identiques à l'octet** sur les nœuds
-réels (le précédent M1.4 : la différence est exactement rien) ; les 372
-tests backend verts inchangés ; nouveaux tests : financeur non déclaré
+réels (le précédent M1.4 : la différence est exactement rien).
+**Condition d'arbitrage (2026-08-29) : un témoin qui diffère d'un
+octet est un ARRÊT et un rapport — jamais une différence expliquée
+pour continuer.** C'est la leçon du faux vert appliquée à un refactor
+large : le jour où l'on se surprend à justifier un écart, le lot a
+échoué. Les 372 tests backend verts inchangés ; nouveaux tests : financeur non déclaré
 → refus nommé sur chaque chemin qui portait un `KeyError` ou un défaut
 (`:266, :606, :1123, :1185`) ; `CORPUS_SOURCES` contient exactement les
 sources du registre ; un financeur sans attribution de licence ne peut
@@ -78,6 +89,12 @@ pas entrer au registre (le test refuse le registre incomplet).
 
 **Recette visuelle.** Aucune — rien ne change à l'écran ; les témoins
 octet-à-octet sont la recette.
+
+**Porte de calendrier (arbitrage 2026-08-29).** F1.0 réécrit dix
+points d'appel de `chain.py` en affirmant que rien ne change : c'est le
+lot qui a le plus besoin du filet. **Il ne commence pas avant la CI
+verte** — réactivation le 2026-09-01 au matin, premier run
+`workflow_dispatch` vert constaté, puis F1.0.
 
 **Porte snapshot.** Déploiement avec le train suivant, rituel standard
 (pas de migration, pas de dump manuel exigé).
@@ -174,9 +191,19 @@ tables (zéro migration — tout se calcule des tables existantes).
 `chain.*` sont octet-identiques avant/après (dependency ne modifie pas
 chain, il le lit).
 
-**Recette visuelle.** Aucune (API seule) ; revue du contrat de réponse
-sur pièce (un appel réel sur JHU, CNRS, Harvard — les trois lectures du
-§ 8 reproduites).
+**Recette sur pièce (condition d'arbitrage 2026-08-29) : une
+réconciliation AU CENTIME, pas une lecture.** Les golds du lot sont des
+fixtures synthétiques ; le § 8 du contrat a été calculé sur le corpus
+réel. Le lot ne passe que si les appels réels reproduisent exactement
+les chiffres du contrat :
+- CNRS (18159) : **3 016 610 461,35 €**, top 3 = **57,04 %**,
+  HHI = **1 273** ;
+- JHU (12267) : les trois blocs natifs du § 8.1 au centime, la part EC
+  **refusée** (`unknown_majority`) ;
+- Harvard (15598) : M2-M4 **fermées**, le fait brut servi (montant
+  connu, comptes).
+**Un écart, quel qu'il soit, est un arrêt et un rapport — jamais un
+ajustement.** Aucune recette visuelle (API seule).
 
 **Porte snapshot.** Déployable en silence (routes non consommées) ;
 rituel standard.
@@ -214,12 +241,17 @@ rituel standard.
 **Touché.**
 - **Fiche organisation** : section « Concentration des financements
   observés » — M1 (blocs par financeur, la grammaire de la chaîne),
-  puis par financeur M2/M3/M4, M5 en deux fenêtres. **Décision nommée à
-  la recette** : le KPI existant `total_funding_eur` (somme EUR
-  inter-natures, dette héritée « hero » de conception-b NO-GO 3) ne
-  peut pas cohabiter tel quel avec M1 sur la même page — son sort
-  (déclinaison par financeur, ou étiquette I3 exacte) se tranche sur
-  maquette avec Charlotte, pas en catimini dans un diff.
+  puis par financeur M2/M3/M4, M5 en deux fenêtres. **Le KPI existant
+  `total_funding_eur` DISPARAÎT — c'est acquis, pas une décision de
+  maquette** (arbitrage 2026-08-29) : F-D1 l'a tranché et F-D7 vient de
+  refuser l'option « étiquette » pour l'Explorateur — elle ne se
+  rouvre pas pour un nombre en tête de fiche, qui est le même objet en
+  plus visible. **Ce qui se conçoit sur maquette, c'est son
+  REMPLACEMENT.** Recommandation à instruire : des COMPTES, pas des
+  montants — projets distincts (règle R4), financeurs, programmes,
+  pays partenaires. Ces grandeurs se somment entre sources sans mentir
+  (elles n'ont pas de nature comptable) ; le panorama M1 sert les
+  montants juste en dessous, chacun dans sa mesure.
 - **Fiche pays** : M1 pays + M6 (« quels acteurs de ce pays sont les
   plus exposés au programme X »), M2-M4 par financeur au grain pays.
 - **Vue comparative** : M2/M3 côte à côte, même financeur, même

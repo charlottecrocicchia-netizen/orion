@@ -41,10 +41,14 @@ jour du fil (2026-08-18), dans l'ordre approximatif d'exécution :
   F-D1 à F-D9 arbitrées : pas de ratio inter-financeurs, parts
   intra-financeur sur montants connus, refus « majorité inconnue »,
   HHI sans qualificatif, contrefactuel NO-GO, groupes hors F1) ;
-  **plan F1 soumis à arbitrage** (`docs/plan-f1-dependance.md`,
-  séquence F1.0 registre `FUNDER_PROFILE` → F1.1 dette Explorateur
+  **plan F1 VALIDÉ — GO** (`docs/plan-f1-dependance.md`, second
+  arbitrage du 2026-08-29 : témoins F1.0 = arrêt sur écart,
+  réconciliation au centime en F1.2, le KPI unique de la fiche
+  organisation disparaît — seul son remplacement se conçoit ; **porte
+  de calendrier : F1.0 après la CI verte, réactivation le 01/09**).
+  Séquence F1.0 registre `FUNDER_PROFILE` → F1.1 dette Explorateur
   `by=funder` → F1.2-F1.3 moteur avec golds → F1.4 surfaces et
-  « refus digne »). Aucun code écrit à ce stade.
+  « refus digne ». Aucun code écrit à ce stade.
 
 Les sections historiques ci-dessous sont conservées telles quelles ;
 celles que ce point de situation contredit sont annotées en place.
