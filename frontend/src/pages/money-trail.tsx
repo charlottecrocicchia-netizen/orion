@@ -2242,7 +2242,16 @@ function CountryView({ code }: { code: string }) {
         <FunderRelations blocks={data.by_funder} />
       )}
       {!data.cross_funder_total.available ? <NoTotalNote /> : null}
-      <ExploreExits exits={[{ label: t("money.countrySheet"), to: `/countries/${data.node.id}` }]} />
+      <ExploreExits
+        exits={[
+          {
+            label: t("money.countrySheet"),
+            // Le hub pays du site vit sous /explore/countries/:code
+            // (codes en MAJUSCULES — la convention de l'explorateur).
+            to: `/explore/countries/${String(data.node.id).toUpperCase()}`,
+          },
+        ]}
+      />
     </TransverseShell>
   );
 }
