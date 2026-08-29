@@ -916,152 +916,6 @@ function StarMap({
   );
 }
 
-/* — le donut des participants (fiche projet, B2.12) : UN anneau
-   proportionnel — l'angle dit le montant —, palette validée,
-   non-ventilé hachuré, plancher 2° marqué, assiette étendue à la
-   somme sur dépassement (l'anneau se remplit, le texte comptable
-   signé dit tout). Jamais la hiérarchie empilée en angles. — */
-const DONUT = { size: 240, c: 120, rOut: 112, rIn: 82 };
-const FLOOR_DEG = 2;
-
-interface ArcSeg extends BarSpec {
-  start: number;
-  sweep: number;
-  crushed: boolean;
-  color: string | null;
-}
-
-function arcGeometry(bars: BarSpec[], parentAmount: number | null): ArcSeg[] {
-  const knownSum = bars.reduce((sum, bar) => sum + (bar.amount ?? 0), 0);
-  const basis =
-    parentAmount != null && parentAmount > 0 ? Math.max(parentAmount, knownSum) : knownSum;
-  const raw = bars.map((bar) =>
-    bar.amount != null && basis > 0 ? (bar.amount / basis) * 360 : FLOOR_DEG,
-  );
-  const floored = raw.map((deg, i) => deg < FLOOR_DEG && bars[i].amount != null);
-  const noAngle = bars.map((bar) => bar.amount == null);
-  const reserved = raw.reduce(
-    (sum, _deg, i) => sum + (floored[i] || noAngle[i] ? FLOOR_DEG : 0),
-    0,
-  );
-  const restRaw = raw.reduce((sum, deg, i) => (floored[i] || noAngle[i] ? sum : sum + deg), 0);
-  const scale = restRaw > 0 ? Math.min(1, (360 - reserved) / restRaw) : 1;
-  let childRank = 0;
-  let cursor = 0;
-  return bars.map((bar, i) => {
-    const sweep = floored[i] || noAngle[i] ? FLOOR_DEG : raw[i] * scale;
-    const seg: ArcSeg = {
-      ...bar,
-      start: cursor,
-      sweep,
-      crushed: floored[i],
-      color:
-        bar.kind === "child"
-          ? SERIES_VARS[childRank % SERIES_VARS.length]
-          : bar.kind === "others"
-            ? "var(--donut-others)"
-            : null,
-    };
-    if (bar.kind === "child") childRank += 1;
-    cursor += sweep;
-    return seg;
-  });
-}
-
-function polar(r: number, deg: number): string {
-  const rad = ((deg - 90) * Math.PI) / 180;
-  return `${(DONUT.c + r * Math.cos(rad)).toFixed(2)} ${(DONUT.c + r * Math.sin(rad)).toFixed(2)}`;
-}
-
-function segPath(start: number, sweep: number): string {
-  const end = start + Math.min(sweep, 359.9);
-  const large = end - start > 180 ? 1 : 0;
-  return [
-    `M ${polar(DONUT.rOut, start)}`,
-    `A ${DONUT.rOut} ${DONUT.rOut} 0 ${large} 1 ${polar(DONUT.rOut, end)}`,
-    `L ${polar(DONUT.rIn, end)}`,
-    `A ${DONUT.rIn} ${DONUT.rIn} 0 ${large} 0 ${polar(DONUT.rIn, start)}`,
-    "Z",
-  ].join(" ");
-}
-
-/** Le donut : décoratif-interactif (title + clic) — les rangées de
- *  participants dessous restent LA surface accessible et précise. */
-function ParticipantDonut({
-  segs,
-  centerAmount,
-  centerNote,
-  currency,
-}: {
-  segs: ArcSeg[];
-  centerAmount: number | null;
-  centerNote: string;
-  currency: string | null | undefined;
-}) {
-  const { t, locale, money } = useMoneyCopy();
-  return (
-    <div
-      aria-hidden="true"
-      className="relative shrink-0"
-      style={{ width: DONUT.size, height: DONUT.size }}
-    >
-      <svg viewBox={`0 0 ${DONUT.size} ${DONUT.size}`} className="h-full w-full">
-        <defs>
-          <pattern
-            id="donut-hatch"
-            width="7"
-            height="7"
-            patternTransform="rotate(-45)"
-            patternUnits="userSpaceOnUse"
-          >
-            <rect width="7" height="7" fill="transparent" />
-            <rect width="3" height="7" fill="var(--muted-foreground)" opacity="0.3" />
-          </pattern>
-        </defs>
-        <circle
-          cx={DONUT.c}
-          cy={DONUT.c}
-          r={(DONUT.rOut + DONUT.rIn) / 2}
-          fill="none"
-          stroke="var(--border-soft)"
-          strokeWidth={DONUT.rOut - DONUT.rIn}
-        />
-        {segs.map((seg) => {
-          const amountText = seg.amount == null ? "—" : money(seg.amount, currency);
-          const shareText = seg.share == null ? "" : ` · ${pct(seg.share, locale)}`;
-          const floorNote =
-            seg.crushed && seg.share != null
-              ? ` ${t("money.columns.floored", { pct: pct(seg.share, locale) })}`
-              : "";
-          return (
-            <path
-              key={seg.key}
-              d={segPath(seg.start, seg.sweep)}
-              data-seg={seg.kind}
-              data-deg={Math.round(seg.sweep)}
-              data-crushed={seg.crushed || undefined}
-              className="orbit-seg"
-              fill={seg.color ?? "url(#donut-hatch)"}
-              stroke="var(--background)"
-              strokeWidth="1.4"
-            >
-              <title>{`${seg.name} — ${amountText}${shareText}${floorNote}`}</title>
-            </path>
-          );
-        })}
-      </svg>
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="tnum text-[19px] font-semibold leading-none">
-          {centerAmount == null ? "—" : money(centerAmount, currency)}
-        </span>
-        <span className="mt-1 max-w-[110px] text-[10px] leading-snug text-muted-foreground">
-          {centerNote}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 /** La question unique du niveau, puis ses destinations : l'orbite au
  *  repos (rosace proportionnelle + légende — godet « + N autres » et
  *  segment « non ventilé » quand ils existent) ; la liste complète —
@@ -1577,49 +1431,11 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
   const items = data.children.items;
   const parent = data.measure.amount;
 
-  // L'orbite des participants (B2.11) : tous les participants sont
-  // servis (jamais de pagination ici) — chacun son segment coloré, la
-  // pastille de rang relie l'anneau à sa rangée. Le « non ventilé »
-  // vient du moteur (reconciliation.unallocated) ; un dépassement
-  // (exceed) n'a PAS de segment résiduel : l'assiette s'étend à la
-  // somme, le texte comptable signé dit le dépassement. NIH
-  // bénéficiaire : aucun anneau — le moteur ne ventile pas.
-  const shareOf = (amount: number | null) =>
-    amount != null && parent != null && parent > 0 ? (amount / parent) * 100 : null;
-  const participantBars: BarSpec[] = beneficiary
-    ? []
-    : [
-        ...items
-          .filter((item) => item.amount != null)
-          .sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0))
-          .map((item) => ({
-            key: item.source_uid,
-            kind: "child" as const,
-            name: displayLabel({ label: formatOrgName(item.organisation.label) }, 250, 13),
-            amount: item.amount ?? null,
-            share: shareOf(item.amount ?? null),
-            to: `/money/organisation/${item.organisation.id}`,
-          })),
-        ...(data.reconciliation.status === "gap" &&
-        data.reconciliation.unallocated != null &&
-        data.reconciliation.unallocated > 1
-          ? [
-              {
-                key: "unallocated",
-                kind: "unallocated" as const,
-                name: t("money.columns.unallocated"),
-                amount: data.reconciliation.unallocated,
-                share: shareOf(data.reconciliation.unallocated),
-              },
-            ]
-          : []),
-      ];
-  // Les participants vivent dans un DONUT (fiche verticale B2.12),
-  // plus dans la scène céleste — la pastille de rang relie chaque
-  // rangée à son segment.
-  const participantSegs =
-    participantBars.length > 0 ? arcGeometry(participantBars, parent) : [];
-  const segColor = new Map(participantSegs.map((seg) => [seg.key, seg.color]));
+  // Les participants se lisent en LISTE (recette fondatrice B2.12) :
+  // organisation, rôle, drapeau-pays, montant, part — le donut est
+  // retiré. La réconciliation textuelle au-dessus dit déjà le
+  // non-ventilé ; un montant inconnu reste « inconnu », jamais zéro.
+
 
   return (
     <section className="mt-12">
@@ -1633,16 +1449,6 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
         <p className="mt-3 max-w-[62ch] text-[12.5px] leading-relaxed text-muted-foreground">
           {t("money.nih.beneficiaryNote")}
         </p>
-      ) : null}
-      {participantSegs.length > 0 ? (
-        <div className="mt-5 flex justify-center sm:justify-start">
-          <ParticipantDonut
-            segs={participantSegs}
-            centerAmount={parent}
-            centerNote={t("money.children.participation", { count: data.children.total })}
-            currency={data.measure.currency}
-          />
-        </div>
       ) : null}
       <div className="mt-2">
         {items.length === 0 ? (
@@ -1660,13 +1466,6 @@ function ParticipationsSection({ data }: { data: ChainProjectNode }) {
                 key={item.source_uid}
                 className="flex items-baseline gap-3 border-b border-border-soft py-3"
               >
-                {segColor.get(item.source_uid) ? (
-                  <span
-                    aria-hidden="true"
-                    className="h-2.5 w-2.5 shrink-0 rounded-[3px]"
-                    style={{ background: segColor.get(item.source_uid) as string }}
-                  />
-                ) : null}
                 <span className="min-w-0 truncate text-sm leading-snug">
                   <Link
                     to={`/money/organisation/${item.organisation.id}`}

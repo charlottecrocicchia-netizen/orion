@@ -351,11 +351,6 @@
   box-shadow:0 0 7px -1px color-mix(in srgb, var(--star-tint) 75%, transparent);
 }
 
-/* Un segment du donut des participants : transition douce, éclat au
-   survol. */
-.orbit-seg{transition:filter .25s ease}
-.orbit-seg:hover{filter:brightness(1.1) saturate(1.06)}
-
 .star-body{
   transform:translate(-50%,-50%);
   animation:chamber-float var(--float-t,6s) ease-in-out var(--float-delay,0s) infinite;
