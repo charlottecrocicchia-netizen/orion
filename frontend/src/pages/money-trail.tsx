@@ -491,16 +491,35 @@ const ORION_SEAL = {
   ] as [number, number][],
 };
 
-/** Les nuages du jour : voiles dessinés (dégradés radiaux flous),
- *  positions et dérives déterministes. Visibles en thème clair
- *  seulement ; reduced-motion : immobiles. */
-const DAY_CLOUDS: { x: number; y: number; w: number; h: number; t: number; o: number }[] = [
-  { x: 8, y: 14, w: 340, h: 90, t: 96, o: 0.75 },
-  { x: 34, y: 34, w: 260, h: 70, t: 118, o: 0.55 },
-  { x: 58, y: 10, w: 420, h: 110, t: 104, o: 0.7 },
-  { x: 74, y: 46, w: 300, h: 84, t: 126, o: 0.5 },
-  { x: 16, y: 66, w: 380, h: 100, t: 110, o: 0.6 },
-  { x: 62, y: 78, w: 320, h: 90, t: 132, o: 0.5 },
+/** Un cumulus DESSINÉ : une union de bosses sur une base plate — la
+ *  silhouette que l'œil reconnaît, pas un voile flou. */
+function CloudGlyph() {
+  return (
+    <svg viewBox="0 0 220 90" className="h-auto w-full" aria-hidden="true">
+      <g fill="currentColor">
+        <ellipse cx="48" cy="60" rx="40" ry="22" />
+        <ellipse cx="92" cy="42" rx="38" ry="27" />
+        <ellipse cx="138" cy="52" rx="40" ry="25" />
+        <ellipse cx="178" cy="64" rx="34" ry="18" />
+        <ellipse cx="110" cy="66" rx="78" ry="20" />
+      </g>
+    </svg>
+  );
+}
+
+/** Le ciel de jour : cumulus en couches de profondeur (échelle,
+ *  opacité, flou, cadence — déterministes). Les lointains dérivent
+ *  lentement, les proches un peu plus vite ; reduced-motion :
+ *  immobiles. */
+const DAY_CLOUDS: { x: number; y: number; s: number; t: number; o: number; b: number }[] = [
+  { x: 1, y: 6, s: 1.8, t: 200, o: 0.5, b: 5 },
+  { x: 28, y: 2, s: 1.1, t: 150, o: 0.7, b: 2.5 },
+  { x: 56, y: 10, s: 2.1, t: 220, o: 0.45, b: 6 },
+  { x: 79, y: 28, s: 1.2, t: 160, o: 0.65, b: 3 },
+  { x: 8, y: 44, s: 1.5, t: 205, o: 0.5, b: 4 },
+  { x: 42, y: 58, s: 2.0, t: 235, o: 0.38, b: 6 },
+  { x: 68, y: 70, s: 1.4, t: 175, o: 0.55, b: 3.5 },
+  { x: 18, y: 78, s: 1.2, t: 155, o: 0.5, b: 3 },
 ];
 
 function ChamberBackdrop() {
@@ -515,13 +534,15 @@ function ChamberBackdrop() {
               {
                 left: `${cloud.x}%`,
                 top: `${cloud.y}%`,
-                width: cloud.w,
-                height: cloud.h,
+                width: 220 * cloud.s,
+                opacity: cloud.o,
+                filter: `blur(${cloud.b}px)`,
                 "--cloud-t": `${cloud.t}s`,
-                "--cloud-o": cloud.o,
               } as React.CSSProperties
             }
-          />
+          >
+            <CloudGlyph />
+          </span>
         ))}
       </div>
       <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -601,6 +622,68 @@ interface StarSpec extends BarSpec {
   r: number;
   crushed: boolean;
   color: string | null;
+}
+
+/** La montgolfière du jour, DESSINÉE : enveloppe à fuseaux, reflet,
+ *  jupe, suspentes, nacelle tressée — la silhouette que l'œil
+ *  reconnaît. Le ballon-fantôme du non-ventilé n'a ni jupe ni
+ *  nacelle : rien n'y est suspendu. L'aire de l'enveloppe dit
+ *  toujours le montant. */
+function BalloonGlyph({ r, tint, kind }: { r: number; tint: string | null; kind: BarSpec["kind"] }) {
+  const w = Math.max(r * 2, 14);
+  const color = tint ?? "var(--muted-foreground)";
+  const envelope =
+    "M50 3 C77 3 95 23 95 49 C95 71 76 88 63 97 L37 97 C24 88 5 71 5 49 C5 23 23 3 50 3 Z";
+  if (kind === "unallocated") {
+    return (
+      <svg
+        width={w}
+        height={w}
+        viewBox="0 0 100 100"
+        className="mx-auto block"
+        aria-hidden="true"
+      >
+        <path
+          d={envelope}
+          fill="transparent"
+          stroke="color-mix(in srgb, var(--muted-foreground) 70%, transparent)"
+          strokeWidth="2.5"
+          strokeDasharray="6 5"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg
+      width={w}
+      height={w * 1.34}
+      viewBox="0 0 100 134"
+      className="balloon mx-auto block"
+      style={{ "--star-tint": color } as React.CSSProperties}
+      aria-hidden="true"
+    >
+      <path d={envelope} fill={color} />
+      {/* fuseaux : coutures centrales et latérales */}
+      <path d="M50 3 C60 26 60 74 50 97" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="1.6" />
+      <path d="M50 3 C40 26 40 74 50 97" fill="none" stroke="rgba(0,0,0,.16)" strokeWidth="1.6" />
+      <path d="M50 3 C79 19 84 60 63 97" fill="none" stroke="rgba(0,0,0,.13)" strokeWidth="1.4" />
+      <path d="M50 3 C21 19 16 60 37 97" fill="none" stroke="rgba(255,255,255,.28)" strokeWidth="1.4" />
+      {/* reflet du soleil */}
+      <ellipse cx="35" cy="30" rx="15" ry="21" fill="rgba(255,255,255,.32)" />
+      {/* jupe (bouche de l'enveloppe) */}
+      <path
+        d="M37 97 L63 97 L57 106 L43 106 Z"
+        fill="color-mix(in srgb, var(--star-tint) 62%, #1d1d1f)"
+      />
+      {/* suspentes */}
+      <line x1="43" y1="106" x2="45" y2="116" stroke="rgba(29,29,31,.55)" strokeWidth="1.2" />
+      <line x1="57" y1="106" x2="55" y2="116" stroke="rgba(29,29,31,.55)" strokeWidth="1.2" />
+      {/* nacelle tressée */}
+      <rect x="42" y="116" width="16" height="13" rx="3" fill="#96713f" stroke="#6c522f" strokeWidth="1.4" />
+      <line x1="42" y1="121" x2="58" y2="121" stroke="#6c522f" strokeWidth="1" />
+      <line x1="42" y1="125" x2="58" y2="125" stroke="#6c522f" strokeWidth="1" />
+    </svg>
+  );
 }
 
 /** L'aire de l'étoile dit le montant : r = √(montant/max) × R_MAX,
@@ -733,11 +816,16 @@ function StarMap({
                 ) : null}
               </span>
             </span>
+            {/* Le jour : la montgolfière dessinée ; la nuit : la
+                sphère-étoile — même aire, deux mondes. */}
+            <span className="chamber-day-only">
+              <BalloonGlyph r={star.r} tint={star.color} kind={star.kind} />
+            </span>
             <span
               aria-hidden="true"
               data-orb
               className={cn(
-                "mx-auto block rounded-full transition-[box-shadow,filter] duration-300",
+                "chamber-night-only mx-auto rounded-full transition-[box-shadow,filter] duration-300",
                 star.kind === "child" && "star-orb",
                 star.kind === "others" && "star-door",
                 star.kind === "unallocated" && "star-hollow",
@@ -745,7 +833,6 @@ function StarMap({
               style={{
                 width: star.r * 2,
                 height: star.r * 2,
-                "--orb-d": `${star.r * 2}px`,
                 "--star-tint": star.color ?? "var(--muted-foreground)",
               } as React.CSSProperties}
             />

@@ -280,8 +280,9 @@
   --halo-soft:16%;
   color-scheme:light;
   background:
+    linear-gradient(to top, rgba(255,255,255,.85), transparent 24%),
     radial-gradient(55% 40% at 82% 6%, rgba(255,243,205,.6), transparent 62%),
-    linear-gradient(#dceafc 0%, #f2f7fe 62%, #ecf3fc 100%);
+    linear-gradient(#d3e4fb 0%, #eef5fe 58%, #e8f1fb 100%);
 }
 .dark .chamber{
   --background:#0a0c13; --surface:#12151d; --foreground:#f5f5f7;
@@ -308,20 +309,21 @@
    le sceau vit dans les deux (pâle en plein jour). */
 .chamber-stars{display:none}
 .dark .chamber-stars{display:block}
+.chamber-day-only{display:block}
+.dark .chamber-day-only{display:none}
+.chamber-night-only{display:none}
+.dark .chamber-night-only{display:block}
 .chamber-seal{display:none}
 .dark .chamber-seal{display:block}
 .chamber-clouds{position:absolute; inset:0; display:block}
 .dark .chamber-clouds{display:none}
 .chamber-cloud{
-  position:absolute; border-radius:9999px;
-  background:radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0));
-  filter:blur(6px);
-  opacity:var(--cloud-o,.6);
+  position:absolute; display:block; color:#ffffff;
   animation:chamber-cloud-drift var(--cloud-t,110s) ease-in-out infinite alternate;
 }
 @keyframes chamber-cloud-drift{
-  from{transform:translateX(-24px)}
-  to{transform:translateX(24px)}
+  from{transform:translateX(-46px)}
+  to{transform:translateX(46px)}
 }
 .chamber-twinkle{animation:chamber-twinkle 5s ease-in-out infinite}
 @keyframes chamber-twinkle{0%,100%{opacity:.25}50%{opacity:.9}}
@@ -362,32 +364,6 @@
   background:radial-gradient(circle, transparent 55%, rgba(245,245,247,.05) 100%);
   border:1.5px dashed color-mix(in srgb, var(--muted-foreground) 70%, transparent);
 }
-/* Le jour : montgolfières. L'enveloppe est la sphère existante ; la
-   nacelle (proportionnée au diamètre) pend dessous, reliée par deux
-   suspentes hairline. La nuit les efface — les étoiles n'ont pas de
-   nacelle. Le ballon-fantôme (non-ventilé) garde son pointillé, sans
-   nacelle : rien n'y est suspendu. */
-.chamber .star-orb, .chamber .star-door{position:relative}
-.chamber .star-orb::before, .chamber .star-door::before{
-  content:""; position:absolute; top:96%; left:50%;
-  width:calc(var(--orb-d, 24px) * 0.34); height:calc(var(--orb-d, 24px) * 0.16);
-  min-height:3px;
-  transform:translateX(-50%);
-  border-left:1px solid color-mix(in srgb, var(--foreground) 35%, transparent);
-  border-right:1px solid color-mix(in srgb, var(--foreground) 35%, transparent);
-}
-.chamber .star-orb::after, .chamber .star-door::after{
-  content:""; position:absolute; left:50%;
-  top:calc(96% + var(--orb-d, 24px) * 0.16);
-  width:calc(var(--orb-d, 24px) * 0.3); height:calc(var(--orb-d, 24px) * 0.14);
-  min-width:5px; min-height:4px;
-  transform:translateX(-50%);
-  border-radius:2px;
-  background:color-mix(in srgb, #8a6a3f 78%, var(--star-shade));
-  box-shadow:0 1px 2px rgba(29,29,31,.22);
-}
-.dark .chamber .star-orb::before, .dark .chamber .star-door::before,
-.dark .chamber .star-orb::after, .dark .chamber .star-door::after{display:none}
 /* La carte-étiquette du survol : révélée au-dessus de l'étoile,
    lisible, jamais tronquée. */
 .star-tip{
@@ -400,6 +376,13 @@
   box-shadow:0 0 28px -8px color-mix(in srgb, var(--accent) 55%, transparent);
   opacity:0; transition:opacity .2s ease;
   pointer-events:none;
+}
+.balloon{
+  filter:drop-shadow(0 5px 9px rgba(29,29,31,.18));
+  transition:filter .25s ease;
+}
+.group:hover .balloon,.group:focus-visible .balloon{
+  filter:drop-shadow(0 6px 16px color-mix(in srgb, var(--star-tint) 55%, transparent)) brightness(1.05);
 }
 .group:hover .star-tip,.group:focus-visible .star-tip{opacity:1}
 /* Le NÉON de la chambre : le nom du focus s'écrit comme le mot-monde
