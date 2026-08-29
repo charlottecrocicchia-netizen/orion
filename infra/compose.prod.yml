@@ -1,8 +1,20 @@
 name: orion
 
+# Rotation des logs conteneurs : sans elle, le driver json-file est NON
+# BORNÉ — une bombe lente sur le disque de prod (audit Hygiène G17,
+# 2026-08-29 : postgres up 7 jours, aucune borne nulle part). 20 Mo × 5
+# fichiers par service, soit 100 Mo plafond par conteneur. S'applique à
+# la prochaine bascule (`make up` recrée les conteneurs).
+x-logging: &journal
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
+    logging: *journal
     # Docker caps /dev/shm at 64 MB; parallel workers sharing the
     # larger work_mem above overflow it and the query dies with
     # "No space left on device" (real-run finding, 2026-08-03).
@@ -46,6 +58,7 @@ services:
 
   api:
     image: ${API_IMAGE:-ghcr.io/charlottecrocicchia-netizen/orion-api:latest}
+    logging: *journal
     build:
       context: ../backend
       # Le tampon que le lanceur du Bureau vérifie — `make up` l'exporte
@@ -98,6 +111,7 @@ services:
 
   web:
     image: ${WEB_IMAGE:-ghcr.io/charlottecrocicchia-netizen/orion-web:latest}
+    logging: *journal
     build:
       context: ../frontend
       args:
@@ -106,6 +120,7 @@ services:
 
   caddy:
     image: caddy:2-alpine
+    logging: *journal
     restart: unless-stopped
     ports:
       - "${HTTP_PORT:-8080}:80"
@@ -128,6 +143,7 @@ services:
 
   scheduler:
     image: ${API_IMAGE:-ghcr.io/charlottecrocicchia-netizen/orion-api:latest}
+    logging: *journal
     # MÊMES args de build que le service api : le scheduler partage son
     # image, et dans `up --build` sa construction est la DERNIÈRE à
     # étiqueter le tag — sans GIT_REV ici, elle écrasait le tampon posé
