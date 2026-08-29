@@ -172,7 +172,7 @@ function Footer() {
       <div className="border-t">
         <div className="mx-auto flex h-12 w-full max-w-[1240px] items-center justify-between px-6 text-xs text-muted-foreground">
           <span>© 2026 {BRAND}</span>
-          <span className="font-mono text-[11px]">{t("footer.phase")}</span>
+          <span className="font-mono text-[11px]">{`v${__APP_VERSION__}`}</span>
         </div>
       </div>
     </footer>

@@ -1,12 +1,20 @@
 /// <reference types="vitest/config" />
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+const { version } = JSON.parse(
+  readFileSync(new URL("./package.json", import.meta.url), "utf8"),
+) as { version: string };
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // La version affichée (footer) vient de package.json — une seule
+  // vérité par côté, plus jamais une chaîne i18n figée (hygiène G1).
+  define: { __APP_VERSION__: JSON.stringify(version) },
   resolve: {
     alias: { "@": path.resolve(import.meta.dirname, "src") },
   },

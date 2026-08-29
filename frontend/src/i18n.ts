@@ -1264,7 +1264,6 @@ const resources = {
       },
       footer: {
         data: "About the data",
-        phase: "v0.4.0",
         tagline: "Space funding & industrial intelligence",
         scope: "Europe · United States · 2005–2027",
         product: "Product",
@@ -2902,7 +2901,6 @@ const resources = {
       },
       footer: {
         data: "À propos des données",
-        phase: "v0.4.0",
         tagline:
           "Intelligence des financements et écosystèmes industriels du spatial",
         scope: "Europe · États-Unis · 2005–2027",
