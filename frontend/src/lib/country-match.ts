@@ -6,7 +6,7 @@
  *  label stays the interface language — only matching widens. */
 
 /** Extend here as user languages arrive (wave 1: "de", "es", "it"…). */
-export const MATCH_LOCALES = ["en", "fr"] as const;
+const MATCH_LOCALES = ["en", "fr"] as const;
 
 export const stripAccents = (value: string) =>
   value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();

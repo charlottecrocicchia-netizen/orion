@@ -34,8 +34,6 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-CONCEPTS: tuple[str, ...] = ("gdp_current_usd", "population", "gdp_ppp_current_intl")
-
 # PURCHASING POWER (lot R4B) — le couple, dans l'ordre numérateur puis
 # dénominateur. Il ne se lit JAMAIS concept par concept : voir
 # `ppp_ratio_set()`.

@@ -68,12 +68,6 @@ export function useLeadLens(): LensMeta | null {
   return usePublishedLenses()[0] ?? null;
 }
 
-/** La lentille active de la vue courante, lue dans l'URL. */
-export function useActiveLens(): ActiveLens | null {
-  const [params] = useSearchParams();
-  return parseLens(params.get(LENS_PARAM));
-}
-
 /** Les mots d'une lentille. Curés (`lens.<slug>.*`) ou, à défaut, les
  *  motifs génériques — une lentille sans ses mots reste lisible. */
 export function lensWords(slug: string, t: Translate) {

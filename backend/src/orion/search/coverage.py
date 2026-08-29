@@ -45,7 +45,6 @@ FUNDER_COVERAGE: dict[str, set[str]] = {
     "ademe": {"FR"},
 }
 
-CLASSES = ("funders", "participations", "none")
 
 
 def coverage_map(session: Session) -> dict[str, str]:

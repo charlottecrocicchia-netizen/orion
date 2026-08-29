@@ -246,7 +246,7 @@ export function resolveView(state: ExplorerState): {
  *  bornes du corpus) : « sans borne » et « toute la fenêtre » relèvent
  *  du même refus, mais les confondre avec une année unique servirait un
  *  chiffre faux. */
-export const PPP_DIMS = ["country", "region", "organisation", "orgtype"];
+const PPP_DIMS = ["country", "region", "organisation", "orgtype"];
 
 export function pppViewEligible(state: ExplorerState): boolean {
   return (

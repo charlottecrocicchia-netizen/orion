@@ -57,8 +57,10 @@ visible, ce qu'I3 interdit) :
   désormais `enabling` (règle maison : une promesse affichée reste vraie
   le jour où la donnée change).
 
-Ne sont PAS touchés les emplois anglais sans rapport (`explore-view`,
-`partner-graph` : la diapo adjacente, la liste adjacente).
+Ne sont PAS touchés les emplois anglais sans rapport (`explore-view` :
+la diapo adjacente, la liste adjacente ; `partner-graph`, cité ici à
+l'époque, a été retiré — mort depuis `fd6324e`, supprimé au chantier
+Hygiène C1, 2026-08-29).
 
 ### M1.1 — le socle générique (rendu strictement identique)
 

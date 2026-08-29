@@ -145,7 +145,7 @@ jamais de teinte générée au-delà des six.
 | « Où va l'argent (hiérarchie) ? » | Treemap programmes | ✅ (garder < 2 niveaux) |
 | « Ça bouge comment, en un clin d'œil ? » | Sparkline + TrendDelta dans les listes | ✅ |
 | « Où géographiquement ? » | Choroplèthe séquentielle + globe | ✅ (gelé) |
-| « Qui collabore avec qui ? » | PartnerGraph + flux géo | ✅ pour le 1er degré |
+| « Qui collabore avec qui ? » | Timeline par rôle + carte des collaborateurs (`fd6324e` ; l'ancien PartnerGraph est supprimé — Hygiène C1) | ✅ pour le 1er degré |
 
 ### 3b. Ce qui manque — six formes, chacune payée par une question de persona
 
