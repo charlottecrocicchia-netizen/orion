@@ -117,6 +117,312 @@ All notable changes to Orion are documented here. The format follows
 
 ### Added
 
+- **The NSF's own obligation series gets its own surface (R5B,
+  docs/conception-r5-budget-denominators.md § 19-20,
+  docs/runbook-nsf-obligations.md).** Three tables (migration 0034) hold
+  the official *NSF by the Numbers* snapshot: artefact provenance, the
+  rows stored exactly as published, and the per-FY reconciliation. The
+  parser is deterministic on the REAL Tableau export — UTF-16LE,
+  tab-separated but CSV-quoted, trailing-space headers, a minus sign
+  before OR after the dollar, abbreviated millions on the Trends sheet —
+  all read off the artefacts, everything outside the pattern refused
+  loudly. The loader demands a meta sidecar, verifies the SHA256,
+  appends a vintage of the day, checks Σ details against the Trends
+  series to a $5 000 rounding tolerance, and measures the award_id ↔
+  source_uid join coverage against a threshold frozen at 0.95: a fiscal
+  year below it is UNAVAILABLE, never a zero and never a fallback. Real
+  ingestion: 326 313 rows, 15 fiscal years (FY2011-FY2025), 64 s,
+  `orion-ingest nsf-obligations`, never inside `all`. The metric — Share
+  of NSF award obligations — is INDEPENDENT: numerator and denominator
+  both come from the same official snapshot, the Orion join contributes
+  dimensions only (fy, division, state, country, organisation), never
+  eligibility and never a renormalisation to 100 %; multi-FY is a ratio
+  of sums; pre-aggregating the joined dimensions per award took
+  by=organisation from 614 to 216 ms cold. The page `/nsf-obligations`
+  stays OUTSIDE "View funding as" — the Reference Engine is untouched
+  and `lens=` has no currency on the route: replayable state in the URL
+  (`fy=` single or range, `by=`), FY labels, the official denominator,
+  shares of the official total, coverage displayed with the unjoinable
+  amount (never hidden, never redistributed), provenance and vintage,
+  and a methodology block frozen word for word ("This is not the NSF
+  budget and not project-start-year funding"). Every API refusal has its
+  own message. The artefacts got a durable store: vintage 2026-08-26 —
+  17 artefacts, sidecars and MANIFEST, each SHA256 re-verified on copy —
+  promoted to `backend/data/r5-nsf/<vintage>/`, because these files are
+  NOT re-downloadable identically (the official series is restated
+  without archives), so the vintage folder is the only raw archive.
+  Replayability proven from the store alone: unchanged in 1 s, `--force`
+  reloads the same 326 313 rows. 9 e2e specs, harness 153/153.
+
+- **"View funding as" — the Reference Engine, R1 to R4
+  (docs/conception-reference-engine.md,
+  docs/conception-a-euros-constants.md, docs/conception-r4-ppp.md).**
+  One grammar decided in R0 (`value` / `base` / `cur`), one selector,
+  and each new mode a GROUP inside it — never one more control. **R1,
+  constant euros**: a `price_indices` table versioned by vintage
+  (migration 0032, no column added to the data tables), HICP and CPI-U
+  loaders, `value=real&base=YYYY&cur=EUR|USD` where Real 2025·USD is
+  strictly Real 2025·EUR re-expressed through one ECB scalar; refusals
+  are explicit (400 on an unsupported mode or currency, 422
+  `real_unavailable`) and the nominal path stayed byte-identical,
+  verified on 12 views over the full corpus. Measured on 699 798
+  projects: `by=funder` 1.51 s → 0.75 s cold, the excluded share
+  unchanged at 5 478 projects / €12.21B and always stated. **R2, trend**:
+  `index(a) = 100·real(a)/real(base)` and `growth(a) =
+  real(a)/real(a−1) − 1`, always on the REAL value, with `lib/trend.ts`
+  as the single source for chart, table, legend, note and CSV — a series
+  with no valid value at the base is non-indexable rather than silently
+  rebased, a hole stays a hole, growth is null in the first year and on
+  a zero denominator, and the chart learned a signed domain so negative
+  growth is drawn under a zero line instead of sitting on a monetary
+  axis. **R3, economic scale**: `jurisdictions` and `macro_series`
+  (migration 0033, append-only, no home-made aggregate — the EU is the
+  series the source publishes), a World Bank WDI loader versioned by
+  vintage with CC BY 4.0 verified PER INDICATOR, 214 jurisdictions for
+  GDP and 217 for population over 1990-2025; % of GDP is a pure ratio in
+  a common USD currency displayed as a mean annual intensity (never a
+  sum of shares), per capita divides the real value by the population,
+  and the perspective is FORCED by the dimension with an
+  anti-double-counting grain — project for funders, participation for
+  countries. On the full corpus: NIH 0.138 % of US GDP, EC 0.063 % of EU
+  GDP, NSF 0.035 %; cumulative per capita 2015-2024 US €1 094, DE €230,
+  FR €206. **R4, purchasing power**: the factor comes from the published
+  pair NY.GDP.MKTP.PP.CD / NY.GDP.MKTP.CD at identical country, year and
+  vintage — no reconstruction by factor or exchange rate exists in the
+  code — and the pair is written as one indivisible unit so a mismatched
+  state cannot survive a load. Honesty is the same in all four modes:
+  years without an index are hatched on the axis, never truncated and
+  never a false zero; incompatible views disappear instead of being
+  greyed out; excluded amounts are broken down by reason
+  (`no_gdp_year`, `no_population_year`, `no_rate_year`,
+  `no_jurisdiction`); and every 422 is rendered as a gesture with its
+  own message, including inside a replayed dossier.
+
+- **The local review rig: one double-click, and the harness can no
+  longer hang (docs/outillage-local.md).** `Orion.app` on the Desktop
+  now starts the REVIEW stack (`scripts/orion-local.sh`): Docker woken
+  if needed, the dev Postgres, the corpus checked (initialisation
+  offered when missing — never a silent 20-minute restore), API and vite
+  in real dev mode through the normal authentication flow (only email
+  delivery is replaced, and only locally), real healthchecks awaited,
+  calls refreshed in the background past 24 h. Ports are arbitrated in
+  three classes of provenance: a healthy service the launcher started is
+  reused, an Orion process from this repository is stopped cleanly and
+  relaunched, and a FOREIGN process is never stopped — the launcher says
+  so and gives up. `scripts/bootstrap-local-review.sh` builds the corpus
+  once: `pg_dump` from the untouched `orion_pgdata` volume into the dev
+  database, migrations, calls harvest and invariant checks (699 798
+  projects, published lenses, >1 000 calls), ~10-20 minutes and ~10 GB,
+  with a confirmation before the DROP. The e2e suite moved into its own
+  `orion_e2e` database — it used to destroy the `orion` database on
+  every run, which since the review corpus landed there meant losing
+  everything: 106/106 green in `orion_e2e`, the 699 798 projects intact
+  after it ran. After the 2026-08-24 incident (a failed build left bash
+  deadlocked in `wait4` for 1 h 34 with no verdict), the harness got a
+  20-minute guard that fails LOUDLY, a cleanup trap installed BEFORE any
+  launch (installed after the build, it guaranteed an orphan uvicorn on
+  :8000 at every build failure), build failures spelled out with their
+  full log, and bounded health probes; full suite replayed 133/133 in
+  2.7 minutes, zero skips. Stated honestly in the doc: the review base
+  runs on the dev Postgres tuning (256 MB cache), so full-text search is
+  markedly slower than production — it is a visual review station, not a
+  bench.
+
+- **Orion becomes a PRIVATE application, and accounts get their
+  foundation (docs/conception-workspace.md,
+  docs/conception-acces-prive.md).** Lot 1 lands the workspace socle:
+  migration 0030, seven tables, not one foreign key towards the corpus.
+  Signing in is a magic link with the five contract locks — a 256-bit
+  token stored hashed, single use under race (conditional UPDATE), 15
+  minutes, the fragment never journalised, a confirmation showing a
+  masked address before consumption and a continuity nonce — then opaque
+  sessions, 30 days sliding and 90 absolute, rotated and revocable in
+  base, a sliding-window rate limit that never locks a victim out, and a
+  response indistinguishable whatever happens, Set-Cookie and timing
+  included (the mail leaves in a background task). The door is an
+  approved-email allowlist: an empty list is a door closed for everyone.
+  The first durable capability follows: "Keep in my space" saves the
+  session dossier as it is — the localStorage format IS the schema — so
+  it survives a browser purge and is taken back as a NEW VERSION, never
+  an overwrite. Then the founder's decision of 2026-08-22 REVERSES the
+  chantier's own D4: everything that shows data requires a session, and
+  a public landing tells the product without giving it. Two mechanisms,
+  one per layer: ONE server middleware closed by default (401
+  `NOT_AUTHENTICATED` on every `/api/*` outside a named public list —
+  identical for routes that do not exist, OpenAPI included, so a future
+  route is born private), and ONE front route guard parent to every view
+  including the unknown-pattern one, which preserves the requested URL
+  across the login (the magic link usually opens in another tab). The
+  only public data endpoint is `/api/public/overview`: corpus totals and
+  the lenses' calling card, nothing to list, nothing to crawl. The
+  landing is composed of existing primitives — StatHero, the home's
+  editorial tile, the Lens Room glasses extracted as a shared component,
+  the globe in preview mode showing coverage and NO amount — never a
+  second design system. Recetted in production the same day, first real
+  magic link received. Inherited debt stated on the record: 23 e2e
+  failures PREDATING the chantier, baseline replayed.
+
+- **The Lens Room, the composed identity, and the optical scene
+  (docs/conception-lens-room.md, docs/vision-lens-room.md).** A page of
+  its own, `/lenses`: an immersive moment distinct from the home, which
+  stays the functional entrance. The room is dark in BOTH themes — a
+  projection room does not turn white at noon — through the dark tokens
+  posed locally (`ROOM_TOKENS`, near-black `#0b0d12`, the global theme
+  system untouched). Two objects only, real and served by the published
+  registry: an inclined orbit that draws itself with a satellite-point
+  travelling along it, and a wing profile in three strokes with flowing
+  streamlines. Wireframe, thin stroke, never a rocket and never a plane;
+  `prefers-reduced-motion` freezes everything and the room stays
+  beautiful still. The honesty rule is definitive: a published lens with
+  no drawn object does not exist on screen — the synthetic seed lens
+  never appears, and neither do future lenses. The focus lives in
+  `?focus=`, a SCENE state and never `sector`, which states a data
+  perimeter; the gesture is the map's — first click focuses, second
+  descends into the framed explorer. The composed identity then executes
+  D5, whose condition was Aviation's publication: the token becomes
+  "Orion" everywhere "Orion Space Intelligence" lived, and a framed view
+  reads ORION / SPACE, ORION / AVIATION in the header — where it is a
+  link back to the room, the identity IS the door — and in the document
+  title. The optical scene closes the chantier: the world's glyph plays
+  ONCE, about two seconds, on a world change, then freezes; the only
+  permanent trace is a two-pixel tinted halo and no page is tinted; the
+  alphabet of worlds lives in a single module shared by the room, the
+  header and the overlay, because two drawings that diverge would be two
+  worlds that diverge. Entering and switching speak one language (a
+  tinted ring opening on the real world, 900 ms from the glass, 380 on a
+  switch, interruptible, nothing under reduced-motion), the bare root
+  goes through the door — the room without memory, the chosen world with
+  it — and a memory that has become false purges itself after an honest
+  refusal. Three space decks and three aeronautical decks stock the
+  library, each section born from the existing mechanism: the Clean
+  Aviation deck was MEASURED before it was written (the Clean family
+  weighs 60 % of the lens's funding across three generations — Clean Sky
+  €0.8B, Clean Sky 2 €1.8B, Clean Aviation €1.2B since 2022 over forty
+  projects), and the home's "Analyse" door follows the active lens
+  instead of a hard-coded space title.
+
+- **Aviation, Orion's second published lens (A1,
+  docs/conception-a1-aviation.md).** Published v2 in production: 179
+  rules (8 call prefixes, 3 exact concepts, 165 confirmation and text
+  rules, 3 review adjudications), a core of 1 752 projects, 2 enabling,
+  ~€6.3B, second entry of the `aerospace_mobility` family. Structural
+  evidence first: seven call prefixes named one by one — Clean Sky 1,
+  Clean Sky 2, Clean Aviation, FP7-AAT, SESAR 2020, SESAR 3 — plus the
+  Clean Sky 2 member conventions `H2020-IBA-CS2-GAMS-` admitted after a
+  replayable purity audit (2 codes, 18 projects, all Clean Sky 2, taken
+  at the narrowest level because the `H2020-IBA-` neighbourhood carries
+  unrelated projects). That core alone gave 1 574 projects / €4 558M
+  with zero false positives on the adversarial seed. Then a grammar of
+  rules that only exist in PAIRS: a `candidate` euroSciVoc concept opens
+  a pool and NEVER tags alone, a `confirm` closes it on a named field
+  (title, or title + abstract), and the `group` field alone binds them —
+  an incomplete group is refused at load, never in silence. A `token:`
+  mode matching whole words was added, the only honest one for ICAO,
+  RPAS, SESAR or VTOL. Nothing is dressed up as two independent proofs:
+  the published wording is "taxonomic candidate + lexical
+  corroboration", euroSciVoc being derived from the CORDIS texts.
+  Everything is measured rather than asserted — a blind, deterministic,
+  stratified 200-project review sample, 82.5 % agreement at review, the
+  V2-A gate passed at 97.72 %, a final holdout of 102 projects (91 core
+  / 3 enabling / 8 excluded) — and a pattern only enters if it brings at
+  least one true new core and no new excluded: `aircraft`, `uas` and
+  `atm` were REFUSED by the data itself. Review adjudication then
+  entered the grammar as a rule type `project` with a `review` proof
+  (migration 0029), applied last and overriding without condition:
+  HITECA and MOTIVATE moved core → enabling, MultiModX was examined and
+  KEPT core, each written to the rules, the changelog and the run
+  journal so the question is not reopened. The chip did not change by a
+  line — the two perimeters appeared on their own with the first
+  enabling project, and until then a lens offers a single entry, because
+  an empty capability is never displayed.
+
+- **A lens becomes an object, and there is only ONE authority (M0→M1.4,
+  docs/conception-multi-lentilles.md,
+  docs/conception-m1-lentille-active.md).** Migration 0023 takes the tag
+  out of its column: `lenses` mirrors the registry and
+  `project_lens_tags` holds project × lens × core/enabling, so overlap
+  is permitted by construction — a project counts FULL in each lens, and
+  a view carries exactly one. The registry is family → lens
+  (`backend/curation/lenses/registry.csv`) and a lens carries a status
+  draft | published | retired (migration 0024): only a published lens
+  exists for the product, a draft loads and is verified in base without
+  being exposed (Aviation's path), a retired one is never reloaded and
+  its tags stay frozen — nothing is deleted. The vocabulary became one
+  pair in two registers, technical core/enabling and user "direct / +
+  enabling": `adjacent` left base, CSV, payload and screen in a single
+  gesture (migration 0025), and a test now fails if the third term
+  reappears at any depth of the serialised payload. On the front, ONE
+  authority (`src/lib/lens.ts`) resolves the lens from the URL, serves
+  the published registry and gives the words — the NAME of the parameter
+  lives there and nowhere else, so the eventual `sector` → `lens`
+  switch will be one dated gesture rather than a side effect. Refusal is
+  unified and never a silent fallback: absent → unframed view, exactly
+  one published value → framed view, and unknown, unavailable, empty or
+  repeated → an explicit refusal — a structured 400 (`INVALID_LENS`)
+  that never says why (a draft is "unavailable", not "in preparation")
+  and never lists the valid slugs, plus a soft page whose only action
+  removes the lens parameter and PRESERVES the rest of the link. A
+  registry that cannot be read is never a verdict: the authority
+  distinguishes four states (none, loading/error, valid, invalid) so an
+  infrastructure incident cannot make honest links lie. Surfaces state
+  the lens without waiting for the next one — the hero reads the rank-1
+  published lens and takes its words from that lens's curation, a
+  project page shows ALL its memberships (each badge opening the
+  tightest view containing it), the About page is generic per lens with
+  rule counts DERIVED by the loader (migration 0026) and the last run
+  read from the journal, and the document title follows navigation
+  without a reload. M1.4 drops the compatibility alias: `/api/stats` no
+  longer carries a `space` key, and before/after witnesses taken on real
+  production show the difference is EXACTLY that key — totals,
+  funding_by_year, lenses and overlap identical to the byte. Finally,
+  `LENS_BLIND` names the surfaces that cannot honestly consume a lens
+  (entity files, hubs, dossier, workspace, the room itself): carrying
+  the parameter without applying it would be a URL that lies about its
+  perimeter, and removing an entry from that list is a commitment.
+  Genericity is proven, not claimed: the e2e seed publishes a second,
+  synthetic lens with a neutral name, guarded by a barrier test that
+  fails if anyone slips it into production curation.
+
+- **World → region → country → mesh: a real page at every level, and the
+  gesture never changes (lot F, docs/conception-symetrie-geo.md).** The
+  region was a ghost — `?scope=europe` reframed the world map without
+  creating a place. Five region pages are born
+  (`/explore/regions/europe`…): figured hero, framed map on the standard
+  gesture, country ranking with basis badges, top organisations, years —
+  structural twins of the country file, so the Europe page against the
+  United States page reads like two group files. The world page's pills
+  now NAVIGATE, the old `?scope=` survives only as a redirect (pinned
+  links and dossiers keep working, and there are no longer two ways of
+  writing the same place), while the Explorer keeps its own scope — an
+  analysis filter is not an address. The country file gains a
+  three-place breadcrumb (World › Europe › France) and its European mesh
+  section: NAMED bars, never drawn — the registry excludes NUTS
+  geometry — under the native label (Par région, Par Land, Par
+  comunidad…), on the same two-step gesture as the US map, with the
+  "unattached" residue displayed on both sides of the Atlantic. The data
+  came first: the NUTS backfill ran in production and attached 431 798
+  of 463 147 CORDIS participations (93.2 %) in 125 seconds, residues
+  written down (31 349 with no code at source, 2 118 French codes at
+  bare country level); the Eurostat nomenclature entered as a versioned
+  file of 3 348 codes — 254 NUTS1, 610 NUTS2, 2 484 NUTS3 — acquired
+  through the SDMX dissemination API and deliberately NOT through GISCO,
+  CC BY 4.0 verified at the source on loading day, attribution and
+  modifications declared, loaded all-or-nothing (migration 0022). Which
+  NUTS level is the "right" one is CURATION, versioned
+  (`backend/curation/nuts-levels.csv`, 27 countries: Länder NUTS1,
+  comunidades NUTS2, län NUTS3, France NUTS1 — the 2016 map everyone
+  knows), never a silent single level that would manufacture meshes
+  nobody recognises; the display code is the raw code truncated to the
+  curated level, so changing a line and replaying the pass changes the
+  VIEW and never the data, and a bare "FR" attaches to nothing and shows
+  as residue. In production: 491 meshes, 385 485 participations
+  attached, FR10 Île-de-France €12.37B then FRJ2 Midi-Pyrénées €1.16B —
+  aerospace already reads in the mesh. Declared gap: GB, CH and NO were
+  added beyond the validated table and still await review. Found by the
+  tests: a region seen ONLY through consortiums is not a mixture, so the
+  "uneven coverage" note, silent on Asia-Pacific, now confesses louder
+  that domestic budgets there are invisible, not zero.
+
 - **Calls (E1, phase 5 — first slice live).** Orion now ingests the
   open, forthcoming and recently-closed calls for proposals from the
   official EU Funding & Tenders Portal (SEDIA search API, CC BY 4.0 —
@@ -141,6 +447,38 @@ All notable changes to Orion are documented here. The format follows
   loudly failing, with raw page snapshots in the download cache and a
   deterministic `identifier:ASC` pagination (without it, two harvests
   differed by ~200 topics — measured).
+
+### Changed
+
+- **Joint-venture shares stop being decoration — a 67/33 no longer
+  counts twice as 100 (docs/groupes-couche.md, docs/memo-produit.md).**
+  The identity layer's doctrine wrote the rule and the product memo
+  proved it was not honoured: JV shares were curated, validated, stored
+  and DISPLAYED, and ignored by every computation. Every consolidated
+  AMOUNT now carries the pact on the five surfaces where a group
+  aggregates — the group file (totals, trajectory, per-entity series,
+  each entity's contribution and share), the benchmark (KPI, years,
+  programmes, geography), the search stratum, the Explorer's
+  `compare=g<id>` fold and the framed `organisation=g<id>` view — and
+  the consolidated watch-post weighs its windows on the same money.
+  Project COUNTS stay DISTINCT and whole: a co-signed project is a
+  project of the group; it is the money the pact splits, not the facts.
+  The file says it out loud with a "Joint venture · 67 %" badge and a
+  note under the perimeter. Measured before/after in production, on
+  consolidated figures: Airbus €1.03B → €0.99B, Thales €0.62B → €0.61B,
+  Safran €0.58B → €0.55B, Leonardo €0.38B → €0.30B. Then the DOUBLE
+  MEASURE, because both readings are true: "attributed to legal
+  entities" is the legal fact — Thales Alenia Space received 100 % of
+  its own participations — while "exposure by participation" carries the
+  pact and remains THE consolidated figure. The note under the hero
+  states both, each entity shows its attributed amount beside its
+  weighted contribution, the benchmark carries the attributed figure on
+  the back of the funding KPI, and the line appears only when the two
+  readings differ — a group with no joint venture has nothing to split
+  in two. An announced membership weighs in NEITHER reading, and the
+  test now engraves it. Caught in passing: the group file gained its
+  dossier button, and the Explorer's map finally hatches uncovered
+  domestic funding, decks and dossier included.
 
 ### Performance
 
