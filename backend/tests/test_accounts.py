@@ -132,6 +132,31 @@ def test_porte_insensible_a_la_casse_et_sans_doublon(https_client):
     assert workspaces == 1
 
 
+def test_porte_a_plusieurs_adresses_ouvre_a_chacune_et_refuse_l_inconnue(https_client):
+    """La liste réelle est une ligne de `.env` éditée à la main : plusieurs
+    adresses séparées par des virgules, avec les espaces qu'une main laisse.
+    CHACUNE des inscrites ouvre la porte — et une adresse arbitraire hors
+    liste reste refusée, sans lien ni token. Le registre des adresses
+    approuvées vit en conception-workspace, jamais dans le code."""
+    from orion.core.config import get_settings
+    from orion.main import app
+
+    inscrites = ["une@example.com", "deux@example.com", "trois@example.com"]
+    os.environ["ORION_LOGIN_ALLOWLIST"] = " , ".join(inscrites) + " "
+    get_settings.cache_clear()
+    assert get_settings().allowed_emails == frozenset(inscrites)
+
+    for email in inscrites:
+        navigateur = TestClient(app, base_url="https://testserver")
+        sign_in(navigateur, email)
+        assert navigateur.get("/api/me").json()["email"] == email
+
+    assert request_link(https_client, STRANGER) is None
+    with engine.connect() as conn:
+        emis = [r[0] for r in conn.execute(text("SELECT email FROM login_tokens")).fetchall()]
+    assert sorted(emis) == sorted(inscrites)
+
+
 def test_premier_login_cree_compte_et_workspace_personnel(https_client):
     sign_in(https_client)
     res = https_client.get("/api/me")

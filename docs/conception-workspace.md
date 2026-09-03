@@ -537,11 +537,14 @@ Décision fondatrice (2026-08-21, au lendemain de la mise en ligne de
 d'emails approuvés**. Au démarrage, un seul :
 `owner@example.com`.
 
-État de la liste au 2026-08-24 : deux adresses — celle de la fondatrice
-et `approved-user-1@example.com` (ajoutée le 2026-08-24). Deux comptes Orion
-ordinaires, sans privilège : chacun est owner de SON workspace
-personnel et de rien d'autre. Le geste d'ajout est écrit au runbook
-(`infra/README.md`, « Approved emails »).
+État de la liste au 2026-09-03 : trois adresses — celle de la
+fondatrice, `approved-user-1@example.com` (approuvée le 2026-08-24) et
+`approved-user-2@example.com` (approuvée le 2026-09-03). Trois comptes
+Orion ordinaires, sans privilège : chacun est owner de SON workspace
+personnel et de rien d'autre. Ce paragraphe est le REGISTRE des
+adresses approuvées ; la liste elle-même ne vit dans aucun fichier
+versionné — sa valeur effective est celle du `.env` du serveur, posée
+par le geste du runbook (`infra/README.md`, « Approved emails »).
 
 Le contrat, vérifiable en recette :
 
