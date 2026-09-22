@@ -534,17 +534,17 @@ Le code du lot 1 n'attend que le verdict de cette porte.
 
 Décision fondatrice (2026-08-21, au lendemain de la mise en ligne de
 `lensorion.com`) : **l'accès aux comptes est fermé par une liste
-d'emails approuvés**. Au démarrage, un seul :
-`owner@example.com`.
+d'emails approuvés**.
 
-État de la liste au 2026-09-03 : trois adresses — celle de la
-fondatrice, `approved-user-1@example.com` (approuvée le 2026-08-24) et
-`approved-user-2@example.com` (approuvée le 2026-09-03). Trois comptes
-Orion ordinaires, sans privilège : chacun est owner de SON workspace
-personnel et de rien d'autre. Ce paragraphe est le REGISTRE des
-adresses approuvées ; la liste elle-même ne vit dans aucun fichier
-versionné — sa valeur effective est celle du `.env` du serveur, posée
-par le geste du runbook (`infra/README.md`, « Approved emails »).
+Les identités et les adresses des personnes autorisées sont privées et
+ne doivent figurer ni dans les fichiers versionnés ni dans les messages
+de commit. La liste effective vit uniquement dans `ORION_LOGIN_ALLOWLIST`
+du `.env` du serveur ; sa gestion est décrite dans le runbook
+(`infra/README.md`, « Approved emails »). Les exemples documentaires
+utilisent exclusivement des adresses fictives.
+
+Chaque compte Orion est ordinaire, sans privilège : chacun est owner de
+SON workspace personnel et de rien d'autre.
 
 Le contrat, vérifiable en recette :
 
