@@ -1,137 +1,122 @@
-# Orion
+<p align="center">
+  <img src="docs/assets/orion-banner.svg" alt="Orion — Explorer les financements publics de la recherche" width="100%">
+</p>
 
-Public R&D funding, traced and made legible. Orion ingests funded-project
-corpora from the world's major public funders — **CORDIS** (FP7, H2020,
-Horizon Europe), **NIH RePORTER** and **NSF** (awards and official
-obligation series) — resolves organisations and corporate groups
-(GLEIF, Wikidata), and serves curated *lenses* (space, aviation) over an
-explorer, country/organisation/programme hubs, a money-trail chain, and
-open-call tracking.
+<p align="center">
+  <a href="https://lensorion.com"><strong>Découvrir le site</strong></a> ·
+  <a href="docs/getting-started.md">Démarrer en local</a> ·
+  <a href="docs/README.md">Documentation</a> ·
+  <a href="CHANGELOG.md">Évolutions</a>
+</p>
 
-**Status: in production at [lensorion.com](https://lensorion.com).**
-The application is **private** (magic-link sign-in over an allowlist;
-the landing page is public). Corpus at the 2026-08-21 reference state:
-**699 798 projects · 110 116 organisations · 1 102 270 participations**,
-majority-US by value since NIH/NSF ingestion. Amounts can be viewed in
-current euros, constant euros, index-100, growth, % of GDP, per-capita
-and PPP terms (the Reference Engine, backed by World Bank/Eurostat/BLS
-series).
+<p align="center">
+  <a href="https://github.com/charlottecrocicchia-netizen/orion/actions/workflows/ci.yml"><img src="https://github.com/charlottecrocicchia-netizen/orion/actions/workflows/ci.yml/badge.svg" alt="État de la CI"></a>
+  <img src="https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12 ou supérieur">
+  <img src="https://img.shields.io/badge/React-19-149ECA?logo=react&amp;logoColor=white" alt="React 19">
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&amp;logoColor=white" alt="PostgreSQL 16">
+</p>
 
-> Living documentation: [CHANGELOG.md](CHANGELOG.md) ·
-> design docs & runbooks: [docs/](docs/) (FR) ·
-> ADRs: [docs/adr/](docs/adr/) (FR) ·
-> founding brief, kept as an archive: [BRIEF.md](BRIEF.md) (FR)
+## À quoi sert Orion ?
 
-## Prerequisites
+**Qui finance la recherche, quels projets sont soutenus et quelles organisations y participent ?** Orion rassemble des données publiques de financement de la R&D pour rendre ces questions explorables, du programme de financement jusqu’au projet et à ses bénéficiaires.
 
-- **Docker** — any runtime: Docker Desktop, OrbStack, or Colima
-- **[uv](https://docs.astral.sh/uv/)** — Python toolchain
-- **Node.js ≥ 20** and **[pnpm](https://pnpm.io)**
+Le projet associe une chaîne de traitement de données, une API et une interface d’exploration en français et en anglais. Il couvre notamment les programmes européens **CORDIS**, les financements américains **NIH RePORTER** et **NSF**, ainsi que les appels du portail européen **Funding & Tenders**.
 
-macOS one-liner:
+> **Code public, application sur invitation.** Le dépôt présente le travail et son fonctionnement. La page d’accueil de [lensorion.com](https://lensorion.com) est publique ; les outils d’analyse nécessitent un compte autorisé. Le code reste sous le régime **tous droits réservés**.
 
-```bash
-brew install colima docker docker-compose docker-buildx uv pnpm && colima start
-```
+<details>
+<summary><strong>English overview</strong></summary>
 
-(For `docker compose` to work with Homebrew's CLI, add
-`"cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]` to
-`~/.docker/config.json`.)
+Orion makes public R&D funding traceable and explorable. It combines official European and US datasets, organisation identity resolution, a FastAPI backend and a bilingual React interface. Explore projects, organisations, countries, funding programmes and open calls, with explicit source coverage and methodological limits.
 
-> **Keep this repo out of iCloud-synced folders** (`~/Documents`,
-> `~/Desktop` with Desktop & Documents sync): iCloud corrupts Python venvs
-> (hidden flags on `.pth` files, " 2" conflict copies). The canonical
-> location on the founder's machine is **`~/dev/orion`**. As belt and
-> braces, the Makefile keeps the venv outside the repo in
-> `~/.venvs/orion-backend`; if you call `uv` directly instead of `make`,
-> set `UV_PROJECT_ENVIRONMENT="$HOME/.venvs/orion-backend"` first.
+The repository is public; the hosted application is invitation-only. Local development instructions are in the [getting-started guide](docs/getting-started.md). All rights reserved; public visibility does not grant an open-source licence.
 
-## Quickstart — development
+</details>
 
-Orion is a **private application**: with no auth configuration the door
-is closed for everyone (empty allowlist = nobody signs in). The dev
-scripts configure it for you — use them, not bare `make dev`:
+## Ce que l’on peut explorer
 
-```bash
-make bootstrap            # install backend + frontend dependencies
-make db-up migrate        # dev Postgres (Docker) + schema
-./scripts/claude-dev.sh   # API :8000 + web :5173, auth in dev mode
-```
-
-Open http://localhost:5173/login and sign in as `dev@lensorion.test`:
-in dev mode (`ORION_AUTH_DEV=1`) no email is sent — the magic link is
-returned in the HTTP response (visible in the network tab or `curl`).
-Interactive API docs: http://localhost:8000/api/docs.
-
-`make dev` starts the same stack **without** auth configuration — fine
-for API-only work, but the web app will refuse every sign-in.
-
-The database starts empty. To load the corpus, either ingest from the
-public sources (`make ingest` — hours, tens of GB) or restore a
-production dump (see `docs/outillage-local.md` and
-`docs/conception-deploiement.md`, annexe C). On the founder's machine,
-`infra/launcher/install-local.sh` installs **Orion.app** / **Stop
-Orion.app** for a one-double-click local stack.
-
-## Tests and local acceptance
-
-```bash
-make test               # backend (pytest) + frontend (vitest)
-./scripts/e2e-local.sh  # the full Playwright suite in its own harness
-                        # (dedicated seeded orion_e2e database — never
-                        # touches your dev data)
-```
-
-## Full production-like stack (all in Docker)
-
-```bash
-make up          # builds images, runs Postgres + API + web + Caddy
-```
-
-Open http://localhost:8080. Stop with `make down`.
-
-## Commands
-
-Run `make help` for the full list:
-
-| Command | What it does |
+| Une question | Ce qu’Orion propose |
 |---|---|
-| `make dev` | Hot-reload dev servers + dev database (no auth config) |
-| `make test` | Backend (pytest) + frontend (vitest) suites |
-| `make lint` | ruff + oxlint checks |
-| `make up` / `make down` | Full local production stack |
-| `make migrate` | Apply Alembic migrations |
-| `make ingest` | Rebuild the database from public sources |
-| `make deploy` | Deploy to the VPS via `infra/deploy.sh` (manual, behind the snapshot gate — see [infra/](infra/README.md)) |
+| Quels projets travaillent sur un sujet ? | Recherche dans les titres et résumés, filtres par pays, programme et bailleur. |
+| Qui participe à ces projets ? | Fiches d’organisations, rapprochement des identités et groupes d’entreprises. |
+| Où se situent les activités financées ? | Vues par pays et régions, programmes et thèmes. |
+| Où va l’argent public ? | Parcours du bailleur vers les programmes, projets et organisations, avec les limites propres à chaque source. |
+| Comment lire les montants dans le temps ? | Euros courants ou constants et indicateurs de contexte : PIB, population, parité de pouvoir d’achat, selon les données disponibles. |
+| Quelles opportunités suivre ? | Consultation des appels et de leurs échéances ; dossiers dans un espace de travail personnel. |
+| Comment étudier un secteur ? | Lentilles thématiques, notamment spatial et aviation, construites à partir de règles de curation versionnées. |
 
-## Repository layout
+### Un aperçu de l’interface
 
+![Recherche Orion : projets sur l’hydrogène, filtrés par pays et bailleur](docs/assets/project-search.png)
+
+*Capture de développement conservée pour illustrer la recherche et ses filtres. Les chiffres et l’apparence ne constituent pas un état actuel du service.*
+
+## Des chiffres que l’on peut expliquer
+
+Orion distingue les données publiées par les sources, les transformations effectuées et les analyses produites. Une donnée manquante n’est pas un zéro ; un financement observé n’est pas nécessairement une dépense annuelle. Les engagements européens et les obligations américaines ne sont pas interchangeables.
+
+- **Traçabilité** : sources, règles de curation et migrations sont documentées.
+- **Couverture explicite** : les résultats décrivent les corpus chargés, pas toute la recherche mondiale.
+- **Comparaisons encadrées** : devise, période, nature du montant et données disponibles comptent.
+
+Pour les attributions et conditions propres aux données, voir le [registre des sources](docs/data-sources.md). Pour les choix de calcul, voir le [guide d’architecture](docs/architecture.md).
+
+## Par où commencer ?
+
+| Vous souhaitez… | Point d’entrée |
+|---|---|
+| Découvrir le projet | Cette page, puis [le site](https://lensorion.com). |
+| Lancer le code sur votre machine | [Installation et première connexion](docs/getting-started.md). |
+| Comprendre la construction du projet | [Architecture et carte du code](docs/architecture.md). |
+| Retrouver une décision ou une méthode | [Index de la documentation](docs/README.md). |
+| Signaler un problème ou proposer une amélioration | [Guide de contribution](CONTRIBUTING.md), puis [nouveau ticket](https://github.com/charlottecrocicchia-netizen/orion/issues/new/choose). |
+
+## Démarrage rapide
+
+Prérequis : **Git**, **Docker avec Compose**, **uv**, **Node.js 24** et **pnpm 11** (versions Node/pnpm utilisées en CI).
+
+```bash
+git clone https://github.com/charlottecrocicchia-netizen/orion.git
+cd orion
+make bootstrap
+make migrate
+./scripts/claude-dev.sh
 ```
-backend/    FastAPI app — src/orion/{core,api,models,ingest,search}, alembic/, tests/
-frontend/   React SPA — Vite, TypeScript, Tailwind; e2e/ (Playwright)
-infra/      Production compose stack, Caddy, deploy.sh, backup, launcher
-scripts/    Local harnesses: dev, claude-dev, orion-local, e2e-local
-docs/       Design docs, runbooks, ADRs, audits (FR)
+
+Ouvrez **http://localhost:5173/login**, saisissez `dev@lensorion.test`, puis cliquez sur le lien de développement affiché après l’envoi du formulaire. Aucun email n’est envoyé dans ce mode.
+
+**La base locale est vide au départ.** Le corpus de production n’est pas distribué avec le code. Le [guide de démarrage](docs/getting-started.md) explique le chargement des données, la configuration et le dépannage. Les commandes de développement arrêtent la pile Docker de production locale si elle tourne déjà.
+
+## À l’intérieur du dépôt
+
+```text
+orion/
+├── backend/          API FastAPI, ingestion, modèles et tests Python
+│   ├── src/orion/    Logique métier, recherche et authentification
+│   ├── alembic/      Historique des migrations de base de données
+│   └── curation/     Référentiels et règles de curation versionnés
+├── frontend/         Interface React, TypeScript et Tailwind CSS
+│   ├── src/          Pages, composants, traductions et tests unitaires
+│   └── e2e/          Parcours de bout en bout avec Playwright
+├── infra/            Docker, Caddy et procédures de déploiement
+├── scripts/          Outils de développement et de recette
+└── docs/             Architecture, méthodes et décisions de conception
 ```
 
-## Configuration
+**Stack :** Python · FastAPI · SQLAlchemy · PostgreSQL/pgvector · React · TypeScript · Vite · Tailwind CSS · Docker · Caddy.
 
-Everything is configured through environment variables — see
-[.env.example](.env.example). Secrets never live in the repo. The auth
-door is governed by `ORION_LOGIN_ALLOWLIST` (empty = closed for
-everyone) and `ORION_AUTH_DEV` (dev mode: links returned, no email).
+## Qualité et vérification
 
-## CI & deployment
+```bash
+make lint               # Python et frontend
+make test               # pytest et Vitest ; démarre la base de développement
+./scripts/e2e-local.sh   # Playwright dans une base dédiée de recette
+```
 
-CI (GitHub Actions) runs lint, tests, the Playwright journeys and image
-builds on every push and PR — with hard timeouts on every job.
-**Deployment is deliberately manual**: `./infra/deploy.sh` performs an
-atomic update on the VPS (pull → build → migrate → switch), always
-behind the founder's snapshot gate. The full runbook is in
-[infra/README.md](infra/README.md).
+La [CI GitHub Actions](https://github.com/charlottecrocicchia-netizen/orion/actions/workflows/ci.yml) vérifie le lint, les tests, le build frontend, les parcours de bout en bout et des budgets de latence sur un petit jeu de données. Elle construit également les images Docker après ces vérifications. Le déploiement du service reste manuel : [runbook d’exploitation](infra/README.md).
 
-## License
+## Droits et données personnelles
 
-Proprietary — all rights reserved. Source-data licences and
-attributions are listed in-app (`/about-data`) and in
-[docs/data-sources.md](docs/data-sources.md).
+**Tous droits réservés — code propriétaire.** La publication du dépôt ne change pas les droits d’utilisation du logiciel. Les données sources ont leurs propres conditions et attributions, détaillées dans le [registre](docs/data-sources.md).
+
+Les listes de comptes autorisés et les secrets de configuration doivent rester hors du dépôt. Pour un ticket ou une capture, utilisez uniquement des données publiques ou fictives ; voir [CONTRIBUTING.md](CONTRIBUTING.md).
