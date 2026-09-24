@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/charlotte-crocicchia/orion/actions/workflows/ci.yml"><img src="https://github.com/charlotte-crocicchia/orion/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/charlottecrocicchia-netizen/orion/actions/workflows/ci.yml"><img src="https://github.com/charlottecrocicchia-netizen/orion/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12 or later">
   <img src="https://img.shields.io/badge/React-19-149ECA?logo=react&amp;logoColor=white" alt="React 19">
   <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&amp;logoColor=white" alt="PostgreSQL 16">
@@ -60,14 +60,14 @@ See the [source register](docs/data-sources.md) for data attributions and terms,
 | Run Orion on your machine | [Installation and first sign-in](docs/getting-started.md). |
 | Understand how it is built | [Architecture and code map](docs/architecture.md). |
 | Find a method or design decision | [Documentation index](docs/README.md). |
-| Report an issue or suggest an improvement | [Contribution guide](CONTRIBUTING.md), then [open an issue](https://github.com/charlotte-crocicchia/orion/issues/new/choose). |
+| Report an issue or suggest an improvement | [Contribution guide](CONTRIBUTING.md), then [open an issue](https://github.com/charlottecrocicchia-netizen/orion/issues/new/choose). |
 
 ## Quick start
 
 Prerequisites: **Git**, **Docker with Compose**, **uv**, **Node.js 24** and **pnpm 11** (the Node/pnpm versions used in CI).
 
 ```bash
-git clone https://github.com/charlotte-crocicchia/orion.git
+git clone https://github.com/charlottecrocicchia-netizen/orion.git
 cd orion
 make bootstrap
 make migrate
@@ -104,7 +104,7 @@ make test               # pytest and Vitest; starts the development database
 ./scripts/e2e-local.sh   # Playwright against a dedicated test database
 ```
 
-[GitHub Actions CI](https://github.com/charlotte-crocicchia/orion/actions/workflows/ci.yml) runs lint, tests, the frontend build, end-to-end journeys and latency budgets against a small dataset. Docker images are built after those checks. Service deployment is manual: see the [operations runbook](infra/README.md).
+[GitHub Actions CI](https://github.com/charlottecrocicchia-netizen/orion/actions/workflows/ci.yml) runs lint, tests, the frontend build, end-to-end journeys and latency budgets against a small dataset. Docker images are built after those checks. Service deployment is manual: see the [operations runbook](infra/README.md).
 
 ## Rights and personal data
 
