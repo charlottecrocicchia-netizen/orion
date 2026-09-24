@@ -1,46 +1,48 @@
-# Documentation Orion
+# Orion documentation
 
-[Retour au dépôt](../README.md)
+[Back to the repository](../README.md)
 
-Trois portes d’entrée pour découvrir le projet :
+Three starting points for exploring the project:
 
-| Votre objectif | Guide |
+| Your goal | Guide |
 |---|---|
-| Installer et utiliser une instance locale | [Démarrage, connexion et dépannage](getting-started.md) |
-| Comprendre comment Orion fonctionne | [Architecture et carte du code](architecture.md) |
-| Signaler un problème ou proposer un changement | [Contribuer](../CONTRIBUTING.md) |
+| Install and use a local instance | [Setup, sign-in and troubleshooting](getting-started.md) |
+| Understand how Orion works | [Architecture and code map](architecture.md) |
+| Report a problem or suggest a change | [Contributing](../CONTRIBUTING.md) |
 
-## Produit et évolution
+These guides are in English. The detailed design records and historical notes linked below are primarily in French; their English link labels describe their subject.
 
-- [Changelog](../CHANGELOG.md) — historique des changements documentés.
-- [Feuille de route](roadmap.md) — orientation du projet ; les échéances sont celles des documents, pas des engagements de livraison.
-- [Doctrine de design](design-doctrine.md) — principes de présentation et d’interaction.
-- [Architecture de l’information](architecture-information.md) — organisation des parcours.
+## Product and evolution
 
-## Données et méthodes
+- [Changelog](../CHANGELOG.md) — documented change history.
+- [Roadmap](roadmap.md) — project direction; dates belong to the original plans and are not delivery commitments.
+- [Design principles](design-doctrine.md) — presentation and interaction principles.
+- [Information architecture](architecture-information.md) — organisation of user journeys.
 
-| Sujet | Référence |
+## Data and methods
+
+| Topic | Reference |
 |---|---|
-| Sources, couverture et attributions | [Registre des sources](data-sources.md) |
-| Modèle de données et ingestion | [ADR 0002](adr/0002-modele-donnees-ingestion.md) |
-| Identités et groupes d’entreprises | [Couche groupes](groupes-couche.md) |
-| Curation versionnée | [Guide de curation](../backend/curation/README.md) |
-| Montants et indicateurs de contexte | [Reference Engine](conception-reference-engine.md) |
-| Décomposition des financements | [Chaîne de l’argent public](conception-b-chaine-argent-public.md) |
-| Obligations annuelles NSF | [Runbook NSF](runbook-nsf-obligations.md) |
-| Appels à projets | [Conception des appels](conception-e1-appels.md) |
-| Lentilles sectorielles | [Conception multi-lentilles](conception-multi-lentilles.md) |
+| Sources, coverage and attribution | [Source register](data-sources.md) |
+| Data model and ingestion | [ADR 0002](adr/0002-modele-donnees-ingestion.md) |
+| Organisation identity and corporate groups | [Group identity layer](groupes-couche.md) |
+| Versioned curation | [Curation guide](../backend/curation/README.md) |
+| Amounts and context indicators | [Reference Engine](conception-reference-engine.md) |
+| Funding breakdowns | [Public money trail](conception-b-chaine-argent-public.md) |
+| NSF annual obligations | [NSF runbook](runbook-nsf-obligations.md) |
+| Funding calls | [Calls design](conception-e1-appels.md) |
+| Industry lenses | [Multi-lens design](conception-multi-lentilles.md) |
 
-## Développement et exploitation
+## Development and operations
 
-- [Choix de stack — ADR 0001](adr/0001-stack-initiale.md).
-- [Outils et fonctionnement local](outillage-local.md) — détails destinés à la maintenance.
-- [Déploiement et exploitation](../infra/README.md) — configuration, sauvegardes et procédures serveur.
-- [Conception du déploiement](conception-deploiement.md) — décisions et contexte.
-- [Accès privé](conception-acces-prive.md) et [espaces de travail](conception-workspace.md).
+- [Stack decisions — ADR 0001](adr/0001-stack-initiale.md).
+- [Local tooling and workflows](outillage-local.md) — maintenance details.
+- [Deployment and operations](../infra/README.md) — configuration, backups and server procedures.
+- [Deployment design](conception-deploiement.md) — decisions and context.
+- [Private access](conception-acces-prive.md) and [workspaces](conception-workspace.md).
 
-## Lire les documents de conception
+## Reading design records
 
-Les fichiers `conception-*`, `chantier-*`, `plan-*` et les audits gardent la trace du travail : hypothèses, arbitrages, limites et étapes parfois non implémentées. Lisez leur date et leurs avertissements avant de les utiliser comme description du service actuel.
+Files named `conception-*`, `chantier-*`, `plan-*` and the audits preserve the development process: assumptions, decisions, limitations and sometimes unimplemented steps. Check their dates and warnings before treating them as descriptions of the current service.
 
-Le [brief fondateur](../BRIEF.md), les [phases initiales](phases/) et l’[ancien état des lieux du produit](etat-des-lieux-produit.md) sont utiles pour comprendre l’évolution. Ce dernier est explicitement signalé comme périmé. Pour une première installation, utilisez le [guide de démarrage](getting-started.md).
+The [founding brief](../BRIEF.md), [initial phases](phases/) and [older product inventory](etat-des-lieux-produit.md) explain how the project evolved. The inventory is explicitly marked as outdated. For a first installation, use the [getting-started guide](getting-started.md).

@@ -1,54 +1,54 @@
-# Comprendre l’architecture
+# Understanding the architecture
 
-[Accueil du dépôt](../README.md) · [Documentation](README.md) · [Démarrage local](getting-started.md)
+[Repository home](../README.md) · [Documentation](README.md) · [Local setup](getting-started.md)
 
-Orion relie trois ensembles : des sources publiques hétérogènes, un modèle de données exploitable et une interface pour interroger ces données.
+Orion connects three layers: heterogeneous public sources, a queryable data model and an interface for exploring the results.
 
 ```mermaid
 flowchart LR
-    A[Sources officielles] --> B[Ingestion Python]
-    B --> C[Normalisation et rapprochement des identités]
+    A[Official sources] --> B[Python ingestion]
+    B --> C[Normalisation and identity resolution]
     C --> D[(PostgreSQL / pgvector)]
-    E[Curation versionnée] --> C
-    D --> F[API FastAPI]
-    F --> G[Interface React]
-    G --> H[Recherche, exploration et dossiers]
+    E[Versioned curation] --> C
+    D --> F[FastAPI backend]
+    F --> G[React interface]
+    G --> H[Search, exploration and dossiers]
 ```
 
-## La chaîne de données
+## The data pipeline
 
-| Couche | Responsabilité | Où lire le code |
+| Layer | Responsibility | Code entry point |
 |---|---|---|
-| Acquisition | Chargeurs CORDIS, NIH, NSF, appels européens et référentiels. | [`backend/src/orion/ingest/`](../backend/src/orion/ingest/) |
-| Orchestration | Choix et ordre des chargeurs, exécution en ligne de commande. | [`ingest/cli.py`](../backend/src/orion/ingest/cli.py) |
-| Identités et curation | Rapprochement des organisations, groupes et lentilles thématiques. | [`backend/curation/`](../backend/curation/) et les chargeurs `dedup`, `gleif`, `wikidata`, `groups`, `lenses`. |
-| Persistance | Modèles relationnels et évolution du schéma. | [`models/`](../backend/src/orion/models/) et [`alembic/`](../backend/alembic/) |
-| Recherche et API | Recherche, filtres, agrégations et endpoints métier. | [`search/`](../backend/src/orion/search/) et [`api/`](../backend/src/orion/api/) |
-| Interface | Pages, composants, état des requêtes et traductions FR/EN. | [`frontend/src/`](../frontend/src/) |
+| Acquisition | Loaders for CORDIS, NIH, NSF, European calls and reference datasets. | [`backend/src/orion/ingest/`](../backend/src/orion/ingest/) |
+| Orchestration | Loader selection, execution order and command-line entry point. | [`ingest/cli.py`](../backend/src/orion/ingest/cli.py) |
+| Identity and curation | Organisation resolution, groups and thematic lenses. | [`backend/curation/`](../backend/curation/) and the `dedup`, `gleif`, `wikidata`, `groups`, `lenses` loaders. |
+| Persistence | Relational models and schema evolution. | [`models/`](../backend/src/orion/models/) and [`alembic/`](../backend/alembic/) |
+| Search and API | Search, filters, aggregations and domain endpoints. | [`search/`](../backend/src/orion/search/) and [`api/`](../backend/src/orion/api/) |
+| Interface | Pages, components, query state and English/French translations. | [`frontend/src/`](../frontend/src/) |
 
-Les données de financement proviennent principalement de **CORDIS**, **NIH RePORTER** et **NSF**. **GLEIF** et **Wikidata** contribuent à la couche d’identité. D’autres séries apportent les taux de change, prix et indicateurs macroéconomiques. Le [registre des sources](data-sources.md) détaille les périmètres et attributions.
+Funding data primarily comes from **CORDIS**, **NIH RePORTER** and **NSF**. **GLEIF** and **Wikidata** contribute to the identity layer. Other series provide exchange rates, price indices and macroeconomic indicators. The [source register](data-sources.md) documents coverage and attribution.
 
-## Les principes de calcul
+## Calculation principles
 
-- **Devise et pouvoir d’achat** : la conversion monétaire ne remplace pas la correction de l’inflation. Le [Reference Engine](conception-reference-engine.md) documente les lectures disponibles et leurs conditions.
-- **Nature des montants** : engagements, obligations annuelles et cumuls ne sont pas des mesures interchangeables. La [chaîne de l’argent](conception-b-chaine-argent-public.md) explicite les décompositions et leurs écarts.
-- **Identités** : une entité légale et son groupe ne sont pas la même unité. Les rapprochements et règles de consolidation sont documentés dans la [couche groupes](groupes-couche.md).
-- **Couverture** : les résultats ne décrivent que les données connues. Une valeur absente doit rester distincte de zéro.
+- **Currency and purchasing power:** currency conversion does not replace inflation adjustment. The [Reference Engine](conception-reference-engine.md) documents available measures and their requirements.
+- **Accounting basis:** commitments, annual obligations and cumulative amounts are not interchangeable. The [money trail](conception-b-chaine-argent-public.md) explains breakdowns and reconciliation gaps.
+- **Identity:** a legal entity and its corporate group are different units. Matching and consolidation rules are described in the [group identity layer](groupes-couche.md).
+- **Coverage:** results describe known data only. Missing values must remain distinct from zero.
 
-Les documents de conception peuvent aussi contenir des étapes proposées ou reportées. Pour savoir ce qui est effectivement implémenté, confrontez-les au [changelog](../CHANGELOG.md), aux routes et aux tests.
+The detailed design references above are in French and may include proposed or deferred work. Check the [changelog](../CHANGELOG.md), routes and tests to determine what is implemented.
 
-## Navigation et accès
+## Navigation and access
 
-Le [routeur frontend](../frontend/src/app.tsx) est le point de départ pour retrouver les pages : recherche de projets et d’organisations, explorateur, comparaisons, appels, chaîne de l’argent et espaces de travail.
+The [frontend router](../frontend/src/app.tsx) is the entry point for finding pages: project and organisation search, the explorer, comparisons, calls, the money trail and workspaces.
 
-L’accès au service repose sur des **liens magiques**, une liste de comptes autorisés et des sessions. La page d’accueil et les routes de connexion sont publiques ; les surfaces métier sont protégées. La logique est dans [`auth/`](../backend/src/orion/auth/), les routes dans [`api/auth.py`](../backend/src/orion/api/auth.py) et les paramètres dans [`core/config.py`](../backend/src/orion/core/config.py).
+Access uses **magic links**, an approved-account list and sessions. The landing page and sign-in routes are public; application features are protected. Authentication logic lives in [`auth/`](../backend/src/orion/auth/), routes in [`api/auth.py`](../backend/src/orion/api/auth.py), and settings in [`core/config.py`](../backend/src/orion/core/config.py).
 
-## Tests et exploitation
+## Testing and operations
 
-- [`backend/tests/`](../backend/tests/) : API, logique métier et comportements des données.
-- [`frontend/src/`](../frontend/src/) : tests unitaires de composants et fonctions.
-- [`frontend/e2e/`](../frontend/e2e/) : parcours utilisateur avec Playwright.
-- [Workflow CI](../.github/workflows/ci.yml) : lint, tests, build, budgets de latence et images Docker.
-- [`infra/`](../infra/README.md) : pile Docker, Caddy, sauvegardes, rafraîchissement et déploiement manuel.
+- [`backend/tests/`](../backend/tests/): API, business logic and data behaviour.
+- [`frontend/src/`](../frontend/src/): component and function unit tests.
+- [`frontend/e2e/`](../frontend/e2e/): Playwright user journeys.
+- [CI workflow](../.github/workflows/ci.yml): lint, tests, builds, latency budgets and Docker images.
+- [`infra/`](../infra/README.md): Docker stack, Caddy, backups, refresh jobs and manual deployment.
 
-Pour les décisions initiales, voir les [ADR](adr/). Pour naviguer parmi les documents de travail, revenir à l’[index](README.md).
+See the [ADRs](adr/) for initial decisions, or return to the [documentation index](README.md) to browse design records.

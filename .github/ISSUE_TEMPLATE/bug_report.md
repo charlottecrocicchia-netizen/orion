@@ -1,29 +1,29 @@
 ---
-name: Signaler un problème / Bug report
-about: Décrire un dysfonctionnement reproductible, sans données personnelles.
+name: Bug report
+about: Report a reproducible problem without sharing personal data.
 title: ""
 labels: ""
 assignees: ""
 ---
 
-## Problème observé
+## Problem
 
-<!-- Français ou anglais. Ne publiez ni email personnel, ni secret, ni lien de connexion. -->
+<!-- Please write in English. Do not include personal emails, secrets or sign-in links. -->
 
-## Étapes pour reproduire
+## Steps to reproduce
 
 1.
 2.
 3.
 
-## Résultat attendu et résultat obtenu
+## Expected and actual behaviour
 
-## Environnement
+## Environment
 
-- Instance : locale / service hébergé
-- Version ou commit, si connu :
-- Système et navigateur :
+- Instance: local / hosted service
+- Version or commit, if known:
+- Operating system and browser:
 
-## Éléments utiles
+## Supporting details
 
-<!-- Logs expurgés, capture sans données personnelles, identifiant et source publique pour un problème de données. -->
+<!-- Redacted logs, screenshots without personal data, or a public identifier and source for data issues. -->

@@ -1,14 +1,14 @@
-## Problème et résultat
+## Problem and outcome
 
-<!-- Expliquez le besoin et le comportement après changement. Français ou anglais. -->
+<!-- Describe the need and resulting behaviour in English. -->
 
-## Vérification
+## Validation
 
-<!-- Commandes exécutées et résultats ; pour la documentation, liens et exemples vérifiés. -->
+<!-- Commands run and results; for documentation, links and examples checked. -->
 
-## Limites ou points à examiner
+## Limitations or review notes
 
-<!-- Effet sur les données, migrations, calculs et traductions si applicable. -->
+<!-- Impact on data, migrations, calculations and translations, where relevant. -->
 
-- [ ] Aucun secret, email personnel, lien magique ou contenu privé ajouté, y compris dans les captures.
-- [ ] Documentation mise à jour si le comportement change.
+- [ ] No secrets, personal emails, magic links or private content added, including in screenshots.
+- [ ] Documentation updated if behaviour changes.

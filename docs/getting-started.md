@@ -1,25 +1,25 @@
-# Lancer Orion en local
+# Run Orion locally
 
-[Accueil du dépôt](../README.md) · [Documentation](README.md) · [Architecture](architecture.md)
+[Repository home](../README.md) · [Documentation](README.md) · [Architecture](architecture.md)
 
-Ce guide lance une instance de développement sur votre machine. Il ne donne pas accès aux comptes ni aux données privées du service hébergé.
+This guide starts a development instance on your machine. It does not provide access to hosted accounts or private service data.
 
-## 1. Préparer les outils
+## 1. Prepare your tools
 
-| Outil | Utilisation |
+| Tool | Purpose |
 |---|---|
-| Git | Récupérer le dépôt. |
-| Docker et Docker Compose | Exécuter PostgreSQL 16 avec pgvector. |
-| [uv](https://docs.astral.sh/uv/) | Installer Python et les dépendances du backend ; Python ≥ 3.12. |
-| Node.js 24 et pnpm 11 | Installer et lancer le frontend, comme en CI. |
+| Git | Clone the repository. |
+| Docker and Docker Compose | Run PostgreSQL 16 with pgvector. |
+| [uv](https://docs.astral.sh/uv/) | Install Python and backend dependencies; Python ≥ 3.12. |
+| Node.js 24 and pnpm 11 | Install and run the frontend, matching CI. |
 
-Vérifiez que le moteur Docker est démarré et que `docker compose version`, `uv --version`, `node --version` et `pnpm --version` répondent.
+Make sure your Docker engine is running and that `docker compose version`, `uv --version`, `node --version` and `pnpm --version` work.
 
-Sur macOS, conservez le dépôt dans un répertoire non synchronisé avec iCloud, par exemple `~/dev/orion`. Le Makefile place l’environnement Python dans `~/.venvs/orion-backend` pour éviter les problèmes de synchronisation des environnements virtuels.
+On macOS, keep the repository outside iCloud-synced folders, for example in `~/dev/orion`. The Makefile places the Python environment in `~/.venvs/orion-backend` to avoid virtual-environment synchronisation problems.
 
-## 2. Installer et démarrer
+## 2. Install and start
 
-Depuis un terminal :
+In a terminal:
 
 ```bash
 git clone https://github.com/charlottecrocicchia-netizen/orion.git
@@ -29,100 +29,100 @@ make migrate
 ./scripts/claude-dev.sh
 ```
 
-`make migrate` démarre la base et applique les migrations. Le script lance ensuite l’API sur le port **8000** et le frontend sur **5173**, avec une configuration de connexion locale.
+`make migrate` starts the database and applies migrations. The script then starts the API on port **8000** and the frontend on **5173**, with local sign-in configured.
 
-Ces commandes arrêtent l’autre pile Docker locale d’Orion avant de démarrer la base de développement : n’utilisez pas simultanément les deux modes.
+These commands stop Orion's other local Docker stack before starting the development database. Do not run both modes at the same time.
 
-## 3. Se connecter
+## 3. Sign in
 
-1. Ouvrez [localhost:5173/login](http://localhost:5173/login).
-2. Saisissez **`dev@lensorion.test`**, l’adresse fictive autorisée par le script.
-3. Envoyez le formulaire, puis cliquez sur le **lien de développement** affiché.
-4. Validez la connexion sur la page suivante si elle vous le demande.
+1. Open [localhost:5173/login](http://localhost:5173/login).
+2. Enter **`dev@lensorion.test`**, the fictitious address approved by the script.
+3. Submit the form and click the displayed **development link**.
+4. Confirm sign-in on the next page if prompted.
 
-En mode développement, aucun message ne part par email. Le serveur retourne le lien dans `dev_link`, et l’interface l’affiche. Utilisez `localhost` de façon cohérente plutôt que de mélanger `localhost` et `127.0.0.1`.
+Development mode sends no email. The server returns the link in `dev_link` and the interface displays it. Use `localhost` consistently rather than mixing it with `127.0.0.1`.
 
-Le bouton n’apparaît pas ? Vérifiez que l’API a bien été lancée avec `./scripts/claude-dev.sh`. `make dev` seul ne configure pas la liste des comptes autorisés et refuse donc les connexions par défaut.
+If the button does not appear, check that the API was started with `./scripts/claude-dev.sh`. Running `make dev` alone does not configure the approved-account list, so sign-in is closed by default.
 
-## 4. Comprendre la base vide
+## 4. Understand the empty database
 
-Un clone contient le code et les migrations, **pas le corpus complet**. Les pages peuvent donc être vides après une installation réussie.
+A clone includes code and migrations, **not the full corpus**. Pages may therefore be empty after a successful installation.
 
-Pour charger les données publiques dans la base de développement :
+To load public data into the development database:
 
 ```bash
 make ingest
 ```
 
-Ce traitement peut durer plusieurs heures et consommer des dizaines de Go entre téléchargements, caches et base. Il n’est pas nécessaire pour lire le code. Certaines sources dépendent de services externes et de leurs disponibilités.
+This can take several hours and use tens of GB across downloads, caches and the database. It is not required to read the code. Some sources depend on the availability of external services.
 
-Pour consulter les chargeurs disponibles sans lancer d’ingestion :
+To list available loaders without starting ingestion:
 
 ```bash
 cd backend
 UV_PROJECT_ENVIRONMENT="$HOME/.venvs/orion-backend" uv run orion-ingest --help
 ```
 
-Les obligations annuelles NSF suivent un chargement distinct, absent de `all` : voir le [runbook NSF](runbook-nsf-obligations.md). Les parcours automatisés utilisent leur propre jeu de données de recette via `./scripts/e2e-local.sh` ; ce harnais recrée sa base `orion_e2e` à chaque exécution.
+NSF annual obligations use a separate loader, excluded from `all`: see the [NSF runbook](runbook-nsf-obligations.md) (French). Automated journeys use their own test dataset through `./scripts/e2e-local.sh`; that harness recreates its `orion_e2e` database on each run.
 
-## 5. Repères et commandes
+## 5. Useful addresses and commands
 
-| Adresse ou commande | Rôle |
+| Address or command | Purpose |
 |---|---|
-| `http://localhost:5173` | Interface de développement. |
-| `http://localhost:8000/api/health` | Santé de l’API. |
-| `http://localhost:5173/api/docs` | Documentation interactive via le proxy frontend, après connexion. |
-| `make help` | Liste des commandes disponibles. |
-| `make lint` | Analyse statique et vérification du format. |
-| `make test` | Tests backend et frontend ; nécessite Docker. |
-| `Ctrl+C` dans le terminal du script | Arrêter les serveurs de développement. |
-| `make db-down` | Arrêter la base de développement. |
+| `http://localhost:5173` | Development interface. |
+| `http://localhost:8000/api/health` | API health endpoint. |
+| `http://localhost:5173/api/docs` | Interactive API documentation through the frontend proxy, after sign-in. |
+| `make help` | List available commands. |
+| `make lint` | Static analysis and formatting checks. |
+| `make test` | Backend and frontend tests; requires Docker. |
+| `Ctrl+C` in the script's terminal | Stop the development servers. |
+| `make db-down` | Stop the development database. |
 
-Avant les tests de bout en bout, arrêtez les serveurs qui utilisent les ports 8000 et 4173, puis installez les navigateurs et lancez le harnais :
+Before running end-to-end tests, stop servers using ports 8000 and 4173, then install the browsers and start the harness:
 
 ```bash
 (cd frontend && pnpm exec playwright install chromium firefox)
 ./scripts/e2e-local.sh
 ```
 
-Sur Linux, Playwright peut aussi demander ses dépendances système. Le harnais est prévu pour Bash et utilise notamment `lsof` et les outils PostgreSQL du conteneur.
+On Linux, Playwright may also require system dependencies. The harness uses Bash, `lsof` and the PostgreSQL tools inside the container.
 
 ## Configuration
 
-Le backend lit les variables **`ORION_*`** de l’environnement. Le fichier [.env.example](../.env.example) décrit notamment la configuration de la pile Docker et de l’authentification. Un `.env` à la racine n’est pas automatiquement chargé par toutes les commandes Python.
+The backend reads **`ORION_*`** environment variables. [.env.example](../.env.example) describes Docker stack and authentication settings. A root `.env` file is not automatically loaded by every Python command.
 
-| Variable | Rôle |
+| Variable | Purpose |
 |---|---|
-| `ORION_DATABASE_URL` | Connexion PostgreSQL ; valeur locale par défaut dans `core/config.py`. |
-| `ORION_PUBLIC_ORIGIN` | Origine utilisée pour les liens de connexion. |
-| `ORION_LOGIN_ALLOWLIST` | Adresses autorisées, séparées par des virgules ; vide = aucun accès. |
-| `ORION_AUTH_DEV` | Liens retournés à l’interface sans envoi d’email ; développement uniquement. |
-| `ORION_SMTP_*` | Paramètres d’envoi des emails pour une instance hébergée. |
+| `ORION_DATABASE_URL` | PostgreSQL connection; the local default is in `core/config.py`. |
+| `ORION_PUBLIC_ORIGIN` | Origin used to build sign-in links. |
+| `ORION_LOGIN_ALLOWLIST` | Approved addresses, separated by commas; empty means no access. |
+| `ORION_AUTH_DEV` | Return links to the interface without sending email; development only. |
+| `ORION_SMTP_*` | Email delivery settings for a hosted instance. |
 
-Ne versionnez pas de véritables listes de comptes, secrets ou fichiers `.env`. Utilisez des adresses fictives dans les exemples et les tickets.
+Do not commit real account lists, secrets or `.env` files. Use fictitious addresses in examples and issues.
 
-## Autre mode : la pile Docker complète
+## Alternative: the complete Docker stack
 
-Pour travailler avec PostgreSQL, l’API, le frontend construit et Caddy :
+To run PostgreSQL, the API, the built frontend and Caddy together:
 
 ```bash
 make up
-# Site : http://localhost:8080
+# Website: http://localhost:8080
 make down
 ```
 
-`make up` crée un `.env` avec un mot de passe de base aléatoire si nécessaire. La connexion applicative reste fermée sans configuration des comptes : ce mode n’est pas le raccourci de développement présenté plus haut. Consultez le [runbook](../infra/README.md) avant de configurer ou déployer une instance.
+`make up` creates a `.env` with a random database password if needed. Application sign-in remains closed until accounts are configured; this mode is separate from the development shortcut above. Read the [operations runbook](../infra/README.md) before configuring or deploying an instance.
 
-## Dépannage
+## Troubleshooting
 
-| Symptôme | À vérifier |
+| Symptom | What to check |
 |---|---|
-| Docker ne répond pas | Démarrer Docker Desktop, OrbStack ou Colima, puis relancer `make migrate`. |
-| `docker compose` est introuvable | Installer le plugin Compose correspondant à votre installation Docker. |
-| Le frontend refuse de démarrer | Utiliser Node.js 24 et pnpm 11, puis refaire `make bootstrap`. |
-| Aucun lien de connexion | Employer l’adresse fictive et le script du guide ; vérifier les erreurs du terminal. |
-| Les résultats sont vides | La base ne contient pas encore de corpus : voir l’étape 4. |
-| Un port est déjà occupé | Arrêter l’ancienne instance avant de relancer ; ne pas lancer plusieurs harnais. |
-| Python ne trouve pas les modules | Passer par `make` ou définir `UV_PROJECT_ENVIRONMENT="$HOME/.venvs/orion-backend"` avec `uv`. |
+| Docker does not respond | Start Docker Desktop, OrbStack or Colima, then rerun `make migrate`. |
+| `docker compose` is missing | Install the Compose plugin for your Docker installation. |
+| The frontend will not start | Use Node.js 24 and pnpm 11, then rerun `make bootstrap`. |
+| No sign-in link appears | Use the fictitious address and the script above; check the terminal for errors. |
+| Results are empty | The database has no corpus yet: see step 4. |
+| A port is already in use | Stop the previous instance before restarting; do not run multiple harnesses. |
+| Python cannot find modules | Use `make`, or set `UV_PROJECT_ENVIRONMENT="$HOME/.venvs/orion-backend"` when running `uv`. |
 
-Si le problème persiste, [ouvrez un ticket](https://github.com/charlottecrocicchia-netizen/orion/issues/new/choose) avec la commande, votre système et un extrait de log sans données personnelles.
+If the problem persists, [open an issue](https://github.com/charlottecrocicchia-netizen/orion/issues/new/choose) with the command, your operating system and a log excerpt with personal data removed.

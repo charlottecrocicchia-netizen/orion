@@ -1,21 +1,21 @@
 ---
-name: Proposer une amélioration / Feature request
-about: Expliquer un besoin, un cas d’usage ou une amélioration de documentation.
+name: Feature request
+about: Describe a need, use case or documentation improvement.
 title: ""
 labels: ""
 assignees: ""
 ---
 
-## Besoin
+## Need
 
-<!-- Quelle question cherchez-vous à résoudre ? Français ou anglais. -->
+<!-- What question are you trying to answer? Please write in English. -->
 
-## Exemple concret
+## Example
 
-<!-- Utilisez des informations publiques ou fictives, jamais de données personnelles. -->
+<!-- Use public or fictitious information, never personal data. -->
 
-## Amélioration proposée
+## Proposed improvement
 
-## Comment savoir si cela fonctionne ?
+## What would success look like?
 
-<!-- Décrivez le résultat utile pour une personne qui utilise Orion. -->
+<!-- Describe a useful outcome for someone using Orion. -->
