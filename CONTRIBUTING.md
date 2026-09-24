@@ -6,7 +6,7 @@ Please write issues and pull requests in **English** so everyone can follow the 
 
 ## Open a useful issue
 
-Use the [issue templates](https://github.com/charlottecrocicchia-netizen/orion/issues/new/choose) for bugs and ideas. Before posting, check whether a similar issue already exists.
+Use the [issue templates](https://github.com/charlotte-crocicchia/orion/issues/new/choose) for bugs and ideas. Before posting, check whether a similar issue already exists.
 
 For bugs, include reproduction steps, expected behaviour, actual results and your environment. For data corrections, include the public source, project or organisation identifier, and access date. Differences in coverage or accounting basis may explain a discrepancy.
 

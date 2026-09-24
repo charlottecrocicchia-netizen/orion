@@ -22,7 +22,7 @@ On macOS, keep the repository outside iCloud-synced folders, for example in `~/d
 In a terminal:
 
 ```bash
-git clone https://github.com/charlottecrocicchia-netizen/orion.git
+git clone https://github.com/charlotte-crocicchia/orion.git
 cd orion
 make bootstrap
 make migrate
@@ -125,4 +125,4 @@ make down
 | A port is already in use | Stop the previous instance before restarting; do not run multiple harnesses. |
 | Python cannot find modules | Use `make`, or set `UV_PROJECT_ENVIRONMENT="$HOME/.venvs/orion-backend"` when running `uv`. |
 
-If the problem persists, [open an issue](https://github.com/charlottecrocicchia-netizen/orion/issues/new/choose) with the command, your operating system and a log excerpt with personal data removed.
+If the problem persists, [open an issue](https://github.com/charlotte-crocicchia/orion/issues/new/choose) with the command, your operating system and a log excerpt with personal data removed.
